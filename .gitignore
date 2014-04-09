@@ -6,3 +6,11 @@
 
 # R data files from past sessions
 .Rdata
+
+# LaTeX aux typsetting files
+.aux
+.bbl
+.blg
+.fdb_latexmk
+.log
+.synctex.gz

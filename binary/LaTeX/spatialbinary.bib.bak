@@ -1,0 +1,475 @@
+
+@book{deHaan2006,
+AUTHOR = {L. de Haan and A. Ferreira},
+TITLE = {Extreme Value Theory},
+SERIES = {Springer Series in Operations Research and Financial Engineering},
+PUBLISHER = {Springer},
+ADDRESS = {New York},
+YEAR = {2006}
+}
+
+@book{Nelsen,
+AUTHOR = {Nelsen, R. B.},
+TITLE = {An introduction to copulas},
+PUBLISHER = {Springer-Verlag},
+ADDRESS = {New York},
+YEAR = {1999}
+}
+
+
+@article{padoan2010,
+  title={Likelihood-based inference for max-stable processes},
+  author={Padoan, S.A. and Ribatet, M. and Sisson, S.A.},
+  journal={Journal of the American Statistical Association},
+  volume={105},
+  pages={263--277},
+  year={2010},
+}
+
+@article{ribatet2012,
+author = {M. Ribatet and D. Cooley and A. C. Davison},
+title = {Bayesian Inference for Composite Likelihood Models and an Application to Spatial Extremes},
+journal = {Statistica Sinica},
+year = {2011},
+volume = {22},
+pages = {813-846}
+}
+
+
+@article{huser2012,
+  title={Space-time modelling of extreme events},
+  author={Huser, R. and Davison, AC},
+  journal={arXiv preprint arXiv:1201.3245},
+  year={2012}
+}
+
+@article{jeon2012,
+  title = {Dependence Structure of Spatial Extremes using Threshold Approach},
+  author = {Jeon, S. and Smith, R.L.},
+  journal = {Submitted},
+  year = {2012}
+}
+
+@ARTICLE{Schlather03,
+AUTHOR ={M. Schlather and J. Tawn},
+TITLE ={A dependence measure for multivariate and spatial extreme values: {P}roperties and Inference},
+JOURNAL= {Biometrika},
+YEAR=2003,
+VOLUME=90,
+PAGES="139-156",
+}
+
+@ARTICLE{Shaby-2013,
+AUTHOR ={B. A. Shaby and B. J. Reich},
+TITLE ={Bayesian spatial extreme value analysis to assess the changing risk of concurrent extremely high temperatures across large portions of European cropland},
+JOURNAL= {Environmetrics},
+YEAR={2013},
+NOTE = {In press}
+}
+
+@BOOK{Resnick87,
+AUTHOR ={S.I. Resnick},
+TITLE ={Extreme Values, Regular Variation, and Point Processes},
+PUBLISHER= {Springer-Verlag},
+ADDRESS={New York},
+YEAR= 1987
+}
+
+@ARTICLE{Coles99b,
+AUTHOR ={S.G. Coles and J. Heffernan and J. Tawn},
+TITLE ={Dependence measures for extreme value analysis},
+JOURNAL= {Extremes},
+YEAR=1999,
+VOLUME=2,
+PAGES="339-365"
+}
+
+@article{barriopedro-2011a,
+  title={The hot summer of 2010: {R}edrawing the temperature record map of Europe},
+  author={Barriopedro, D. and Fischer, E.M. and Luterbacher, J. and Trigo, R.M.
+          and Garc{\'\i}a-Herrera, R.},
+  journal={Science},
+  volume={332},
+  pages={220},
+  year={2011},
+}
+
+@article {bartot-2012a,
+    AUTHOR = {Bartot, Paola and Gaetan, Carlo},
+     TITLE = {A latent process model for temporal extremes},
+   JOURNAL = {},
+  FJOURNAL = {},
+    VOLUME = {},
+      YEAR = {2012},
+    NUMBER = {},
+     PAGES = {},
+      NOTE = {Submitted}
+}
+
+@article {bobb-2011a,
+    AUTHOR = {Bobb, Jennifer F. and Dominici, Francesca and Peng, Roger D.},
+     TITLE = {A {B}ayesian model averaging approach for estimating the
+              relative risk of mortality associated with heat waves in 105
+              {U}.{S}. cities},
+   JOURNAL = {Biometrics},
+    VOLUME = {67},
+      YEAR = {2011},
+     PAGES = {1605--1616},
+}
+
+
+@article {chavez-2012a,
+    AUTHOR = {Chavez-Demoulin, V. and Davison, A. C.},
+     TITLE = {Modelling time series extremes},
+   JOURNAL = {REVSTAT},
+    VOLUME = {10},
+      YEAR = {2012},
+     PAGES = {109--133},
+}
+
+@book{Beirlant04,
+author = {J. Beirlant and Y. Goegebeur and J. Segers and J. Teugels and D. De Waal and C. Ferro},
+title = {Statistics of Extremes: {T}heory and Applications},
+publisher = {Wiley},
+address  = {New York},
+year = {2004}
+}
+@article{clark-2006a,
+  title={Modeling northern hemisphere summer heat extreme changes and
+         their uncertainties using a physics ensemble of climate sensitivity experiments},
+  author={Clark, R.T. and Brown, S.J. and Murphy, J.M.},
+  journal={Journal of climate},
+  volume={19},
+  pages={4418--4435},
+  year={2006}
+}
+
+@book{coles-2001a,
+    AUTHOR = {Coles, Stuart},
+     TITLE = {An introduction to statistical modeling of extreme values},
+    SERIES = {Springer Series in Statistics},
+ PUBLISHER = {Springer-Verlag London Ltd.},
+   ADDRESS = {London},
+      YEAR = {2001},
+     PAGES = {xiv+208},
+      ISBN = {1-85233-459-2},
+}
+
+@article{davison-1990a,
+  title={Models for exceedances over high thresholds},
+  author={Davison, A.C. and Smith, R.L.},
+  journal={Journal of the Royal Statistical Society: Series B},
+  pages={393--442},
+  year={1990},
+}
+
+@article{easterling-2000a,
+  title={Observed Variability and Trends in Extreme Climate Events:
+         {A} Brief Review},
+  author={Easterling, DR and Evans, JL and Groisman, P.Y. and Karl, TR
+          and Kunkel, KE and Ambenje\&, P.},
+  year={2000},
+  journal={Bulletin of the American Meteorological Society},
+  volume={81},
+  pages={417--425},
+}
+
+@article{easterling-2000b,
+  title={Climate extremes: {O}bservations, modeling, and impacts},
+  author={Easterling, D.R. and Meehl, G.A. and Parmesan, C. and
+          Changnon, S.A. and Karl, T.R. and Mearns, L.O.},
+  journal={Science},
+  volume={289},
+  pages={2068--2074},
+  year={2000},
+}
+
+@article {fawcett-2006a,
+    AUTHOR = {Fawcett, Lee and Walshaw, David},
+     TITLE = {A hierarchical model for extreme wind speeds},
+   JOURNAL = {Journal of the Royal Statistical Society: Series C},
+    VOLUME = {55},
+      YEAR = {2006},
+     PAGES = {631--646},
+}
+
+@article {fawcett-2006b,
+    AUTHOR = {Fawcett, Lee and Walshaw, David},
+     TITLE = {Markov chain models for extreme wind speeds},
+   JOURNAL = {Environmetrics},
+    VOLUME = {17},
+      YEAR = {2006},
+     PAGES = {795--809},
+}
+
+@article {fawcett-2007a,
+    AUTHOR = {Fawcett, Lee and Walshaw, David},
+     TITLE = {Improved estimation for temporally clustered extremes},
+   JOURNAL = {Environmetrics},
+    VOLUME = {18},
+      YEAR = {2007},
+     PAGES = {173--188},
+}
+
+@article {fawcett-2012a,
+    AUTHOR = {Fawcett, Lee and Walshaw, David},
+     TITLE = {Estimating return levels from serially dependent extremes},
+   JOURNAL = {Environmetrics},
+    VOLUME = {23},
+      YEAR = {2012},
+     PAGES = {272--283},
+}
+
+@article {ferro-2003a,
+    AUTHOR = {Ferro, Christopher A. T. and Segers, Johan},
+     TITLE = {Inference for clusters of extreme values},
+   JOURNAL = {Journal of the Royal Statistical Society: Series B},
+    VOLUME = {65},
+      YEAR = {2003},
+     PAGES = {545--556},
+}
+
+
+
+@article{fischer-2010a,
+  title={Consistent geographical patterns of changes in high-impact European heatwaves},
+  author={Fischer, EM and Sch{\"a}r, C.},
+  journal={Nature Geoscience},
+  volume={3},
+  pages={398--403},
+  year={2010},
+}
+
+@article {fougeres-2009a,
+    AUTHOR = {Foug{\`e}res, Anne-Laure and Nolan, John P. and Rootz{\'e}n,
+              Holger},
+     TITLE = {Models for dependent extremes using stable mixtures},
+   JOURNAL = {Scandinavian Journal of Statistics},
+    VOLUME = {36},
+      YEAR = {2009},
+     PAGES = {42--59},
+}
+@article{frich-2002a,
+  title={Observed coherent changes in climatic extremes during the second half
+         of the twentieth century},
+  author={Frich, P. and Alexander, LV and Della-Marta, P. and Gleason, B. and
+          Haylock, M. and Klein Tank, AMG and Peterson, T.},
+  journal={Climate Research},
+  volume={19},
+  pages={193--212},
+  year={2002},
+}
+
+
+@article{furrer-2010a,
+  title={Statistical modeling of hot spells and heat waves},
+  author={Furrer, E.M. and Katz, R.W. and Walter, M.D. and Furrer, R.},
+  journal={Climate Research},
+  volume={43},
+  pages={191--205},
+  year={2010}
+}
+
+
+
+@article{huerta-2007a,
+  title={Time-varying models for extreme values},
+  author={Huerta, G. and Sans{\'o}, B.},
+  journal={Environmental and Ecological Statistics},
+  volume={14},
+  pages={285--299},
+  year={2007},
+}
+
+@article{huth-2000a,
+  title={A GCM simulation of heat waves, dry spells, and their relationships to circulation},
+  author={Huth, R. and Kysel{\`y}, J. and Pokorn{\'a}, L.},
+  journal={Climatic Change},
+  volume={46},
+  pages={29--60},
+  year={2000},
+}
+
+
+@book{ipcc-2007b,
+  title={Climate Change 2007: {I}mpacts, adaptation and vulnerability.
+         Contribution of Working Group II to the Fourth Assessment Report of the
+         IPCC},
+  editor={Parry, M.L. and Canziani, O.F. and Palutikof, J.P. and van der Linden,
+          P.J. and Hanson, C.E.},
+  publisher={Cambridge University Press},
+  year={2007}
+}
+
+@article{karl-1997a,
+  title={The 1995 Chicago heat wave: {H}ow likely is a recurrence?},
+  author={Karl, T.R. and Knight, R.W.},
+  journal={Bulletin of the American Meteorological Society},
+  volume={78},
+  pages={1107--1120},
+  year={1997},
+}
+
+
+@article{khaliq-2005a,
+  title={Frequency analysis and temporal pattern of occurrences of
+         southern Quebec heatwaves},
+  author={Khaliq, MN and St-Hilaire, A. and Ouarda, T. and Bobee, B.},
+  journal={International journal of climatology},
+  volume={25},
+  pages={485--504},
+  year={2005},
+}
+
+@article{kunkel-1999a,
+  title={Temporal fluctuations in weather and climate extremes that cause economic and human health impacts: {A} review},
+  author={Kunkel, K.E. and Pielke, R.A. and Changnon, S.A.},
+  journal={Bulletin of the American Meteorological Society},
+  volume={80},
+  pages={1077--1098},
+  year={1999},
+}
+
+
+@article{meehl-2004a,
+  title={More intense, more frequent, and longer lasting heat waves in the 21st century},
+  author={Meehl, G.A. and Tebaldi, C.},
+  journal={Science},
+  volume={305},
+  pages={994},
+  year={2004},
+}
+
+@article{palecki-2001a,
+  title={The nature and impacts of the July 1999 heat wave in the midwestern
+         United States: {L}earning from the lessons of 1995},
+  author={Palecki, M.A. and Changnon, S.A. and Kunkel, K.E.},
+  journal={Bulletin of the American Meteorological Society},
+  volume={82},
+  pages={1353--1367},
+  year={2001},
+}
+
+@article{peng-2011a,
+  title={Toward a quantitative estimate of future heat wave mortality
+         under global climate change},
+  author={Peng, R.D. and Bobb, J.F. and Tebaldi, C. and McDaniel, L. and
+          Bell, M.L. and Dominici, F.},
+  journal={Environmental Health Perspectives},
+  volume={119},
+  pages={701},
+  year={2011},
+}
+
+
+@article{rahmstorf-2011a,
+  title={Increase of extreme events in a warming world},
+  author={Rahmstorf, S. and Coumou, D.},
+  journal={Proceedings of the National Academy of Sciences},
+  volume={108},
+  pages={17905--17909},
+  year={2011},
+}
+
+@article{reich-2012,
+      TITLE = {A hierarchical max-stable spatial model from extreme precipitation},
+    AUTHOR = {Reich, B.J. and Shaby, B.A.},
+   JOURNAL = {The Annals of Applied Statistics},
+    VOLUME = {6},
+      YEAR = {2012},
+     PAGES = {1430-1451}
+}
+
+@article{Wang-2010,
+      TITLE = {Generalized extreme value regression for binary response data: An application to B2B electronic payments system adoption},
+    AUTHOR = {Wang, X and Day, D. K},
+   JOURNAL = {The Annals of Applied Statistics},
+    VOLUME = {64},
+      YEAR = {2010},
+     PAGES = {2000-2023}
+}
+
+@article{Tawn-1990,
+      TITLE = {Modelling multivariate extreme value distributions},
+    AUTHOR = {Tawn, J. A.},
+   JOURNAL = {Biometrika},
+    VOLUME = {77},
+      YEAR = {1990},
+     PAGES = {245-253}
+}
+
+
+@article{robine-2008a,
+  title={Death toll exceeded 70,000 in Europe during the summer of 2003},
+  author={Robine, J.M. and Cheung, S.L.K. and Le Roy, S. and
+          Van Oyen, H. and Griffiths, C. and Michel, J.P. and Herrmann, F.R.},
+  journal={Comptes rendus biologies},
+  volume={331},
+  pages={171--178},
+  year={2008},
+}
+
+
+@article{schar-2004a,
+  title={The role of increasing temperature variability in European
+         summer heatwaves},
+  author={Sch{\"a}r, C. and Vidale, P.L. and L{\"u}thi, D. and Frei, C. and
+          H{\"a}berli, C. and Liniger, M.A. and Appenzeller, C.},
+  journal={Nature},
+  volume={427},
+  pages={332--336},
+  year={2004}
+}
+
+@article{schlenker-2009a,
+  title={Nonlinear temperature effects indicate severe damages to US crop yields under climate change},
+  author={Schlenker, W. and Roberts, M.J.},
+  journal={Proceedings of the National Academy of Sciences},
+  volume={106},
+  pages={15594--15598},
+  year={2009},
+}
+
+@article{smith-1990b,
+  title={Regional estimation from spatially dependent data},
+  author={Smith, R.L.},
+  journal={Unpublished manuscript},
+  year={1990}
+}
+
+@article{smith-1997a,
+  title={Markov chain models for threshold exceedances},
+  author={Smith, R.L. and Tawn, J.A. and Coles, S.G.},
+  journal={Biometrika},
+  volume={84},
+  pages={249},
+  year={1997},
+}
+
+@article {stephenson-2009a,
+    AUTHOR = {Stephenson, Alec G.},
+     TITLE = {High-dimensional parametric modelling of multivariate extreme
+              events},
+   JOURNAL = {Australian \& New Zealand Journal of Statistics},
+    VOLUME = {51},
+      YEAR = {2009},
+     PAGES = {77--88},
+}
+
+
+@article {coles-1999,
+    AUTHOR = {S Coles and J Heffernan and J Tawan},
+     TITLE = {Dependence Measures for Extreme Value Analyses},
+   JOURNAL = {Extremes},
+    VOLUME = {2},
+      YEAR = {1999},
+     PAGES = {339-365},
+}
+
+
+@misc{munichre-2003a,
+  title={Annual Review: {N}atural Catastrophes 2003},
+  author={Munich Re},
+  year={2003},
+  note={\url{www.munichre.com}}
+}

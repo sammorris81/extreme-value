@@ -1,0 +1,84 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[authoryear]{natbib}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{lineno}
+\usepackage{times}
+\usepackage{soul}
+\usepackage{color}
+
+\usepackage[left=1in,top=1in,right=1in]{geometry}
+\input{mycommands.sty}
+
+\pdfpageheight 11in
+\pdfpagewidth 8.5in
+\linespread{1.0}
+
+\begin{document}\linenumbers
+\citep{Gneiting2011}
+
+p. 415 (Table 4) gives suggested threshold weighting for Brier and Quantile scores
+
+\section{Continuous Ranked Probability Scores (CRPS)}
+\begin{itemize}
+    \item For each of the CRPS versions, they still integrate over all $q$ and $\tau$
+    \item For these to be strictly proper, we need a finite first moment ($\xi < 1$)
+\end{itemize}
+
+
+\subsection{Brier scores}
+The Brier probability scores is given by 
+\begin{align}
+    \text{PS}[ F(q), I(y \le q) ] = [ F(q) - I(y \le q) ]^2
+\end{align}
+where $q$ is a quantile of interest.
+
+The CRPS with Brier score is
+\begin{align}
+    S(f, y) = \int_{-\infty}^{\infty} \text{PS}[F(q), I(y \le q) ] u(q) \text{d}q
+\end{align}
+where $u(q)$ is a weighting function (see \ref{sec:weighting}).
+
+Discretized (integral w.r.t. a discrete Stieltjes measure)
+\begin{align}
+    S(f, y) = \frac{ q_u - q_\ell }{ I - 1 } \sum_{i = 1}^I u(q_i) \text{PS}[ F(q), I(y \le q) ] 
+\end{align}
+where $(q_\ell, q_u)$ is the range of interest
+
+\subsection{Quantile scores}
+The quantile score is given by
+\begin{align}
+    \text{QS}_\tau [ q(\tau), y ] = 2 \{ I[y \le q(\tau) ] \} [q(\tau) - y]
+\end{align}
+where $q(\tau)$ is the $\tau$th quantile of the density.
+
+The CRPS with quantile score is
+\begin{align}
+    S(f, y) = \int_{0}^{1} \text{QS}_\tau (q(\tau), y) v(\tau) \text{d}\tau
+\end{align}
+where $v(\tau)$ is a weighting function (see \ref{sec:weighting}).
+
+Discretized (integral w.r.t. a discrete Stieltjes measure)
+\begin{align}
+    S(f, y) = \frac{ 1 }{ J - 1} \sum_{ j = 1 }^{ J-1 } v(\tau_j) \text{QS}_\tau [ F^{-1}(\tau), y ]
+\end{align}
+where $\tau_j = \frac{ j }{ J }$
+
+\section{Suggested threshold weighting functions} \label{sec:weighting}
+This comes from p. 415 - Table 4
+
+\begin{align}
+    & \text{Brier Scores} && \text{Quantile Scores}\\
+    \text{Tails:} \qquad & u(q) = 1 - \phi_{a, b}(q) / \phi_{a,b}(a) && v(\tau) = (2 \tau - 1)^2\\
+    \text{Right Tail:} \qquad & u(q) = \Phi_{a, b}(q) && v(\tau) = \tau^2\\
+    \text{Left Tail:} \qquad & u(q) = 1 - \Phi_{a, b} && v(\tau) = (1 - \tau)^2
+\end{align}
+where $\phi_{a, b}$ and $\Phi_{a, b}$ are the pdf and cdf of a $N(a, b)$ distribution, and $a$ and $b$ are parameters to fine-tune the weighting function.
+
+
+\bibliographystyle{rss}
+\bibliography{threshold}
+\end{document}

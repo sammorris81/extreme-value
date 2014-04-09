@@ -1,0 +1,30 @@
+\begin{thebibliography}{5}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL}\fi
+
+\bibitem[{Coles et~al.(1999)Coles, Heffernan and Tawan}]{Coles-1999}
+Coles, S., Heffernan, J. and Tawan, J. (1999) Dependence measures for extreme
+  value analyses.
+\newblock \textit{Extremes}, \textbf{2}, 339--365.
+
+\bibitem[{Nelsen(1999)}]{nelsen-1999}
+Nelsen, R.~B. (1999) \textit{An introduction to copulas}.
+\newblock New York: Springer-Verlag.
+
+\bibitem[{Reich and Shaby(2012)}]{reich-2012}
+Reich, B. and Shaby, B. (2012) A hierarchical max-stable spatial model from
+  extreme precipitation.
+\newblock \textit{The Annals of Applied Statistics}, \textbf{6}, 1430--1451.
+
+\bibitem[{Tawn(1990)}]{Tawn-1990}
+Tawn, J.~A. (1990) Modelling multivariate extreme value distributions.
+\newblock \textit{Biometrika}, \textbf{77}, 245--253.
+
+\bibitem[{Wang and Day(2010)}]{Wang-2010}
+Wang, X. and Day, D.~K. (2010) Generalized extreme value regression for binary
+  response data: An application to b2b electronic payments system adoption.
+\newblock \textit{The Annals of Applied Statistics}, \textbf{64}, 2000--2023.
+
+\end{thebibliography}

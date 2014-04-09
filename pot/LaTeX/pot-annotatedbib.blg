@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2013)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: pot-annotatedbib.aux
+The style file: rss.bst
+Database file #1: Schlather.bib
+You've used 7 entries,
+            2705 wiz_defined-function locations,
+            638 strings with 5798 characters,
+and the built_in function-call counts, 3578 in all, are:
+= -- 366
+> -- 134
+< -- 5
++ -- 52
+- -- 45
+* -- 321
+:= -- 648
+add.period$ -- 14
+call.type$ -- 7
+change.case$ -- 50
+chr.to.int$ -- 7
+cite$ -- 7
+duplicate$ -- 159
+empty$ -- 261
+format.name$ -- 72
+if$ -- 693
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 7
+newline$ -- 35
+num.names$ -- 28
+pop$ -- 55
+preamble$ -- 1
+purify$ -- 43
+quote$ -- 0
+skip$ -- 86
+stack$ -- 0
+substring$ -- 255
+swap$ -- 37
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 63
+warning$ -- 0
+while$ -- 35
+width$ -- 0
+write$ -- 90

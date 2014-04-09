@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[authoryear]{natbib}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{lineno}
+\usepackage{times}
+\usepackage{soul}
+\usepackage{color}
+
+\usepackage[left=1in,top=1in,right=1in]{geometry}
+\input{mycommands.sty}
+
+\pdfpageheight 11in
+\pdfpagewidth 8.5in
+\linespread{1.0}
+
+\begin{document}\linenumbers
+\section*{\citep{Azzalini1996}}
+Consider $\bY \in \calR^k$ that is distributed as MVN and is independent from $Y_0 \sim N(0, 1)$. Then for
+\begin{align}
+\left( \begin{array}{c}
+    Y_0\\
+    \bY
+\end{array} \right)
+\sim
+N_{k + 1} \left\{ 0, \left( 
+    \begin{array}{c c}
+    1 & 0 \\
+    0 & \bPsi
+    \end{array}
+\right) \right\}
+\end{align}
+Then, $Z_j = \delta_j |Y_0| + \sqrt{ 1 - \delta_j^2} Y_j, j = 1, \ldots, k$ is skewed normal and its density is
+\begin{align}
+    f_k(z) = 2 \phi_k (z; \bOmega) \Phi (\balpha^t \bz) \quad \bz \in \calR^k
+\end{align}
+
+\section*{\citep{Azzalini1999}}
+
+\section*{\citep{Branco2001}}
+Modeling distributions that can account for skewness and heavy tails.
+
+\subsection*{Multivariate elliptical}
+Notation: $\bX \sim El_k(\bmu, \bSigma; \phi)$ means that $\bX \in \calR^k$ follows an elliptical distribution with location vector $\bmu \in \calR^k$, a dispersion matrix $\bSigma \in \calR^{k \times k}$ and characteristic function $\phi$.
+If the density exists, then it is given by
+\beqn
+    f(\bx \mid \bmu, \bSigma) = | \bSigma |^{-1/2} g^{(k)} [ ( \bx - \bmu)^T \bSigma^{-1} (\bx - \bmu)]
+\eeqn
+
+\subsection*{Multivariate skew elliptical}
+Notation: $\bY \sim SE_k(\bmu, \bOmega, \bdelta; \phi)$ means that $\bY \in \calR^k$ follows a skew-elliptical distribution with location vector $\bmu \in \calR^k$, a dispersion matrix $\bSigma \in \calR^{k \times k}$, characteristic function $\phi$ and skewness parameter $\bdelta$.
+If the density exists, then it is given by
+\beqn
+    f_{\bY}(\by) = 2 f_{g^(k)} (\by) F_{g_{q(\by)}} (\blambda^T (\by - \bmu))
+\eeqn
+
+\subsection*{Multivariate skew normal distribution}
+For a multivariate skew normal distribution, the density function is
+\beqn
+    f_{\bY}(\by) = 2 \phi_k ( \by; \bmu, \bOmega) \Phi(\blambda^T (\by - \bmu))
+\eeqn
+where
+\beqn
+    \blambda^T = \frac{ \bdelta^T \bOmega^{-1}}{(1 - \bdelta^T \bOmega^{-1} \bdelta)^{1/2}}
+\eeqn
+
+\subsection*{Multivariate skew $t$ distribution}
+For a multivariate skew $t$ distribution, the density function is 
+\beqn
+    f_{\bY}(\by) = 2f_{\nu, \tau}(\by; \bmu; \bOmega) F_{\nu^*, \tau^*}(\blambda^T(\by - \bmu))
+\eeqn
+
+\subsection*{Other densities mentioned}
+\begin{itemize}
+    \item Skew logistic
+    \item Skew stable distribution
+    \item Skew exponential power distribution
+    \item Skew Pearson Type II distribution
+\end{itemize}
+
+\section*{\citep{Sahu2003}}
+
+\section*{\citep{Gupta2004}}
+p. 189
+The general multivariate skew normal distribution has density function
+\beqn
+    2 \phi_k (z; \Omega) \Phi (\alpha^{\text{T}} z) \qquad (z \in \calR^k)
+\eeqn
+where $\phi_k(z; \Omega)$ is a $k$-dimensional process with mean zero, and correlation matrix $\Omega$, $\Phi( \cdot)$ is the $N(0, 1)$ distribution, and $\alpha \in \calR^k$ is a shape term.
+
+\section*{\citep{Allard2007}}
+
+\section*{\citep{Zhang2010}}
+
+\section*{\citep{Minozzo2012}}
+p. 164
+Let $U_t \sim N(0, 1)$ and $V_t(\bs) \sim MVN$ with mean 0, and variance 1, then 
+\beqn
+    \bY_t(\bs) = \sigma \delta |U_t| + \sigma \sqrt{1 - \delta^2} V_t(\bs)
+\eeqn
+follows a 
+
+\bibliographystyle{rss}
+\bibliography{Schlather}
+\end{document}

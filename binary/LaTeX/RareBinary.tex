@@ -1,0 +1,201 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amssymb, amsthm, amsmath, amsfonts}
+\usepackage{doublespace}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[authoryear]{natbib}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{lineno}
+\usepackage{times}
+
+\linespread{1.0}
+
+\newcommand{\btheta}{ \mbox{\boldmath $\theta$}}
+\newcommand{\bmu}{ \mbox{\boldmath $\mu$}}
+\newcommand{\balpha}{ \mbox{\boldmath $\alpha$}}
+\newcommand{\bbeta}{ \mbox{\boldmath $\beta$}}
+\newcommand{\bdelta}{ \mbox{\boldmath $\delta$}}
+\newcommand{\blambda}{ \mbox{\boldmath $\lambda$}}
+\newcommand{\bgamma}{ \mbox{\boldmath $\gamma$}}
+\newcommand{\brho}{ \mbox{\boldmath $\rho$}}
+\newcommand{\bpsi}{ \mbox{\boldmath $\psi$}}
+\newcommand{\bepsilon}{ \mbox{\boldmath $\epsilon$}}
+\newcommand{\bomega}{ \mbox{\boldmath $\omega$}}
+\newcommand{\bDelta}{ \mbox{\boldmath $\Delta$}}
+\newcommand{\bSigma}{ \mbox{\boldmath $\Sigma$}}
+\newcommand{\bA}{ \mbox{\bf A}}
+\newcommand{\bP}{ \mbox{\bf P}}
+\newcommand{\bx}{ \mbox{\bf x}}
+\newcommand{\bX}{ \mbox{\bf X}}
+\newcommand{\bB}{ \mbox{\bf B}}
+\newcommand{\bZ}{ \mbox{\bf Z}}
+\newcommand{\by}{ \mbox{\bf y}}
+\newcommand{\bY}{ \mbox{\bf Y}}
+\newcommand{\bz}{ \mbox{\bf z}}
+\newcommand{\bh}{ \mbox{\bf h}}
+\newcommand{\br}{ \mbox{\bf r}}
+\newcommand{\bt}{ \mbox{\bf t}}
+\newcommand{\bs}{ \mbox{\bf s}}
+\newcommand{\bb}{ \mbox{\bf b}}
+\newcommand{\bL}{ \mbox{\bf L}}
+\newcommand{\bu}{ \mbox{\bf u}}
+\newcommand{\bv}{ \mbox{\bf v}}
+\newcommand{\bV}{ \mbox{\bf V}}
+\newcommand{\bG}{ \mbox{\bf G}}
+\newcommand{\bH}{ \mbox{\bf H}}
+\newcommand{\bw}{ \mbox{\bf w}}
+\newcommand{\bo}{ \mbox{\bf o}}
+\newcommand{\bfe}{ \mbox{\bf e}}
+\newcommand{\iid}{\stackrel{iid}{\sim}}
+\newcommand{\indep}{\stackrel{indep}{\sim}}
+\newcommand{\calR}{{\cal R}}
+\newcommand{\calG}{{\cal G}}
+\newcommand{\calD}{{\cal D}}
+\newcommand{\calS}{{\cal S}}
+\newcommand{\calB}{{\cal B}}
+\newcommand{\calA}{{\cal A}}
+\newcommand{\calT}{{\cal T}}
+\newcommand{\calO}{{\cal O}}
+\newcommand{\argmax}{{\mathop{\rm arg\, max}}}
+\newcommand{\argmin}{{\mathop{\rm arg\, min}}}
+\newcommand{\Frechet}{\mbox{Fr$\acute{\mbox{e}}$chet}}
+\newcommand{\Matern}{ \mbox{Mat$\acute{\mbox{e}}$rn}}
+
+\newcommand{\beq}{ \begin{equation}}
+\newcommand{\eeq}{ \end{equation}}
+\newcommand{\beqn}{ \begin{eqnarray}}
+\newcommand{\eeqn}{ \end{eqnarray}}
+
+
+\begin{document}\linenumbers
+
+\begin{center}
+{\Large {\bf A spatial model for rare binary events}}\\
+\today
+\end{center}
+
+\section{Introduction}\label{s:intro}
+
+
+\section{New Model?}\label{s:model}
+
+Let $Y_i\in\{0,1\}$ be the binary response at spatial location $\bs_i\in\calD$, and $\bX_i$ be the associated $p$-vector of covariates with first element equal to one for the intercept.  We relate the covariates with the response using the link function $g$ so that P$(Y_i=1) = p_i= g(\bX_i\bbeta)$, where $\bbeta$ is the $p$-vector of regression coefficients.  For example, \cite{Wang-2010} propose the GEV link function
+$p_i=1-\exp\left[\left(1-\xi\bX_i\bbeta\right)^{-1/\xi}\right]$ for rare binary data. We will also consider logit and probit links.
+
+-- Not quite sure why the article uses this. I think we should use
+\begin{align}
+	p_i = 1 - \exp \left[ - \left(1 + \xi \bX_i \bbeta \right)^{-1/\xi} \right] 
+\end{align}
+
+
+We propose a copula \citep{nelsen-1999} to account for spatial dependence while preserving the marginal event probabilities. Let $Y_i = I(Z_i>z_i)$, where $Z_i$ is a continuous latent variable and $z_i$ is the appropriate threshold so that $P(Y_i=1)=p_i$.  The latent $Z_i$ is modeled using spatial extreme value analysis methods to capture dependence between rare events.  We assume $Z$ follows the max-stable spatial process of \cite{reich-2012}.  Under this model, the marginal distribution of each $Z_i$ is GEV(1,1,1) with P$(Z_i>c) = 1-\exp(-1/c)$.  Therefore, we must set $z_i=-1/\log(1-p_i)$ so that $P(Y_i=1)=p_i$.
+ 
+Spatial dependence is determined by the joint distribution of $\bZ = (Z_1,\ldots,Z_n)$, 
+\beq\label{jointCDF}
+ G(\bz) =  \mbox{P}[Z_1<z_1,\ldots,Z_n<z_n] = \exp\left\{-\sum_{l=1}^L\left[\sum_{i=1}^n\left(\frac{w_{l}(\bs_i)}{z_i}\right)^{1/\alpha}\right]^{\alpha}\right\},
+\eeq
+where $\bz = (z_1,\ldots,z_n)$. This is a special case of the multivariate GEV distribution with asymmetric Laplace dependence function \citep{Tawn-1990}.  The parameter $\alpha\in(0,1)$ determines the strength of dependence, with $\alpha$ near zero giving strong dependence and $\alpha=1$ giving joint independence. The weights $w_{li}>0$ determine the spatial dependence structure, and are discussed in detail in Section \ref{s:spatial}.  Many weight functions are possible, but the weights must be constrained so that $\sum_{l=1}^L w_{l}(\bs_i)=1$ for all $i=1,\ldots,n$ to preserve the marginal GEV distribution.
+
+\section{Spatial dependence}\label{s:spatial}
+
+The weights $w_{l}(\bs_i)$ in (\ref{jointCDF}) should vary smoothly across space to induce spatial dependence.  For example, \cite{reich-2012} take the weights to be scaled Gaussian kernels with knots $\bv_l$, that is
+\beq\label{w}
+   w_{l}(\bs_i) = \frac{\exp\left[-0.5\left(||\bs_i-\bv_l||/\rho\right)^2\right]}
+                 {\sum_{j=1}^L\exp\left[-0.5\left(||\bs_i-\bv_j||/\rho\right)^2\right]}.
+\eeq
+To kernel bandwidth $\rho>0$ determines the spatial range of the dependence, with large $\rho$ giving long-range dependence and vice versa.  
+
+Then in a bivariate setting, the probability of observing a joint exceedances as a function of $\alpha$ is
+
+\begin{align} \label{biv}
+  \text{P}(Y_i = 1, & Y_j = 1) = 1 - \exp\left\{ - \frac{ 1 }{ z_i } \right\} - \exp \left\{ - \frac{ 1 }{z_j} \right\} + \exp \left\{ - \sum_{ l = 1 }^{ L } \left[ \left( \frac{ w_{ l }(\bs_i) }{ z_i } \right)^{1/\alpha} + \left( \frac{ w_{l }(\bs_i)}{z_j} \right)^{1/\alpha} \right]^{\alpha} \right\} \nonumber \\
+  		&= p_i + p_j - \left( 1 - \exp \left \{ - \sum_{ l = 1 }^{ L } \left( \left[ -\log(1-p_i) w_{l}(\bs_i) \right]^{ 1/\alpha } + \left[ -\log(1 - p_j) w_{ l}(\bs_j) \right]^{ 1/\alpha } \right)^{\alpha} \right \} \right).
+\end{align}
+
+To describe the tail dependence, we use the $\chi$ statistic of \citet{Coles-1999}.
+Assume that $Y_i$ and $Y_j$ have the same marginal distributions, then $p_i = p_j = p$ for all $i, j$.
+As shown in Appendix A.2, 
+
+\begin{align}
+\chi = 2 -  \vartheta(\bs_i, \bs_j).
+\end{align}
+where $\vartheta (\bs_i, \bs_j) = \sum_{ l = 1 }^{ L } \left[ w_{l}(\bs_i)^{ 1/\alpha } +  w_{ l}(\bs_j)^{ 1/\alpha } \right]^\alpha$ is the pairwise extremal coefficient given by \citet{reich-2012}.
+In the case of complete dependence, $\chi = 1$, and in the case of complete independence, $\chi = 0$. 
+This is relatively easy to show for $\alpha = 1$, but I don't know of a way to prove $\lim_{\alpha \rightarrow 0} \chi = 1$. Any thoughts?
+
+\section{Computation}\label{s:comp}
+
+As shown in Appendix A.1, the joint probability mass function of $\bY=(Y_1,\ldots,Y_n)$ has a convenient form when the number of events is small.  Let $K=\sum_{i=1}^nY_i$ be the number of events, and assume without loss of generality the data are ordered so that the $Y_1=\ldots=Y_K=1$.  Then
+\beq\label{pmf}
+   P(Y_1=y_1,\ldots,Y_n=y_n) =  \left\{
+                               \begin{array}{ll}
+                                 G(\bz) & K=0 \\
+                                 G(\bz_{(1)})-G(\bz) & K=1 \\
+                                 G(\bz_{(12)})-G(\bz_{(1)})-G(\bz_{(2)})+G(\bz) & K=2
+                               \end{array}
+                             \right.
+\eeq
+where $G(\bz_{(1)}) = P(Z_2<z_2,\ldots,Z_n<z_n)$, $G(\bz_{(2)}) = P(Z_1<z_1,Z_3<z_3,\ldots,Z_n<z_n)$, and $G(\bz_{(12)}) = P(Z_3<z_3,\ldots,Z_n<z_n)$.  Similar expressions can be derived for all $K$, but become cumbersome for large $K$.  Therefore, for small $K$ we can evaluate the likelihood directly.  Most days in our dataset have $K<4$, so we use this expression for those days.  However for days with many events, we must use the latent variable scheme described below (unless you can think of a better way!).
+I think it should be more computationally efficient to use (\ref{pmf}) for any $K$. At most, we have to calculate the $\left( \frac{ w_{l}(\bs_i) }{ z_i } \right)^{1/\alpha}$, for all $i, l$. In the random effects model, the expression for the joint density conditional on $\theta$ is 
+\beq
+	P(Y_1=y_1,\ldots,Y_n=y_n) = \prod_{ i = 1 }^{ n } \left[ \exp \left\{ \sum_{ l = 1 }^{L} A_l \left( \frac{ w_{l}(\bs_i) }{ z_i } \right)^{ 1/\alpha} \right\} \right]^{ 1 - Y_i } \left[ 1 - \exp \left\{ \sum_{ l = 1 }^{L} A_l \left( \frac{ w_{l}(\bs_i) }{ z_i } \right)^{ 1/\alpha} \right\} \right]^{ Y_i }.
+\eeq
+So we still need to compute $\left( \frac{ w_{l}(\bs_i) }{ z_i } \right)^{1/\alpha}$, but we also need to do the sampling for all the $A_l$ terms as well.
+
+\section{Simulation study}\label{s:sim}
+
+\section{Data analysis}\label{s:analysis}
+
+\section{Conclusions}\label{s:con}
+
+\section*{Acknowledgments}
+
+\section*{Appendix A.1: Derivation of the likelihood}
+We use the hierarchical max-stable spatial model given by \citet{reich-2012}. If at each margin, $Z_i \sim $ GEV$(1,1,1)$, then $Z_i | \theta_i \indep $ GEV$(\theta, \alpha \theta, \alpha)$. As defined in section \ref{s:comp}, we reorder the data such that $Y_1=\ldots=Y_K=1$, and $Y_{K+1} = \ldots = Y_n = 0$. Then the joint likelihood conditional on the random effect $\theta$ is
+
+\begin{align} \label{joint_cond}
+	P(Y_1=y_1,\ldots,Y_n=y_n) &= \prod_{ i \le K } \left\{ 1 - \exp \left[ - \left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} \right] \right \} \prod_{ i > K } \exp \left[ -\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] \nonumber \\[0.5em]
+		&= \exp \left[ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] - \exp \left[ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] \sum_{ i = 1}^{K} \exp\left[ -\left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} \right] \nonumber\\
+		&  + \exp \left[ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] \sum_{ 1 < i < j \le K } \left\{ \exp \left[ - \left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} - \left( \frac{ \theta_j }{ z_j } \right)^{ 1/\alpha } \right] \right \} \nonumber \\[0.5em]
+		& + \cdots + (-1)^K \exp\left[ - \sum_{ i = 1 }^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} \right]
+\end{align}
+
+Finally marginalizing over the random effect, we obtain
+
+\begin{align} \label{joint}
+    P(Y_1=y_1,\ldots,Y_n=y_n) &=\int G(\bz | \bA) p( \bA | \alpha) d\bA. \nonumber\\[0.5em]
+			&= \int \exp \left[ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] - \exp \left[ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] \sum_{ i = 1}^{K} \exp\left[ -\left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} \right] \nonumber\\
+		&  + \exp \left[ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right] \sum_{ 1 < i < j \le K } \left\{ \exp \left[ - \left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} - \left( \frac{ \theta_j }{ z_j } \right)^{ 1/\alpha } \right] \right \} \nonumber \\[0.5em]
+		& + \cdots + (-1)^K \exp\left[ - \sum_{ i = 1 }^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{ 1/\alpha} \right] p( \bA | \alpha) d\bA.
+\end{align}
+
+Consider the first term in the summation,
+
+\begin{align}
+	\int \exp \left\{ -\sum_{ i = K+1}^{ n }\left( \frac{ \theta_i }{ z_i } \right)^{1/\alpha} \right\} p( \bA | \alpha) d\bA &= \int \exp \left\{ - \sum_{ i = K + 1 }^n \left( \frac{ \left[ \sum_{ l = 1 }^L  A_l w_{l}(\bs_i)^{1/\alpha} \right)^\alpha }{ z_i} \right]^{ 1/\alpha } \right \} p( \bA | \alpha) d\bA \nonumber \\[0.5em]
+	 &= \int \exp \left\{ -\sum_{ i = K + 1}^n \sum_{ l = 1}^L A_l \left( \frac{ w_l (\bs_i) }{ z_i } \right)^{1/\alpha} \right \} p( \bA | \alpha) d\bA \nonumber \\[0.5em]
+	 &=\exp\left\{-\sum_{ l = 1}^L \left[ \sum_{ i = K + 1 }^n \left( \frac{ w_l(\bs_i)}{ z_i} \right)^{1/\alpha} \right]^\alpha \right\}.
+\end{align}
+
+The remaining terms in equation (\ref{joint}) are straightforward to obtain, and after integrating out the random effect, the joint density is the density given in (\ref{pmf}).
+
+\section*{Appendix A.2: Derivation of the $\chi$ statistic}
+\begin{align} \label{chi}
+  \chi &= \lim_{p \rightarrow 0 }\text{P}(Y_i = 1|Y_j = 1)\nonumber \\
+   &= \lim_{p \rightarrow \infty }\frac{ p + p - \left( 1 - \exp \left \{ - \sum_{ l = 1 }^{ L } \left[ \left( -\log(1-p) w_{l}(\bs_i) \right)^{ 1/\alpha } + \left( -\log(1 - p) w_{ l}(\bs_j) \right)^{ 1/\alpha } \right]^{\alpha} \right \} \right) }{ p } \nonumber \\[0.5em]
+  &= \lim_{p \rightarrow 0 } \frac{ 2p - \left( 1 - \exp \left \{ \log(1-p) \sum_{ l = 1 }^{ L } \left[  w_{l}(\bs_i) ^{ 1/\alpha } +  w_{ l}(\bs_j) ^{ 1/\alpha } \right]^{\alpha} \right \} \right) }{ p } \nonumber \\[0.5em]
+  &= \lim_{p \rightarrow 0 } \frac{ 2p - \left( 1 - (1-p)^{ \sum_{ l = 1 }^{ L } \left[ \left( w_{l}(\bs_i) \right)^{ 1/\alpha } + \left( w_{ l}(\bs_j) \right)^{ 1/\alpha } \right]^\alpha } \right) }{ p } \nonumber \\[0.5em]
+  &=\lim_{p \rightarrow 0 } 2 -\sum_{ l = 1 }^{ L } \left[ w_{l}(\bs_i) ^{ 1/\alpha } +  w_{ l} (\bs_j)^{ 1/\alpha } \right]^\alpha ( 1 - p)^{ -1 + \sum_{ l = 1 }^{ L } \left[  w_{l}(\bs_i) ^{ 1/\alpha } +  w_{ l}(\bs_j)^{ 1/\alpha } \right]^\alpha } \nonumber \\[0.5em]
+  &= 2 -  \sum_{ l = 1 }^{ L } \left[ w_{l}(\bs_i)^{ 1/\alpha } +  w_{ l}(\bs_j) ^{ 1/\alpha } \right]^\alpha.
+\end{align}
+
+\begin{singlespace}
+\bibliographystyle{rss}
+\bibliography{spatialbinary}
+\end{singlespace}
+
+
+\end{document}
+
