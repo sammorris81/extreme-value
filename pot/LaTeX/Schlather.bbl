@@ -4,10 +4,10 @@
   \def\url#1{\texttt{#1}}\fi
 \expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL}\fi
 
-\bibitem[{Schlather(2002)}]{schlather2002}
-Schlather, M. (2002) {Models for Stationary Max-Stable Random Fields}.
-\newblock \textit{Extremes}, \textbf{5}, 33--44.
-\newblock
-  \urlprefix\url{http://link.springer.com/article/10.1023/A:1020977924878}.
+\bibitem[{Minozzo and Ferracuti(2012)}]{Minozzo2012}
+Minozzo, M. and Ferracuti, L. (2012) {On the existence of some skew-normal
+  stationary processes.}
+\newblock \textit{Chilean Journal of Statistics (ChJS)}, \textbf{3}, 157--170.
+\newblock \urlprefix\url{http://chjs.deuv.cl/Vol3N2/ChJS-03-02-04.pdf}.
 
 \end{thebibliography}

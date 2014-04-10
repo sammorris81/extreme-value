@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.12.6)  8 APR 2014 13:31
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.12.18)  10 APR 2014 00:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -229,9 +229,6 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 
 LaTeX Warning: Label `s:model' multiply defined.
 
-
-LaTeX Warning: Label `chi2' multiply defined.
-
 )
 \openout1 = `Schlather.aux'.
 
@@ -347,92 +344,71 @@ LaTeX Font Info:    Try loading font information for OT1+phv on input line 23.
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/psnfss/ot1phv.fd
 File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 )
-LaTeX Font Info:    Try loading font information for U+msa on input line 33.
+LaTeX Font Info:    Try loading font information for U+msa on input line 31.
 
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 33.
+LaTeX Font Info:    Try loading font information for U+msb on input line 31.
 
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 33.
-
-
-LaTeX Warning: Reference `s:model1' on page 1 undefined on input line 45.
-
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 31.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 48.
-[1
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 46.
+ [1
 
 {/usr/local/texlive/2013basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-
-LaTeX Warning: Reference `eq:singleday' on page 2 undefined on input line 114.
-
-[2] [3]
-Overfull \hbox (37.26588pt too wide) in paragraph at lines 265--286
- [] 
- []
-
-
-Overfull \hbox (37.26588pt too wide) in paragraph at lines 293--314
- [] 
- []
-
-[4] [5] [6] (./Schlather.bbl
+(./Schlather.bbl
 LaTeX Font Info:    Try loading font information for OT1+pcr on input line 11.
 
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-Underfull \hbox (badness 2111) in paragraph at lines 8--12
-[]\OT1/ptm/m/n/10.95 Schlather, M. (2002) Mod-els for Sta-tion-ary Max-Stable R
-an-dom Fields.  \OT1/ptm/m/it/10.95 Ex-tremes\OT1/ptm/m/n/10.95 , \OT1/ptm/b/n/
-10.95 5\OT1/ptm/m/n/10.95 , 33--44.
+Underfull \hbox (badness 10000) in paragraph at lines 8--12
+[]\OT1/ptm/m/n/10.95 Minozzo, M. and Fer-ra-cuti, L. (2012) On the ex-is-tence 
+of some skew-normal
  []
 
-) [7] (./Schlather.aux)
 
-LaTeX Warning: There were undefined references.
+Underfull \hbox (badness 10000) in paragraph at lines 8--12
+\OT1/ptm/m/n/10.95 sta-tion-ary pro-cesses.  \OT1/ptm/m/it/10.95 Chilean Jour-n
+al of Statis-tics (ChJS)\OT1/ptm/m/n/10.95 , \OT1/ptm/b/n/10.95 3\OT1/ptm/m/n/1
+0.95 , 157--170.
+ []
 
+) [2] (./Schlather.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 4034 strings out of 494536
- 54057 string characters out of 6167446
- 141922 words of memory out of 5000000
- 7181 multiletter control sequences out of 15000+600000
- 28674 words of font info for 79 fonts, out of 8000000 for 9000
+ 3992 strings out of 494536
+ 53573 string characters out of 6167445
+ 122820 words of memory out of 5000000
+ 7145 multiletter control sequences out of 15000+600000
+ 23821 words of font info for 60 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 38i,10n,32p,563b,286s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 38i,8n,32p,290b,214s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013basic/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/lo
 cal/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></us
-r/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex8.
-pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmm
-i10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmmi12.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi6.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmmi8.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmmib10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmr10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2013basic/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2013basic/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2013basic/texmf-dis
-t/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2013basic/texmf-dist/f
-onts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2013basic/texmf-dist/fon
-ts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/ty
-pe1/urw/times/utmr8a.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/u
-rw/times/utmri8a.pfb>
-Output written on Schlather.pdf (7 pages, 197937 bytes).
+r/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb>
+</usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.p
+fb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
+0.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mr8.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmsy10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmsy8.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/urw/courier
+/ucrr8a.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/urw/helvetic/u
+hvr8a.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/urw/times/utmb8a
+.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
+</usr/local/texlive/2013basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on Schlather.pdf (2 pages, 122288 bytes).
 PDF statistics:
- 101 PDF objects out of 1000 (max. 8388607)
- 73 compressed objects within 1 object stream
+ 60 PDF objects out of 1000 (max. 8388607)
+ 43 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

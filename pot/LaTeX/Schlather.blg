@@ -5,37 +5,37 @@ The style file: rss.bst
 Database file #1: Schlather.bib
 You've used 1 entry,
             2705 wiz_defined-function locations,
-            590 strings with 4739 characters,
-and the built_in function-call counts, 454 in all, are:
-= -- 45
-> -- 10
+            590 strings with 4795 characters,
+and the built_in function-call counts, 544 in all, are:
+= -- 54
+> -- 18
 < -- 1
-+ -- 4
-- -- 3
-* -- 34
-:= -- 89
++ -- 7
+- -- 6
+* -- 50
+:= -- 100
 add.period$ -- 3
 call.type$ -- 1
-change.case$ -- 6
+change.case$ -- 7
 chr.to.int$ -- 1
 cite$ -- 1
-duplicate$ -- 21
-empty$ -- 36
-format.name$ -- 4
-if$ -- 85
+duplicate$ -- 23
+empty$ -- 38
+format.name$ -- 11
+if$ -- 101
 int.to.chr$ -- 1
 int.to.str$ -- 1
 missing$ -- 1
 newline$ -- 12
 num.names$ -- 4
-pop$ -- 4
+pop$ -- 7
 preamble$ -- 1
-purify$ -- 5
+purify$ -- 6
 quote$ -- 0
-skip$ -- 14
+skip$ -- 13
 stack$ -- 0
-substring$ -- 30
-swap$ -- 3
+substring$ -- 36
+swap$ -- 6
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
