@@ -45,7 +45,7 @@ Computationally, the values below the threshold are updated using standard Bayes
 
 \subsection{Complete data}\label{s:model}
 Consider the spatial process
-\begin{align} \label{fullmodel}
+\begin{align} \label{eq:fullmodel}
   Y_t(\bs) &= X_t(\bs) \beta + e_t(\bs)\\
   e_t(\bs) &= \sigma \delta | u_t(\bs) | + v_t(\bs)
 \end{align}
@@ -60,7 +60,6 @@ Then
 \end{align}
 where $l = \argmin_j ||\bs - w_j ||$ and $\Theta = \{ u_{t1}, \ldots, u_{tL}, w_{t1}, \ldots, w_{tL}, \beta, \rho, \nu, \sigma \}$ are the random effects, knot locations, and parameters for the mean, and spatial covariance.
 
-
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
 First, we impute values below the threshold.
@@ -74,7 +73,8 @@ We can use Gibbs sampling to update $\Yt_t(\bs)$ for observations that are below
 So we sample $Y_t(\bs) \sim \text{TN}_{(-\infty, T)}$
 
 \subsection{Parameter updates}\label{s:params}
-To update $\Theta$ given the current value of the complete data $\bY_1, \ldots, \bY_T$, we use a standard Metropolis update.
+To update $\Theta$ given the current value of the complete data $\bY_1, \ldots, \bY_T$, we use a standard Gibbs updates for all parameters except for the knot locations which are done using a Metropolis update.
+See Appendix A.1 for details regarding Gibbs sampling and $|u_t(\bs)|$.
 
 \subsection{Spatial prediction}\label{s:pred}
 Given $\bY_t$ the usual Kriging equations give the predictive distribution for $Y_t(\bs^*)$ at prediction location $(\bs^*)$
@@ -87,24 +87,14 @@ Given $\bY_t$ the usual Kriging equations give the predictive distribution for $
 
 \section*{Acknowledgments}
 
-\section*{Appendix A.1: MCMC Details}
+\section*{Appendix A.1: Half-Normal results}
+\input{halfnormal.tex}
+
+\section*{Appendix A.2: MCMC Details}
 
 \subsection*{Priors}
-For a given day
-\beqn
-	r_{j} &\iid& \mbox{IG}(\xi_r, \sigma_r)\nonumber\\ 
-	\sigma_r &\sim& \mbox{Gamma}(0.1, 0.1)\nonumber\\
-	\xi_r &\sim& \mbox{Discrete Uniform}(0.5, 30)\nonumber\\
-	\bv_{j} &\iid& \mbox{Uniform}(\calD)\nonumber\\
-	\mu(\bs) &\sim& \mbox{MVN}(0, \mbox{diag}(10))\nonumber\\
-	\log(\rho) &\sim& \mbox{N}(0, 10)\nonumber\\
-	\log(\nu) &\sim& \mbox{N}(-1, 1)\nonumber\\
-	\alpha &\sim& \mbox{Unif}(0, 1)\nonumber
-\eeqn
-where $v_j$ are the locations of the spatial knots over $\calD$, $\alpha$ is a parameter controlling the proportion of $r^2_{j}$ that is attributed to the nugget and partial sill. 
-If $\alpha = 0$, then $r^2_{j}$ can be entirely attributed to the nugget effect, and if $\alpha = 1$, then $r^2_{tj}$ can be entirely attributed to the partial sill.
-We use Gibbs sampling for $r_j, \sigma_r$, and $\mu(\bs)$. 
-All other parameters are sampled using a random-walk Metropolis Hastings algorithm.
+
+
 
 \bibliographystyle{rss}
 \bibliography{Schlather}
