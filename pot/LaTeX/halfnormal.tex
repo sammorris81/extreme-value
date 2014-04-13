@@ -1,0 +1,45 @@
+
+\subsection*{Half-normal}\label{s:hn}
+Let $u = \xi + \sqrt{\eta} |x|$ where $X \sim N(0, 1)$.
+Then \citet{Wiper2008} show that $U$ follows a half-normal distribution which we shall write as $U \sim \mbox{HN}(\xi, \theta )$ where $\theta = \displaystyle \frac{ 1 }{ \eta }$ is a precision term.
+The density is given by 
+\begin{align}
+  f_U(u) = \frac{ \sqrt{\theta \pi} }{ \sqrt{2} } \exp \left( - \frac{ (u-\xi)^2 \theta }{ 2 } \right), \quad u > \xi.
+\end{align}
+
+\subsubsection*{Conditional posterior of $U | Y$}\label{s:condu}
+Let $Y | U \sim \mbox{N}(U, \sigma^2)$, let $\tau = 1 / \sigma^2$, and let $\pi(U) \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\}$. 
+Then the conditional posterior of $U | Y$ is 
+\begin{align}
+  \pi (U \mid Y) & \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\} \exp \left\{ - \frac{ \tau (y - u)^2 }{ 2 } \right\} \nonumber \\
+    & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ u^2 \theta + \tau (y^2 - 2yu + u^2) \right] \right\} \nonumber \\
+    & \propto \exp \left\{ -\left( \frac{ \theta + \tau }{ 2 } \right) \left[ u^2 - 2u \frac{ \tau y }{ (\theta + \tau )} \right] \right\} \nonumber \\
+    & \propto \exp \left\{ - \frac{ 1 }{ 2 }\left( u - \frac{ \tau y }{ \theta + \tau } \right)^2 \left( \sqrt{ \theta + \tau } \right)^2 \right\} \nonumber\\
+    & \propto \mbox{HN}(\xi^*, \theta^*) \label{eq:condu}
+\end{align}
+where 
+\begin{align*}
+  \xi^* &= \frac{ \tau y }{ \theta + \tau }\\
+  \theta^* &= \theta - \tau
+\end{align*}
+
+\subsubsection*{Conditional posterior of $U_{tl} | \bY_{tl}(\bs)$}\label{s:mvcondu}
+Consider a multivariate response $Y_t(\bs)$ as given by \ref{eq:hier} using two partitions. 
+Then conditioned on the observations in partition 2,  
+\begin{align}
+  Y_{t1} | Y_{t2} \sim \mbox{N}_{n_1} (\omu, \oSigma)
+\end{align}
+where $\omu = \mu_1 + \Sigma_{12} \Sigma_{22}^{-1}(y_{t2} - \mu_{2})$, and $\oSigma = \Sigma_{11} - \Sigma_{12} \Sigma_{22}^{-1}\Sigma_{21}$. 
+Then conditional posterior of $U_{t1} | \bY_{t1}$ is
+\begin{align}
+  \pi(U_{t1} | \bY_{t1}) & \propto \exp \left\{ -\frac{ 1 }{ 2 \sigma^2 \delta^2 } u^2 - \frac{ 1 }{ \sigma^2 (1 - \delta^2 ) } \left[ \bY_{t1} - \omu \right]^T \oSigma^{-1} \left[ \bY_{t1} - \omu \right] \right\}\\
+  & \propto \exp \left\{ - \frac{1}{2 \sigma^2} \left[ \frac{ 1 }{ \delta^2 } u^2 + \frac{ \sigma^2 \delta^2 }{ (1 - \delta^2) } u^2 \bOne^T \oSigma^{-1} \bOne - 2u\bOne^T \oSigma^{-1} [\bY_{t1} - X_{t1}\beta - \Sigma_{12} \Sigma_{22}^{-1} (\bY_{t2} - \mu_2)] \right]\right\}\\
+  & \propto \exp \{ -\frac{ 1 }{ 2 } (u - \xi^*)^2 (\theta^*) \}
+\end{align}
+where
+\begin{align}
+  \xi^* &= \frac{ \sigma \delta \bOne^T \oSigma^{-1}\left[ \bY_{t1} - X_{t1}\beta - \Sigma_{12} \Sigma_{22}^{-1} (\bY_t2 - \mu_2)\right]}{\frac{ 1 }{ \delta^2 } + \frac{ \sigma^2 \delta^2 \bOne^T \oSigma^{-1} \bOne}{(1 - \delta^2)}}\\
+  \theta^* &= \frac{ 1 }{ \sigma^2 \delta^2 } + \frac{ \delta^2 \bOne^T \oSigma^{-1} \bOne }{ (1 - \delta^2 )}
+\end{align}
+
+
