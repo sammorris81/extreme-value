@@ -1,0 +1,13 @@
+\subsection*{Conditional posterior of $\beta | \ldots$}\label{s:betapost}
+Let $\beta \sim \mbox{N}_{p}(0, \Lambda_0)$ where $\Lambda_0$ is a precision matrix. Then 
+\begin{align}
+    \pi(\beta | \mbox{rest}) & \propto \exp \left\{ - \frac{ 1 }{ 2 } \beta^T \Lambda_0 \beta - \frac{ 1 }{ 2 } [\bY_t(\bs) - X_t(\bs) \beta - \sigma \delta |u_t|]^T \Sigma^{-1} [\bY_t(\bs) - X_t(\bs) \beta - \sigma \delta |u_t|] \right\} \nonumber \\
+     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \beta^T \Lambda_n \beta  - 2 [ \beta^T X_t(\bs) \Sigma^{-1} (\bY_t(\bs) + \sigma \delta |u_t| )]\right\} \nonumber \\
+     & \propto \mbox{N}_p ( \mu_p , \Lambda_p)
+\end{align}
+where
+\begin{align*}
+    \mu_p &= \Lambda_p^{-1} X_t(\bs)^T \Sigma^{-1} (\bY_t(\bs) + \sigma \delta | u_t |)\\
+    \Lambda_p &= (\Lambda_0 + X_t(\bs)^T \Sigma^{-1} X_t(\bs) )
+\end{align*}
+and $\Lambda_p$ is a precision matrix.
