@@ -8,23 +8,22 @@ The density is given by
 \end{align}
 
 \subsubsection*{Conditional posterior of $U | Y$}\label{s:condu}
-Let $Y | U \sim \mbox{N}(U, \sigma^2)$, let $\tau = 1 / \sigma^2$, and let $\pi(U) \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\}$. 
+Let $Y_i | U \sim \mbox{N}(U, \sigma^2)$, $i = 1, \ldots, n$, let $\tau = 1 / \sigma^2$, and let $\pi(U) \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\}$. 
 Then the conditional posterior of $U | Y$ is 
 \begin{align}
-  \pi (U \mid Y) & \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\} \exp \left\{ - \frac{ \tau (y - u)^2 }{ 2 } \right\} \nonumber \\
-    & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ u^2 \theta + \tau (y^2 - 2yu + u^2) \right] \right\} \nonumber \\
-    & \propto \exp \left\{ -\left( \frac{ \theta + \tau }{ 2 } \right) \left[ u^2 - 2u \frac{ \tau y }{ (\theta + \tau )} \right] \right\} \nonumber \\
-    & \propto \exp \left\{ - \frac{ 1 }{ 2 }\left( u - \frac{ \tau y }{ \theta + \tau } \right)^2 \left( \sqrt{ \theta + \tau } \right)^2 \right\} \nonumber\\
+  \pi (U \mid Y) & \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\} \exp \left\{ - \sum_{i = 1 }^n\frac{ \tau (y_i - u)^2 }{ 2 } \right\} \nonumber \\
+    & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ u^2 \theta + \sum_{i=1 }^n\tau (y_i^2 - 2y_iu + u^2) \right] \right\} \nonumber \\
+    & \propto \exp \left\{ - \frac{ 1 }{ 2 }\left( u - \frac{ \tau \sum_{i=1}^n y_i }{ \theta + n \tau } \right)^2 \left( \theta + n \tau \right) \right\} \nonumber\\
     & \propto \mbox{HN}(\xi^*, \theta^*) \label{eq:condu}
 \end{align}
 where 
 \begin{align*}
-  \xi^* &= \frac{ \tau y }{ \theta + \tau }\\
-  \theta^* &= \theta + \tau
+  \xi^* &= \frac{ \tau \sum_{i=1}^n y_i }{ \theta + n \tau }\\
+  \theta^* &= \theta + n \tau
 \end{align*}
 
 \subsubsection*{Conditional posterior of $U_{tl} | \bY_{tl}(\bs)$}\label{s:mvcondu}
-Consider a multivariate response $Y_t(\bs)$ as given by \ref{eq:hier} using two partitions. 
+Consider a multivariate response $Y_t(\bs)$ as given by (\ref{eq:hier}) with two partitions. 
 Then conditioned on the observations in partition 2,  
 \begin{align}
   Y_{t1} | Y_{t2} \sim \mbox{N}_{n_1} (\omu, \oSigma)
