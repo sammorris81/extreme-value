@@ -1,0 +1,39 @@
+
+
+
+%\subsubsection*{Conditional posterior of $U | Y$}\label{s:condu}
+% Let $Y_i | U \sim \mbox{N}(U, \sigma^2)$, $i = 1, \ldots, n$, let $\tau = 1 / \sigma^2$, and let $\pi(U) \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\}$. 
+% Then the conditional posterior of $U \mid \ldots$ is 
+% \begin{align}
+%   \pi (U \mid \ldots) & \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\} \exp \left\{ - \sum_{i = 1 }^n\frac{ \tau (y_i - u)^2 }{ 2 } \right\} \nonumber \\
+%     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ u^2 \theta + \sum_{i=1 }^n\tau (y_i^2 - 2y_iu + u^2) \right] \right\} \nonumber \\
+%     & \propto \exp \left\{ - \frac{ 1 }{ 2 }\left( u - \frac{ \tau \sum_{i=1}^n y_i }{ \theta + n \tau } \right)^2 \left( \theta + n \tau \right) \right\} \nonumber\\
+%     & \propto \mbox{HN}(\xi^*, \theta^*) \label{eq:condu}
+% \end{align}
+% where 
+% \begin{align*}
+%   \xi^* &= \frac{ \tau \sum_{i=1}^n y_i }{ \theta + n \tau }\\
+%   \theta^* &= \theta + n \tauå
+% \end{align*}
+
+\subsubsection*{Conditional posterior of $U_{tl} \mid \ldots $}\label{s:mvcondu}
+For a single day, consider $Y(\bs)$ as given by (\ref{eq:hier}) with two partitions.
+Then conditioned on the observations in partition 2,  
+\begin{align}
+  Y_{1} \mid Y_{2} \sim \mbox{N}_{n_1} (\omu, \oSigma)
+\end{align}
+where $\omu = \mu_1 + \Sigma_{12} \Sigma_{22}^{-1}(y_{2} - \mu_{2})$, and $\oSigma = \Sigma_{11} - \Sigma_{12} \Sigma_{22}^{-1}\Sigma_{21}$. 
+Let $U_{l} \iid \mbox{HN}(0, \eta_0), l = 1, 2$ where $\eta_0 = a^2 \sigma^2 \delta^2$.
+Then conditional posterior of $U_{1} \mid \ldots $ is
+\begin{align*}
+  \pi(U_{1} \mid \bY_{1}) & \propto \exp \left\{ -\frac{ u^2 }{ 2 a^2 \sigma^2 \delta^2 } - \frac{ 1 }{ \sigma^2 (1 - \delta^2 ) } \left[ \bY_{1} - \omu \right]^T \oSigma^{-1} \left[ \bY_{1} - \omu \right] \right\}\\
+  & \propto \exp \left\{ - \frac{1}{2 \sigma^2} \left[ \frac{ 1 }{ a^2 \delta^2 } + \frac{ \bOne^T \oSigma^{-1} \bOne }{ (1 - \delta^2) } \right] u_1^2  - 2u_1\bOne^T \oSigma^{-1} [\bY_{1} - X_{1}\beta - \Sigma_{12} \Sigma_{22}^{-1} (\bY_{2} - \mu_2)] \right\}\\
+  & \propto \exp \left \{ -\frac{ (u_1 - \xi^*)^2 }{ 2 \eta^{*} } \right \}
+\end{align*}
+where
+\begin{align*}
+  \xi^* &= \frac{ \bOne^T \oSigma^{-1}\left[ \bY_{1} - X_{1}\beta - \Sigma_{12} \Sigma_{22}^{-1} (\bY_2 - \mu_2)\right]}{\eta^*}\\
+  \eta^* &= \left\{ \frac{ 1}{ \sigma^2 } \left[ \frac{ 1 }{ a^2 \delta^2 } + \frac{ \bOne^T \oSigma^{-1} \bOne }{ (1 - \delta^2 )} \right] \right\}^{-1}
+\end{align*}
+
+

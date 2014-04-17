@@ -40,25 +40,37 @@ Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ on day $t$.  To 
 where $T$ is a pre-specified threshold.   
 
 We first specify a model for the complete data, $Y_t(\bs)$, and then study the induced model for thresholded data, $\Yt_t(\bs)$.  
-The full data model is given in Section \ref{s:model} assuming a multivariate normal distribution with a different variance each day.
+The full data model is given in Section \ref{s:model} assuming a skew normal distribution with a different variance each day.
 Computationally, the values below the threshold are updated using standard Bayesian missing data methods as described in Section \ref{s:comp}.
+The skew normal representation is from \citep{Minozzo2012} and is the sum of a normal and half-normal random variable.
+\subsection{Half-normal}\label{s:hn}
+Let $u = \xi + \sqrt{\eta} |z|$ where $Z \sim N(0, 1)$.
+Then $U$ follows a half-normal distribution, $U \sim \mbox{HN}(\xi, \eta )$ \citep{Wiper2008}, and the density is given by 
+\begin{align}
+  f_U(u) = \frac{ \sqrt{\pi} }{ \sqrt{2 \eta} } \exp \left( - \frac{ (u-\xi)^2 }{ 2 \eta } \right), \quad u > \xi.
+\end{align}
 
 \subsection{Complete data}\label{s:model}
 Consider the spatial process
 \begin{align} \label{eq:fullmodel}
   Y_t(\bs) &= X_t(\bs) \beta + e_t(\bs)\\
-  e_t(\bs) &= \sigma \delta | u_t(\bs) | + v_t(\bs)
+  e_t(\bs) &= u_t(\bs) + v_t(\bs)
 \end{align}
-where $u_t(\bs) = u_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $u_{tl} \iid N(0, 1)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial process with mean zero and variance $\sigma^2(1 - \delta^2)$.
+where $u_t(\bs) = \sigma \delta |z_t|$, $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N(0, 1)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial process with mean zero and variance $\sigma^2(1 - \delta^2)$.
 Then $Y_t(\bs)$ is skew normal within each partition \citep{Minozzo2012}.
 We model this with a Bayesian hierarchical model as follows.
 Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that $P_{tl}$ includes all spatial locations $\bs$ that are within the partition.
 Then
 \begin{align} \label{eq:hier}
-    Y_t(\bs) \mid \Theta &= \mu_t(\bs) + v_t(\bs) \\
-    \mu_t(\bs) &= X_t(\bs) \beta + \sigma \delta | u_{tl} |
+    Y_t(\bs) \mid \Theta &= X_t(\bs) \beta + u_t(\bs) + v_t(\bs) \\
+    u_t(\bs) \mid \Theta &\sim \mbox{Half-Normal}(0, \sigma \delta)\\
+    v_t(\bs) \mid \Theta & \sim \Matern(0, \Sigma)\\
+    \sigma &\sim \mbox{IG}(\alpha, \beta)\\
+    \delta &\sim \mbox{U}(-1, 1)
 \end{align}
-where $l = \argmin_j ||\bs - w_j ||$ and $\Theta = \{ u_{t1}, \ldots, u_{tL}, w_{t1}, \ldots, w_{tL}, \beta, \rho, \nu, \sigma \}$ are the random effects, knot locations, and parameters for the mean, and spatial covariance.
+where $l = \argmin_j ||\bs - w_j ||$, $\Theta = \{u_{t1}, \ldots, u_{tL}, w_{t1}, \ldots, w_{tL}, \beta, \sigma, \delta, \rho, \nu \}$ and $\Sigma$ is a \Matern covariance matrix with variance $\sigma^2 (1 - \delta^2)$ 
+
+
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
@@ -88,8 +100,9 @@ Given $\bY_t$ the usual Kriging equations give the predictive distribution for $
 \section*{Acknowledgments}
 
 \section*{Appendix A.1: Posterior distributions}
-\input{halfnormal.tex}
+\input{upost.tex}
 \input{betapost.tex}
+\input{sigpost.tex}
 
 \section*{Appendix A.2: MCMC Details}
 
@@ -98,7 +111,7 @@ Given $\bY_t$ the usual Kriging equations give the predictive distribution for $
 
 
 \bibliographystyle{rss}
-\bibliography{Schlather}
+\bibliography{skewnormal}
 
 \end{document}
 

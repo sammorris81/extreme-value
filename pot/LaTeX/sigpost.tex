@@ -1,0 +1,13 @@
+\subsection*{Conditional posterior of $\sigma^2 \mid \ldots$}\label{s:sigpost}
+Let $\sigma_t^2 \iid \mbox{IG}(\alpha, \beta)$. Then for a given day,
+\begin{align*}
+    \pi(\sigma_t^2 \mid \ldots) & \propto (\sigma_t^2)^{-\alpha - 1} \exp \left\{ -\frac{ \beta}{ \sigma_t^2 } \right\} - (\sigma_t^2)^{ - L / 2 } \exp \left\{ - \sum_{ l = 1 }^{ L} \frac{ u_{tl}^2 }{ 2 a^2 \sigma_t^2 \delta^2 } \right\} (\sigma_t^2)^{-n/2} \exp \left\{ -\frac{ [\bY_t - \mu]^T \Sigma^{-1} [\bY_t - \mu] }{2 \sigma_t^2 (1 - \delta^2 ) }\right\} \\
+    & \propto (\sigma_t^2)^{ -\alpha - L / 2 - n / 2 - 1} \exp \left\{ - \frac{ 1 }{ \sigma^2 } \left[\beta + \sum_{ l = 1 }^{ L}\frac{ u_{tl}^2 }{ 2 a^2 \delta^2} + \frac{ (\bY_t - \mu)^T \Sigma^{-1} (\bY_t - \mu) }{ 2 (1 - \delta^2)} \right] \right\} \\
+    & \propto \mbox{IG} (\alpha^*, \beta^*)
+\end{align*}
+where
+\begin{align*}
+    \alpha^* &= \alpha + L / 2 + n / 2 \\
+    \beta^* &= \beta + \sum_{ l = 1 }^{ L}\frac{ u_{tl}^2 }{ 2 a^2 \delta^2} + \frac{ (\bY_t - \mu)^T \Sigma^{-1} (\bY_t - \mu) }{ 2 (1 - \delta^2)}
+\end{align*}
+and $L$ is the number of partitions.
