@@ -44,33 +44,32 @@ The full data model is given in Section \ref{s:model} assuming a skew normal dis
 Computationally, the values below the threshold are updated using standard Bayesian missing data methods as described in Section \ref{s:comp}.
 The skew normal representation is from \citep{Minozzo2012} and is the sum of a normal and half-normal random variable.
 \subsection{Half-normal}\label{s:hn}
-Let $u = \xi + \sqrt{\eta} |z|$ where $Z \sim N(0, 1)$.
+Let $u = \xi + \eta |z|$ where $Z \sim N(0, 1)$.
 Then $U$ follows a half-normal distribution, $U \sim \mbox{HN}(\xi, \eta )$ \citep{Wiper2008}, and the density is given by 
 \begin{align}
-  f_U(u) = \frac{ \sqrt{\pi} }{ \sqrt{2 \eta} } \exp \left( - \frac{ (u-\xi)^2 }{ 2 \eta } \right), \quad u > \xi.
+  f_U(u) = \frac{ \sqrt{\pi} }{ \sqrt{2 \eta^2} } \exp \left( - \frac{ (u-\xi)^2 }{ 2 \eta^2 } \right), \quad u > \xi.
 \end{align}
 
 \subsection{Complete data}\label{s:model}
 Consider the spatial process
 \begin{align} \label{eq:fullmodel}
   Y_t(\bs) &= X_t(\bs) \beta + e_t(\bs)\\
-  e_t(\bs) &= u_t(\bs) + v_t(\bs)
+  e_t(\bs) &= \delta z_t(\bs) + v_t(\bs)
 \end{align}
-where $u_t(\bs) = \sigma \delta |z_t|$, $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N(0, 1)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial process with mean zero and variance $\sigma^2(1 - \delta^2)$.
+where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid \mbox{HN}(0, \sigma_t^2)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_t^2(1 - \delta^2)$.
 Then $Y_t(\bs)$ is skew normal within each partition \citep{Minozzo2012}.
 We model this with a Bayesian hierarchical model as follows.
-Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that $P_{tl}$ includes all spatial locations $\bs$ that are within the partition.
+Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that \mbox{$P_{tl} = \{\bs_t : l = \argmin_k || \bs_t - w_{tk} ||\}$}.
 Then
-\begin{align} \label{eq:hier}
-    Y_t(\bs) \mid \Theta &= X_t(\bs) \beta + u_t(\bs) + v_t(\bs) \\
-    u_t(\bs) \mid \Theta &\sim \mbox{Half-Normal}(0, \sigma \delta)\\
-    v_t(\bs) \mid \Theta & \sim \Matern(0, \Sigma)\\
+\begin{align}
+    Y_t(\bs) \mid \Theta &= X_t(\bs) \beta + \delta z_t(\bs) + v_t(\bs) \label{eq:hier}\\
+    z_{tl}(\bs) \mid \Theta &\sim \mbox{Half-Normal}(0, \sigma^2_t)\\
+    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
     \sigma &\sim \mbox{IG}(\alpha, \beta)\\
-    \delta &\sim \mbox{U}(-1, 1)
+    \delta &\sim \mbox{U}(-1, 1)\\
+    w_{tk} &\sim \mbox{U}(\calD)
 \end{align}
-where $l = \argmin_j ||\bs - w_j ||$, $\Theta = \{u_{t1}, \ldots, u_{tL}, w_{t1}, \ldots, w_{tL}, \beta, \sigma, \delta, \rho, \nu \}$ and $\Sigma$ is a \Matern covariance matrix with variance $\sigma^2 (1 - \delta^2)$ 
-
-
+where $\Theta = \{z_{t1}, \ldots, z_{tL}, w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \delta, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t$ is a \Matern covariance matrix with variance $\sigma_t^2 (1 - \delta^2)$, spatial range $\rho$ and smoothness $\nu$; and $\calD$ is the spatial domain of interest.
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
