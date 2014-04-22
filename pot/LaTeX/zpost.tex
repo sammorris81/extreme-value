@@ -1,0 +1,59 @@
+
+
+
+%\subsubsection*{Conditional posterior of $U | Y$}\label{s:condu}
+% Let $Y_i | U \sim \mbox{N}(U, \sigma^2)$, $i = 1, \ldots, n$, let $\tau = 1 / \sigma^2$, and let $\pi(U) \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\}$. 
+% Then the conditional posterior of $U \mid \ldots$ is 
+% \begin{align}
+%   \pi (U \mid \ldots) & \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\} \exp \left\{ - \sum_{i = 1 }^n\frac{ \tau (y_i - u)^2 }{ 2 } \right\} \nonumber \\
+%     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ u^2 \theta + \sum_{i=1 }^n\tau (y_i^2 - 2y_iu + u^2) \right] \right\} \nonumber \\
+%     & \propto \exp \left\{ - \frac{ 1 }{ 2 }\left( u - \frac{ \tau \sum_{i=1}^n y_i }{ \theta + n \tau } \right)^2 \left( \theta + n \tau \right) \right\} \nonumber\\
+%     & \propto \mbox{HN}(\xi^*, \theta^*) \label{eq:condu}
+% \end{align}
+% where 
+% \begin{align*}
+%   \xi^* &= \frac{ \tau \sum_{i=1}^n y_i }{ \theta + n \tau }\\
+%   \theta^* &= \theta + n \tauå
+% \end{align*}
+
+\subsubsection*{Conditional posterior of $z_{tl} \mid \ldots $}\label{s:mvcondu}
+For simplicity, drop the subscript $t$ and define 
+\begin{align*}
+R(\bs) = \left\{ 
+    \begin{array}{ll}
+        Y(\bs) - X(\bs) \beta &s \in P_l\\[1em]
+        Y(\bs) - X(\bs) \beta - \delta z(\bs) \qquad & s \notin P_l
+    \end{array} 
+\right.
+\end{align*}
+Let 
+\begin{align*}
+    R_1 &= \text{the vector of } R(\bs) \text{ for } s \in P_l \\
+    R_2 &= \text{the vector of } R(\bs) \text{ for } s \notin P_l \\
+    \Omega &= \Sigma^{-1}.
+\end{align*}
+Then
+\begin{align*}
+    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 \sigma^2 } \left[ \frac{ 1 }{ (1 + \delta^2)}
+        \left( \begin{array}{c}
+            R_1 - \delta z_l \bOne\\
+            R_2
+        \end{array} \right)^T
+        \left( \begin{array}{cc}
+            \Omega_{11} & \Omega_{12}\\
+            \Omega_{21} & \Omega_{22}
+        \end{array} \right)
+        \left( \begin{array}{c}
+            R_1 - \delta z_l \bOne\\
+            R_2
+        \end{array} \right)
+        +  z_l^2 \right]
+    \right\} I(z_l > 0) \\
+        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_z z_l^2 - 2 \mu_z z_l \right] \right\} I(z_l > 0)
+\end{align*}
+where
+\begin{align*}
+    \mu_z &= \frac{ \delta}{(1 - \delta^2)} ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
+    \Lambda_z &= \frac{\delta^2 \bOne^T \Omega_{11} \bOne }{ \sigma^2 (1 - \delta^2) } + \frac{ 1 }{ \sigma^2 }.
+\end{align*}
+Then $Z_l | \ldots \sim N_{(0, \infty)} (\Lambda_z^{-1} \mu_z, \Lambda_z^{-1})$

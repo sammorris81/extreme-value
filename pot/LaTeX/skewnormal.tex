@@ -43,12 +43,13 @@ We first specify a model for the complete data, $Y_t(\bs)$, and then study the i
 The full data model is given in Section \ref{s:model} assuming a skew normal distribution with a different variance each day.
 Computationally, the values below the threshold are updated using standard Bayesian missing data methods as described in Section \ref{s:comp}.
 The skew normal representation is from \citep{Minozzo2012} and is the sum of a normal and half-normal random variable.
-\subsection{Half-normal}\label{s:hn}
-Let $u = \xi + \eta |z|$ where $Z \sim N(0, 1)$.
-Then $U$ follows a half-normal distribution, $U \sim \mbox{HN}(\xi, \eta )$ \citep{Wiper2008}, and the density is given by 
+\subsection{Half-normal distribution}\label{s:hn}
+Let $u = |z|$ where $Z \sim N(\mu, \sigma^2)$.
+Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-normal distribution which we denote as $U \sim HN(0, 1)$, and the density is given by 
 \begin{align}
-  f_U(u) = \frac{ \sqrt{\pi} }{ \sqrt{2 \eta^2} } \exp \left( - \frac{ (u-\xi)^2 }{ 2 \eta^2 } \right), \quad u > \xi.
+  f_U(u) = \frac{ \sqrt{2} }{ \sqrt{\pi \sigma^2} } \exp \left( - \frac{ u^2 }{ 2 \sigma^2 } \right) I(u > 0)
 \end{align}
+When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
 
 \subsection{Complete data}\label{s:model}
 Consider the spatial process
@@ -56,20 +57,24 @@ Consider the spatial process
   Y_t(\bs) &= X_t(\bs) \beta + e_t(\bs)\\
   e_t(\bs) &= \delta z_t(\bs) + v_t(\bs)
 \end{align}
-where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid \mbox{HN}(0, \sigma_t^2)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_t^2(1 - \delta^2)$.
+where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N_{(0, \infty)}(0, \sigma_t^2)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_t^2(1 - \delta^2)$.
+
 Then $Y_t(\bs)$ is skew normal within each partition \citep{Minozzo2012}.
 We model this with a Bayesian hierarchical model as follows.
-Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that \mbox{$P_{tl} = \{\bs_t : l = \argmin_k || \bs_t - w_{tk} ||\}$}.
+Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that
+\begin{align*}
+  P_{tl} = \{\bs_t : l = \argmin_k || \bs_t - w_{tk} ||\}.
+\end{align*}
 Then
 \begin{align}
-    Y_t(\bs) \mid \Theta &= X_t(\bs) \beta + \delta z_t(\bs) + v_t(\bs) \label{eq:hier}\\
-    z_{tl}(\bs) \mid \Theta &\sim \mbox{Half-Normal}(0, \sigma^2_t)\\
+    Y_t(\bs) \mid \Theta, z_{t1}, \ldots, z_{tL} &= X_t(\bs) \beta + \delta z_t(\bs) + v_t(\bs) \label{eq:hier}\\
+    z_{tl}(\bs) \mid \Theta &\sim N_{(0, \infty)}(0, \sigma^2_t)\\
     v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
-    \sigma &\sim \mbox{IG}(\alpha, \beta)\\
-    \delta &\sim \mbox{U}(-1, 1)\\
-    w_{tk} &\sim \mbox{U}(\calD)
+    \sigma &\sim IG(\alpha, \beta)\\
+    \delta &\sim Unif(-1, 1)\\
+    w_{tk} &\sim Unif(\calD)
 \end{align}
-where $\Theta = \{z_{t1}, \ldots, z_{tL}, w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \delta, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t$ is a \Matern covariance matrix with variance $\sigma_t^2 (1 - \delta^2)$, spatial range $\rho$ and smoothness $\nu$; and $\calD$ is the spatial domain of interest.
+where $\Theta = \{w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \delta, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t$ is a \Matern covariance matrix with variance $\sigma_t^2 (1 - \delta^2)$, spatial range $\rho$ and smoothness $\nu$; and $\calD$ is the spatial domain of interest.
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
@@ -81,7 +86,7 @@ As defined in \ref{eq:hier}, the distribution of $Y_t(\bs) \mid \Theta$ is the u
 
 \subsection{Imputation}\label{s:impute}
 We can use Gibbs sampling to update $\Yt_t(\bs)$ for observations that are below $T$, the thresholded value. Given $\Theta$, $Y_t(\bs)$ has truncated normal full conditional with these parameter values.
-So we sample $Y_t(\bs) \sim \text{TN}_{(-\infty, T)}$
+So we sample $Y_t(\bs) \sim N_{(-\infty, T)}$
 
 \subsection{Parameter updates}\label{s:params}
 To update $\Theta$ given the current value of the complete data $\bY_1, \ldots, \bY_T$, we use a standard Gibbs updates for all parameters except for the knot locations which are done using a Metropolis update.
@@ -99,7 +104,7 @@ Given $\bY_t$ the usual Kriging equations give the predictive distribution for $
 \section*{Acknowledgments}
 
 \section*{Appendix A.1: Posterior distributions}
-\input{upost.tex}
+\input{zpost.tex}
 \input{betapost.tex}
 \input{sigpost.tex}
 
