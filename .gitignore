@@ -1,6 +1,6 @@
 # History files
 .Rhistory
-*/.Rapp.Rhistory
+.Rapp.history
 
 # Example code in package build process
 *-Ex.R
