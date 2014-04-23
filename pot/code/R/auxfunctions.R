@@ -4,120 +4,59 @@
 
 ################################################################
 # Arguments:
-#   y.k(ns.k, nt): observed data on original scale
-#   mu.y.k(ns.k, nt): E(Y)
-#   r.inv.k(nt): vector of random effects for each day
-#
-# Returns:
-#   z(ns.k, nt): standardized data
-################################################################
-Y2Z <- function(y.k, mu.y.k, r.inv.k){
-    
-  ns <- nrow(y.k)
-  nt <- ncol(y.k)
-    
-  z <- (y.k - mu.y.k) * (sqrt(r.inv.k)) 
-    
-  return(z)
-}
-
-################################################################
-# Arguments:
-#   z(ns.k, nt): standardized data 
-#   mu.y(ns.k, nt): E(y)
-#   r.inv.k(nt): vector of random effects for each day
-#
-# Returns:
-#   y(ns.k, nt): data back in original scale
-################################################################
-Z2Y <- function(z, mu.y.k, r.inv.k){
-    
-  ns <- nrow(z)
-  nt <- ncol(z)
-    
-  y <- z / sqrt(r.inv.k) + mu.y.k
-    
-  return(y)
-}
-
-################################################################
-# Arguments:
 #   s(ns, 2): spatial locations
-#   knots(nknots, 2): knot locations
-#	y(ns, nt): observed data
-#   x(ns, nt, p): array of covariates
+#   knots[nt](nknots, 2): list of knot locations matrices
+#
+# Returns: 
+#   partition(ns, nt): partition membership matrix
+################################################################
+Membership <- function(s, knots){
+  ns <- nrow(s)
+  nt <- length(knots)
+  nknots <- nrow(knots[[1]])
+  partition <- matrix(NA, ns, nt) # a number letting us know which partition.
+  
+  # membership matrix
+  for (t in 1:nt) {
+    d <- rdist(s, knots[[t]])
+    partition[, t] <- apply(d, 1, which.min)
+  }
+  
+  return(partition)
+}
+
+################################################################
+# Arguments:
+#   d(ns, ns): distance between observations
+#   alpha(1): controls proportion of spatial to non-spatial 
+#             covariance (0: ind, 1: high spatial corr)
+#   rho(1): spatial range
+#   nu(1): matern smoothness parameter
+#   eps(1): small amount for numerical stability
 #
 # Returns:
 #   list: 
-#     y.by.knots[nknots]: list of observed data matrices(ns.k, nt)
-#     x.by.knots[nknots]: list of covariate arrays(ns.k, nt, p)
-#     partition(ns): vector of partition membership
+#     prec(ns, ns): precision matrix
+#     log.det(nknots): logdet(prec)
+#     sig(ns, ns): correlation matrix
 ################################################################
-Membership <- function(s, knots, y, x){
-  y.by.knots <- x.by.knots <- list()
-  nt <- ncol(y)
-  nknots <- nrow(knots)
-  ns <- nrow(s)
-  p <- dim(x)[3]
+SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
+  q <- sig <- list()
+  log.det  <- rep(0, nknots)
+  
+  sig       <- CorFx(d, alpha, rho, nu, cov=FALSE)
+  sig.chol  <- chol(sig)
+  diag.chol <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
+  log.det   <- 2 * sum(log(diag.chol))
+  log.det   <- 1 / log.det
+  prec      <- chol2inv(sig.chol)
   
-  # membership vector
-  partition <- rep(NA, ns) # a number letting us know which partition.
-    
-  d <- rdist(s, knots)
-  partition <- apply(d, 1, which.min)
-    
-  for(k in 1:nknots){
-    these <- which(partition == k)
-    ns.k  <- length(these)
-    if(ns.k == 0){
-      y.by.knots[[k]] <- x.by.knots[[k]] <- NA
-    } else if (ns.k == 1){
-      y.by.knots[[k]] <- matrix(y[these,], nrow=1, ncol=nt)
-      x.by.knots[[k]] <- array(x[these,,], dim=c(1, nt, p))
-    } else {
-      y.by.knots[[k]] <- y[these,]
-      x.by.knots[[k]] <- x[these,,]
-    }
-  }
-    
-  results <- list(partition=partition, y.by.knots=y.by.knots, 
-                  x.by.knots=x.by.knots)
-    
+  results <- list(prec=prec, log.det=log.det, sig=sig)
+
   return(results)
+
 }
 
-################################################################
-# Arguments:
-#   partition(ns): vector of partition membership
-#   x.by.knots[nknots]: list of covariate arrays(ns.k, nt, p)
-#	beta.y(p): parameters for E(y)
-#   nknots(1): number of knots
-#
-# Returns:
-#   mu.y[nknots]: list of E(Y) matrices(ns.k, nt)
-################################################################
-ExpectY <- function(partition, x.by.knots, beta.y, nknots){
-  mu.y <- list()
-	
-  for (k in 1:nknots) {
-    these <- which(partition == k)
-    ns.k  <- length(these)
-    x.k   <- x.by.knots[[k]]
-    if (ns.k == 0) {
-      mu.y.k <- NA
-    } else {
-      mu.y.k <- matrix(0, ns.k, nt)
-      for(t in 1:nt){
-        mu.y.k[,t] <- x.k[,t,] %*% beta.y
-      }
-    
-	}
-	mu.y[[k]] <- mu.y.k		
-  }
-	
-  return(mu.y)
-	
-}
 
 ################################################################
 # Arguments:
@@ -144,50 +83,26 @@ CorFx <- function(d, alpha, rho, nu, cov=F){
 
 ################################################################
 # Arguments:
-#   d(ns, ns): distance between observations
-#   alpha(1): controls proportion of spatial to non-spatial 
-#             covariance (0: ind, 1: high spatial corr)
-#   rho(1): spatial range
-#   nu(1): matern smoothness parameter
-#   partition(ns): vector of partition membership
-#   nknots(1): number of knots
-#   thresh(1): small amount for numerical stability
+#   z(nknots): vector of random effects
+#   partition(ns): partition membership vector
 #
 # Returns:
-#   list: 
-#     prec[nknots]: list of precision matrices(ns.k, ns.k)
-#     log.det(nknots): logdet(prec)
-#     sig[nknots]: list of correlation matrices(ns.k, ns.k)
+#   z.sites(ns): matrix of random effects for mu
 ################################################################
-SpatCor <- function(d, alpha, rho, nu=0.5, partition, nknots, eps=10^(-5)){
+ZBySites <- function(z, partition){
+  nknots  <- length(z)
+  ns      <- length(partition)
+  z.sites <- rep(NA, ns)
   
-  q <- sig <- list()
-  log.det <- rep(0, nknots)
-  
   for (k in 1:nknots) {
-    these <- which(partition==k)
-    ns.k  <- length(these)
-    if (ns.k == 0) {
-      q[[k]] <- sig[[k]] <- NA
-    } else if (ns.k == 1) {
-      q[[k]] <- sig[[k]] <- matrix(1,1,1)
-    } else {
-      ddd        <- d[these, ]
-      ddd        <- ddd[, these]
-      sig[[k]]   <- CorFx(ddd, alpha, rho, nu, cov=FALSE)
-      sig.chol   <- chol(sig[[k]])
-      diag.chol  <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
-      log.det.k  <- 2 * sum(log(diag.chol))
-      log.det[k] <- 1/log.det.k
-      q[[k]]     <- chol2inv(sig.chol)
-    }
+  	these <- which(partition == k)
+  	z.sites[these] <- z[k]
   }
-	
-  results <- list(prec=q, log.det=log.det, sig=sig)
-
-  return(results)
-
+  
+  return(z.sites)
 }
+
+
 
 ################################################################
 # Arguments:

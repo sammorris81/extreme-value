@@ -1,35 +1,17 @@
 #########################################################################
 # MCMC 
 #
-# Theta = (rt, mu, sig, xi, rho, nu, alpha)
-# Model: Yts ~MVN(mu.y, Sig)
-#        Sig = Matern(sqrt(rt), rho, nu, alpha)
-#        rt ~iid IG(xi.r, sig.r)
-#
-# Priors:
-#        betas.y ~ N(0, 10)        
-#        logrho.y ~ N(-2, 1)
-#        lognu.y ~ N(-1, 1)
-#        alpha.y ~ unif(0, 1)
-#        logsig.r ~ N(0, 1)
-#        logxi.r ~ N(0, 0.1)
-#    
+# TODO: Add in model description here
 #########################################################################
 
-mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, thresh=1,
+mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
+                 thresh=0, thresh.quant=T, 
                  r.model = "gamma", #also allow "fixed"
-                 beta.y.m=0, beta.y.s=10, beta.init=0,
-                 logrho.y.m=-2, logrho.y.s=1, logrho.y.init=log(0.1),
-                 lognu.y.m=-1.2, lognu.y.s=1, lognu.y.init=log(0.5),
-                 alpha.y.a=1, alpha.y.b=1, alpha.y.init=0.5,    
-                 logsig.r.m=0, logsig.r.s=1, logsig.r.init=0,
-                 logxi.r.m=0, logxi.r.s=0.1, logxi.r.init=0,
                  nknots=1,          
                  iters=5000, burn=1000, update=100, thin=1, scale=T,
-                 debug=F, iterplot=F, plotname=NULL,
-                 fixbeta=F, fixr=F, fixrho=F, fixnu=F, fixalpha=F,
-                 fixxir=F, fixsigr=F, fixknots=F,
-                 r.inv.init, knots.init){
+                 iterplot=F, plotname=NULL,
+                 # debugging settings
+                 debug=F, fixknots = F){
     
   start.time <- proc.time()
    
@@ -71,8 +53,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, thresh=1,
                                        # nknots
     
   # store the loc/day for observed values below thresh.
-  thresh.quant <- quantile(y, thresh)
-  thresh.mtx   <- matrix(thresh.quant, ns, nt)  # need thresh in matrix form
+  if(thresh.quant){               # threshold based on sample quantiles
+    thresh.data <- quantile(y, thresh)
+  } else {                        # threshold based on fixed value
+    thresh.data <- thresh
+  }
+  thresh.mtx   <- matrix(thresh.data, ns, nt)  # need thresh in matrix form
   thresh.obs   <- !is.na(y) & (y <= thresh.mtx)
     
   # if there are some missing days, store the indices before
