@@ -14,7 +14,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  knots.init, z.init, beta.init=NULL, sigma.init=1,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
-                 
+                 # priors
+                 beta.m=0, beta.s=10, sigma.a=0.1, sigma.b=10,
                  # debugging settings
                  debug=F, 
                  fixknots=F, fixz=F, fixbeta=F, fixsigma=F
@@ -146,8 +147,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
   
   # MH tuning params
-  accw <- attw <- mh.w <- rep(0.1, nt)  # knot locations
-  accy <- atty <- mh.y <- rep(0.1, 4)   # spatial covariance parameters
+  acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
+  acc.delta <- att.delta <- mh.delta <- 0.1  
+  acc.alpha <- att.alpha <- mh.alpha <- 0.1
+  acc.rho   <- att.rho   <- mh.rho   <- 0.1
+  acc.nu    <- att.nu    <- mh.nu    <- 0.1
   
   for (iter in 1:iters) { for (ttt in 1:nthin) {
     
@@ -194,7 +198,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     # update random effects
     if (debug) {print("random z")}
-    if (!fixz) {
+    if (!fixz) {  # debug
       for (t in 1:nt) {
         for (k in 1:nknots) {
           these   <- which(partition[, t] == k)
@@ -215,11 +219,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     # update partitions
     if (debug) { print("knots") }
-    if (!fixknots) {
+    if (!fixknots) {  # debug
       if (nknots > 1) {
       	canknots <- knots
         for (t in 1:nt) {
-          attw[t] <- attw[t] + 1
+          att.w[t] <- att.w[t] + 1
           curll <- -0.5 * t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) / (sigma[t] * (1 - delta^2))
           
           for (k in 1:nknots) {
@@ -239,7 +243,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             partition[, t] <- canpartition
             z.sites[, t]   <- canz.sites
             mu[, t]        <- canmu.t
-            accw[t]        <- accw[t] + 1
+            acc.w[t]        <- acc.w[t] + 1
           }}
           
         } # end nt
@@ -247,6 +251,59 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }  # fi nknots > 1
     }  # fi !fixknots
     
+    # update beta
+    if (debug) { print("beta") }
+    if (!fixbeta) {  # debug
+      prec.beta <- diag(p) / beta.s^2
+      e.beta <- rep(beta.m, p)
+      
+      beta.post <- BetaPosterior(prec.beta=prec.beta, e.beta=e.beta, x=x, y=y, z.sites=z.sites,
+                                 prec=prec, delta=delta, sigma=sigma, nt=nt)
+                                 
+      vvv <- beta.post$vvv
+      mmm <- beta.post$mmm
+      
+      beta <- as.vector(vvv %*% mmm + t(chol(vvv)) %*% rnorm(n=p))
+      
+      for (t in 1:nt) {
+  	    x.beta[, t] <- x[, t, ] %*% beta
+  	    mu[, t] <- x.beta[, t] + delta * z.sites[, t]
+      }
+      
+      
+    }  #fi !fixbeta
+    
+    # update sigma
+    if (debug) { print("sigma") }
+    if (!fixsigma) {
+      sigma.inv <- rep(0, nt)
+      alpha.star <- sigma.a + nknots / 2 + ns / 2
+      for (t in 1:nt) {
+        beta.star <- sigma.b + sum(z[, t]^2) / 2 + 
+                     t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) /  (2 * (1 - delta^2))
+        sigma.inv[t] <- rgamma(n=1, shape=alpha.star, scale=beta.star)
+      }
+      
+      sigma <- 1 / sigma.inv
+     
+    }  # fi !fixsigma
+    
+    # update delta
+    if (debug) { print("delta") }
+    if (!fixdelta) {
+      curll <- -ns * log(1 - delta^2)
+      for (t in 1:nt) {
+        curll <- curll + t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) / (2 * sigma[t] * (1 - delta^2))
+      }
+      att.delta <- att.delta + 1
+      
+      alpha.skew <- delta / sqrt(1 - delta^2)
+      can.alpha.skew <- rnorm(1, alpha.skew, mh.delta)
+      can.delta <- can.alpha.skew / sqrt(1 + can.alpha.skew^2)
+      
+      canll <- -ns * (1 - can.de)
+      
+    }  # fi !fixdelta
     
   }  # end nthin
   }  # end iter   

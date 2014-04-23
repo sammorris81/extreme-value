@@ -48,7 +48,7 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   sig.chol  <- chol(sig)
   diag.chol <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
   log.det   <- 2 * sum(log(diag.chol))
-  log.det   <- 1 / log.det
+  log.det   <- -log.det
   prec      <- chol2inv(sig.chol)
   
   results <- list(prec=prec, log.det=log.det, sig=sig)
@@ -56,7 +56,6 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   return(results)
 
 }
-
 
 ################################################################
 # Arguments:
@@ -102,6 +101,82 @@ ZBySites <- function(z, partition){
   return(z.sites)
 }
 
+################################################################
+# Arguments:
+#   prec.beta(p, p): prior precision of beta
+#   e.beta(p): prior mean of beta
+#   x(ns, nt, p): covariate array
+#   y(ns, nt): observed data matrix
+#   z.sites(ns, nt): matrix of random effects
+#   prec(ns, ns): precision matrix
+#   delta(1): skewness parameter
+#   sigma(nt): vector of daily variance
+#   nt(1): number of days
+#
+# Returns:
+#   list: 
+#     vvv(p, p): posterior variance of beta
+#     mmm(p): posterior mean of beta
+################################################################
+BetaPosterior <- function(prec.beta, e.beta, x, y, z.sites,
+						  prec, delta, sigma, nt){
+  
+  ns  <- nrow(y)
+  p   <- length(e.beta)
+  vvv <- prec.beta
+  mmm <- e.beta
+  
+  for(t in 1:nt){
+      x.t <- matrix(x[, t, ], ns, p)
+      ttt  <- t(x.t) %*% prec / (sigma[t] * (1 - delta^2))
+      vvv  <- vvv + ttt %*% x.t
+      mmm  <- mmm + ttt %*% (y[, t] + delta * z[, t])
+  }
+	
+  vvv <- chol2inv(chol(vvv))
+
+  results <- list(vvv=vvv, mmm=mmm)
+
+  return(results)
+}
+
+################################################################
+# Arguments:
+#   y(ns, nt): observed data matrix
+#   x.beta(ns, nt): XBeta matrix
+#   sigma(nt): vector of daily variance
+#   delta(1): skewness parameter
+#   prec(ns, ns): precision matrix
+#   log.det(1): logdet(prec)
+#   z.sites(ns, nt): matrix of random effects
+#
+# Returns:
+#   llike(nt): (log)likelihood
+################################################################
+LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
+  
+  ns <- nrow(y)
+  nt <- ncol(y)
+  log.like  <- rep(NA, nt)
+  
+  for (t in 1:nt) {
+  	mu.t <- x.beta[, t] + delta * z[, t]
+    log.like[t] <- - 0.5 * ns * (log(sigma[t]) + log(1 - delta^2)) + 0.5 * log.det
+                   - 0.5 * t(y[, t] - mu.t) %*% prec %*% (y[, t] - mu.t) / (sigma[t] * (1 - delta^2))
+  }
+    
+  if(!log){
+    log.like <- exp(log.like)
+  }
+    
+  return(log.like)
+}
+
+
+
+
+
+
 
 
 ################################################################
@@ -138,54 +213,7 @@ SumSquares <- function(y.by.knots, mu.y, prec, partition,
   return(ss)
 }
 
-################################################################
-# Arguments:
-#   prec.beta(p, p): prior precision of beta
-#   e.beta(p): prior mean of beta
-#   x.by.knots[nknots]: list of covariate arrays(ns.k, nt, p)
-#   y.by.knots[nknots]: list of observed data matrices(ns.k, nt)
-#   prec[nknots]: list of precision matrices(ns.k, ns.k)
-#   partition(ns): vector of partition membership
-#   r.inv(nknots, nt): matrix of random effects at each partition (var scale)
-#   nt(1): number of days
-#
-# Returns:
-#   list: 
-#     vvv(p, p): posterior variance of beta
-#     mmm(p): posterior mean of beta
-################################################################
-BetaPosterior <- function(prec.beta, e.beta, x.by.knots, y.by.knots, 
-						  prec, partition, r.inv, nt){
-  
-  nknots <- nrow(r.inv)
-  p      <- length(e.beta)
-  vvv    <- prec.beta
-  mmm    <- e.beta
 
-  for (k in 1:nknots) {
-    these   <- which(partition == k) # identify sites to includes
-    ns.k    <- length(these)
-    if (ns.k > 0) {
-      x.k     <- x.by.knots[[k]]
-      prec.k  <- prec[[k]]
-      y.k     <- y.by.knots[[k]] 
-      r.inv.k <- r.inv[k, ]
-     
-      for(t in 1:nt){
-        x.kt <- matrix(x.k[, t, ], ns.k, p)
-        ttt  <- t(x.kt) %*% prec.k * r.inv.k[t]
-        vvv  <- vvv + ttt %*% x.kt
-        mmm  <- mmm + ttt %*% y.k[, t]
-      }
-    }
-  }
-	
-  vvv <- chol2inv(chol(vvv))
-
-  results <- list(vvv=vvv, mmm=mmm)
-
-  return(results)
-}
 
 ################################################################
 # Arguments:
@@ -206,7 +234,7 @@ LLike <- function(ss, log.det, r.inv, partition, log=TRUE){
     ns.k  <- length(these)
     r.inv.k <- r.inv[k, ]
     log.like[k,] <- 0.5 * log.det[k] + 0.5 * ns.k * (log(r.inv.k)) - 
-                    0.5 * ss[k, ] * r.inv.k
+                    0.5 * (y[, t] - (x.beta)) * r.inv.k
   }
     
   if(!log){
