@@ -161,8 +161,9 @@ LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
   
   for (t in 1:nt) {
   	mu.t <- x.beta[, t] + delta * z[, t]
+  	ss.t <- t(y[, t] - mu.t) %*% prec %*% (y[, t] - mu.t)
     log.like[t] <- - 0.5 * ns * (log(sigma[t]) + log(1 - delta^2)) + 0.5 * log.det
-                   - 0.5 * t(y[, t] - mu.t) %*% prec %*% (y[, t] - mu.t) / (sigma[t] * (1 - delta^2))
+                   - 0.5 * ss.t / (sigma[t] * (1 - delta^2))
   }
     
   if(!log){

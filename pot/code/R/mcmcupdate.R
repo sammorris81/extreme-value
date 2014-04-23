@@ -221,28 +221,30 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("knots") }
     if (!fixknots) {  # debug
       if (nknots > 1) {
-      	canknots <- knots
+      	can.knots <- knots
         for (t in 1:nt) {
           att.w[t] <- att.w[t] + 1
-          curll <- -0.5 * t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) / (sigma[t] * (1 - delta^2))
+          ss.t <- t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t])
+          cur.ll <- -0.5 * ss.t / (sigma[t] * (1 - delta^2))
           
           for (k in 1:nknots) {
-        	canknots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
+        	can.knots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
           }
         
-          canpartition <- Membership(s=s, knots=canknots)
-          canz.sites <- ZBySites(z=z.knots, partition=canpartition)
-          canmu.t <- x.beta[, t] + delta * canz.sites
+          can.partition <- Membership(s=s, knots=can.knots)
+          can.z.sites <- ZBySites(z=z.knots, partition=can.partition)
+          can.mu.t <- x.beta[, t] + delta * can.z.sites
           
-          canll <- -0.5 * t(y[, t] - canmu.t) %*% prec %*% (y[, t] - canmu.t) / (sigma[t] * (1 - delta^2))
+          can.ss <- t(y[, t] - can.mu.t) %*% prec %*% (y[, t] - can.mu.t)
+          can.ll <- -0.5 * can.ss / (sigma[t] * (1 - delta^2))
           
-          rej <- sum(canll - curll) # prior is uniform and candidate is symmetric
+          rej <- sum(can.ll - cur.ll) # prior is uniform and candidate is symmetric
           
           if (!is.na(rej)) {if (-rej < rexp(1, 1)) {
-            knots[[t]]     <- canknots[[1]]
-            partition[, t] <- canpartition
-            z.sites[, t]   <- canz.sites
-            mu[, t]        <- canmu.t
+            knots[[t]]     <- can.knots[[1]]
+            partition[, t] <- can.partition
+            z.sites[, t]   <- can.z.sites
+            mu[, t]        <- can.mu.t
             acc.w[t]        <- acc.w[t] + 1
           }}
           
@@ -291,17 +293,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update delta
     if (debug) { print("delta") }
     if (!fixdelta) {
-      curll <- -ns * log(1 - delta^2)
-      for (t in 1:nt) {
-        curll <- curll + t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) / (2 * sigma[t] * (1 - delta^2))
-      }
+      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, log.det=log.det, 
+                     z.sites=z.sites, log=T)
       att.delta <- att.delta + 1
       
       alpha.skew <- delta / sqrt(1 - delta^2)
       can.alpha.skew <- rnorm(1, alpha.skew, mh.delta)
       can.delta <- can.alpha.skew / sqrt(1 + can.alpha.skew^2)
       
-      canll <- -ns * (1 - can.de)
+      can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=can.delta, 
+                      log.det=log.det, z.sites=z.sites, log=T)
+                     
+      rej <- sum(can.ll - cur.ll)
+      if (!is.na(rej)) { if(-rej < rexp(1, 1)) {
+        delta <- can.delts
+      }}
       
     }  # fi !fixdelta
     
