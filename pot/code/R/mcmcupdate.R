@@ -16,6 +16,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  delta.init=0,
                  # priors
                  beta.m=0, beta.s=10, sigma.a=0.1, sigma.b=10,
+                 logrho.m=-2, logrho.s=1,
+                 lognu.m=-1.2, lognu.s=1,
                  # debugging settings
                  debug=F, 
                  fixknots=F, fixz=F, fixbeta=F, fixsigma=F
@@ -149,14 +151,31 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
   acc.delta <- att.delta <- mh.delta <- 0.1  
-  acc.alpha <- att.alpha <- mh.alpha <- 0.1
   acc.rho   <- att.rho   <- mh.rho   <- 0.1
   acc.nu    <- att.nu    <- mh.nu    <- 0.1
+  acc.alpha <- att.alpha <- mh.alpha <- 0.1
+  
+  # storage
+  if (debug) { print("storage") }
+  keepers.z <- array(NA, dim=c(iters, nknots, nt))
+  keepers.beta <- matrix(NA, nrow=iters, ncol=p)
+  keepers.sigma <- matrix(NA, nrow=iters, ncol=nt)
+  keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- keepers.ll <- rep(NA, iters)
+  
+  # initial values
+  mu <- x.beta + delta * z.sites
+  cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, log.det=log.det, 
+                  z.sites=z.sites, log=T)
+  
+  if (!is.null(plotname)) {
+    plotmain <- plotname
+    plotname.file <- paste("plots/", plotname, sep="")
+  }
   
   for (iter in 1:iters) { for (ttt in 1:nthin) {
     
     # impute data below threshold
-    if (debug) {print("impute")}
+    if (debug) { print("impute") }
     if (thresh != 0) {
       mu <- x.beta + delta * z.sites
       thresh.mtx.fudge <- 0.99999 * thresh.mtx.k  # numerical stability
@@ -191,6 +210,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             }
           }  # end nt
         }  # fi n.thresh.miss > 0
+        
       }  # end ns
       
       y <- y.imputed
@@ -215,6 +235,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           z.sites[these, t] <- z.new
         }  # end nknots
       }  # end nt
+      # update means
+      mu <- x.beta + delta * z.sites
     }  # fi !fixz
     
     # update partitions
@@ -245,7 +267,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             partition[, t] <- can.partition
             z.sites[, t]   <- can.z.sites
             mu[, t]        <- can.mu.t
-            acc.w[t]        <- acc.w[t] + 1
+            acc.w[t]       <- acc.w[t] + 1
+            cur.ll         <- can.ll
           }}
           
         } # end nt
@@ -294,7 +317,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("delta") }
     if (!fixdelta) {
       cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, log.det=log.det, 
-                     z.sites=z.sites, log=T)
+                      z.sites=z.sites, log=T)
       att.delta <- att.delta + 1
       
       alpha.skew <- delta / sqrt(1 - delta^2)
@@ -302,16 +325,239 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.delta <- can.alpha.skew / sqrt(1 + can.alpha.skew^2)
       
       can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=can.delta, 
-                      log.det=log.det, z.sites=z.sites, log=T)
+                      prec=prec, log.det=log.det, z.sites=z.sites, log=T)
                      
       rej <- sum(can.ll - cur.ll)
       if (!is.na(rej)) { if(-rej < rexp(1, 1)) {
-        delta <- can.delts
+        delta  <- can.delta
+        mu <- x.beta + delta * z.sites
+        cur.ll <- can.ll
       }}
       
     }  # fi !fixdelta
     
+    # rho and nu
+    if (debug) { print("rho and nu") }
+    if (!fixrho || !fixnu) {
+
+      if (!fixrho) {
+      	att.rho    <- att.rho + 1
+        logrho     <- log(rho)
+        can.logrho <- rnorm(1, logrho, mh.rho)
+      } else {
+        can.logrho <- log(rho)
+      }
+      can.rho <- exp(can.logrho)
+      
+      if (!fixnu) {
+      	att.nu    <- att.nu + 1
+        lognu     <- log(nu)
+        can.lognu <- rnorm(1, lognu, mh.nu)
+      } else {
+        can.lognu <- log(nu)
+      }
+      can.nu <- exp(can.lognu)
+      
+      if (can.nu <= 10) {  # for numerical stability
+        can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
+        can.sig     <- can.cor.mtx$sig
+        can.prec    <- can.cor.mtx$prec
+        can.log.det <- can.cor.mtx$log.det      
+      }
+      
+      can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta,
+                      prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
+                      
+      rej <- sum(can.ll - cur.ll) + 
+             dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
+             dnorm(logrho, logrho.m, logrho.s, log=T) +
+             dnorm(can.lognu, lognu.m, lognu.s, log=T) -
+             dnorm(lognu, lognu.m, lognu.s, log=T)
+      
+      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+        rho     <- can.rho
+        nu      <- can.nu
+        cor.mtx <- can.cor.mtx
+        sig     <- can.sig
+        prec    <- can.prec
+        log.det <- can.log.det
+        cur.ll  <- can.ll
+        if (!fixrho) { acc.rho <- acc.rho + 1 }
+        if (!fixnu) { acc.nu <- acc.nu + 1}
+      }}
+    } # fi !fixrho || !fixnu
+    
+    # alpha
+    if (debug) { print("delta") }
+    if (!fixalpha) {
+      att.alpha      <- att.alpha + 1
+      norm.alpha     <- qnorm(alpha)
+      can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
+      can.alpha      <- pnorm(can.norm.alpha)
+      
+      can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
+      can.sig     <- can.cor.mtx$sig
+      can.prec    <- can.cor.mtx$prec
+      can.log.det <- can.cor.mtx$log.det
+      
+      can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta,
+                      prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
+                      
+      rej <- sum(can.ll - cur.ll) + 
+             dnorm(cantemp, log=T) - dnorm(temp, log=T)
+      
+      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+        alpha     <- can.alpha
+        cor.mtx   <- can.cor.mtx
+        sig       <- can.sig
+        prec      <- can.prec
+        log.det   <- can.log.det
+        cur.ll    <- can.ll
+        att.alpha <- att.alpha + 1
+      }}
+      
+    }  # fi !fixalpha
+    
   }  # end nthin
+  
+  ##############################################
+  # MH adapt candidate distributions
+  ##############################################
+  if (debug) { print("MH update") }
+  if (iter < burn / 2) { 
+    for (t in 1:nt) {
+      if (att.w[t] > 50) {
+        if (acc.w[t] / att.w[t] < 0.25) { mh.w[t] <- mh.w[t] * 0.8 }
+        if (acc.w[t] / att.w[t] > 0.50) { mh.w[t] <- mh.w[t] * 1.2 }
+      }
+    }
+    
+    if (att.delta > 50) {
+      if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
+      if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta & 1.2 }
+      if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
+      if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho & 1.2 }
+      if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
+      if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu & 1.2 }
+      if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
+      if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha & 1.2 }
+    }
+  }  # fi iter < burn / 2
+  
+  ##############################################
+  # Spatial Predictions
+  ##############################################
+  if (np > 0) {
+    partition.pred <- Membership(s=s.pred, knots=knots)
+    
+    for (t in 1:nt) {
+      x.beta.pred  <- x.pred[, t, ] %*% beta
+      z.sites.pred <- ZBySites(z=z.knots[, t], partition.pred)
+      mu.pred      <- x.beta.pred + delta * z.sites.pred
+      
+      s.11     <- 1
+      s.12     <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
+      s.22.inv <- prec
+      
+      e.y.pred <- mu.pred - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
+      v.y.pred <- sigma[t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
+      
+      if (np > 1) {
+        v.y.pred <- diag(diag(v.y.pred))
+      }
+      
+      y.pred[, t, iter] <- rmvnorm(1, mean=e.y.pred, sigma=v.y.pred)
+      
+    }
+  }  # fi np > 0
+  
+  ##############################################
+  # Keep track of iterations
+  ##############################################
+  if (debug) { print("keepers") }
+  keepers.z[iter, , ]   <- z.knots
+  keepers.beta[iter, ]  <- beta
+  keepers.sigma[iter, ] <- sigma
+  keepers.delta[iter]   <- delta
+  keepers.rho[iter]     <- rho
+  keepers.nu[iter]      <- nu
+  keepers.alpha[iter]   <- alpha
+  keepers.ll[iter]      <- cur.ll
+
+  ##############################################
+  # Display current value
+  ##############################################
+  if (debug) { print("plotting") }
+  
+  if (iterplot) {
+    
+    # different behavior if running on server vs testing
+    if (((iter %% update) == 0) && is.null(plotname)) {
+  	  plotnow = T
+  	} else if ((iter == iters) && !is.null(plotname)) {
+  	  plotnow = T
+  	  pdf(file=plotname.file)
+  	}
+  	
+  	if (plotnow) {  
+  	  accrate.w     <- round(acc.w / att.w, 3)
+  	  accrate.delta <- round(acc.delta / att.delta, 3)
+  	  accrate.rho   <- round(acc.rho / att.rho, 3)
+  	  accrate.nu    <- round(acc.nu / att.nu, 3)
+  	  accrate.alpha <- round(acc.alpha / att.alpha, 3)
+  	  	
+  	  par(mfrow=c(4, 3))
+  	  plot(keepers.beta[1:iter, 1], ylab="beta0", xlab="iteration", 
+           type="l")
+      plot(keepers.beta[1:iter, 2], ylab="beta1", xlab="iteration",
+           type="l", main=plotmain)
+      plot(keepers.beta[1:iter, 3], ylab="beta2", xlab="iteration",
+           type="l", main=plotmain)
+      plot(keepers.ll[1:iter], ylab="loglike", xlab="iteration",
+           type="l")
+      plot(keepers.delta[1:iter], ylab="delta", xlab="iteration", 
+           type="l", main=bquote("ACCR" == .(accrate.delta)))
+      plot(keepers.rho[1:iter], ylab="rho", xlab="iteration", 
+            type="l", main=bquote("ACCR" == .(accrate.rho)))
+      plot(keepers.nu[1:iter], ylab="nu", xlab="iteration", 
+           type="l", main=bquote("ACCR" == .(accrate.nu)))
+      plot(keepers.alpha[1:iter], ylab="alpha", xlab="iteration", 
+           type="l", main=bquote("ACCR" == .(accrate.alpha)))
+      plot(keepers.sigma[1:iter, 1], ylab="sigma 1", xlab="iteration", 
+           type="l")
+      plot(keepers.sigma[1:iter, 3], ylab="sigma 3", xlab="itertion",
+           type="l")
+      plot(keepers.z[1:iter, 1, 1], ylab="z 11", xlab="iteration", 
+           type="l")
+      plot(keepers.z[1:iter, 3, 1], ylab="z 31", xlab="iteration",
+           type="l")
+  	}
+  	
+  	if ((iter == iters) && !is.null(plotname)) {
+  	  dev.off()
+  	}
+  }  # fi iterplot
+  
+  if ((iter %% update) == 0) {
+    cat("    Iter", iter, "complete. \n")
+  }
+  if (debug) { print(paste("iter: ", iter)) }
+
   }  # end iter   
+  
+  ##############################################
+  # Return output
+  ##############################################
+  stop.time <- proc.time()
+  results   <- list(time=stop.time-start.time,
+                    z=keepers.z,
+                    beta=keepers.beta,
+                    sigma=keepers.sigma,
+                    delta=keepers.delta,
+                    rho=keepers.rho,
+                    nu=keepers.nu,
+                    alpha=keepers.alpha,
+                    yp=y.pred)
+  
   return(results)
 }

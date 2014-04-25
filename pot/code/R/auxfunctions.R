@@ -2,6 +2,98 @@
 # Auxiliary Functions
 ####################################################################
 
+#########################################################################
+# Arguments:
+#   mn(nt): mean
+#   sd(nt, nt): standard deviation
+#   lower(1): lower truncation point (default=-Inf) 
+#   upper(1): upper truncation point (default=Inf)
+#	fudge(1): small number for numerical stability (used for lower bound)
+#
+# Returns:
+#   y(nt): truncated normal data
+#########################################################################
+rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
+  lower.u <- pnorm(lower, mn, sd)
+  upper.u <- pnorm(upper, mn, sd)
+
+  U <- runif(length(mn), lower.u, upper.u)
+  y <- qnorm(U, mn, sd)
+    
+  return(y)
+}
+
+#########################################################################
+# Arguments:
+#   nt(1): number of days
+#   s(ns, 2): spatial locations
+#   x(ns, nt, np): Matrix of spatial covariates
+#   beta.y(np): parameters for mu.y
+#   nu.y(1): smoothness parameter for Matern covariance
+#   alpha.y(1): controls proportion of spatial to non-spatial covariance
+#   thresh(1): percentage of data above threshold in GPD
+#   xi.r(1): a parameter for IG
+#   sig.r(1): b parameter for IG
+#	mixprob(1): 0: all IG random effects; 1: all MVN random effects
+#	mvn.rho(1): range parameter for MVN correlation
+#	gam.rho(1): range parameter for IG correlation
+#   nknots(1): the number of knots/partitions to have over space
+#
+# Returns:
+#   list:
+#		y(ns, nt): data
+#		r.inv(nknots, nt): random effects for each knot and day
+#		thresh.gen(1): sample quantile at which data is thresholded
+#		knots(nknots, 2): knot locations
+#       fixr(nknots, nt): whether it was a gaussian or gamma random effect
+#########################################################################
+rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
+    
+  # initial setup
+  ns      <- nrow(s)
+  y       <- matrix(NA, ns, nt)
+  z.knots <- matrix(NA, nrow=nknots, ncol=nt)
+  z.sites <- matrix(NA, nrow=ns, ncol=nt)
+  knots   <- vector(mode="list", length=nt)
+  x.beta  <- matrix(NA, ns, nt)
+  
+  d       <- rdist(s)
+  diag(d) <- 0
+  min1    <- min(s[, 1])
+  max1    <- max(s[, 1])
+  min2    <- min(s[, 2])
+  max2    <- max(s[, 2])
+  
+  for (t in 1:nt) {
+    # generate the knot locations
+    knots[[t]]      <- matrix(NA, nknots, 2)
+    knots[[t]][, 1] <- runif(nknots, min1, max1)
+    knots[[t]][, 2] <- runif(nknots, min2, max2)
+  }
+  
+  partition    <- Membership(s=s, knots=knots)
+   
+  for (t in 1:nt) {
+  	z.knots[, t] <- abs(rnorm(n=nknots, mean=0, sd=sqrt(sigma[t])))
+    z.sites[, t] <- ZBySites(z.knots, partition[, t])
+    
+    x.beta <- x[, t, ] %*% beta
+    mu     <- x.beta + delta * z.sites[, t]
+    
+    nugget <- (1 - alpha) * (sigma[t] * (1 - delta^2))
+    p.sill <- alpha * (sigma[t] * (1 - delta^2))
+
+    sig    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
+                             cov.pars=c(p.sill, rho), kappa=nu)$varcov
+    
+    y[, t] <- rmvnorm(1, mean=mu, sigma=sig)
+  }
+  
+  results <- list(y=y, z.knots=z.knots, knots=knots)
+    
+  return(results)
+}
+
 ################################################################
 # Arguments:
 #   s(ns, 2): spatial locations
@@ -23,6 +115,25 @@ Membership <- function(s, knots){
   }
   
   return(partition)
+}
+
+################################################################
+# Arguments:
+#   s(ns, 2): spatial locations
+#
+# Returns:
+#   s.scale(ns, 2): locations scaled to be in [0, 1] x [0, 1]
+################################################################
+ScaleLocs <- function(s){
+  x.min <- min(s[, 1]); x.max <- max(s[, 1]); x.range <- x.max - x.min
+  y.min <- min(s[, 2]); y.max <- max(s[, 2]); y.range <- y.max - y.min
+
+  s.x <- (s[,1] - x.min) / x.range
+  s.y <- (s[,2] - y.min) / y.range
+	
+  s.scale <- cbind(s.x, s.y)
+	
+  return(s.scale)   
 }
 
 ################################################################
@@ -82,11 +193,11 @@ CorFx <- function(d, alpha, rho, nu, cov=F){
 
 ################################################################
 # Arguments:
-#   z(nknots): vector of random effects
+#   z(nknots): vector of random effects with one entry per knot
 #   partition(ns): partition membership vector
 #
 # Returns:
-#   z.sites(ns): matrix of random effects for mu
+#   z.sites(ns): vector of random effects with one entry per site
 ################################################################
 ZBySites <- function(z, partition){
   nknots  <- length(z)
@@ -173,151 +284,109 @@ LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
   return(log.like)
 }
 
-
-
-
-
-
-
-
-################################################################
-# Arguments:
-#   y.by.knots[nknots]: list of observed data matrices(ns.k, nt)
-#   mu.y[nknots]: list of E(Y) (ns.k, nt) by partition
-#	prec[nknots]: list of precision matrices(ns.k, ns.k)
-#   partition(ns): vector of partition membership
-#   nt(1): number of days
-#	nknots(1): number of knots
-#
-# Returns:
-#   ss(nknots, nt): sum of squares for each partition per day
-################################################################
-SumSquares <- function(y.by.knots, mu.y, prec, partition, 
-                       nt, nknots){
-
-  ss <- matrix(NA, nknots, nt)
-
-  for (k in 1:nknots) {
-    these  <- which(partition == k) # identify sites to includes
-    ns.k   <- length(these)
-    if (ns.k > 0) {
-      res.k  <- y.by.knots[[k]] - mu.y[[k]]
-      prec.k <- prec[[k]]
-      for (t in 1:nt) {
-        ss[k, t] <- t(res.k[, t]) %*% prec.k %*% res.k[, t]
-      }
-    } else {
-      ss[k, ] <- rep(0, nt)
-    }
-  }
+# ################################################################
+# # IG(a, b) density function
+# ################################################################
+# dInvG <- function(x, a, b, log=T){
+  # lll <- -(a + 1) * log(x) - b / x
+  # if (!log) {
+    # lll<-exp(lll)
+  # }
     
-  return(ss)
-}
+  # return(lll)
+# }
 
 
 
-################################################################
-# Arguments:
-#   ss(nknots, nt): sum of squares for each partition per da
-#   log.det(nknots): logdet(prec)
-#   r.inv(nknots, nt): matrix of random effects at each partition (var scale)
-#   partition(ns): vector of partition membership
-#
-# Returns:
-#   llike(nknots, nt): (log)likelihood
-################################################################
-LLike <- function(ss, log.det, r.inv, partition, log=TRUE){
-  nknots <- nrow(r.inv)
-  log.like  <- matrix(NA, nknots, nt)
+# ################################################################
+# # Arguments:
+# #   y.by.knots[nknots]: list of observed data matrices(ns.k, nt)
+# #   mu.y[nknots]: list of E(Y) (ns.k, nt) by partition
+# #	prec[nknots]: list of precision matrices(ns.k, ns.k)
+# #   partition(ns): vector of partition membership
+# #   nt(1): number of days
+# #	nknots(1): number of knots
+# #
+# # Returns:
+# #   ss(nknots, nt): sum of squares for each partition per day
+# ################################################################
+# SumSquares <- function(y.by.knots, mu.y, prec, partition, 
+                       # nt, nknots){
+
+  # ss <- matrix(NA, nknots, nt)
+
+  # for (k in 1:nknots) {
+    # these  <- which(partition == k) # identify sites to includes
+    # ns.k   <- length(these)
+    # if (ns.k > 0) {
+      # res.k  <- y.by.knots[[k]] - mu.y[[k]]
+      # prec.k <- prec[[k]]
+      # for (t in 1:nt) {
+        # ss[k, t] <- t(res.k[, t]) %*% prec.k %*% res.k[, t]
+      # }
+    # } else {
+      # ss[k, ] <- rep(0, nt)
+    # }
+  # }
     
-  for(k in 1:nknots){
-    these <- which(partition == k) # identify sites to includes
-    ns.k  <- length(these)
-    r.inv.k <- r.inv[k, ]
-    log.like[k,] <- 0.5 * log.det[k] + 0.5 * ns.k * (log(r.inv.k)) - 
-                    0.5 * (y[, t] - (x.beta)) * r.inv.k
-  }
-    
-  if(!log){
-    log.like <- exp(log.like)
-  }
-    
-  return(log.like)
-}
+  # return(ss)
+# }
 
-################################################################
-# Arguments:
-#   preds(yp, nt, iters): mcmc predictions at validation
-#                         locations
-#   probs(nprobs): sample quantiles for scoring
-#   validate(np, nt): validation data
-#
-# Returns:
-#   score(nprobs): a single quantile score per quantile
-################################################################
-QuantScore <- function(preds, probs, validate){
-  nt <- ncol(validate)
-  np <- nrow(validate)
-  nprobs <- length(probs)
+# # ################################################################
+# # Arguments:
+# #   preds(yp, nt, iters): mcmc predictions at validation
+# #                         locations
+# #   probs(nprobs): sample quantiles for scoring
+# #   validate(np, nt): validation data
+# #
+# # Returns:
+# #   score(nprobs): a single quantile score per quantile
+# ################################################################
+# QuantScore <- function(preds, probs, validate){
+  # nt <- ncol(validate)
+  # np <- nrow(validate)
+  # nprobs <- length(probs)
         
-  # apply gives nprobs x nsites. looking to find each site's quantile over all
-  # of the days.
-  pred.quants <- apply(preds, 1, quantile, probs=probs, na.rm=T)
+  # # apply gives nprobs x nsites. looking to find each site's quantile over all
+  # # of the days.
+  # pred.quants <- apply(preds, 1, quantile, probs=probs, na.rm=T)
     
-  scores.sites <- array(NA, dim=c(nprobs, np, nt))
+  # scores.sites <- array(NA, dim=c(nprobs, np, nt))
     
-  for (q in 1:nprobs) {
-    diff <- pred.quants[q, ] - validate
-    i <- ifelse(diff >= 0, 1, 0)
-    scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
-  }
+  # for (q in 1:nprobs) {
+    # diff <- pred.quants[q, ] - validate
+    # i <- ifelse(diff >= 0, 1, 0)
+    # scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
+  # }
     
-  scores <- apply(scores.sites, 1, mean, na.rm=T)
+  # scores <- apply(scores.sites, 1, mean, na.rm=T)
 
-  return(scores)
-}
+  # return(scores)
+# }
 
-################################################################
-# Arguments:
-#   preds(yp, nt, iters): mcmc predictions at validation
-#                         locations
-#   probs(nthreshs): sample quantiles for scoring
-#   validate(np, nt): validation data
-#
-# Returns:
-#   list:
-#     scores(nthreshs): a single brier score per threshold
-#     threshs(nthreshs): sample quantiles from dataset
-################################################################
-BrierScore <- function(preds, probs, validate){
-  nthreshs <- length(probs)
-  thresholds <- quantile(validate, probs=probs, na.rm=T)
+# ################################################################
+# # Arguments:
+# #   preds(yp, nt, iters): mcmc predictions at validation
+# #                         locations
+# #   probs(nthreshs): sample quantiles for scoring
+# #   validate(np, nt): validation data
+# #
+# # Returns:
+# #   list:
+# #     scores(nthreshs): a single brier score per threshold
+# #     threshs(nthreshs): sample quantiles from dataset
+# ################################################################
+# BrierScore <- function(preds, probs, validate){
+  # nthreshs <- length(probs)
+  # thresholds <- quantile(validate, probs=probs, na.rm=T)
     
-  scores <- rep(NA, nthreshs)
-  for (b in 1:nthreshs) {
-    pat <- apply((preds > thresholds[b]), c(1, 2), mean)
-    ind <- validate < thresholds[b]
-    scores[b] <- mean((ind - pat)^2, na.rm=T)
-  }
+  # scores <- rep(NA, nthreshs)
+  # for (b in 1:nthreshs) {
+    # pat <- apply((preds > thresholds[b]), c(1, 2), mean)
+    # ind <- validate < thresholds[b]
+    # scores[b] <- mean((ind - pat)^2, na.rm=T)
+  # }
     
-  return(scores)
-}
+  # return(scores)
+# }
 
-################################################################
-# Arguments:
-#   s(ns, 2): spatial locations
-#
-# Returns:
-#   s.scale(ns, 2): locations scaled to be in [0, 1] x [0, 1]
-################################################################
-ScaleLocs <- function(s){
-  x.min <- min(s[, 1]); x.max <- max(s[, 1]); x.range <- x.max - x.min
-  y.min <- min(s[, 2]); y.max <- max(s[, 2]); y.range <- y.max - y.min
-
-  s.x <- (s[,1] - x.min) / x.range
-  s.y <- (s[,2] - y.min) / y.range
-	
-  s.scale <- cbind(s.x, s.y)
-	
-  return(s.scale)   
-}
