@@ -70,7 +70,7 @@ Then
     Y_t(\bs) \mid \Theta, z_{t1}, \ldots, z_{tL} &= X_t(\bs) \beta + \delta z_t(\bs) + v_t(\bs) \label{eq:hier}\\
     z_{tl}(\bs) \mid \Theta &\sim N_{(0, \infty)}(0, \sigma^2_t)\\
     v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
-    \sigma &\sim IG(\alpha, \beta)\\
+    \sigma^2_t &\iid IG(\alpha, \beta)\\
     \delta &\sim Unif(-1, 1)\\
     w_{tk} &\sim Unif(\calD)
 \end{align}

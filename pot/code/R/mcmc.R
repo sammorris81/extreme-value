@@ -5,13 +5,11 @@
 #########################################################################
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
-                 thresh=0, thresh.quant=T, 
-                 r.model = "gamma", #also allow "fixed"
-                 nknots=1,          
+                 thresh=0, thresh.quant=T, nknots=1,          
                  iters=5000, burn=1000, update=100, thin=1, scale=T,
                  iterplot=F, plotname=NULL,
                  # initial values
-                 knots.init, z.init, beta.init=NULL, sigma.init=1,
+                 beta.init=NULL, sigma.init=1,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
                  # priors
@@ -19,7 +17,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  # debugging settings
-                 debug=F, 
+                 debug=F, knots.init, z.init, 
                  fixknots=F, fixz=F, fixbeta=F, fixsigma=F,
                  fixrho=F, fixnu=F, fixalpha=F,
                  fixdelta=F){
@@ -131,7 +129,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   lognu <- log(nu)
   alpha <- alpha.init
   
-  if (length(sigma) == 1) {
+  if (length(sigma.init) == 1) {
     sigma <- rep(sigma.init, nt)
   } else {
     sigma <- sigma.init
@@ -150,7 +148,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
-  acc.delta <- att.delta <- mh.delta <- 0.1  
+  acc.delta <- att.delta <- mh.delta <- 10  
   acc.rho   <- att.rho   <- mh.rho   <- 0.1
   acc.nu    <- att.nu    <- mh.nu    <- 0.1
   acc.alpha <- att.alpha <- mh.alpha <- 0.1
@@ -159,20 +157,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (debug) { print("storage") }
   keepers.z <- array(NA, dim=c(iters, nknots, nt))
   keepers.beta <- matrix(NA, nrow=iters, ncol=p)
-  keepers.sigma <- matrix(NA, nrow=iters, ncol=nt)
-  keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- keepers.ll <- rep(NA, iters)
+  keepers.sigma <- keepers.ll <- matrix(NA, nrow=iters, ncol=nt)
+  keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- rep(NA, iters)
   
   # initial values
   mu <- x.beta + delta * z.sites
-  cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, log.det=log.det, 
-                  z.sites=z.sites, log=T)
+  cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec, 
+                  log.det=log.det, z.sites=z.sites, log=T)
   
-  if (!is.null(plotname)) {
-    plotmain <- plotname
-    plotname.file <- paste("plots/", plotname, sep="")
-  }
-  
-  for (iter in 1:iters) { for (ttt in 1:nthin) {
+  for (iter in 1:iters) { for (ttt in 1:thin) {
     
     # impute data below threshold
     if (debug) { print("impute") }
@@ -226,8 +219,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           r2      <- y[-these, t] - mu[-these, t]
           prec.11 <- prec[these, these]
           prec.21 <- prec[-these, these]
-          mu.z    <- delta * sum(t(r1) * prec.11 + t(r2) * prec.21) / (1 - delta^2)
-          prec.z  <- delta^2 * sum(prec.11) / (sigma * (1 - delta^2)) + 1 / sigma
+          mu.z    <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21) / (1 - delta^2)
+          prec.z  <- delta^2 * sum(prec.11) / (sigma[t] * (1 - delta^2)) + 1 / sigma[t]
           var.z   <- 1 / prec.z
         
           z.new <- rTNorm(mn=(var.z * mu.z), sd=sqrt(var.z), lower=0, upper=Inf) 
@@ -282,7 +275,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       prec.beta <- diag(p) / beta.s^2
       e.beta <- rep(beta.m, p)
       
-      beta.post <- BetaPosterior(prec.beta=prec.beta, e.beta=e.beta, x=x, y=y, z.sites=z.sites,
+      beta.post <- BetaPosterior(prec.beta=prec.beta, e.beta=e.beta, x=x, y=y, z=z.sites,
                                  prec=prec, delta=delta, sigma=sigma, nt=nt)
                                  
       vvv <- beta.post$vvv
@@ -304,7 +297,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       sigma.inv <- rep(0, nt)
       alpha.star <- sigma.a + nknots / 2 + ns / 2
       for (t in 1:nt) {
-        beta.star <- sigma.b + sum(z[, t]^2) / 2 + 
+        beta.star <- sigma.b + sum(z.knots[, t]^2) / 2 + 
                      t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) /  (2 * (1 - delta^2))
         sigma.inv[t] <- rgamma(n=1, shape=alpha.star, scale=beta.star)
       }
@@ -316,8 +309,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update delta
     if (debug) { print("delta") }
     if (!fixdelta) {
-      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, log.det=log.det, 
-                      z.sites=z.sites, log=T)
+      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
+                      log.det=log.det, z.sites=z.sites, log=T)
       att.delta <- att.delta + 1
       
       alpha.skew <- delta / sqrt(1 - delta^2)
@@ -332,6 +325,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         delta  <- can.delta
         mu <- x.beta + delta * z.sites
         cur.ll <- can.ll
+        acc.delta <- acc.delta + 1
       }}
       
     }  # fi !fixdelta
@@ -363,32 +357,33 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.sig     <- can.cor.mtx$sig
         can.prec    <- can.cor.mtx$prec
         can.log.det <- can.cor.mtx$log.det      
-      }
       
-      can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta,
-                      prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
+      
+        can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta,
+                        prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
                       
-      rej <- sum(can.ll - cur.ll) + 
-             dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
-             dnorm(logrho, logrho.m, logrho.s, log=T) +
-             dnorm(can.lognu, lognu.m, lognu.s, log=T) -
-             dnorm(lognu, lognu.m, lognu.s, log=T)
+        rej <- sum(can.ll - cur.ll) + 
+               dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
+               dnorm(logrho, logrho.m, logrho.s, log=T) +
+               dnorm(can.lognu, lognu.m, lognu.s, log=T) -
+               dnorm(lognu, lognu.m, lognu.s, log=T)
       
-      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-        rho     <- can.rho
-        nu      <- can.nu
-        cor.mtx <- can.cor.mtx
-        sig     <- can.sig
-        prec    <- can.prec
-        log.det <- can.log.det
-        cur.ll  <- can.ll
-        if (!fixrho) { acc.rho <- acc.rho + 1 }
-        if (!fixnu) { acc.nu <- acc.nu + 1}
-      }}
+        if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+          rho     <- can.rho
+          nu      <- can.nu
+          cor.mtx <- can.cor.mtx
+          sig     <- can.sig
+          prec    <- can.prec
+          log.det <- can.log.det
+          cur.ll  <- can.ll
+          if (!fixrho) { acc.rho <- acc.rho + 1 }
+          if (!fixnu) { acc.nu <- acc.nu + 1}
+        }} 
+      } # fi can.nu <= 10
     } # fi !fixrho || !fixnu
     
     # alpha
-    if (debug) { print("delta") }
+    if (debug) { print("alpha") }
     if (!fixalpha) {
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
@@ -404,7 +399,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                       prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
                       
       rej <- sum(can.ll - cur.ll) + 
-             dnorm(cantemp, log=T) - dnorm(temp, log=T)
+             dnorm(can.norm.alpha, log=T) - dnorm(norm.alpha, log=T)
       
       if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
         alpha     <- can.alpha
@@ -413,7 +408,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         prec      <- can.prec
         log.det   <- can.log.det
         cur.ll    <- can.ll
-        att.alpha <- att.alpha + 1
+        acc.alpha <- acc.alpha + 1
       }}
       
     }  # fi !fixalpha
@@ -434,13 +429,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     if (att.delta > 50) {
       if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
-      if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta & 1.2 }
+      if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta * 1.2 }
       if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
-      if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho & 1.2 }
+      if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
       if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
-      if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu & 1.2 }
+      if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
       if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
-      if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha & 1.2 }
+      if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
     }
   }  # fi iter < burn / 2
   
@@ -482,7 +477,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.rho[iter]     <- rho
   keepers.nu[iter]      <- nu
   keepers.alpha[iter]   <- alpha
-  keepers.ll[iter]      <- cur.ll
+  keepers.ll[iter, ]      <- cur.ll
 
   ##############################################
   # Display current value
@@ -490,12 +485,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (debug) { print("plotting") }
   
   if (iterplot) {
-    
+    plotnow <- F
     # different behavior if running on server vs testing
     if (((iter %% update) == 0) && is.null(plotname)) {
-  	  plotnow = T
+  	  plotnow <- T
+  	  plotmain <- ""
   	} else if ((iter == iters) && !is.null(plotname)) {
-  	  plotnow = T
+  	  plotnow <- T
+  	  plotmain <- plotname
+      plotname.file <- paste("plots/", plotname, sep="")
   	  pdf(file=plotname.file)
   	}
   	
@@ -506,30 +504,35 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  accrate.nu    <- round(acc.nu / att.nu, 3)
   	  accrate.alpha <- round(acc.alpha / att.alpha, 3)
   	  	
-  	  par(mfrow=c(4, 3))
-  	  plot(keepers.beta[1:iter, 1], ylab="beta0", xlab="iteration", 
+  	  par(mfrow=c(3, 4))
+  	  if (iter > burn) {
+  	    start <- burn
+  	  } else {
+  	    start <- 1
+  	  }
+  	  plot(keepers.beta[start:iter, 1], ylab="beta0", xlab="iteration", 
            type="l")
-      plot(keepers.beta[1:iter, 2], ylab="beta1", xlab="iteration",
+      plot(keepers.beta[start:iter, 2], ylab="beta1", xlab="iteration",
            type="l", main=plotmain)
-      plot(keepers.beta[1:iter, 3], ylab="beta2", xlab="iteration",
-           type="l", main=plotmain)
-      plot(keepers.ll[1:iter], ylab="loglike", xlab="iteration",
+      plot(keepers.beta[start:iter, 3], ylab="beta2", xlab="iteration",
            type="l")
-      plot(keepers.delta[1:iter], ylab="delta", xlab="iteration", 
+      plot(keepers.ll[start:iter], ylab="loglike", xlab="iteration",
+           type="l")
+      plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.delta)))
-      plot(keepers.rho[1:iter], ylab="rho", xlab="iteration", 
+      plot(keepers.rho[start:iter], ylab="rho", xlab="iteration", 
             type="l", main=bquote("ACCR" == .(accrate.rho)))
-      plot(keepers.nu[1:iter], ylab="nu", xlab="iteration", 
+      plot(keepers.nu[start:iter], ylab="nu", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.nu)))
-      plot(keepers.alpha[1:iter], ylab="alpha", xlab="iteration", 
+      plot(keepers.alpha[start:iter], ylab="alpha", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.alpha)))
-      plot(keepers.sigma[1:iter, 1], ylab="sigma 1", xlab="iteration", 
+      plot(keepers.sigma[start:iter, 1], ylab="sigma 1", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[1:iter, 3], ylab="sigma 3", xlab="itertion",
+      plot(keepers.sigma[start:iter, 3], ylab="sigma 3", xlab="itertion",
            type="l")
-      plot(keepers.z[1:iter, 1, 1], ylab="z 11", xlab="iteration", 
+      plot(keepers.z[start:iter, 1, 1], ylab="z 11", xlab="iteration", 
            type="l")
-      plot(keepers.z[1:iter, 3, 1], ylab="z 31", xlab="iteration",
+      plot(keepers.z[start:iter, 1, 3], ylab="z 31", xlab="iteration",
            type="l")
   	}
   	

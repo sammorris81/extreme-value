@@ -24,7 +24,8 @@ for (t in 1:nt) {
 }
 
 beta.t <- c(10, 0, 0)
-sigma.t <- 1 / rgamma(nt, 4, 4)
+# sigma.t <- 1 / rgamma(nt, 4, 4)
+sigma.t <- rep(1, nt)
 rho.t <- 0.1
 nu.t <- 0.5
 alpha.t <- 0.9
@@ -42,7 +43,7 @@ y[[1]] <- data$y
 z.knots.t[[1]] <- data$z.knots
 z.sites.t[[1]] <- data$z.sites
 knots.t[[1]] <- data$knots
-#hist(y, main="delta = 0")
+# hist(y[[1]], main="delta = 0")
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t[2],
                    rho=rho.t, nu=nu.t, alpha=alpha.t)          
@@ -50,7 +51,7 @@ y[[2]] <- data$y
 z.knots.t[[2]] <- data$z.knots
 z.sites.t[[2]] <- data$z.sites
 knots.t[[2]] <- data$knots
-#hist(y, main="delta = 0.5")
+# hist(y[[2]], main="delta = 0.5")
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t[3],
                    rho=rho.t, nu=nu.t, alpha=alpha.t)
@@ -58,15 +59,15 @@ y[[3]] <- data$y
 z.knots.t[[3]] <- data$z.knots
 z.sites.t[[3]] <- data$z.sites
 knots.t[[3]] <- data$knots
-#hist(y, main="delta = 0.9")
+# hist(y[[3]], main="delta = 0.9")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t[4],
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=0.95,
                    rho=rho.t, nu=nu.t, alpha=alpha.t)
 y[[4]] <- data$y
 z.knots.t[[4]] <- data$z.knots
 z.sites.t[[4]] <- data$z.sites
 knots.t[[4]] <- data$knots
-#hist(y, main="delta = 0.95")
+# hist(y[[4]], main="delta = 0.95")
 
 source("auxfunctions.R")
 source("mcmc.R")
@@ -77,6 +78,30 @@ fit1 <- mcmc(y=y[[1]], s=s, x=x, thresh=0, nknots=1,
              beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[1],
              debug=F, knots.init=knots.t[[1]], z.init=z.knots.t[[1]],
-             fixknots=F, fixz=F, fixbeta=F, fixsigma=F, 
-             fixrho=F, fixnu=T, fixalpha=F, fixdelta=F)
+             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
+             fixrho=F, fixnu=F, fixalpha=T, fixdelta=T)
+             
+fit2 <- mcmc(y=y[[2]], s=s, x=x, thresh=0, nknots=1,
+             iters=10000, burn=5000, update=1000, iterplot=T,
+             beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
+             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[2],
+             debug=F, knots.init=knots.t[[2]], z.init=z.knots.t[[2]],
+             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
+             fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
+             
+fit3 <- mcmc(y=y[[3]], s=s, x=x, thresh=0, nknots=1,
+             iters=10000, burn=5000, update=1000, iterplot=T,
+             beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
+             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[3],
+             debug=F, knots.init=knots.t[[3]], z.init=z.knots.t[[3]],
+             fixknots=T, fixz=T, fixbeta=F, fixsigma=T, 
+             fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
+             
+fit4 <- mcmc(y=y[[4]], s=s, x=x, thresh=0, nknots=1,
+             iters=10000, burn=5000, update=1000, iterplot=T,
+             beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
+             nu.init=nu.t, alpha.init=alpha.t, delta.init=-delta.t[4],
+             debug=F, knots.init=knots.t[[4]], z.init=z.knots.t[[4]],
+             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
+             fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
  

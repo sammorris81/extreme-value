@@ -1,13 +1,13 @@
 \subsection*{Conditional posterior of $\sigma^2 \mid \ldots$}\label{s:sigpost}
 Let $\sigma_t^2 \iid \mbox{IG}(\alpha_0, \beta_0)$. For simplicity, drop the subscript $t$. Then
 \begin{align*}
-    \pi(\sigma^2 \mid \ldots) & \propto (\sigma^2)^{ -\alpha_0 - L / 2 - n / 2 - 1} \exp \left\{ -\frac{\beta_0}{\sigma^2} - \sum_{l=1}^L \frac{ z_l^2 }{2 \sigma^2} - \frac{ (Y(\bs) - \bmu)^T \Sigma^{-1} (Y(\bs) - \bmu) }{2 \sigma^2 (1 - \delta^2)} \right\} \\
-    & \propto (\sigma^2)^{ -\alpha_0 - L / 2 - n / 2 - 1} \exp \left\{ - \frac{ 1 }{ \sigma^2 } \left[\beta_0 + \sum_{ l = 1 }^{ L}\frac{ z_{l}^2 }{ 2 } + \frac{ (Y(\bs) - \bmu)^T \Sigma^{-1} (\bY - \mu) }{ 2 (1 - \delta^2)} \right] \right\} \\
+    \pi(\sigma^2 \mid \ldots) & \propto (\sigma^2)^{ -\alpha_0 - L / 2 - n / 2 - 1} \exp \left\{ -\frac{\beta_0}{\sigma^2} - \sum_{l=1}^L \frac{ z_l^2 }{2 \sigma^2} - \frac{ (\bY - \bmu)^T \Sigma^{-1} (\bY - \bmu) }{2 \sigma^2 (1 - \delta^2)} \right\} \\
+    & \propto (\sigma^2)^{ -\alpha_0 - L / 2 - n / 2 - 1} \exp \left\{ - \frac{ 1 }{ \sigma^2 } \left[\beta_0 + \sum_{ l = 1 }^{ L}\frac{ z_{l}^2 }{ 2 } + \frac{ (\bY - \bmu)^T \Sigma^{-1} (\bY - \mu) }{ 2 (1 - \delta^2)} \right] \right\} \\
     & \propto \mbox{IG} (\alpha^*, \beta^*)
 \end{align*}
 where
 \begin{align*}
     \alpha^* &= \alpha_0 + \frac{L}{2} + \frac{n}{2} \\
-    \beta^* &= \beta_0 + \sum_{ l = 1 }^{ L}\frac{ z_{l}^2 }{ 2 } + \frac{ (Y(\bs) - \bmu)^T \Sigma^{-1} (Y(\bs) - \bmu) }{ 2 (1 - \delta^2)}
+    \beta^* &= \beta_0 + \sum_{ l = 1 }^{ L}\frac{ z_{l}^2 }{ 2 } + \frac{ (\bY - \bmu)^T \Sigma^{-1} (\bY - \bmu) }{ 2 (1 - \delta^2)}
 \end{align*}
 and $L$ is the number of partitions.

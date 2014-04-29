@@ -54,8 +54,8 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
   y       <- matrix(NA, ns, nt)
   z.knots <- matrix(NA, nrow=nknots, ncol=nt)
   z.sites <- matrix(NA, nrow=ns, ncol=nt)
+  v       <- matrix(NA, nrow=ns, ncol=nt)
   knots   <- vector(mode="list", length=nt)
-  x.beta  <- matrix(NA, ns, nt)
   
   d       <- rdist(s)
   diag(d) <- 0
@@ -74,22 +74,35 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
   partition    <- Membership(s=s, knots=knots)
    
   for (t in 1:nt) {
-  	z.knots[, t] <- abs(rnorm(n=nknots, mean=0, sd=sqrt(sigma[t])))
-    z.sites[, t] <- ZBySites(z.knots, partition[, t])
+  	sigma.t   <- sigma[t]
+  	z.knots.t <- abs(rnorm(n=nknots, mean=0, sd=sqrt(sigma.t)))
+    z.sites.t <- ZBySites(z.knots.t, partition[, t])
     
-    x.beta <- x[, t, ] %*% beta
-    mu     <- x.beta + delta * z.sites[, t]
+    x.beta.t <- x[, t, ] %*% beta
     
-    nugget <- (1 - alpha) * (sigma[t] * (1 - delta^2))
-    p.sill <- alpha * (sigma[t] * (1 - delta^2))
-
-    sig    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
-                             cov.pars=c(p.sill, rho), kappa=nu)$varcov
+    #nugget <- (1 - alpha) * (sigma.t * (1 - delta^2))
+    #p.sill <- alpha * (sigma.t * (1 - delta^2))
     
-    y[, t] <- rmvnorm(1, mean=mu, sigma=sig)
+    nugget <- (1 - alpha)
+    p.sill <- alpha
+    
+    if (alpha != 0) {
+      cor    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
+                               cov.pars=c(p.sill, rho), kappa=nu)$varcov
+    } else {
+      cor    <- diag(1, ns)
+    }
+    
+    v.t    <- sqrt(sigma.t) * sqrt(1 - delta^2) * t(chol(cor)) %*% rnorm(ns)
+    
+    y[, t]       <- x.beta.t + delta * z.sites.t + v.t
+    z.knots[, t] <- z.knots.t
+    z.sites[, t] <- z.sites.t
+    v[, t]       <- v.t
+    
   }
   
-  results <- list(y=y, z.knots=z.knots, knots=knots)
+  results <- list(y=y, z.knots=z.knots, z.sites=z.sites, knots=knots, v=v)
     
   return(results)
 }
@@ -153,13 +166,11 @@ ScaleLocs <- function(s){
 ################################################################
 SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   q <- sig <- list()
-  log.det  <- rep(0, nknots)
   
   sig       <- CorFx(d, alpha, rho, nu, cov=FALSE)
   sig.chol  <- chol(sig)
   diag.chol <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
-  log.det   <- 2 * sum(log(diag.chol))
-  log.det   <- -log.det
+  log.det   <- -2 * sum(log(diag.chol))
   prec      <- chol2inv(sig.chol)
   
   results <- list(prec=prec, log.det=log.det, sig=sig)
@@ -218,7 +229,7 @@ ZBySites <- function(z, partition){
 #   e.beta(p): prior mean of beta
 #   x(ns, nt, p): covariate array
 #   y(ns, nt): observed data matrix
-#   z.sites(ns, nt): matrix of random effects
+#   z(ns, nt): matrix of random effects
 #   prec(ns, ns): precision matrix
 #   delta(1): skewness parameter
 #   sigma(nt): vector of daily variance
@@ -229,7 +240,7 @@ ZBySites <- function(z, partition){
 #     vvv(p, p): posterior variance of beta
 #     mmm(p): posterior mean of beta
 ################################################################
-BetaPosterior <- function(prec.beta, e.beta, x, y, z.sites,
+BetaPosterior <- function(prec.beta, e.beta, x, y, z,
 						  prec, delta, sigma, nt){
   
   ns  <- nrow(y)
@@ -266,15 +277,40 @@ BetaPosterior <- function(prec.beta, e.beta, x, y, z.sites,
 ################################################################
 LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
   
+  if (missing(y)) {
+    stop("y must be defined")
+  } 
   ns <- nrow(y)
   nt <- ncol(y)
+  if (missing(x.beta)) {
+    stop("x.beta must be defined")
+  } else if (nrow(x.beta) != ns || ncol(x.beta) != nt) {
+    stop("x.beta and y must have conforming size")
+  }
+  
+  if (missing(sigma)) {
+    stop("sigma must be defined")
+  } else if (length(sigma) != nt) {
+    stop("need a sigma for each day")
+  }
+  
+  if (missing(delta)) {
+    stop("delta must be defined")
+  }
+  
+  if (missing(log.det)) {
+    stop("log.det must be defined")
+  }
+      
   log.like  <- rep(NA, nt)
   
   for (t in 1:nt) {
-  	mu.t <- x.beta[, t] + delta * z[, t]
-  	ss.t <- t(y[, t] - mu.t) %*% prec %*% (y[, t] - mu.t)
-    log.like[t] <- - 0.5 * ns * (log(sigma[t]) + log(1 - delta^2)) + 0.5 * log.det
-                   - 0.5 * ss.t / (sigma[t] * (1 - delta^2))
+    sigma.t <- sigma[t]
+    y.t <- y[, t]
+    mu.t <- x.beta[, t] + delta * z.sites[, t]
+    ss.t <- t(y.t - mu.t) %*% prec %*% (y.t - mu.t)
+    log.like[t] <- -0.5 * ns * (log(sigma.t) + log(1 - delta^2)) + 0.5 * log.det -
+                    0.5 * ss.t / (sigma.t * (1 - delta^2))
   }
     
   if(!log){
@@ -284,17 +320,17 @@ LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
   return(log.like)
 }
 
-# ################################################################
-# # IG(a, b) density function
-# ################################################################
-# dInvG <- function(x, a, b, log=T){
-  # lll <- -(a + 1) * log(x) - b / x
-  # if (!log) {
-    # lll<-exp(lll)
-  # }
+################################################################
+# IG(a, b) density function
+################################################################
+dInvG <- function(x, a, b, log=T){
+  lll <- -(a + 1) * log(x) - b / x
+  if (!log) {
+    lll<-exp(lll)
+  }
     
-  # return(lll)
-# }
+  return(lll)
+}
 
 
 
