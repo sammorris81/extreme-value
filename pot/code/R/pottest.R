@@ -83,7 +83,7 @@ fit1 <- mcmc(y=y[[1]], s=s, x=x, thresh=0, nknots=1,
              beta.init=beta.t, sigma.init=sigma.t[[1]], rho.init=rho.t,
              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[1],
              debug=F, knots.init=knots.t[[1]], z.init=z.knots.t[[1]],
-             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
+             fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
              fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
 
 # sigma1 = 0.9109, sigma3 = 1.2974
@@ -94,7 +94,7 @@ fit2 <- mcmc(y=y[[2]], s=s, x=x, thresh=0, nknots=1,
              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[2],
              debug=F, knots.init=knots.t[[2]], z.init=z.knots.t[[2]],
              fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
-             fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
+             fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
 
 # sigma1 = 1.4812, sigma3 = 0.7718
 # z11 = 1.1067, z13 = 0.3671
@@ -103,8 +103,8 @@ fit3 <- mcmc(y=y[[3]], s=s, x=x, thresh=0, nknots=1,
              beta.init=beta.t, sigma.init=sigma.t[[3]], rho.init=rho.t,
              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[3],
              debug=F, knots.init=knots.t[[3]], z.init=z.knots.t[[3]],
-             fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
-             fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
+             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
+             fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
 
 # sigma1 = 2.2898, sigma3 = 0.5745
 # z11 = 1.4383, z13 = 0.5165

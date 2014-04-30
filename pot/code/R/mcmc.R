@@ -309,9 +309,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update delta
     if (debug) { print("delta") }
     if (!fixdelta) {
+      att.delta <- att.delta + 1
+      
       cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
                       log.det=log.det, z.sites=z.sites, log=T)
-      att.delta <- att.delta + 1
       
       alpha.skew <- delta / sqrt(1 - delta^2)
       can.alpha.skew <- rnorm(1, alpha.skew, mh.delta)
