@@ -299,7 +299,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       for (t in 1:nt) {
         beta.star <- sigma.b + sum(z.knots[, t]^2) / 2 + 
                      t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) /  (2 * (1 - delta^2))
-        sigma.inv[t] <- rgamma(n=1, shape=alpha.star, scale=beta.star)
+        sigma.inv[t] <- rgamma(n=1, shape=alpha.star, rate=beta.star)
       }
       
       sigma <- 1 / sigma.inv
