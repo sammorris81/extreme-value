@@ -64,13 +64,17 @@ z.sites.t[[3]] <- data$z.sites
 knots.t[[3]] <- data$knots
 # hist(y[[3]], main="delta = 0.9")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], delta=0.95,
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], delta=delta.t[4],
                    rho=rho.t, nu=nu.t, alpha=alpha.t)
 y[[4]] <- data$y
 z.knots.t[[4]] <- data$z.knots
 z.sites.t[[4]] <- data$z.sites
 knots.t[[4]] <- data$knots
 # hist(y[[4]], main="delta = 0.95")
+
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], delta=-delta.t[4],
+                    rho=rho.t, nu=nu.t, alpha=alpha.t)
 
 source("auxfunctions.R")
 source("mcmc.R")

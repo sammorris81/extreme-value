@@ -80,11 +80,11 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
     
     x.beta.t <- x[, t, ] %*% beta
     
-    #nugget <- (1 - alpha) * (sigma.t * (1 - delta^2))
-    #p.sill <- alpha * (sigma.t * (1 - delta^2))
+    nugget <- (1 - alpha) * (sigma.t * (1 - delta^2))
+    p.sill <- alpha * (sigma.t * (1 - delta^2))
     
-    nugget <- (1 - alpha)
-    p.sill <- alpha
+    #nugget <- (1 - alpha)
+    #p.sill <- alpha
     
     if (alpha != 0) {
       cor    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
@@ -93,8 +93,8 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
       cor    <- diag(1, ns)
     }
     
-    v.t    <- sqrt(sigma.t) * sqrt(1 - delta^2) * t(chol(cor)) %*% rnorm(ns)
-    
+    #v.t    <- sqrt(sigma.t) * sqrt(1 - delta^2) * t(chol(cor)) %*% rnorm(ns)
+    v.t     <- t(chol(cor)) %*% rnorm(ns)
     y[, t]       <- x.beta.t + delta * z.sites.t + v.t
     z.knots[, t] <- z.knots.t
     z.sites[, t] <- z.sites.t
