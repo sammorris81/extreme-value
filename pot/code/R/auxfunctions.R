@@ -303,7 +303,7 @@ LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
   }
       
   log.like  <- rep(NA, nt)
-  
+
   for (t in 1:nt) {
     sigma.t <- sigma[t]
     y.t <- y[, t]

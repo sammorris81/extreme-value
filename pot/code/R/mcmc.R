@@ -148,7 +148,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
-  acc.delta <- att.delta <- mh.delta <- 10  
+  acc.delta <- att.delta <- mh.delta <- 0.5  
   acc.rho   <- att.rho   <- mh.rho   <- 0.1
   acc.nu    <- att.nu    <- mh.nu    <- 0.1
   acc.alpha <- att.alpha <- mh.alpha <- 0.1
@@ -321,8 +321,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=can.delta, 
                       prec=prec, log.det=log.det, z.sites=z.sites, log=T)
                      
-      rej <- sum(can.ll - cur.ll)
-      if (!is.na(rej)) { if(-rej < rexp(1, 1)) {
+      rej <- sum(can.ll - cur.ll) + 
+                 dnorm(can.alpha.skew, log=T) - dnorm(alpha.skew, log=T)
+             
+      # rej <- sum(can.ll - cur.ll)
+      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
         delta  <- can.delta
         mu <- x.beta + delta * z.sites
         cur.ll <- can.ll
@@ -352,7 +355,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.lognu <- log(nu)
       }
       can.nu <- exp(can.lognu)
-      
+
       if (can.nu <= 10) {  # for numerical stability
         can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig

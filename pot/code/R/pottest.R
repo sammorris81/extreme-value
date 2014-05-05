@@ -27,11 +27,12 @@ beta.t <- c(10, 0, 0)
 sigma.t <- vector(mode="list", length=4)
 for (i in 1:4) {
   sigma.t[[i]] <- 1 / rgamma(nt, 4, 4)
+  # sigma.t[[i]] <- rep(1, nt)
 }
-# sigma.t <- rep(1, nt)
+
 rho.t <- 0.1
 nu.t <- 0.5
-alpha.t <- 0.9
+alpha.t <- 0
 
 # making sure the data generated looks reasonable
 y         <- vector(mode="list", length=4)
@@ -72,10 +73,6 @@ z.sites.t[[4]] <- data$z.sites
 knots.t[[4]] <- data$knots
 # hist(y[[4]], main="delta = 0.95")
 
-
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], delta=-delta.t[4],
-                    rho=rho.t, nu=nu.t, alpha=alpha.t)
-
 source("auxfunctions.R")
 source("mcmc.R")
 
@@ -87,8 +84,8 @@ fit1 <- mcmc(y=y[[1]], s=s, x=x, thresh=0, nknots=1,
              beta.init=beta.t, sigma.init=sigma.t[[1]], rho.init=rho.t,
              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[1],
              debug=F, knots.init=knots.t[[1]], z.init=z.knots.t[[1]],
-             fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
-             fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
+             fixknots=F, fixz=F, fixbeta=F, fixsigma=F, 
+             fixrho=F, fixnu=F, fixalpha=F, fixdelta=T)
 
 # sigma1 = 0.9109, sigma3 = 1.2974
 # z11 = 0.8964, z13 = 0.8644
@@ -118,5 +115,5 @@ fit4 <- mcmc(y=y[[4]], s=s, x=x, thresh=0, nknots=1,
              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[4],
              debug=F, knots.init=knots.t[[4]], z.init=z.knots.t[[4]],
              fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
-             fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
+             fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
  
