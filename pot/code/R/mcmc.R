@@ -13,7 +13,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
                  # priors
-                 beta.m=0, beta.s=10, sigma.a=0.1, sigma.b=10,
+                 beta.m=0, beta.s=10, sigma.a=10, sigma.b=10,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  # debugging settings
@@ -215,8 +215,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       for (t in 1:nt) {
         for (k in 1:nknots) {
           these   <- which(partition[, t] == k)
+          n.these <- length(these)
           r1      <- y[these, t] - x.beta[these, t]
-          r2      <- y[-these, t] - mu[-these, t]
+          r2      <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
+          r1      <- matrix(r1, nrow=n.these, ncol=1)
+          r2      <- matrix(r2, nrow=(ns - n.these), ncol=1)
           prec.11 <- prec[these, these]
           prec.21 <- prec[-these, these]
           mu.z    <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21) / (1 - delta^2)
@@ -322,7 +325,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                       prec=prec, log.det=log.det, z.sites=z.sites, log=T)
                      
       rej <- sum(can.ll - cur.ll) + 
-                 dnorm(can.alpha.skew, log=T) - dnorm(alpha.skew, log=T)
+             dnorm(can.alpha.skew, log=T) - dnorm(alpha.skew, log=T)
              
       # rej <- sum(can.ll - cur.ll)
       if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
