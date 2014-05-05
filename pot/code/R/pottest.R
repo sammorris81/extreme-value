@@ -115,7 +115,7 @@ fit3 <- mcmc(y=y[[3]], s=s, x=x, thresh=0, nknots=1,
 fit4 <- mcmc(y=y[[4]], s=s, x=x, thresh=0, nknots=1,
              iters=10000, burn=5000, update=1000, iterplot=T,
              beta.init=beta.t, sigma.init=sigma.t[[4]], rho.init=rho.t,
-             nu.init=nu.t, alpha.init=alpha.t, delta.init=-delta.t[4],
+             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t[4],
              debug=F, knots.init=knots.t[[4]], z.init=z.knots.t[[4]],
              fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
              fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
