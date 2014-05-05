@@ -175,6 +175,7 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   q <- sig <- list()
   
   sig       <- CorFx(d, alpha, rho, nu, cov=FALSE)
+  diag(sig) <- 1
   sig.chol  <- chol(sig)
   diag.chol <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
   log.det   <- -2 * sum(log(diag.chol))

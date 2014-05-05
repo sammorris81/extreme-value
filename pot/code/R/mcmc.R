@@ -340,7 +340,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # rho and nu
     if (debug) { print("rho and nu") }
     if (!fixrho || !fixnu) {
-
+      
+      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
+                      log.det=log.det, z.sites=z.sites, log=T)
+      
       if (!fixrho) {
       	att.rho    <- att.rho + 1
         logrho     <- log(rho)
@@ -358,8 +361,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.lognu <- log(nu)
       }
       can.nu <- exp(can.lognu)
+      
+      if (!fixalpha) {
+        att.alpha <- att.alpha + 1
+        norm.alpha <- qnorm(alpha)
+        can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
+      } else {
+        can.norm.alpha <- qnorm(alpha)
+      }
+      can.alpha <- pnorm(can.norm.alpha)
 
       if (can.nu <= 10) {  # for numerical stability
+      	# print(paste(iter, can.rho, can.nu))
+      	# print(paste(mh.nu, mh.rho))
         can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig
         can.prec    <- can.cor.mtx$prec
@@ -374,7 +388,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                dnorm(logrho, logrho.m, logrho.s, log=T) +
                dnorm(can.lognu, lognu.m, lognu.s, log=T) -
                dnorm(lognu, lognu.m, lognu.s, log=T)
-      
+        
         if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
           rho     <- can.rho
           nu      <- can.nu
@@ -384,7 +398,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           log.det <- can.log.det
           cur.ll  <- can.ll
           if (!fixrho) { acc.rho <- acc.rho + 1 }
-          if (!fixnu) { acc.nu <- acc.nu + 1}
+          if (!fixnu) { acc.nu <- acc.nu + 1 }
         }} 
       } # fi can.nu <= 10
     } # fi !fixrho || !fixnu
@@ -392,6 +406,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # alpha
     if (debug) { print("alpha") }
     if (!fixalpha) {
+      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
+                      log.det=log.det, z.sites=z.sites, log=T)
+                      
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
       can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
@@ -421,40 +438,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }  # fi !fixalpha
     
   }  # end nthin
-  
-  ##############################################
-  # MH adapt candidate distributions
-  ##############################################
-  if (debug) { print("MH update") }
-  if (iter < burn / 2) { 
-    for (t in 1:nt) {
-      if (att.w[t] > 50) {
-        if (acc.w[t] / att.w[t] < 0.25) { mh.w[t] <- mh.w[t] * 0.8 }
-        if (acc.w[t] / att.w[t] > 0.50) { mh.w[t] <- mh.w[t] * 1.2 }
-      }
-    }
-    
-    if (att.delta > 50) {
-      if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
-      if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta * 1.2 }
-      print(mh.delta)
-    }
-    if (att.rho > 50) {
-      if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
-      if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
-      print(mh.rho)
-    }
-    if (att.nu > 50) {
-      if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
-      if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
-      print(mh.nu)
-    }
-    if (att.alpha > 50) {
-      if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
-      if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
-      print(mh.alpha)
-    }
-  }  # fi iter < burn / 2
   
   ##############################################
   # Spatial Predictions
@@ -557,6 +540,45 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  dev.off()
   	}
   }  # fi iterplot
+  
+  ##############################################
+  # MH adapt candidate distributions
+  ##############################################
+  if (debug) { print("MH update") }
+  if (iter < burn / 2) { 
+    for (t in 1:nt) {
+      if (att.w[t] > 50) {
+        if (acc.w[t] / att.w[t] < 0.25) { mh.w[t] <- mh.w[t] * 0.8 }
+        if (acc.w[t] / att.w[t] > 0.50) { mh.w[t] <- mh.w[t] * 1.2 }
+        acc.w[t] <- att.w[t] <- 0.1
+      }
+    }
+    
+    if (att.delta > 50) {
+      if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
+      if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta * 1.2 }
+      acc.delta <- att.delta <- 0.1
+      # print(mh.delta)
+    }
+    if (att.rho > 50) {
+      if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
+      if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
+      acc.rho <- att.rho <- 0.1
+      # print(mh.rho)
+    }
+    if (att.nu > 50) {
+      if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
+      if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
+      acc.nu <- att.nu <- 0.1
+      # print(mh.nu)
+    }
+    if (att.alpha > 50) {
+      if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
+      if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
+      acc.alpha <- att.alpha <- 0.1
+      # print(mh.alpha)
+    }
+  }  # fi iter < burn / 2
   
   if ((iter %% update) == 0) {
     cat("    Iter", iter, "complete. \n")
