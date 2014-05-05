@@ -117,3 +117,150 @@ fit4 <- mcmc(y=y[[4]], s=s, x=x, thresh=0, nknots=1,
              fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
              fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
  
+ 
+# testing this out from simple to complicated                   
+rm(list=ls())
+
+library(fields)
+library(geoR)
+library(mvtnorm)
+library(evd)
+
+source("auxfunctions.R")
+source("mcmc.R")
+
+set.seed(2087)
+
+# iid n(0, 1)
+# data settings
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 30
+nsets <- 1
+nknots <- 1
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+    x[, t, 2] <- s[, 1]
+    x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(0, 0, 0)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0
+sigma.t <- rep(1, nt)
+alpha.t <- 0
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
+                    rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=1)
+
+y <- data$y
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+
+fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
+            iters=10000, burn=5000, update=1000, iterplot=T,
+            beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            debug=F, knots.init=knots.t, z.init=z.knots.t,
+            fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
+            fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
+# works pretty well
+
+rm(list=ls())
+source("auxfunctions.R")
+source("mcmc.R")
+# iid n(0, sigma2)
+# data settings
+set.seed(2087)
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 30
+nsets <- 1
+nknots <- 1
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+    x[, t, 2] <- s[, 1]
+    x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(0, 0, 0)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0
+sigma.t <- 1 / rgamma(nt, 1, 1)
+alpha.t <- 0
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
+                    rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=1)
+
+
+
+y <- data$y
+
+# y <- matrix(rnorm(ns * nt, 0, 2), ns, nt)
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+
+# sigma1 = 0.8379, sigma3 = 23.7572
+fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
+            iters=10000, burn=5000, update=1000, iterplot=T,
+            beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            debug=F, knots.init=knots.t, z.init=z.knots.t,
+            fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
+            fixrho=T, fixnu=T, fixalpha=T, fixdelta=T)
+# seems to work well now
+
+
+
+rm(list=ls())
+source("auxfunctions.R")
+source("mcmc.R")
+# iid MVN(0, Matern)
+# data settings
+set.seed(2087)
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 50
+nsets <- 1
+nknots <- 1
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+    x[, t, 2] <- s[, 1]
+    x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(0, 0, 0)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0
+#sigma.t <- 1 / rgamma(nt, 1, 1)
+sigma.t <- rep(1, nt)
+alpha.t <- 0.9
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
+                    rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=1)
+
+
+
+y <- data$y
+
+# y <- matrix(rnorm(ns * nt, 0, 2), ns, nt)
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+
+# sigma1 = 0.8379, sigma3 = 23.7572
+fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
+            iters=20000, burn=15000, update=1000, iterplot=T,
+            beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            debug=F, knots.init=knots.t, z.init=z.knots.t,
+            fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T)

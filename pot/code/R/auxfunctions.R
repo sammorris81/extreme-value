@@ -75,26 +75,33 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
    
   for (t in 1:nt) {
   	sigma.t   <- sigma[t]
+  	# print(sigma.t)
   	z.knots.t <- abs(rnorm(n=nknots, mean=0, sd=sqrt(sigma.t)))
     z.sites.t <- ZBySites(z.knots.t, partition[, t])
     
     x.beta.t <- x[, t, ] %*% beta
     
-    nugget <- (1 - alpha) * (sigma.t * (1 - delta^2))
-    p.sill <- alpha * (sigma.t * (1 - delta^2))
+    # nugget <- (1 - alpha) * (sigma.t * (1 - delta^2))
+    # p.sill <- alpha * (sigma.t * (1 - delta^2))
     
-    #nugget <- (1 - alpha)
-    #p.sill <- alpha
+    nugget <- 1
+    p.sill <- 1
     
     if (alpha != 0) {
-      cor    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
-                               cov.pars=c(p.sill, rho), kappa=nu)$varcov
+      # cor    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
+      #                          cov.pars=c(p.sill, rho), kappa=nu)$varcov
+      cor    <- alpha * matern(u=d, phi=rho, kappa=nu)
+      v.spat <- t(chol(cor)) %*% rnorm(ns, 0, 1)
     } else {
-      cor    <- diag(1, ns)
+      v.spat <- rep(0, ns)
     }
     
-    #v.t    <- sqrt(sigma.t) * sqrt(1 - delta^2) * t(chol(cor)) %*% rnorm(ns)
-    v.t     <- t(chol(cor)) %*% rnorm(ns)
+    # print(diag(cor))
+    
+    v.nug <- rnorm(ns, 0, sqrt(1 - alpha))
+    v.t <- sqrt(sigma.t) * sqrt(1 - delta^2) * ( v.nug + v.spat) 
+    # v.t    <- sqrt(sigma.t) * sqrt(1 - delta^2) * t(chol(cor)) %*% rnorm(ns)
+    # v.t     <- t(chol(cor)) %*% rnorm(ns, mean=0, sd=sqrt(4))
     y[, t]       <- x.beta.t + delta * z.sites.t + v.t
     z.knots[, t] <- z.knots.t
     z.sites[, t] <- z.sites.t
@@ -102,7 +109,7 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
     
   }
   
-  results <- list(y=y, z.knots=z.knots, z.sites=z.sites, knots=knots, v=v)
+  results <- list(y=y, z.knots=z.knots, z.sites=z.sites, knots=knots, v=v, cor=cor)
     
   return(results)
 }

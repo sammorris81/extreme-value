@@ -13,7 +13,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
                  # priors
-                 beta.m=0, beta.s=10, sigma.a=10, sigma.b=10,
+                 beta.m=0, beta.s=10, sigma.a=1, sigma.b=1,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  # debugging settings
@@ -149,9 +149,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
   acc.delta <- att.delta <- mh.delta <- 0.5  
-  acc.rho   <- att.rho   <- mh.rho   <- 0.1
-  acc.nu    <- att.nu    <- mh.nu    <- 0.1
-  acc.alpha <- att.alpha <- mh.alpha <- 0.1
+  acc.rho   <- att.rho   <- mh.rho   <- 1
+  acc.nu    <- att.nu    <- mh.nu    <- 1
+  acc.alpha <- att.alpha <- mh.alpha <- 1
   
   # storage
   if (debug) { print("storage") }
@@ -437,12 +437,22 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (att.delta > 50) {
       if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
       if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta * 1.2 }
+      print(mh.delta)
+    }
+    if (att.rho > 50) {
       if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
       if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
+      print(mh.rho)
+    }
+    if (att.nu > 50) {
       if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
       if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
+      print(mh.nu)
+    }
+    if (att.alpha > 50) {
       if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
       if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
+      print(mh.alpha)
     }
   }  # fi iter < burn / 2
   
