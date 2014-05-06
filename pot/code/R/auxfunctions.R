@@ -75,33 +75,20 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
    
   for (t in 1:nt) {
   	sigma.t   <- sigma[t]
-  	# print(sigma.t)
-  	z.knots.t <- abs(rnorm(n=nknots, mean=0, sd=sqrt(sigma.t)))
+  	z.knots.t <- sqrt(sigma.t) * abs(rnorm(n=nknots, mean=0, sd=1))
     z.sites.t <- ZBySites(z.knots.t, partition[, t])
     
     x.beta.t <- x[, t, ] %*% beta
-    
-    # nugget <- (1 - alpha) * (sigma.t * (1 - delta^2))
-    # p.sill <- alpha * (sigma.t * (1 - delta^2))
-    
-    nugget <- 1
-    p.sill <- 1
-    
+     
     if (alpha != 0) {
-      # cor    <- varcov.spatial(coords=s, cov.model="matern", nugget=nugget, 
-      #                          cov.pars=c(p.sill, rho), kappa=nu)$varcov
       cor    <- alpha * matern(u=d, phi=rho, kappa=nu)
       v.spat <- t(chol(cor)) %*% rnorm(ns, 0, 1)
     } else {
       v.spat <- rep(0, ns)
     }
     
-    # print(diag(cor))
-    
     v.nug <- rnorm(ns, 0, sqrt(1 - alpha))
     v.t <- sqrt(sigma.t) * sqrt(1 - delta^2) * ( v.nug + v.spat) 
-    # v.t    <- sqrt(sigma.t) * sqrt(1 - delta^2) * t(chol(cor)) %*% rnorm(ns)
-    # v.t     <- t(chol(cor)) %*% rnorm(ns, mean=0, sd=sqrt(4))
     y[, t]       <- x.beta.t + delta * z.sites.t + v.t
     z.knots[, t] <- z.knots.t
     z.sites[, t] <- z.sites.t
@@ -156,6 +143,8 @@ ScaleLocs <- function(s){
   return(s.scale)   
 }
 
+
+
 ################################################################
 # Arguments:
 #   d(ns, ns): distance between observations
@@ -175,7 +164,6 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   q <- sig <- list()
   
   sig       <- CorFx(d, alpha, rho, nu, cov=FALSE)
-  diag(sig) <- 1
   sig.chol  <- chol(sig)
   diag.chol <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
   log.det   <- -2 * sum(log(diag.chol))
@@ -268,6 +256,25 @@ BetaPosterior <- function(prec.beta, e.beta, x, y, z,
   results <- list(vvv=vvv, mmm=mmm)
 
   return(results)
+}
+
+################################################################
+# Arguments:
+#   res(ns, nt)
+#   prec(ns, ns): precision matrix
+#
+# Returns:
+#   ss(nt): vector of daily sums of squares
+################################################################
+SumSquares <- function(res, prec){
+  nt <- ncol(res)
+  ss <- rep(NA, nt)
+  
+  for (t in 1:nt) {
+    ss[t] <- t(res[, t]) %*% prec %*% res[, t]
+  }
+  
+  return(ss)
 }
 
 ################################################################

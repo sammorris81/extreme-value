@@ -16,6 +16,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  beta.m=0, beta.s=10, sigma.a=1, sigma.b=1,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
+                 alpha.m=0, alpha.s=1,
                  # debugging settings
                  debug=F, knots.init, z.init, 
                  fixknots=F, fixz=F, fixbeta=F, fixsigma=F,
@@ -294,14 +295,54 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
     }  #fi !fixbeta
     
-    # update sigma
+    res <- y - mu
+    rss <- SumSquares(res, prec)
+    
+    # update delta
+    if (debug) { print("delta") }
+    if (!fixdelta) {
+      att.delta <- att.delta + 1
+      
+      cur.rss <- rss / (1 - delta^2)
+      
+      # alpha.skew <- delta / sqrt(1 - delta^2)
+      # can.alpha.skew <- rnorm(1, alpha.skew, mh.delta)
+      #can.delta <- can.alpha.skew / sqrt(1 + can.alpha.skew^2)
+      can.delta <- rnorm(1, delta, mh.delta)
+
+      if (can.delta > -1 && can.delta < 1) {
+	    can.res <- y - (x.beta + can.delta * z.sites)
+	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
+
+	    rej <- -0.5 * sum((can.rss - cur.rss) / sigma) + 
+	           -0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2)) # +
+	           # dnorm(can.alpha.skew, 0, 5, log=T) - dnorm(alpha.skew, 0, 5, log=T)
+	           
+	    # rej <- sum(can.ll - cur.ll)
+	    if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+	      delta     <- can.delta
+	      mu        <- x.beta + delta * z.sites
+	      # cur.ll <- can.ll
+	      rss       <- can.rss
+	      acc.delta <- acc.delta + 1
+	    }}
+	  }  # fi can.delta
+      
+    }  # fi !fixdelta
+    
+    #### Spatial correlation
+    
+    res <- y - mu
+    rss <- SumSquares(res, prec)
+    
+    # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {
       sigma.inv <- rep(0, nt)
       alpha.star <- sigma.a + nknots / 2 + ns / 2
       for (t in 1:nt) {
         beta.star <- sigma.b + sum(z.knots[, t]^2) / 2 + 
-                     t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t]) /  (2 * (1 - delta^2))
+                     rss[t] /  (2 * (1 - delta^2))
         sigma.inv[t] <- rgamma(n=1, shape=alpha.star, rate=beta.star)
       }
       
@@ -309,40 +350,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
      
     }  # fi !fixsigma
     
-    # update delta
-    if (debug) { print("delta") }
-    if (!fixdelta) {
-      att.delta <- att.delta + 1
-      
-      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
-                      log.det=log.det, z.sites=z.sites, log=T)
-      
-      alpha.skew <- delta / sqrt(1 - delta^2)
-      can.alpha.skew <- rnorm(1, alpha.skew, mh.delta)
-      can.delta <- can.alpha.skew / sqrt(1 + can.alpha.skew^2)
-      
-      can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=can.delta, 
-                      prec=prec, log.det=log.det, z.sites=z.sites, log=T)
-                     
-      rej <- sum(can.ll - cur.ll) + 
-             dnorm(can.alpha.skew, log=T) - dnorm(alpha.skew, log=T)
-             
-      # rej <- sum(can.ll - cur.ll)
-      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-        delta  <- can.delta
-        mu <- x.beta + delta * z.sites
-        cur.ll <- can.ll
-        acc.delta <- acc.delta + 1
-      }}
-      
-    }  # fi !fixdelta
-    
     # rho and nu
     if (debug) { print("rho and nu") }
     if (!fixrho || !fixnu) {
       
-      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
-                      log.det=log.det, z.sites=z.sites, log=T)
+      cur.rss <- rss
       
       if (!fixrho) {
       	att.rho    <- att.rho + 1
@@ -362,28 +374,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       can.nu <- exp(can.lognu)
       
-      if (!fixalpha) {
-        att.alpha <- att.alpha + 1
-        norm.alpha <- qnorm(alpha)
-        can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
-      } else {
-        can.norm.alpha <- qnorm(alpha)
-      }
-      can.alpha <- pnorm(can.norm.alpha)
-
       if (can.nu <= 10) {  # for numerical stability
       	# print(paste(iter, can.rho, can.nu))
       	# print(paste(mh.nu, mh.rho))
         can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig
         can.prec    <- can.cor.mtx$prec
-        can.log.det <- can.cor.mtx$log.det      
-      
-      
-        can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta,
-                        prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
+        can.log.det <- can.cor.mtx$log.det
+        
+        can.rss     <- SumSquares(res, can.prec)     
                       
-        rej <- sum(can.ll - cur.ll) + 
+        rej <- -0.5 * sum((can.rss - cur.rss) / (sigma * (1 - delta^2))) + 
+               0.5 * nt * (can.log.det - log.det) + 
                dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
                dnorm(logrho, logrho.m, logrho.s, log=T) +
                dnorm(can.lognu, lognu.m, lognu.s, log=T) -
@@ -396,7 +398,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           sig     <- can.sig
           prec    <- can.prec
           log.det <- can.log.det
-          cur.ll  <- can.ll
+          # cur.ll  <- can.ll
+          rss     <- can.rss
           if (!fixrho) { acc.rho <- acc.rho + 1 }
           if (!fixnu) { acc.nu <- acc.nu + 1 }
         }} 
@@ -406,8 +409,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # alpha
     if (debug) { print("alpha") }
     if (!fixalpha) {
-      cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec,
-                      log.det=log.det, z.sites=z.sites, log=T)
+      cur.rss  <- rss
                       
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
@@ -419,11 +421,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.prec    <- can.cor.mtx$prec
       can.log.det <- can.cor.mtx$log.det
       
-      can.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta,
-                      prec=can.prec, log.det=can.log.det, z.sites=z.sites, log=T)
+      can.rss <- SumSquares(res, can.prec)
                       
-      rej <- sum(can.ll - cur.ll) + 
-             dnorm(can.norm.alpha, log=T) - dnorm(norm.alpha, log=T)
+      rej <- -0.5 * sum((can.rss - cur.rss) / (sigma * (1 - delta^2))) + 
+             0.5 * nt * (can.log.det - log.det) +
+             dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+             dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
       
       if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
         alpha     <- can.alpha
@@ -431,7 +434,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         sig       <- can.sig
         prec      <- can.prec
         log.det   <- can.log.det
-        cur.ll    <- can.ll
+        # cur.ll    <- can.ll
+        rss       <- can.rss
         acc.alpha <- acc.alpha + 1
       }}
       
