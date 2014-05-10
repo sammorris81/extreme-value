@@ -235,7 +235,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         } else if (nknots == 1) {
           r      <- y[, t] - x.beta[, t]
           ppp    <- prec / vvv
-          mu.z   <- delta * sum(ppp %&% r)
+          mu.z   <- delta * sum(ppp %*% r)
           prec.z <- delta^2 * sum(ppp) + 1 / sigma[t]
           var.z  <- 1 / prec.z
           
@@ -319,7 +319,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.delta <- rnorm(1, delta, mh.delta)
 
       if (can.delta > -1 && can.delta < 1) {
-	    res     <- y - x.beta - can.delta * z.sites
+	    can.res <- y - x.beta - can.delta * z.sites
 	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
 
 	    rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) - 

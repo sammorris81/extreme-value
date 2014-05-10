@@ -41,32 +41,32 @@ z.sites.t <- vector(mode="list", length=4)
 knots.t   <- vector(mode="list", length=4)
 delta.t   <- c(0, 0.5, 0.9, 0.95)
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[1]], delta=delta.t[1],
-                   rho=rho.t, nu=nu.t, alpha=alpha.t)          
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[1]], 
+                    delta=delta.t[1], rho=rho.t, nu=nu.t, alpha=alpha.t)          
 y[[1]] <- data$y
 z.knots.t[[1]] <- data$z.knots
 z.sites.t[[1]] <- data$z.sites
 knots.t[[1]] <- data$knots
 # hist(y[[1]], main="delta = 0")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[2]], delta=delta.t[2],
-                   rho=rho.t, nu=nu.t, alpha=alpha.t)          
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[2]], 
+                    delta=delta.t[2], rho=rho.t, nu=nu.t, alpha=alpha.t)          
 y[[2]] <- data$y
 z.knots.t[[2]] <- data$z.knots
 z.sites.t[[2]] <- data$z.sites
 knots.t[[2]] <- data$knots
 # hist(y[[2]], main="delta = 0.5")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[3]], delta=delta.t[3],
-                   rho=rho.t, nu=nu.t, alpha=alpha.t)
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[3]], 
+                    delta=delta.t[3], rho=rho.t, nu=nu.t, alpha=alpha.t)
 y[[3]] <- data$y
 z.knots.t[[3]] <- data$z.knots
 z.sites.t[[3]] <- data$z.sites
 knots.t[[3]] <- data$knots
 # hist(y[[3]], main="delta = 0.9")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], delta=delta.t[4],
-                   rho=rho.t, nu=nu.t, alpha=alpha.t)
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], 
+                    delta=delta.t[4], rho=rho.t, nu=nu.t, alpha=alpha.t)
 y[[4]] <- data$y
 z.knots.t[[4]] <- data$z.knots
 z.sites.t[[4]] <- data$z.sites
@@ -292,7 +292,7 @@ for (t in 1:nt) {
 beta.t <- c(0, 0, 0)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0.50
+delta.t <- 0.75
 sigma.t <- rep(1, nt)
 alpha.t <- 0.9
 
@@ -308,7 +308,7 @@ hist(y, breaks=30)
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             iters=10000, burn=5000, update=1000, iterplot=T,
             beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
-            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=0.5,
             debug=F, knots.init=knots.t, z.init=z.knots.t,
-            fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
-            fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
+            fixknots=T, fixz=T, fixbeta=T, fixsigma=F, 
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F)
