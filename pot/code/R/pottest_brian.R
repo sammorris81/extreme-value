@@ -45,7 +45,7 @@ knots.t <- data$knots
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             iters=7000, burn=4000, update=1000, iterplot=T,
             beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
-            nu.init=nu.t, alpha.init=alpha.t, delta.init=0,#delta.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t, #0
             debug=F, knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
-            fixrho=F, fixnu=F, fixalpha=T, fixdelta=F)
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T)

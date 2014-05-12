@@ -343,13 +343,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
     }  # fi !fixsigma
     
-    rss <- SumSquares(res, prec)
-    
     # rho and nu
     if (debug) { print("rho and nu") }
     if (!fixrho | !fixnu) {
       
-      cur.rss <- rss
+      cur.rss <- SumSquares(res, prec) / (1 - delta^2)
       
       if (!fixrho) {
       	att.rho    <- att.rho + 1
@@ -375,9 +373,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.prec    <- can.cor.mtx$prec
         can.log.det <- can.cor.mtx$log.det
         
-        can.rss     <- SumSquares(res, can.prec)     
+        can.rss     <- SumSquares(res, can.prec) / (1 - delta^2)    
                       
-        rej <- -0.5 * sum((can.rss - cur.rss) / (sigma * (1 - delta^2))) + 
+        rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) + 
                0.5 * nt * (can.log.det - log.det) + 
                dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
                dnorm(logrho, logrho.m, logrho.s, log=T) +
@@ -391,7 +389,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           sig     <- can.sig
           prec    <- can.prec
           log.det <- can.log.det
-          rss     <- can.rss
           if (!fixrho) { acc.rho <- acc.rho + 1 }
           if (!fixnu) { acc.nu <- acc.nu + 1 }
         }} 
@@ -401,21 +398,23 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # alpha
     if (debug) { print("alpha") }
     if (!fixalpha) {
-      cur.rss  <- rss
+    
+      cur.rss  <- SumSquares(res, prec) / (1 - delta^2)
                       
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
       can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
       can.alpha      <- pnorm(can.norm.alpha)
+      # can.alpha   <- rnorm(1, alpha, mh.alpha)
       
       can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
       can.sig     <- can.cor.mtx$sig
       can.prec    <- can.cor.mtx$prec
       can.log.det <- can.cor.mtx$log.det
-      
-      can.rss <- SumSquares(res, can.prec)
+    
+      can.rss <- SumSquares(res, can.prec) / (1 - delta^2)
                       
-      rej <- -0.5 * sum((can.rss - cur.rss) / (sigma * (1 - delta^2))) + 
+      rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) + 
              0.5 * nt * (can.log.det - log.det) +
              dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
              dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
@@ -426,10 +425,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         sig       <- can.sig
         prec      <- can.prec
         log.det   <- can.log.det
-        rss       <- can.rss
         acc.alpha <- acc.alpha + 1
       }}
-      
+
     }  # fi !fixalpha
     
   }  # end nthin
