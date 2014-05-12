@@ -270,10 +270,10 @@ library(geoR)
 library(mvtnorm)
 library(evd)
 
-source("auxfunctions1.R")
+source("auxfunctions.R")
 source("mcmc.R")
 
-set.seed(2087)
+set.seed(1234)
 
 # iid n(0, 1)
 # data settings
@@ -285,15 +285,15 @@ nknots <- 1
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
-    x[, t, 2] <- s[, 1]
-    x[, t, 3] <- s[, 2]
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
 }
 
 beta.t <- c(0, 0, 0)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0.5
-sigma.t <- rep(1, nt)
+delta.t <- 0.7
+sigma.t <- rep(10, nt)
 alpha.t <- 0.8
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,

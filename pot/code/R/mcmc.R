@@ -24,10 +24,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  fixdelta=F){
     
   start.time <- proc.time()
-   
-  ##############################################
-  # Initial setup
-  ##############################################
   
   ##############################################
   # Initial setup
@@ -213,7 +209,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) {print("random z")}
     if (!fixz) {  # debug
       for (t in 1:nt) {
-      	vvv  <- sigma[t] * (1 - delta^2)
         if (nknots > 1) {
           for (k in 1:nknots) {
             these   <- which(partition[, t] == k)
@@ -221,6 +216,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             r1      <- y[these, t] - x.beta[these, t]
             r2      <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
             
+            vvv     <- sigma[t] * (1 - delta^2)
             prec.11 <- prec[these, these] / vvv
             prec.21 <- prec[-these, these] / vvv
             
@@ -234,7 +230,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           }  # end nknots
         } else if (nknots == 1) {
           r      <- y[, t] - x.beta[, t]
-          ppp    <- prec / vvv
+          ppp    <- prec / sigma[t] * (1 - delta^2)
           mu.z   <- delta * sum(ppp %*% r)
           prec.z <- delta^2 * sum(ppp) + 1 / sigma[t]
           var.z  <- 1 / prec.z
@@ -244,7 +240,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           z.sites[, t] <- z.new
         }  # fi nknots
       }  # end nt
-      
     }  # fi !fixz
     
     # update means
@@ -323,7 +318,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 	    can.res     <- y - x.beta - can.delta * z.sites
 	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
 
-	    rej <- -0.5 * sum((can.rss - cur.rss) / sigma) - 
+	    rej <- -0.5 * sum(can.rss/sigma - cur.rss/sigma) - 
 	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2))
 	           
 	    if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
@@ -343,11 +338,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {
-      sigma.inv  <- rep(0, nt)
       alpha.star <- sigma.a + nknots / 2 + ns / 2
       beta.star  <- sigma.b + colSums(z.knots^2) / 2 + rss / 2
       sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
-     
     }  # fi !fixsigma
     
     rss <- SumSquares(res, prec)
