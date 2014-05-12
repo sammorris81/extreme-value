@@ -8,7 +8,7 @@ library(evd)
 source("auxfunctions_brian.R")
 source("mcmc_brian.R")
 
-# set.seed(2087)
+set.seed(1234)
 
 # iid n(0, 1)
 # data settings
@@ -48,4 +48,4 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             nu.init=nu.t, alpha.init=alpha.t, delta.init=0,#delta.t,
             debug=F, knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
-            fixrho=T, fixnu=T, fixalpha=T, fixdelta=FALSE)
+            fixrho=F, fixnu=F, fixalpha=T, fixdelta=F)
