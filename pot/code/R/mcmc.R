@@ -285,7 +285,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update beta
     if (debug) { print("beta") }
     if (!fixbeta) {  # debug
-      vvv <- diag(p) * 0.0001
+      vvv <- diag(p) * beta.s^2
       mmm <- 0
       
       for (t in 1:nt) {
