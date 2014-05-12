@@ -292,9 +292,9 @@ for (t in 1:nt) {
 beta.t <- c(0, 0, 0)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0
-sigma.t <- rep(1, nt)
-alpha.t <- 0.9
+delta.t <- 0.2
+sigma.t <- rep(2, nt)
+alpha.t <- 0
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
                     rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=1)
@@ -311,4 +311,5 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
             debug=F, knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
-            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T)
+            fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
+# delta is estimated around (0.48, 0.505) It's a little low.

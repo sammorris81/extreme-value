@@ -316,21 +316,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (!fixdelta) {
       att.delta <- att.delta + 1
       
-      cur.rss <- SumSquares(res, prec) / (sigma * (1 - delta^2))
+      cur.rss <- SumSquares(y - mu, prec) / (1 - delta^2)
       can.delta <- rnorm(1, delta, mh.delta)
 
       if (can.delta > -1 & can.delta < 1) {
-      can.mu  <- x.beta + can.delta * z.sites
+        can.mu  <- x.beta + can.delta * z.sites
 	    can.res <- y - can.mu
-	    can.rss <- SumSquares(can.res, prec) / (sigma * (1 - can.delta^2))
+	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
 
-	    rej <- -0.5 * sum(can.rss - cur.rss) - 
+	    rej <- -0.5 * sum(can.rss/sigma - cur.rss/sigma) - 
 	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2))
 	           
 	    if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+	      res       <- can.res
+	      mu        <- can.mu
 	      delta     <- can.delta
-        res       <- can.res
-        mu        <- can.mu
 	      acc.delta <- acc.delta + 1
 	    }}
 	  }  # fi can.delta
@@ -345,9 +345,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {
-      rss        <- SumSquares(y - mu, prec) 
+      rss <- SumSquares(res, prec) / (1 - delta^2)
       alpha.star <- sigma.a + 0.5 * nknots + 0.5 * ns
-      beta.star  <- sigma.b + 0.5 * colSums(z.knots^2) + 0.5 * rss / (1 - delta^2)
+      beta.star  <- sigma.b + 0.5 * colSums(z.knots^2) + 0.5 * rss
       sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
     }  # fi !fixsigma
      
