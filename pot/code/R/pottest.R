@@ -41,32 +41,32 @@ z.sites.t <- vector(mode="list", length=4)
 knots.t   <- vector(mode="list", length=4)
 delta.t   <- c(0, 0.5, 0.9, 0.95)
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[1]], 
-                    delta=delta.t[1], rho=rho.t, nu=nu.t, alpha=alpha.t)          
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[1]], delta=delta.t[1],
+                   rho=rho.t, nu=nu.t, alpha=alpha.t)          
 y[[1]] <- data$y
 z.knots.t[[1]] <- data$z.knots
 z.sites.t[[1]] <- data$z.sites
 knots.t[[1]] <- data$knots
 # hist(y[[1]], main="delta = 0")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[2]], 
-                    delta=delta.t[2], rho=rho.t, nu=nu.t, alpha=alpha.t)          
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[2]], delta=delta.t[2],
+                   rho=rho.t, nu=nu.t, alpha=alpha.t)          
 y[[2]] <- data$y
 z.knots.t[[2]] <- data$z.knots
 z.sites.t[[2]] <- data$z.sites
 knots.t[[2]] <- data$knots
 # hist(y[[2]], main="delta = 0.5")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[3]], 
-                    delta=delta.t[3], rho=rho.t, nu=nu.t, alpha=alpha.t)
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[3]], delta=delta.t[3],
+                   rho=rho.t, nu=nu.t, alpha=alpha.t)
 y[[3]] <- data$y
 z.knots.t[[3]] <- data$z.knots
 z.sites.t[[3]] <- data$z.sites
 knots.t[[3]] <- data$knots
 # hist(y[[3]], main="delta = 0.9")
 
-data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], 
-                    delta=delta.t[4], rho=rho.t, nu=nu.t, alpha=alpha.t)
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t[[4]], delta=delta.t[4],
+                   rho=rho.t, nu=nu.t, alpha=alpha.t)
 y[[4]] <- data$y
 z.knots.t[[4]] <- data$z.knots
 z.sites.t[[4]] <- data$z.sites
@@ -262,7 +262,7 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             fixrho=F, fixnu=F, fixalpha=F, fixdelta=T)
 # works alright
 
-              
+               
 rm(list=ls())
 
 library(fields)
@@ -292,9 +292,9 @@ for (t in 1:nt) {
 beta.t <- c(0, 0, 0)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0.2
-sigma.t <- rep(2, nt)
-alpha.t <- 0
+delta.t <- 0.50
+sigma.t <- rep(1, nt)
+alpha.t <- 0.9
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
                     rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=1)
@@ -303,7 +303,7 @@ y <- data$y
 z.knots.t <- data$z.knots
 z.sites.t <- data$z.sites
 knots.t <- data$knots
-# hist(y, breaks=30)
+hist(y, breaks=30)
 
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             iters=10000, burn=5000, update=1000, iterplot=T,
@@ -312,4 +312,3 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             debug=F, knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, fixsigma=T, 
             fixrho=T, fixnu=T, fixalpha=T, fixdelta=F)
-# delta is estimated around (0.48, 0.505) It's a little low.

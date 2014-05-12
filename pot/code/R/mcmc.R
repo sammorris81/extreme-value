@@ -235,7 +235,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         } else if (nknots == 1) {
           r      <- y[, t] - x.beta[, t]
           ppp    <- prec / vvv
-          mu.z   <- delta * sum(ppp %*% r)
+          mu.z   <- delta * sum(ppp %&% r)
           prec.z <- delta^2 * sum(ppp) + 1 / sigma[t]
           var.z  <- 1 / prec.z
           
@@ -309,7 +309,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }  #fi !fixbeta
     
     mu  <- x.beta + delta * z.sites
-    res <- y - mu
     
     # update delta
     if (debug) { print("delta") }
@@ -319,17 +318,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       cur.rss <- SumSquares(y - mu, prec) / (1 - delta^2)
       can.delta <- rnorm(1, delta, mh.delta)
 
-      if (can.delta > -1 & can.delta < 1) {
-        can.mu  <- x.beta + can.delta * z.sites
-	    can.res <- y - can.mu
+      if (can.delta > -1 && can.delta < 1) {
+	    res     <- y - x.beta - can.delta * z.sites
 	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
 
-	    rej <- -0.5 * sum(can.rss/sigma - cur.rss/sigma) - 
+	    rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) - 
 	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2))
 	           
 	    if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-	      res       <- can.res
-	      mu        <- can.mu
 	      delta     <- can.delta
 	      acc.delta <- acc.delta + 1
 	    }}
@@ -339,23 +335,27 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     #### Spatial correlation
     
-#     mu  <- x.beta + delta * z.sites
-#     res <- y - mu
+    mu  <- x.beta + delta * z.sites
+    res <- y - mu
+    rss <- SumSquares(res, prec / (1 - delta^2))
     
     # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {
-      rss <- SumSquares(res, prec) / (1 - delta^2)
-      alpha.star <- sigma.a + 0.5 * nknots + 0.5 * ns
-      beta.star  <- sigma.b + 0.5 * colSums(z.knots^2) + 0.5 * rss
+      sigma.inv  <- rep(0, nt)
+      alpha.star <- sigma.a + nknots / 2 + ns / 2
+      beta.star  <- sigma.b + colSums(z.knots^2) / 2 + rss / 2
       sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
-    }  # fi !fixsigma
      
+    }  # fi !fixsigma
+    
+    rss <- SumSquares(res, prec)
+    
     # rho and nu
     if (debug) { print("rho and nu") }
     if (!fixrho | !fixnu) {
       
-      cur.rss <- SumSquares(res, prec) / (sigma * (1 - delta^2))
+      cur.rss <- rss
       
       if (!fixrho) {
       	att.rho    <- att.rho + 1
@@ -381,9 +381,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.prec    <- can.cor.mtx$prec
         can.log.det <- can.cor.mtx$log.det
         
-        can.rss     <- SumSquares(res, can.prec) / (sigma * (1 - delta^2))    
+        can.rss     <- SumSquares(res, can.prec)     
                       
-        rej <- -0.5 * sum(can.rss - cur.rss) + 
+        rej <- -0.5 * sum((can.rss - cur.rss) / (sigma * (1 - delta^2))) + 
                0.5 * nt * (can.log.det - log.det) + 
                dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
                dnorm(logrho, logrho.m, logrho.s, log=T) +
@@ -397,6 +397,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           sig     <- can.sig
           prec    <- can.prec
           log.det <- can.log.det
+          rss     <- can.rss
           if (!fixrho) { acc.rho <- acc.rho + 1 }
           if (!fixnu) { acc.nu <- acc.nu + 1 }
         }} 
@@ -406,7 +407,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # alpha
     if (debug) { print("alpha") }
     if (!fixalpha) {
-      cur.rss <- SumSquares(res, prec) / (sigma * (1 - delta^2))
+      cur.rss  <- rss
                       
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
@@ -418,9 +419,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.prec    <- can.cor.mtx$prec
       can.log.det <- can.cor.mtx$log.det
       
-      can.rss <- SumSquares(res, can.prec) / (sigma * ( 1 - delta^2))
+      can.rss <- SumSquares(res, can.prec)
                       
-      rej <- -0.5 * sum(can.rss - cur.rss) + 
+      rej <- -0.5 * sum((can.rss - cur.rss) / (sigma * (1 - delta^2))) + 
              0.5 * nt * (can.log.det - log.det) +
              dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
              dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
@@ -487,10 +488,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (iterplot) {
     plotnow <- F
     # different behavior if running on server vs testing
-    if (((iter %% update) == 0) & is.null(plotname)) {
+    if (((iter %% update) == 0) && is.null(plotname)) {
   	  plotnow <- T
   	  plotmain <- ""
-  	} else if ((iter == iters) & !is.null(plotname)) {
+  	} else if ((iter == iters) && !is.null(plotname)) {
   	  plotnow <- T
   	  plotmain <- plotname
       plotname.file <- paste("plots/", plotname, sep="")
@@ -536,7 +537,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            type="l")
   	}
   	
-  	if ((iter == iters) & !is.null(plotname)) {
+  	if ((iter == iters) && !is.null(plotname)) {
   	  dev.off()
   	}
   }  # fi iterplot

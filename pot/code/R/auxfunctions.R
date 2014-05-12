@@ -162,7 +162,7 @@ ScaleLocs <- function(s){
 ################################################################
 SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   q <- sig <- list()
-  
+  
   sig       <- CorFx(d, alpha, rho, nu, cov=FALSE)
   sig.chol  <- chol(sig)
   diag.chol <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
