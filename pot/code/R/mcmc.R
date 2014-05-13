@@ -285,7 +285,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update beta
     if (debug) { print("beta") }
     if (!fixbeta) {  # debug
-      vvv <- diag(p) * beta.s^2
+      vvv <- diag(p) / beta.s^2
       mmm <- 0
       
       for (t in 1:nt) {
@@ -458,6 +458,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
     }
   }  # fi np > 0
+  
+  cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, 
+                  prec=prec, log.det=log.det, z.sites=z.sites, log=T)
   
   ##############################################
   # Keep track of iterations
