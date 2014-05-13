@@ -16,7 +16,10 @@
 rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
   lower.u <- pnorm(lower, mn, sd)
   upper.u <- pnorm(upper, mn, sd)
-
+  
+  lower.u <- ifelse( mn / sd > 5 & lower == 0, 0, lower.u )
+  # print(paste("mn = ", mn, "sd = ", sd))
+  # print(paste("lower.u = ", lower.u, "upper.u = ", upper.u))
   U <- runif(length(mn), lower.u, upper.u)
   y <- qnorm(U, mn, sd)
     

@@ -17,6 +17,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  alpha.m=0, alpha.s=1,
+                 z.s=0.1,
                  # debugging settings
                  debug=F, knots.init, z.init, 
                  fixknots=F, fixz=F, fixbeta=F, fixsigma=F,
@@ -225,17 +226,30 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             var.z   <- 1 / prec.z
         
             z.new             <- rTNorm(mn=(var.z * mu.z), sd=sqrt(var.z), lower=0, upper=Inf) 
+            # if any z come back as Inf it's because P(Y > T) = 0
+            if (z.new == Inf) {
+              z.new = 0.0001
+            }
+
             z.knots[k, t]     <- z.new
             z.sites[these, t] <- z.new
           }  # end nknots
         } else if (nknots == 1) {
           r      <- y[, t] - x.beta[, t]
+          # print(r)
           ppp    <- prec / sigma[t] * (1 - delta^2)
           mu.z   <- delta * sum(ppp %*% r)
           prec.z <- delta^2 * sum(ppp) + 1 / sigma[t]
           var.z  <- 1 / prec.z
+          # print(paste("mu.z = ", mu.z, "var.z = ", var.z))
           
-          z.new        <- rTNorm(mn=(var.z * mu.z), sd=sqrt(var.z), lower=0, upper=Inf)
+          z.new  <- rTNorm(mn=(var.z * mu.z), sd=sqrt(var.z), lower=0, upper=Inf)
+          
+          # if any z come back as Inf it's because P(Y > T) = 0
+          if (z.new == Inf) {
+            z.new = 0.0001
+          }
+          
           z.knots[, t] <- z.new
           z.sites[, t] <- z.new
         }  # fi nknots
@@ -528,7 +542,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            type="l")
       plot(keepers.z[start:iter, 1, 1], ylab="z 11", xlab="iteration", 
            type="l")
-      plot(keepers.z[start:iter, 1, 3], ylab="z 31", xlab="iteration",
+      plot(keepers.z[start:iter, 1, 8], ylab="z 31", xlab="iteration",
            type="l")
   	}
   	
