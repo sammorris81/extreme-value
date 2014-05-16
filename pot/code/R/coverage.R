@@ -3,7 +3,6 @@ rm(list=ls())
 library(fields)
 library(geoR)
 library(mvtnorm)
-library(evd)
 
 source("auxfunctions.R")
 source("mcmc.R")
