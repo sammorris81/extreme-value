@@ -501,8 +501,8 @@ beta.t <- c(10, -2, 3)
 rho.t <- 0.1
 nu.t <- 0.5
 delta.t <- 0.5
-# sigma.t <- 1 / rgamma(nt, 1, 1)
-sigma.t <- rep(1, nt)
+sigma.t <- 1 / rgamma(nt, 1, 1)
+# sigma.t <- rep(1, nt)
 alpha.t <- 0.8
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
@@ -513,12 +513,15 @@ z.knots.t <- data$z.knots
 z.sites.t <- data$z.sites
 knots.t <- data$knots
 # hist(y, breaks=30)
-# z11 = 0.377, z18 = 2.907
+# sigma1 = 4.807, sigma 13 = 8.891
+# z11 = 0.348, z13 = 2.177
 
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             iters=15000, burn=10000, update=1000, iterplot=T,
             beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
             debug=F, knots.init=knots.t, z.init=z.knots.t,
-            fixknots=T, fixz=F, fixbeta=T, fixsigma=T, 
-            fixrho=T, fixnu=T, fixalpha=F, fixdelta=F)
+            fixknots=T, fixz=F, fixbeta=F, fixsigma=F, 
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F)
+
+coverage

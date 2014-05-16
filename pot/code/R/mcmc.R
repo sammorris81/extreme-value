@@ -368,7 +368,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         logrho     <- log(rho)
         can.logrho <- rnorm(1, logrho, mh.rho)
       } else {
-        can.logrho <- log(rho)
+        can.logrho <- logrho <- log(rho)
       }
       can.rho <- exp(can.logrho)
       
@@ -377,12 +377,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         lognu     <- log(nu)
         can.lognu <- rnorm(1, lognu, mh.nu)
       } else {
-        can.lognu <- log(nu)
+        can.lognu <- lognu <- log(nu)
       }
       can.nu <- exp(can.lognu)
       
+      if (!fixalpha) {
+        att.alpha     <- att.alpha + 1
+        phi.alpha     <- qnorm(alpha)
+        can.phi.alpha <- rnorm(1, phi.alpha, mh.alpha)
+      } else {
+        can.phi.alpha <- phi.alpha <- qnorm(alpha) 
+      }
+      can.alpha <- pnorm(can.phi.alpha)
+      
       if (can.nu <= 10) {  # for numerical stability
-        can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
+        can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig
         can.prec    <- can.cor.mtx$prec
         can.log.det <- can.cor.mtx$log.det
@@ -394,55 +403,59 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
                dnorm(logrho, logrho.m, logrho.s, log=T) +
                dnorm(can.lognu, lognu.m, lognu.s, log=T) -
-               dnorm(lognu, lognu.m, lognu.s, log=T)
+               dnorm(lognu, lognu.m, lognu.s, log=T) + 
+               dnorm(can.phi.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+               dnorm(phi.alpha, mean=alpha.m, sd=alpha.s, log=T)
         
         if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
           rho     <- can.rho
           nu      <- can.nu
+          alpha   <- can.alpha
           cor.mtx <- can.cor.mtx
           sig     <- can.sig
           prec    <- can.prec
           log.det <- can.log.det
           if (!fixrho) { acc.rho <- acc.rho + 1 }
           if (!fixnu) { acc.nu <- acc.nu + 1 }
+          if (!fixalpha) { acc.alpha <- acc.alpha + 1 }
         }} 
       } # fi can.nu <= 10
     } # fi !fixrho | !fixnu
     
     # alpha
-    if (debug) { print("alpha") }
-    if (!fixalpha) {
+    # if (debug) { print("alpha") }
+    # if (!fixalpha) {
     
-      cur.rss  <- SumSquares(res, prec) / (1 - delta^2)
+      # cur.rss  <- SumSquares(res, prec) / (1 - delta^2)
                       
-      att.alpha      <- att.alpha + 1
-      norm.alpha     <- qnorm(alpha)
-      can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
-      can.alpha      <- pnorm(can.norm.alpha)
-      # can.alpha   <- rnorm(1, alpha, mh.alpha)
+      # att.alpha      <- att.alpha + 1
+      # norm.alpha     <- qnorm(alpha)
+      # can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
+      # can.alpha      <- pnorm(can.norm.alpha)
+      # # can.alpha   <- rnorm(1, alpha, mh.alpha)
       
-      can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
-      can.sig     <- can.cor.mtx$sig
-      can.prec    <- can.cor.mtx$prec
-      can.log.det <- can.cor.mtx$log.det
+      # can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
+      # can.sig     <- can.cor.mtx$sig
+      # can.prec    <- can.cor.mtx$prec
+      # can.log.det <- can.cor.mtx$log.det
     
-      can.rss <- SumSquares(res, can.prec) / (1 - delta^2)
+      # can.rss <- SumSquares(res, can.prec) / (1 - delta^2)
                       
-      rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) + 
-             0.5 * nt * (can.log.det - log.det) +
-             dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-             dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
+      # rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) + 
+             # 0.5 * nt * (can.log.det - log.det) +
+             # dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+             # dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
       
-      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-        alpha     <- can.alpha
-        cor.mtx   <- can.cor.mtx
-        sig       <- can.sig
-        prec      <- can.prec
-        log.det   <- can.log.det
-        acc.alpha <- acc.alpha + 1
-      }}
+      # if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+        # alpha     <- can.alpha
+        # cor.mtx   <- can.cor.mtx
+        # sig       <- can.sig
+        # prec      <- can.prec
+        # log.det   <- can.log.det
+        # acc.alpha <- acc.alpha + 1
+      # }}
 
-    }  # fi !fixalpha
+    # }  # fi !fixalpha
     
   }  # end nthin
   
@@ -538,12 +551,20 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            type="l", main=bquote("ACCR" == .(accrate.alpha)))
       plot(keepers.sigma[start:iter, 1], ylab="sigma 1", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, 3], ylab="sigma 3", xlab="itertion",
+      # plot(keepers.sigma[start:iter, 3], ylab="sigma 3", xlab="iteration",
+           # type="l")
+      # plot(keepers.sigma[start:iter, 5], ylab="sigma 5", xlab="iteration", 
+           # type="l")
+      plot(keepers.sigma[start:iter, 13], ylab="sigma 13", xlab="iteration", 
            type="l")
       plot(keepers.z[start:iter, 1, 1], ylab="z 11", xlab="iteration", 
            type="l")
-      plot(keepers.z[start:iter, 1, 8], ylab="z 31", xlab="iteration",
+      plot(keepers.z[start:iter, 1, 3], ylab="z 18", xlab="iteration",
            type="l")
+      # plot(keepers.z[start:iter, 1, 5], ylab="z 15", xlab="iteration", 
+           # type="l")
+      # plot(keepers.z[start:iter, 1, 7], ylab="z 17", xlab="iteration",
+           # type="l")
   	}
   	
   	if ((iter == iters) && !is.null(plotname)) {
