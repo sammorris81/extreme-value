@@ -103,6 +103,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   for (t in 1:nt) {
   	z.sites[, t] <- ZBySites(z.knots[, t], partition[, t])
   }
+  
 
   # initialize parameters
   if (is.null(beta.init)) {
@@ -136,7 +137,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   prec    <- cor.mtx$prec
   log.det <- cor.mtx$log.det
   
-  if (delta.init < -1 | delta.init > 1) {
+  if (delta.init < -1 || delta.init > 1) {
     stop("delta.init must be between -1 and 1.")
   } else {
     delta <- delta.init
@@ -226,8 +227,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            z.new            <- rTNorm(mn=(var.z * mu.z), sd=sqrt(var.z), lower=0, upper=Inf) 
            z.knots[k,t]     <- z.new
            z.sites[these,t] <- z.new
-         }
-         }
+         }}
          if(nknots==1){
             r      <- y[, t] - x.beta[, t]
             ppp    <- prec/(sigma[t] * (1 - delta^2))
@@ -241,10 +241,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
          }
       }  # end nt
     }  # fi !fixz
-    
-    # update means
     mu <- x.beta + delta * z.sites
     
+
     # update partitions
     if (debug) { print("knots") }
     if (!fixknots) {  # debug
@@ -302,14 +301,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         x.beta[, t] <- x[, t, ] %*% beta
      }
     }  #fi !fixbeta
-    
     mu <- x.beta + delta*z.sites
     
+
+
+
+
     # update delta
     if (debug) { print("delta") }
     if (!fixdelta) {
       att.delta <- att.delta + 1
-      
       
       cur.rss <- SumSquares(y-mu, prec)/(1 - delta^2)
       can.delta <- rnorm(1, delta, mh.delta)
@@ -320,7 +321,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
 	    rej <- -0.5 * sum(can.rss/sigma - cur.rss/sigma) - 
 	            0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2)) 
-	    
 	    if (!is.na(rej)) { if (runif(1)<exp(rej)) {
 	      delta     <- can.delta
 	      acc.delta <- acc.delta + 1
@@ -370,6 +370,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.nu <- exp(can.lognu)
       
       if (can.nu <= 10) {  # for numerical stability
+      	# print(paste(iter, can.rho, can.nu))
+      	# print(paste(mh.nu, mh.rho))
         can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig
         can.prec    <- can.cor.mtx$prec
@@ -391,6 +393,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           sig     <- can.sig
           prec    <- can.prec
           log.det <- can.log.det
+          # cur.ll  <- can.ll
           rss     <- can.rss
           if (!fixrho) { acc.rho <- acc.rho + 1 }
           if (!fixnu) { acc.nu <- acc.nu + 1 }
@@ -426,6 +429,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         sig       <- can.sig
         prec      <- can.prec
         log.det   <- can.log.det
+        # cur.ll    <- can.ll
         rss       <- can.rss
         acc.alpha <- acc.alpha + 1
       }}
