@@ -170,39 +170,66 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
       
-      for (i in 1:ns) {
-        n.thresh.miss <- sum(thresh.days[i, ]) + sum(missing.days[i, ])
-        if (n.thresh.miss > 0){
-          s.22     <- sig[-i, -i]
-          s.22.inv <- chol2inv(chol(s.22))
-          s.12     <- matrix(sig[i, -i], 1, (ns - 1))
-          s.11     <- sig[i, i]
-          for (t in 1:nt) {
-          	e.y <- (mu[i, t]) + s.12 %*% s.22.inv %*% (y[-i, t] - mu[-i, t])
-            s.y <- sqrt((s.11 - s.12 %*% s.22.inv %*% t(s.12)) / sigma[t])
-            
-            y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=thresh.mtx[i, ])
-            
-            # if any z come back as -Inf it's because P(Y < T) = 0                    
-            if (y.impute.t == -Inf) {
-              y.impute.t <- thresh.mtx.fudge
-            }
-              
-            y.missing.t <- rnorm(n=1, mean=e.y, sd=s.y)
-            
-            if (thresh.days[i, t]) {
-              y.imputed[i, t] <- y.impute.t
-            }
-            
-            if (missing.days[i, t]) {
-              y.imputed[i, t] <- y.missing.t
-            }
-          }  # end nt
-        }  # fi n.thresh.miss > 0
+      cor <- matern(u=d, phi=rho, kappa=nu)  # doesn't change each day
+      for (t in 1:nt) {
+      	these.thresh.obs <- thresh.obs[, t]
+      	these.missing.obs <- missing.obs[, t]
         
-      }  # end ns
+        # condition on spatial piece
+        cor.t   <- sigma[t] * (1 - delta^2) * alpha * cor
+        theta.t <- t(chol(cor.t)) %*% rnorm(ns, 0, 1)
+        
+        # new expected value and standard deviation
+        e.y <- mu[, t] + theta.t
+        s.y <- sqrt(sigma[t] * ( 1 - delta^2) * (1 - alpha))
+        upper.y <- thresh.mtx[, t]
+        
+        y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
+        
+        # if any y.impute.t come back as -Inf it's because P(Y < T) = 0
+        y.impute.t <- ifelse(y.impute.t == -Inf, thresh.mtx.fudge[, t], y.impute.t)
+        y.imputed[these.thresh.obs, t] <- y.impute.t[these.thresh.obs]
+        
+        y.missing.t <- rnorm(n=ns, mean=e.y, sd=s.y)
+        y.imputed[these.missing.obs, t] <- y.missing.t[these.missing.obs]
+      }  # end nt
       
       y <- y.imputed
+      
+      # for (i in 1:ns) {
+        # n.thresh.miss <- sum(thresh.obs[i, ]) + sum(missing.obs[i, ])
+        # if (n.thresh.miss > 0){
+          # s.22     <- sig[-i, -i]
+          # s.22.inv <- chol2inv(chol(s.22))
+          # s.12     <- matrix(sig[i, -i], 1, (ns - 1))
+          # s.11     <- sig[i, i]
+          # for (t in 1:nt) {
+          	# e.y <- (mu[i, t]) + s.12 %*% s.22.inv %*% (y[-i, t] - mu[-i, t])
+            # s.y <- sqrt((s.11 - s.12 %*% s.22.inv %*% t(s.12)) / sigma[t])
+            # upper.y <- thresh.mtx[i, t]
+            
+            # y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
+            
+            # # if any z come back as -Inf it's because P(Y < T) = 0                    
+            # if (y.impute.t == -Inf) {
+              # y.impute.t <- thresh.mtx.fudge[i, t]
+            # }
+             
+            # y.missing.t <- rnorm(n=1, mean=e.y, sd=s.y)
+            
+            # if (thresh.obs[i, t]) {
+              # y.imputed[i, t] <- y.impute.t
+            # }
+            
+            # if (missing.obs[i, t]) {
+              # y.imputed[i, t] <- y.missing.t
+            # }
+          # }  # end nt
+        # }  # fi n.thresh.miss > 0
+        
+      # }  # end ns
+      
+      # y <- y.imputed
     }  # fi thresh != 0
     
     # update random effects

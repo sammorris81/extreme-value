@@ -20,24 +20,24 @@ yb<-c(-500,-200)
 
 #Plot the data
 
-library(fields)
-par(mfrow=c(2,2))
+# library(fields)
+# par(mfrow=c(2,2))
 
-lim<-c(0,130)
-plot(as.vector(x),as.vector(y),xlim=lim,ylim=lim,
-     xlab="CMAQ output (ppb)",ylab="Monitor data (ppb)")
-abline(0,1,lwd=2,col=2)
+# lim<-c(0,130)
+# plot(as.vector(x),as.vector(y),xlim=lim,ylim=lim,
+     # xlab="CMAQ output (ppb)",ylab="Monitor data (ppb)")
+# abline(0,1,lwd=2,col=2)
 
-plot(s,axes=F,pch=19,main="Monitor locations",xlab="",ylab="")
-lines(l)
-abline(v=xb[1],col=2)
-abline(v=xb[2],col=2)
-abline(h=yb[1],col=2)
-abline(h=yb[2],col=2)
+# plot(s,axes=F,pch=19,main="Monitor locations",xlab="",ylab="")
+# lines(l)
+# abline(v=xb[1],col=2)
+# abline(v=xb[2],col=2)
+# abline(h=yb[1],col=2)
+# abline(h=yb[2],col=2)
 
-image.plot(1:307,1:92,y,zlim=lim,xlab="Station",ylab="Day",main="Monitor data")
+# image.plot(1:307,1:92,y,zlim=lim,xlab="Station",ylab="Day",main="Monitor data")
 
-image.plot(1:307,1:92,x,zlim=lim,xlab="Station",ylab="Day",main="CMAQ data")
+# image.plot(1:307,1:92,x,zlim=lim,xlab="Station",ylab="Day",main="CMAQ data")
 
 
 #Extract subset
@@ -45,8 +45,8 @@ NC<-(s[,1]>xb[1]) & (s[,1]<xb[2]) & (s[,2]>yb[1]) & (s[,2]<yb[2])
 s<-s[NC,]
 x<-x[NC,]
 y<-y[NC,]
-plot(s)
-lines(l)
+# plot(s)
+# lines(l)
 
 #########################################################################
 #### Exclude if monitoring site is missing more than 50% of the 
@@ -75,31 +75,31 @@ for(t in 1:nt){
 beta.init <- rep(0, dim(X)[3])
 sigma.init <- rep(1, nt)
 
-set.seed(1)
-fit.skew.nothresh <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
-            iters=20000, burn=15000, update=1000, iterplot=T,
-            beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
-            nu.init=0.5, alpha.init=0.5, delta.init=0.5, scale=T)
-
-set.seed(2)
-fit.normal.nothresh <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
-            iters=20000, burn=15000, update=1000, iterplot=T,
-            beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
-            nu.init=0.5, alpha.init=0.5, delta.init=0, fix.delta=T, scale=T)
-
-# set.seed(3)
-# fit.skew.thresh90 <- mcmc(y=y, s=s.scale, x=X, thresh=0.90, nknots=1, 
+# set.seed(1)
+# fit.skew.nothresh <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
             # iters=20000, burn=15000, update=1000, iterplot=T,
             # beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
-            # nu.init=0.5, alpha.init=0.5, delta.init=0.5, scale=T)
-           
-# set.seed(4) 
-# fit.normal.thresh90 <- mcmc(y=y, s=s.scale, x=X, thresh=0.90, nknots=1, 
+            # nu.init=0.5, alpha.init=0.5, delta.init=0, scale=T)
+
+# set.seed(2)
+# fit.normal.nothresh <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
             # iters=20000, burn=15000, update=1000, iterplot=T,
             # beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
             # nu.init=0.5, alpha.init=0.5, delta.init=0, fix.delta=T, scale=T)
 
-save.image(file="OzoneMCMCnothresh.RData")
+set.seed(3)
+fit.skew.thresh90 <- mcmc(y=y, s=s.scale, x=X, thresh=0.90, nknots=1, 
+            iters=30000, burn=25000, update=1000, iterplot=T,
+            beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
+            nu.init=0.5, alpha.init=0.5, delta.init=0, scale=T)
+           
+set.seed(4) 
+fit.normal.thresh90 <- mcmc(y=y, s=s.scale, x=X, thresh=0.90, nknots=1, 
+            iters=30000, burn=25000, update=1000, iterplot=T,
+            beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
+            nu.init=0.5, alpha.init=0.5, delta.init=0, fix.delta=T, scale=T)
+
+save.image(file="OzoneMCMCthresh.RData")
 
 #### 5-fold cross validation
 # set.seed(2087)
