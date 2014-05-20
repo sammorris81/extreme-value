@@ -13,11 +13,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
                  # priors
-                 beta.m=0, beta.s=10, sigma.a=1, sigma.b=1,
+                 beta.m=0, beta.s=10, sigma.a=.1, sigma.b=.1,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
-                 alpha.m=0, alpha.s=1,
-                 z.s=0.1,
+                 alpha.m=0, alpha.s=1, # z.s=0.1,
                  # debugging settings
                  debug=F, knots.init, z.init, 
                  fixknots=F, fixz=F, fixbeta=F, fixsigma=F,
@@ -55,7 +54,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       s <- ScaleLocs(s = s)
     }
   }    
-    
+
   d       <- rdist(s)  # distance between sites
   diag(d) <- 0
     
@@ -64,7 +63,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                                        # nknots
     
   # store the loc/day for observed values below thresh.
-  if (thresh.quant) {               # threshold based on sample quantiles
+  if (thresh.quant & thresh > 0) {  # threshold based on sample quantiles
     thresh.data <- quantile(y, thresh)
   } else {                        # threshold based on fixed value
     thresh.data <- thresh
@@ -237,7 +236,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         } else if (nknots == 1) {
           r      <- y[, t] - x.beta[, t]
           # print(r)
-          ppp    <- prec / sigma[t] * (1 - delta^2)
+          ppp    <- prec / (sigma[t] * (1 - delta^2))
           mu.z   <- delta * sum(ppp %*% r)
           prec.z <- delta^2 * sum(ppp) + 1 / sigma[t]
           var.z  <- 1 / prec.z
@@ -392,6 +391,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       if (can.nu <= 10) {  # for numerical stability
         can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
+        # can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig
         can.prec    <- can.cor.mtx$prec
         can.log.det <- can.cor.mtx$log.det

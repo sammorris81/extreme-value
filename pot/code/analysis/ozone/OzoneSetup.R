@@ -2,11 +2,12 @@ library(fields)
 library(geoR)
 library(mvtnorm)
 
-source('../simstudy/mcmc.R')
-source('../simstudy/auxfunctions.R')
+rm(list=ls())
+source('../../R/mcmc.R')
+source('../../R/auxfunctions.R')
 
 #### Setup from Brian
-load("TempData.RData")
+load("OzoneData.RData")
 y <- CMAQ_OZONE$y
 x <- CMAQ_OZONE$x
 s <- CMAQ_OZONE$s
@@ -71,23 +72,32 @@ for(t in 1:nt){
 	X[,t,4] <- x[,t]
 }
 
+beta.init <- rep(0, dim(X)[3])
+sigma.init <- rep(1, nt)
+
+fit <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
+            iters=20000, burn=15000, update=1000, iterplot=T,
+            beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
+            nu.init=0.5, alpha.init=0.5, delta.init=0.5, scale=T)
+
+
 #### 5-fold cross validation
-set.seed(2087)
-cv.idx <- sample(1:nrow(s), nrow(s), replace=F)
+# set.seed(2087)
+# cv.idx <- sample(1:nrow(s), nrow(s), replace=F)
 
-cv.1 <- cv.idx[1:11]
-cv.2 <- cv.idx[12:22]
-cv.3 <- cv.idx[23:33]
-cv.4 <- cv.idx[34:44]
-cv.5 <- cv.idx[45:55]
+# cv.1 <- cv.idx[1:11]
+# cv.2 <- cv.idx[12:22]
+# cv.3 <- cv.idx[23:33]
+# cv.4 <- cv.idx[34:44]
+# cv.5 <- cv.idx[45:55]
 
-cv.lst <- list(cv.1=cv.1, cv.2=cv.2, cv.3=cv.3, cv.4=cv.4, cv.5=cv.5)
+# cv.lst <- list(cv.1=cv.1, cv.2=cv.2, cv.3=cv.3, cv.4=cv.4, cv.5=cv.5)
 
-ns <- nrow(y)
-nt <- ncol(y)
-iters <- 20000
-burn <- 10000
-probs <- c(0.80, 0.95, 0.99)
-thresholds <- quantile(y, probs=probs, na.rm=T)
+# ns <- nrow(y)
+# nt <- ncol(y)
+# iters <- 20000
+# burn <- 10000
+# probs <- c(0.80, 0.95, 0.99)
+# thresholds <- quantile(y, probs=probs, na.rm=T)
 
-save.image(file="cv.RData")
+# save.image(file="cv.RData")

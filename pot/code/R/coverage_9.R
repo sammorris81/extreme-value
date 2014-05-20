@@ -9,15 +9,15 @@ source("mcmc.R")
 
 set.seed(1234)
 
-delta.t <- 0.5
-image.name <- "coverage_del_50.RData"
+delta.t <- 0.9
+image.name <- "coverage_del_90.RData"
 
 # iid n(0, 1)
 # data settings
 s <- cbind(runif(50), runif(50))
 ns <- nrow(s)
 nt <- 30
-nsets <- 20
+nsets <- 40
 nknots <- 1
 
 x <- array(1, c(ns, nt, 3))
@@ -34,14 +34,15 @@ alpha.t <- 0.8
 
 fit.store <- vector(mode="list", length=nsets)
 data.store <- vector(mode="list", length=nsets)
+sigma.store <- matrix(NA, nrow=nt, ncol=nsets)
 
 coverage.z <- matrix(0, nrow=nknots, ncol=nt)
 coverage.sigma <- rep(0, nt)
 coverage.beta <- rep(0, 3)
 coverage.spatcov <- rep(0, 4) # delta, rho, nu, alpha
 
-iters <- 20000
-burn <- 15000
+iters <- 15000
+burn <- 10000
 q.start <- burn + 1
 
 for (set in 1:nsets) {
@@ -60,9 +61,9 @@ for (set in 1:nsets) {
 
   fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
               iters=iters, burn=burn, update=1000, iterplot=F, 
-              beta.init=beta.t, sigma.init=sigma.t, rho.init=rho.t,
-              nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
-              debug=F, knots.init=knots.t, z.init=z.knots.t,
+              beta.init=c(0, 0, 0), sigma.init=rep(1, nt), rho.init=0.5,
+              nu.init=0.5, alpha.init=0.5, delta.init=0,
+              debug=F, knots.init=knots.t, # z.init=z.knots.t,
               fixknots=T, fixz=F, fixbeta=F, fixsigma=F, 
               fixrho=F, fixnu=F, fixalpha=F, fixdelta=F)
               
@@ -102,6 +103,7 @@ for (set in 1:nsets) {
   
   data.store[[set]] <- data
   fit.store[[set]]  <- fit
+  sigma.store[, set] <- sigma.t
   
   save.image(image.name)
   cat("Dataset", set, "finished \n")
