@@ -75,11 +75,31 @@ for(t in 1:nt){
 beta.init <- rep(0, dim(X)[3])
 sigma.init <- rep(1, nt)
 
-fit <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
+set.seed(1)
+fit.skew.nothresh <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
             iters=20000, burn=15000, update=1000, iterplot=T,
             beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
             nu.init=0.5, alpha.init=0.5, delta.init=0.5, scale=T)
 
+set.seed(2)
+fit.normal.nothresh <- mcmc(y=y, s=s.scale, x=X, thresh=0, nknots=1, 
+            iters=20000, burn=15000, update=1000, iterplot=T,
+            beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
+            nu.init=0.5, alpha.init=0.5, delta.init=0, fix.delta=T, scale=T)
+
+# set.seed(3)
+# fit.skew.thresh90 <- mcmc(y=y, s=s.scale, x=X, thresh=0.90, nknots=1, 
+            # iters=20000, burn=15000, update=1000, iterplot=T,
+            # beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
+            # nu.init=0.5, alpha.init=0.5, delta.init=0.5, scale=T)
+           
+# set.seed(4) 
+# fit.normal.thresh90 <- mcmc(y=y, s=s.scale, x=X, thresh=0.90, nknots=1, 
+            # iters=20000, burn=15000, update=1000, iterplot=T,
+            # beta.init=beta.init, sigma.init=sigma.init, rho.init=0.5,
+            # nu.init=0.5, alpha.init=0.5, delta.init=0, fix.delta=T, scale=T)
+
+save.image(file="OzoneMCMCnothresh.RData")
 
 #### 5-fold cross validation
 # set.seed(2087)

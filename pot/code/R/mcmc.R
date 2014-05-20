@@ -64,7 +64,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
   # store the loc/day for observed values below thresh.
   if (thresh.quant & thresh > 0) {  # threshold based on sample quantiles
-    thresh.data <- quantile(y, thresh)
+    thresh.data <- quantile(y, thresh, na.rm=T)
   } else {                        # threshold based on fixed value
     thresh.data <- thresh
   }
@@ -167,7 +167,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("impute") }
     if (thresh != 0) {
       mu <- x.beta + delta * z.sites
-      thresh.mtx.fudge <- 0.99999 * thresh.mtx.k  # numerical stability
+      thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
       
       for (i in 1:ns) {
@@ -181,7 +181,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           	e.y <- (mu[i, t]) + s.12 %*% s.22.inv %*% (y[-i, t] - mu[-i, t])
             s.y <- sqrt((s.11 - s.12 %*% s.22.inv %*% t(s.12)) / sigma[t])
             
-            y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=thresh.mtx.k[i, ])
+            y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=thresh.mtx[i, ])
             
             # if any z come back as -Inf it's because P(Y < T) = 0                    
             if (y.impute.t == -Inf) {
