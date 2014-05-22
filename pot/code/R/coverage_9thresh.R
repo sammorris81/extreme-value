@@ -69,6 +69,7 @@ for (set in 1:nsets) {
   
   # issues estimating rho when delta is high and thresholded
   rho.est <- median(fit$rho[q.start:iters])
+  cat("Rho estimated \n")
   
   fit <- mcmc(y=y, s=s, x=x, thresh=0.95, nknots=1,
               iters=iters, burn=burn, update=1000, iterplot=F, 
