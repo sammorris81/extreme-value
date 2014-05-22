@@ -523,3 +523,64 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
             debug=F, knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=F, fixbeta=F, fixsigma=F, 
             fixrho=F, fixnu=F, fixalpha=F, fixdelta=F)
+
+rm(list=ls())
+
+library(fields)
+library(geoR)
+library(mvtnorm)
+library(evd)
+
+source("auxfunctions.R")
+source("mcmc.R")
+
+set.seed(1)
+
+# iid n(0, 1)
+# data settings
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 30
+nsets <- 1
+nknots <- 1
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(10, -2, 3)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0.1
+sigma.t <- 1 / rgamma(nt, 1, 1)
+# sigma.t <- rep(1, nt)
+alpha.t <- 0.8
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, sigma=sigma.t, delta=delta.t,
+                    rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=1)
+
+y <- data$y
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+# hist(y, breaks=30)
+# sigma1 = 4.807, sigma 13 = 8.891
+# z11 = 0.348, z13 = 2.177
+# z11 = 0.237, z1,16=2.440, z1,21=2.012, z1,30=8.754
+
+fit <- mcmc(y=y, s=s, x=x, thresh=0.9, nknots=1,
+            iters=10000, burn=5000, update=1000, iterplot=T,
+            beta.init=beta.t, sigma.init=sigma.t, rho.init=0.5,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            debug=F, knots.init=knots.t, z.init=z.knots.t,
+            fixknots=T, fixz=F, fixbeta=F, fixsigma=F, 
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F)
+
+# understanding positive definite issues.
+d <- rdist(s)
+diag(d) <- 0
+cor.test <- matern(u=d, phi=4.69406275480184, kappa=3.48351963167721)
+chol(cor.test)
+eigen(cor.test)$values
