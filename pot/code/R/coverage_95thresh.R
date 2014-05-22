@@ -10,7 +10,7 @@ source("mcmc.R")
 set.seed(1234)
 
 delta.t <- 0.95
-image.name <- "coverage_del_95.RData"
+image.name <- "coverageth_del_95.RData"
 
 # iid n(0, 1)
 # data settings
