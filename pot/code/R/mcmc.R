@@ -171,24 +171,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       y.imputed <- matrix(y, ns, nt)
       
       cor <- matern(u=d, phi=rho, kappa=nu)  # doesn't change each day
-      cor.eigen <- eigen(cor)  # Debug
-      cor.evalue <- cor.eigen$values  # Debug
-      cor.evector <- cor.eigen$vectors  # Debug
-      # print(range(cor.evalue))  # Debug
-      if(range(cor.evalue)[1]<0){  # Debug
-        print(paste("rho=", rho, "nu=", nu))
-        # print(paste("y = ", y))
-        # print(paste("mu = ", mu))
-        print(paste("z.knots=", z.knots))
-      }
       for (t in 1:nt) {
       	these.thresh.obs <- thresh.obs[, t]
       	these.missing.obs <- missing.obs[, t]
         
-        # condition on spatial piece
-        # cor.t   <- sigma[t] * (1 - delta^2) * alpha * cor
-        # cat("sigma = ", sigma[t], "delta = ", delta, "alpha = ", alpha, "rho = ", rho, "nu = ", nu)
-        # if (iter > 1000) {print(cor)}
         theta.t <- sqrt(sigma[t] * (1 - delta^2) * alpha) * t(chol(cor)) %*% rnorm(ns, 0, 1)
         
         # new expected value and standard deviation
@@ -208,40 +194,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       y <- y.imputed
       
-      # for (i in 1:ns) {
-        # n.thresh.miss <- sum(thresh.obs[i, ]) + sum(missing.obs[i, ])
-        # if (n.thresh.miss > 0){
-          # s.22     <- sig[-i, -i]
-          # s.22.inv <- chol2inv(chol(s.22))
-          # s.12     <- matrix(sig[i, -i], 1, (ns - 1))
-          # s.11     <- sig[i, i]
-          # for (t in 1:nt) {
-          	# e.y <- (mu[i, t]) + s.12 %*% s.22.inv %*% (y[-i, t] - mu[-i, t])
-            # s.y <- sqrt((s.11 - s.12 %*% s.22.inv %*% t(s.12)) / sigma[t])
-            # upper.y <- thresh.mtx[i, t]
-            
-            # y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
-            
-            # # if any z come back as -Inf it's because P(Y < T) = 0                    
-            # if (y.impute.t == -Inf) {
-              # y.impute.t <- thresh.mtx.fudge[i, t]
-            # }
-             
-            # y.missing.t <- rnorm(n=1, mean=e.y, sd=s.y)
-            
-            # if (thresh.obs[i, t]) {
-              # y.imputed[i, t] <- y.impute.t
-            # }
-            
-            # if (missing.obs[i, t]) {
-              # y.imputed[i, t] <- y.missing.t
-            # }
-          # }  # end nt
-        # }  # fi n.thresh.miss > 0
-        
-      # }  # end ns
-      
-      # y <- y.imputed
     }  # fi thresh != 0
     
     # update random effects
@@ -250,20 +202,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       for (t in 1:nt) {
         if (nknots > 1) {
           for (k in 1:nknots) {
-            these   <- which(partition[, t] == k)
-            n.these <- length(these)
-            r1      <- y[these, t] - x.beta[these, t]
-            r2      <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
+            these    <- which(partition[, t] == k)
+            n.these  <- length(these)
+            r1       <- y[these, t] - x.beta[these, t]
+            r2       <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
             
-            vvv     <- sigma[t] * (1 - delta^2)
-            prec.11 <- prec[these, these] / vvv
-            prec.21 <- prec[-these, these] / vvv
+            vvv      <- sigma[t] * (1 - delta^2)
+            prec.11  <- prec[these, these]
+            prec.21  <- prec[-these, these]
             
-            mu.z    <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21)
-            prec.z  <- delta^2 * sum(prec.11) + 1 / sigma[t]
-            var.z   <- 1 / prec.z
+            mu.z     <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21)
+            lambda.z <- delta^2 * sum(prec.11) + 1 - delta^2
+            mn.z     <- mu.z / lambda.z
+            sd.z     <- sqrt(sigma[t] * (1 - delta^2) / lambda.z)
         
-            z.new             <- rTNorm(mn=(var.z * mu.z), sd=sqrt(var.z), lower=0, upper=Inf) 
+            z.new   <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf) 
             # if any z come back as Inf it's because P(Y > T) = 0
             if (z.new == Inf) {
               z.new = 0.0001
@@ -273,14 +226,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             z.sites[these, t] <- z.new
           }  # end nknots
         } else if (nknots == 1) {
-          r      <- y[, t] - x.beta[, t]
-          # print(r)
+          r        <- y[, t] - x.beta[, t]
           mu.z     <- delta * sum(prec %*% r)
           lambda.z <- delta^2 * sum(prec) + 1 - delta^2
           mn.z     <- mu.z / lambda.z
           sd.z     <- sqrt(sigma[t] * (1 - delta^2) / lambda.z)
-          #print(paste("mu.z = ", round(mu.z, 4), "lambda.z = ", round(lambda.z, 4), "mn.z = ", round(mn.z, 4), "sd.z = ", round(sd.z, 4)))
-          z.new  <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf)
+          z.new    <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf)
           
           # if any z come back as Inf it's because P(Y > T) = 0
           if (z.new == Inf) {
@@ -300,14 +251,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("knots") }
     if (!fixknots) {  # debug
       if (nknots > 1) {
+        can.knots <- vector(mode="list", length=1)
         for (t in 1:nt) {
-          can.knots <- knots
+          can.knots[[1]] <- matrix(NA, nrow=nknots, ncol=2)
           att.w[t] <- att.w[t] + 1
           ss.t <- t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t])
           cur.ll <- -0.5 * ss.t / (sigma[t] * (1 - delta^2))
           
           for (k in 1:nknots) {
-        	can.knots[[t]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
+        	can.knots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
           }
         
           can.partition <- Membership(s=s, knots=can.knots)
@@ -320,7 +272,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           rej <- sum(can.ll - cur.ll)  # prior is uniform and candidate is symmetric
           
           if (!is.na(rej)) {if (-rej < rexp(1, 1)) {
-            knots[[t]]     <- can.knots[[t]]
+            knots[[t]]     <- can.knots[[1]]
             partition[, t] <- can.partition
             z.sites[, t]   <- can.z.sites
             mu[, t]        <- can.mu.t
@@ -427,7 +379,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # }
       # can.alpha <- pnorm(can.phi.alpha)
       
-      if (can.nu <= 10 & can.rho <= 1) {  # for numerical stability
+      if (can.nu <= 10) {  # for numerical stability
         # can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
         can.cor.mtx <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.sig     <- can.cor.mtx$sig
@@ -470,7 +422,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       norm.alpha     <- qnorm(alpha)
       can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
       can.alpha      <- pnorm(can.norm.alpha)
-      # can.alpha   <- rnorm(1, alpha, mh.alpha)
       
       can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
       can.sig     <- can.cor.mtx$sig
@@ -595,11 +546,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       # plot(keepers.sigma[start:iter, 13], ylab="sigma 13", xlab="iteration", 
            # type="l")
-      plot(keepers.z[start:iter, 1, 1], ylab="z 11", xlab="iteration", 
+      plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
            type="l")
-      plot(keepers.z[start:iter, 1, 16], ylab="z 1,16", xlab="iteration",
+      plot(keepers.z[start:iter, 3, 6], ylab="z 3,6", xlab="iteration",
            type="l")
-      plot(keepers.z[start:iter, 1, 21], ylab="z 1,21", xlab="iteration", 
+      plot(keepers.z[start:iter, 3, 16], ylab="z 3,16", xlab="iteration", 
            type="l")
       plot(keepers.z[start:iter, 1, 30], ylab="z 1,30", xlab="iteration",
            type="l")
