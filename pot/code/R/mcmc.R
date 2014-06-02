@@ -542,16 +542,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       # plot(keepers.sigma[start:iter, 3], ylab="sigma 3", xlab="iteration",
            # type="l")
-      # plot(keepers.sigma[start:iter, 5], ylab="sigma 5", xlab="iteration", 
-           # type="l")
-      # plot(keepers.sigma[start:iter, 13], ylab="sigma 13", xlab="iteration", 
-           # type="l")
+      plot(keepers.sigma[start:iter, 5], ylab="sigma 5", xlab="iteration", 
+           type="l")
+      plot(keepers.sigma[start:iter, 13], ylab="sigma 13", xlab="iteration", 
+           type="l")
       plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
            type="l")
-      plot(keepers.z[start:iter, 3, 6], ylab="z 3,6", xlab="iteration",
-           type="l")
-      plot(keepers.z[start:iter, 3, 16], ylab="z 3,16", xlab="iteration", 
-           type="l")
+      # plot(keepers.z[start:iter, 3, 6], ylab="z 3,6", xlab="iteration",
+           # type="l")
+      # plot(keepers.z[start:iter, 3, 16], ylab="z 3,16", xlab="iteration", 
+           # type="l")
       plot(keepers.z[start:iter, 1, 30], ylab="z 1,30", xlab="iteration",
            type="l")
   	}
