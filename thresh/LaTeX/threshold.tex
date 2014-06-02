@@ -42,11 +42,11 @@ In the traditional framework scoring functions should be maximized, but we use t
 \subsection{Continuous ranked probability score}
 The CRPS \citep{Gneiting2007} is given by
 \beqn
-    CRPS = -\int_{-\infty}^{\infty} \left[ F(q) - I(x \le q(\tau)) \right]^2 \dq.
+    CRPS = -\int_{-\infty}^{\infty} \left[ F(q) - I(x \le q(\tau)) \right]^2 \text{d}q.
 \eeqn
 We propose
 \beqn
-    CRPS_m = \int_{-T^*}^{\infty} \left[ F(q) - I(x \le q(\tau)) \right]^2 \dq.
+    CRPS_m = \int_{-T^*}^{\infty} \left[ F(q) - I(x \le q(\tau)) \right]^2 \text{d}q.
 \eeqn
 
 \subsection{Integrated quantile score}
@@ -58,7 +58,7 @@ The quantile score is given by
 \eeqn
 We propose
 \beqn
-    iQS = \int_{\tau^*}^1 (q(\tau) - x) [I(x \le q(\tau)) - \tau] \dtau
+    iQS = \int_{\tau^*}^1 (q(\tau) - x) [I(x \le q(\tau)) - \tau] \text{d}\tau
 \eeqn
 When considering the quantile function of the GPD, iQS is only finite when $\xi \le 1$.
 
