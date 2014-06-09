@@ -5,7 +5,7 @@
 #########################################################################
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
-                 thresh=0, thresh.quant=T, nknots=1,          
+                 thresh=0, thresh.quant=T, nknots=1, sigma.by.knots=T,         
                  iters=5000, burn=1000, update=100, thin=1, scale=T,
                  iterplot=F, plotname=NULL,
                  # initial values
@@ -126,10 +126,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   alpha <- alpha.init
   
   if (length(sigma.init) == 1) {
-    sigma <- rep(sigma.init, nt)
+    sigma.knots <- matrix(data=sigma.init, nrow=nknots, ncol=nt)
   } else {
-    sigma <- sigma.init
+  	if (nrow(sigma.init) != nknots | ncol(sigma.init) != nt) {
+  	  stop("sigma.init must be a matrix with nknots rows and nt cols")
+  	}
+    sigma.knots <- matrix(data=sigma.init, nrow=nknots, ncol=nt)
   }
+  
+  sigma.sites <- SigmaSites(sigma.knots=sigma.knots, partition=partition, 
+                            nknots=nknots)
   
   cor.mtx <- SpatCor(d=d, alpha=alpha, rho=rho, nu=nu)
   sig     <- cor.mtx$sig
@@ -144,6 +150,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
+  acc.sigma <- att.sigma <- mh.sigma <- matrix(0.1, nrow=nknots, ncol=nt) 
   acc.delta <- att.delta <- mh.delta <- 0.1  
   acc.rho   <- att.rho   <- mh.rho   <- 1
   acc.nu    <- att.nu    <- mh.nu    <- 1
@@ -151,14 +158,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # storage
   if (debug) { print("storage") }
-  keepers.z <- array(NA, dim=c(iters, nknots, nt))
+  keepers.z <- keepers.sigma <- array(NA, dim=c(iters, nknots, nt))
   keepers.beta <- matrix(NA, nrow=iters, ncol=p)
-  keepers.sigma <- keepers.ll <- matrix(NA, nrow=iters, ncol=nt)
+  keepers.ll <- matrix(NA, nrow=iters, ncol=nt)
   keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- rep(NA, iters)
   
   # initial values
   mu <- x.beta + delta * z.sites
-  cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, prec=prec, 
+  cur.ll <- LLike(y=y, x.beta=x.beta, sigma.sites=sigma.sites, delta=delta, prec=prec, 
                   log.det=log.det, z.sites=z.sites, log=T)
   
   for (iter in 1:iters) { for (ttt in 1:thin) {
@@ -175,11 +182,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	these.thresh.obs <- thresh.obs[, t]
       	these.missing.obs <- missing.obs[, t]
         
-        theta.t <- sqrt(sigma[t] * (1 - delta^2) * alpha) * t(chol(cor)) %*% rnorm(ns, 0, 1)
+        theta.t <- sqrt(sigma[, t] * (1 - delta^2) * alpha) * t(chol(cor)) %*% 
+                   rnorm(ns, 0, 1)
         
         # new expected value and standard deviation
         e.y <- mu[, t] + theta.t
-        s.y <- sqrt(sigma[t] * (1 - delta^2) * (1 - alpha))
+        s.y <- sqrt(sigma[, t] * (1 - delta^2) * (1 - alpha))
         upper.y <- thresh.mtx[, t]
         
         y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
@@ -207,14 +215,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             r1       <- y[these, t] - x.beta[these, t]
             r2       <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
             
-            vvv      <- sigma[t] * (1 - delta^2)
+            vvv      <- sigma[, t] * (1 - delta^2)
             prec.11  <- prec[these, these]
             prec.21  <- prec[-these, these]
             
             mu.z     <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21)
             lambda.z <- delta^2 * sum(prec.11) + 1 - delta^2
             mn.z     <- mu.z / lambda.z
-            sd.z     <- sqrt(sigma[t] * (1 - delta^2) / lambda.z)
+            sd.z     <- sqrt(sigma[, t] * (1 - delta^2) / lambda.z)
         
             z.new   <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf) 
             # if any z come back as Inf it's because P(Y > T) = 0
@@ -230,7 +238,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           mu.z     <- delta * sum(prec %*% r)
           lambda.z <- delta^2 * sum(prec) + 1 - delta^2
           mn.z     <- mu.z / lambda.z
-          sd.z     <- sqrt(sigma[t] * (1 - delta^2) / lambda.z)
+          sd.z     <- sqrt(sigma[, t] * (1 - delta^2) / lambda.z)
           z.new    <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf)
           
           # if any z come back as Inf it's because P(Y > T) = 0
@@ -256,18 +264,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           can.knots[[1]] <- matrix(NA, nrow=nknots, ncol=2)
           att.w[t] <- att.w[t] + 1
           ss.t <- t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t])
-          cur.ll <- -0.5 * ss.t / (sigma[t] * (1 - delta^2))
+          cur.ll <- -0.5 * ss.t / (sigma[, t] * (1 - delta^2))
           
           for (k in 1:nknots) {
         	can.knots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
           }
         
           can.partition <- Membership(s=s, knots=can.knots)
-          can.z.sites <- ZBySites(z=z.knots, partition=can.partition)
+          can.z.sites <- ZBySites(z.knots=z.knots, partition=can.partition)
           can.mu.t <- x.beta[, t] + delta * can.z.sites
           
           can.ss <- t(y[, t] - can.mu.t) %*% prec %*% (y[, t] - can.mu.t)
-          can.ll <- -0.5 * can.ss / (sigma[t] * (1 - delta^2))
+          can.ll <- -0.5 * can.ss / (sigma[, t] * (1 - delta^2))
           
           rej <- sum(can.ll - cur.ll)  # prior is uniform and candidate is symmetric
           
@@ -293,7 +301,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       for (t in 1:nt) {
         x.t <- x[, t, ]
-        ttt <- t(x.t) %*% prec / (sigma[t] * (1 - delta^2))
+        ttt <- t(x.t) %*% prec / (sigma[, t] * (1 - delta^2))
         vvv <- vvv + ttt %*% x.t
         mmm <- mmm + ttt %*% (y[, t] - delta * z.sites[, t])
       }
@@ -321,7 +329,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 	    can.res     <- y - x.beta - can.delta * z.sites
 	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
 
-	    rej <- -0.5 * sum(can.rss/sigma - cur.rss/sigma) - 
+	    rej <- -0.5 * sum(can.rss - cur.rss) - 
 	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2))
 	           
 	    if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
@@ -341,9 +349,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {
-      alpha.star <- sigma.a + nknots / 2 + ns / 2
-      beta.star  <- sigma.b + colSums(z.knots^2) / 2 + rss / 2
-      sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
+      if (!sigma.by.knots) {
+        alpha.star <- sigma.a + nknots / 2 + ns / 2
+        beta.star  <- sigma.b + colSums(z.knots^2) / 2 + rss / 2
+        sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
+      } else {
+        
+      }
     }  # fi !fixsigma
     
     # rho and nu
@@ -388,7 +400,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         
         can.rss     <- SumSquares(res, can.prec) / (1 - delta^2)    
                       
-        rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) + 
+        rej <- -0.5 * sum(can.rss - cur.rss) + 
                0.5 * nt * (can.log.det - log.det) + 
                dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
                dnorm(logrho, logrho.m, logrho.s, log=T) +
@@ -430,7 +442,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
       can.rss <- SumSquares(res, can.prec) / (1 - delta^2)
                       
-      rej <- -0.5 * sum(can.rss / sigma - cur.rss / sigma) + 
+      rej <- -0.5 * sum(can.rss - cur.rss) + 
              0.5 * nt * (can.log.det - log.det) +
              dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
              dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
@@ -456,7 +468,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     for (t in 1:nt) {
       x.beta.pred  <- x.pred[, t, ] %*% beta
-      z.sites.pred <- ZBySites(z=z.knots[, t], partition.pred)
+      z.sites.pred <- ZBySites(z.knots=z.knots[, t], partition.pred)
       mu.pred      <- x.beta.pred + delta * z.sites.pred
       
       s.11     <- 1
@@ -464,7 +476,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       s.22.inv <- prec
       
       e.y.pred <- mu.pred - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
-      v.y.pred <- sigma[t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
+      v.y.pred <- sigma[, t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
       
       if (np > 1) {
         v.y.pred <- diag(diag(v.y.pred))
@@ -475,7 +487,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
   }  # fi np > 0
   
-  cur.ll <- LLike(y=y, x.beta=x.beta, sigma=sigma, delta=delta, 
+  cur.ll <- LLike(y=y, x.beta=x.beta, sigma.sites=sigma.sites, delta=delta, 
                   prec=prec, log.det=log.det, z.sites=z.sites, log=T)
   
   ##############################################
@@ -484,7 +496,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (debug) { print("keepers") }
   keepers.z[iter, , ]   <- z.knots
   keepers.beta[iter, ]  <- beta
-  keepers.sigma[iter, ] <- sigma
+  keepers.sigma[iter, , ] <- sigma
   keepers.delta[iter]   <- delta
   keepers.rho[iter]     <- rho
   keepers.nu[iter]      <- nu
@@ -538,13 +550,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            type="l", main=bquote("ACCR" == .(accrate.nu)))
       plot(keepers.alpha[start:iter], ylab="alpha", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.alpha)))
-      # plot(keepers.sigma[start:iter, 1], ylab="sigma 1", xlab="iteration", 
+      # plot(keepers.sigma[start:iter, , 1], ylab="sigma 1", xlab="iteration", 
            # type="l")
-      # plot(keepers.sigma[start:iter, 3], ylab="sigma 3", xlab="iteration",
+      # plot(keepers.sigma[start:iter, , 3], ylab="sigma 3", xlab="iteration",
            # type="l")
-      plot(keepers.sigma[start:iter, 5], ylab="sigma 5", xlab="iteration", 
+      plot(keepers.sigma[start:iter, , 5], ylab="sigma 5", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, 13], ylab="sigma 13", xlab="iteration", 
+      plot(keepers.sigma[start:iter, , 13], ylab="sigma 13", xlab="iteration", 
            type="l")
       plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
            type="l")

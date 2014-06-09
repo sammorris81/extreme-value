@@ -30,14 +30,11 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
 #   s(ns, 2): spatial locations
 #   x(ns, nt, np): Matrix of spatial covariates
 #   beta.y(np): parameters for mu.y
+#   sigma.sites(ns, nt): matrix of daily variance at each site
+#   delta(1): skewness parameter
+#   rho(1): spatial range parameter
 #   nu.y(1): smoothness parameter for Matern covariance
 #   alpha.y(1): controls proportion of spatial to non-spatial covariance
-#   thresh(1): percentage of data above threshold in GPD
-#   xi.r(1): a parameter for IG
-#   sig.r(1): b parameter for IG
-#	mixprob(1): 0: all IG random effects; 1: all MVN random effects
-#	mvn.rho(1): range parameter for MVN correlation
-#	gam.rho(1): range parameter for IG correlation
 #   nknots(1): the number of knots/partitions to have over space
 #
 # Returns:
@@ -48,7 +45,7 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
 #		knots(nknots, 2): knot locations
 #       fixr(nknots, nt): whether it was a gaussian or gamma random effect
 #########################################################################
-rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
+rpotspatial <- function(nt, s, x, beta, sigma.sites, delta, rho, nu, alpha, nknots=1){
     
   # initial setup
   ns      <- nrow(s)
@@ -75,7 +72,7 @@ rpotspatial <- function(nt, s, x, beta, sigma, delta, rho, nu, alpha, nknots=1){
   partition    <- Membership(s=s, knots=knots)
    
   for (t in 1:nt) {
-  	sigma.t   <- sigma[t]
+  	sigma.t   <- sigma.sites[, t]
   	z.knots.t <- sqrt(sigma.t) * abs(rnorm(n=nknots, mean=0, sd=1))
     z.sites.t <- ZBySites(z.knots.t, partition[, t])
     
@@ -124,6 +121,33 @@ Membership <- function(s, knots){
   
   return(partition)
 }
+
+################################################################
+# Arguments:
+#   sigma.knots(nknots, nt): matrix of daily variance at each knot
+#   partition(ns, nt): partition membership matrix
+#   nknots(1): the number of knots/partitions to have over space
+#
+# Returns: 
+#   sigma.sites(ns, nt): matrix of daily variance at each site
+################################################################
+SigmaSites <- function(sigma.knots, partition, nknots){
+  ns <- nrow(partition)
+  nt <- ncol(partition)
+  
+  sigma.sites <- matrix(NA, ns, nt)
+  
+  for (t in 1:nt) {
+    partition.t <- partition[, t]
+    for (k in 1:nknots) {
+      these <- which(partition.t == k)
+      sigma.sites[these, t] <- sigma.knots[k, t]
+    }
+  }
+  
+  return(sigma.sites)
+}
+
 
 ################################################################
 # Arguments:
@@ -183,7 +207,7 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
 #             covariance (0: ind, 1: high spatial corr)
 #   rho(1): spatial range
 #   nu(1): matern smoothness parameter
-#	cov(bool): do we need a variance term
+#	  cov(bool): do we need a variance term
 #
 # Returns:
 #   cor(ns, nt): matern correlation
@@ -201,14 +225,14 @@ CorFx <- function(d, alpha, rho, nu, cov=F){
 
 ################################################################
 # Arguments:
-#   z(nknots): vector of random effects with one entry per knot
+#   z.knots(nknots): vector of random effects with one entry per knot
 #   partition(ns): partition membership vector
 #
 # Returns:
 #   z.sites(ns): vector of random effects with one entry per site
 ################################################################
-ZBySites <- function(z, partition){
-  nknots  <- length(z)
+ZBySites <- function(z.knots, partition){
+  nknots  <- length(z.knots)
   ns      <- length(partition)
   z.sites <- rep(NA, ns)
   
@@ -222,57 +246,20 @@ ZBySites <- function(z, partition){
 
 ################################################################
 # Arguments:
-#   prec.beta(p, p): prior precision of beta
-#   e.beta(p): prior mean of beta
-#   x(ns, nt, p): covariate array
-#   y(ns, nt): observed data matrix
-#   z(ns, nt): matrix of random effects
-#   prec(ns, ns): precision matrix
-#   delta(1): skewness parameter
-#   sigma(nt): vector of daily variance
-#   nt(1): number of days
-#
-# Returns:
-#   list: 
-#     vvv(p, p): posterior variance of beta
-#     mmm(p): posterior mean of beta
-################################################################
-BetaPosterior <- function(prec.beta, e.beta, x, y, z,
-						  prec, delta, sigma, nt){
-  
-  ns  <- nrow(y)
-  p   <- length(e.beta)
-  vvv <- prec.beta
-  mmm <- e.beta
-  
-  for(t in 1:nt){
-      x.t <- matrix(x[, t, ], ns, p)
-      ttt  <- t(x.t) %*% prec / (sigma[t] * (1 - delta^2))
-      vvv  <- vvv + ttt %*% x.t
-      mmm  <- mmm + ttt %*% (y[, t] + delta * z[, t])
-  }
-	
-  vvv <- chol2inv(chol(vvv))
-
-  results <- list(vvv=vvv, mmm=mmm)
-
-  return(results)
-}
-
-################################################################
-# Arguments:
 #   res(ns, nt)
 #   prec(ns, ns): precision matrix
+#   sigma.sites(ns, nt): matrix of daily variance at each site
 #
 # Returns:
 #   ss(nt): vector of daily sums of squares
 ################################################################
-SumSquares <- function(res, prec){
+SumSquares <- function(res, prec, sigma.sites){
   nt <- ncol(res)
   ss <- rep(NA, nt)
   
   for (t in 1:nt) {
-    ss[t] <- t(res[, t]) %*% prec %*% res[, t]
+    sigma.sites.t <- sqrt(sigma.sites[, t])
+    ss[t] <- t(res[, t] / sigma.sites.t) %*% prec %*% res[, t] / sigma.sites.t
   }
   
   return(ss)
@@ -282,7 +269,7 @@ SumSquares <- function(res, prec){
 # Arguments:
 #   y(ns, nt): observed data matrix
 #   x.beta(ns, nt): XBeta matrix
-#   sigma(nt): vector of daily variance
+#   sigma.sites(ns, nt): matrix of daily variance at each site
 #   delta(1): skewness parameter
 #   prec(ns, ns): precision matrix
 #   log.det(1): logdet(prec)
@@ -291,7 +278,7 @@ SumSquares <- function(res, prec){
 # Returns:
 #   llike(nt): (log)likelihood
 ################################################################
-LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
+LLike <- function(y, x.beta, sigma.sites, delta, prec, log.det, z.sites, log=TRUE){
   
   if (missing(y)) {
     stop("y must be defined")
@@ -321,7 +308,7 @@ LLike <- function(y, x.beta, sigma, delta, prec, log.det, z.sites, log=TRUE){
   log.like  <- rep(NA, nt)
 
   for (t in 1:nt) {
-    sigma.t <- sigma[t]
+    sigma.t <- sigma.sites[, t]
     y.t <- y[, t]
     mu.t <- x.beta[, t] + delta * z.sites[, t]
     ss.t <- t(y.t - mu.t) %*% prec %*% (y.t - mu.t)
