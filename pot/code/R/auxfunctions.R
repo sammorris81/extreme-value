@@ -246,7 +246,7 @@ ZBySites <- function(z.knots, partition){
 
 ################################################################
 # Arguments:
-#   res(ns, nt)
+#   res(ns, nt): matrix of residuals
 #   prec(ns, ns): precision matrix
 #   sigma.sites(ns, nt): matrix of daily variance at each site
 #
@@ -259,7 +259,7 @@ SumSquares <- function(res, prec, sigma.sites){
   
   for (t in 1:nt) {
     sigma.sites.t <- sqrt(sigma.sites[, t])
-    ss[t] <- t(res[, t] / sigma.sites.t) %*% prec %*% res[, t] / sigma.sites.t
+    ss[t] <- t(res[, t] / sigma.sites.t) %*% prec %*% (res[, t] / sigma.sites.t)
   }
   
   return(ss)
@@ -278,7 +278,7 @@ SumSquares <- function(res, prec, sigma.sites){
 # Returns:
 #   llike(nt): (log)likelihood
 ################################################################
-LLike <- function(y, x.beta, sigma.sites, delta, prec, log.det, z.sites, log=TRUE){
+LLike <- function(y, x.beta, sigma.sites, delta, prec, log.det, z.sites, log=T){
   
   if (missing(y)) {
     stop("y must be defined")

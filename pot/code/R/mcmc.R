@@ -13,7 +13,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
                  # priors
-                 beta.m=0, beta.s=10, sigma.a=.1, sigma.b=.1,
+                 beta.m=0, beta.s=10, sigma.alpha=0.1, sigma.beta=0.1,
+                 logalpha.m=0, logsig.m=1, beta.a=0.1, beta.b=0.1,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  alpha.m=0, alpha.s=1, # z.s=0.1,
@@ -344,17 +345,51 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     mu  <- x.beta + delta * z.sites
     res <- y - mu
-    rss <- SumSquares(res, prec / (1 - delta^2))
     
     # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {
       if (!sigma.by.knots) {
-        alpha.star <- sigma.a + nknots / 2 + ns / 2
-        beta.star  <- sigma.b + colSums(z.knots^2) / 2 + rss / 2
+        alpha.star <- sigma.alpha + nknots / 2 + ns / 2
+        beta.star  <- sigma.beta + colSums(z.knots^2) / 2 + rss / 2
         sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
-      } else {
         
+        # TODO: update sigma.alpha and sigma.beta
+      } else {
+        logsig.knots <- log(sig.knots)
+        for (k in 1:nknots) {
+          can.logsig.knots <- logsig.knots
+          can.logsig.knots[k, ] <- rnorm(nt, logsig.knots[k, ], mh.sigma[k, ])
+          can.sigma.knots <- exp(sigma.knots)
+          can.sigma.sites <- SigmaSites(sigma.knots=can.sigma.knots, partition=partition,
+                                        nknots=nknots)
+          
+          can.rss <- SumSquares(res=res, prec=prec, sigma.sites=can.sigma.sites)
+          cur.rss <- SumSquares(res=res, prec=prec, sigma.sites=sigma.sites)
+          ns.tl <- colSums(partition == k)  # find the number of sites in each partition
+          can.ll <- -0.5 * (ns.tl + 1) * can.logsig.knots[k, ] -
+                    0.5 * (z.knots[k, ]^2 / can.sigma.knots[k, ] + can.rss)
+                    
+          cur.ll <- -0.5 * (ns.tl + 1) * logsig.knots[k, ] -
+                    0.5 * (z.knots[k, ]^2 / sigma.knots[k, ] + cur.rss)
+                    
+          rej <- can.ll - cur.ll +
+                 dInvG(can.sigma.knots[k, ], sigma.alpha, sigma.beta, log=T) - 
+                 dInvG(sigma.knots[k, ], sigma.alpha, sigma.beta, log=T)
+          
+          if (length(rej) != nt){
+            stop("rej for sigma is not the correct length")
+          }
+          
+          for (t in 1:nt) {
+            if (!is.na(rej[t])) { if (-rej[t] < rexp(1, 1)) {
+              logsig.knots[k, t] <- can.logsig.knots[k, t]
+              sigma.sites[k, t] <- can.sigma.sites[k, t]
+            }}
+          }
+          
+          # TODO: update sigma.alpha and sigma.beta
+        }
       }
     }  # fi !fixsigma
     
