@@ -14,13 +14,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  delta.init=0,
                  # priors
                  beta.m=0, beta.s=10, sigma.alpha=0.1, sigma.beta=0.1,
-                 logalpha.m=0, logsig.m=1, beta.a=0.1, beta.b=0.1,
+                 sigma.alpha.m=0, sigma.alpha.s=1, 
+                 sigma.beta.a=0.1, sigma.beta.b=0.1,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  alpha.m=0, alpha.s=1, # z.s=0.1,
                  # debugging settings
                  debug=F, knots.init, z.init, 
-                 fixknots=F, fixz=F, fixbeta=F, fixsigma=F,
+                 fixknots=F, fixz=F, fixbeta=F, 
+                 fixsigma=F, fixsigma.alpha=F, fixsigma.beta=F,
                  fixrho=F, fixnu=F, fixalpha=F,
                  fixdelta=F){
     
@@ -151,7 +153,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
-  acc.sigma <- att.sigma <- mh.sigma <- matrix(0.1, nrow=nknots, ncol=nt) 
+  acc.sigma <- att.sigma <- mh.sigma <- matrix(0.1, nrow=nknots, ncol=nt)
+  acc.sigma.alpha <- att.sigma.alpha <- mh.sigma.alpha <- 0.1 
   acc.delta <- att.delta <- mh.delta <- 0.1  
   acc.rho   <- att.rho   <- mh.rho   <- 1
   acc.nu    <- att.nu    <- mh.nu    <- 1
@@ -162,6 +165,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.z <- keepers.sigma <- array(NA, dim=c(iters, nknots, nt))
   keepers.beta <- matrix(NA, nrow=iters, ncol=p)
   keepers.ll <- matrix(NA, nrow=iters, ncol=nt)
+  keepers.sigma.alpha <- keepers.sigma.beta <- rep(NA, iters)
   keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- rep(NA, iters)
   
   # initial values
@@ -354,10 +358,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         beta.star  <- sigma.beta + colSums(z.knots^2) / 2 + rss / 2
         sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
         
-        # TODO: update sigma.alpha and sigma.beta
       } else {
         logsig.knots <- log(sig.knots)
         for (k in 1:nknots) {
+          acc.sigma[k, ] <- acc.sigma[k, ] + 1
           can.logsig.knots <- logsig.knots
           can.logsig.knots[k, ] <- rnorm(nt, logsig.knots[k, ], mh.sigma[k, ])
           can.sigma.knots <- exp(sigma.knots)
@@ -385,13 +389,40 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             if (!is.na(rej[t])) { if (-rej[t] < rexp(1, 1)) {
               logsig.knots[k, t] <- can.logsig.knots[k, t]
               sigma.sites[k, t] <- can.sigma.sites[k, t]
+              acc.sigma[k, t] <- acc.sigma[k, t] + 1
             }}
-          }
-          
-          # TODO: update sigma.alpha and sigma.beta
-        }
+          }         
+        }  # end nknots
+        
       }
     }  # fi !fixsigma
+    
+    # update sigma.alpha and sigma.beta
+    if (debug) { print("sigma.alpha and sigma.beta") }
+    if (!fixsigma.alpha) {
+      att.sigma.alpha <- att.sigma.alpha + 1
+      logsigma.alpha <- log(sigma.alpha)
+      can.logsigma.alpha <- rnorm(1, mean=logsigma.alpha, sd=mh.sigma.alpha)
+      can.sigma.alpha <- exp(can.logsigma.alpha)
+      can.ll <- sum(dgamma(sigma, can.sigma.alpha, sigma.beta, log=T))
+      cur.ll <- sum(dgamma(sigma, sigma.alpha, sigma.beta, log=T))
+    
+      rej <- can.ll - cur.ll +
+             dnorm(can.logsigma.alpha, sigma.alpha.m, sigma.alpha.s) - 
+             dnorm(logsigma.alpha, sigma.alpha.m, sigma.alpha.s)
+    
+      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+        sigma.alpha <- can.sigma.alpha
+        acc.sigma.alpha <- acc.sigma.alpha + 1
+      } }
+    }
+              
+    if (!fixsigma.beta) {
+      a.star <- sigma.beta.a + nt * nknots * sigma.alpha
+      b.star <- sigma.beta.b + sum(sigma)
+      
+      sigma.beta <- rgamma(1, a.star, b.star)
+    }
     
     # rho and nu
     if (debug) { print("rho and nu") }
@@ -529,14 +560,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # Keep track of iterations
   ##############################################
   if (debug) { print("keepers") }
-  keepers.z[iter, , ]   <- z.knots
-  keepers.beta[iter, ]  <- beta
-  keepers.sigma[iter, , ] <- sigma
-  keepers.delta[iter]   <- delta
-  keepers.rho[iter]     <- rho
-  keepers.nu[iter]      <- nu
-  keepers.alpha[iter]   <- alpha
-  keepers.ll[iter, ]    <- cur.ll
+  keepers.z[iter, , ]       <- z.knots
+  keepers.beta[iter, ]      <- beta
+  keepers.sigma[iter, , ]   <- sigma
+  keepers.sigma.alpha[iter] <- sigma.alpha
+  keepers.sigma.beta[iter]  <- sigma.beta
+  keepers.delta[iter]       <- delta
+  keepers.rho[iter]         <- rho
+  keepers.nu[iter]          <- nu
+  keepers.alpha[iter]       <- alpha
+  keepers.ll[iter, ]        <- cur.ll
 
   ##############################################
   # Display current value
@@ -621,6 +654,28 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }
     
+    for (t in 1:nt) {
+      for (k in 1:nknots) {
+        if (att.sigma[k, t] > 50) {
+          if (acc.sigma[k, t] / att.sigma[k, t] < 0.25) { 
+            mh.sigma[k, t] <- mh.sigma[k, t] * 0.8 
+          }
+          if (acc.sigma[k, t] / att.sigma[k, t] > 0.50) {
+            mh.sigma[k, t] <- mh.sigma[k, t] * 1.2
+          }
+        } 
+      }
+    }
+    
+    if (att.sigma.alpha > 50) {
+      if (acc.sigma.alpha / att.sigma.alpha < 0.25) { 
+        mh.sigma.alpha <- mh.sigma.alpha * 0.8
+      }
+      if (acc.sigma.alpha / att.sigma.alpha > 0.50) {
+        mh.sigma.alpha <- mh.sigma.alpha * 1.2
+      }
+    }
+    
     if (att.delta > 50) {
       if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
       if (acc.delta / att.delta > 0.50) { mh.delta <- mh.delta * 1.2 }
@@ -662,6 +717,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                     z=keepers.z,
                     beta=keepers.beta,
                     sigma=keepers.sigma,
+                    sigma.alpha=keepers.sigma.alpha,
+                    sigma.beta=keepers.sigma.beta,
                     delta=keepers.delta,
                     rho=keepers.rho,
                     nu=keepers.nu,
