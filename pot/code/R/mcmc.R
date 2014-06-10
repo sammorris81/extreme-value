@@ -123,6 +123,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
   
   if (length(sigma.init) == 1) {
+  	cat("  initializing all sigma terms as", sigma.init, "\n")
     sigma.knots <- matrix(data=sigma.init, nrow=nknots, ncol=nt)
   } else {
     if (nrow(sigma.init) != nknots | ncol(sigma.init) != nt) {
@@ -280,21 +281,25 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         	can.knots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
           }
         
-          can.partition <- Membership(s=s, knots=can.knots)
-          can.z.sites <- ZBySites(z.knots=z.knots, partition=can.partition)
-          can.mu.t <- x.beta[, t] + delta * can.z.sites
-          can.sigma.sites <- SigmaSites(sigma.knots, can.partition, nknots)
+          can.partition.t <- Membership(s=s, knots=can.knots)
+          can.z.sites.t <- ZBySites(z.knots=z.knots, partition=can.partition.t)
+          can.mu.t <- x.beta[, t] + delta * can.z.sites.t
+          can.sigma.sites.t <- SigmaSites(sigma.knots, can.partition.t, nknots)
           
-          can.ss <- t((y[, t] - can.mu.t) / can.sigma.sites[, t]) %*% prec %*% 
-                    ((y[, t] - can.mu.t) / can.sigma.sites[, t])
+          if (length(can.sigma.sites.t) != ns) {
+            stop("can.sigma.sites.t is the wrong length.")
+          }
+
+          can.ss <- t((y[, t] - can.mu.t) / can.sigma.sites.t) %*% prec %*% 
+                    ((y[, t] - can.mu.t) / can.sigma.sites.t)
           can.ll <- -0.5 * can.ss / (1 - delta^2)
           
           rej <- sum(can.ll - cur.ll)  # prior is uniform and candidate is symmetric
           
           if (!is.na(rej)) {if (-rej < rexp(1, 1)) {
             knots[[t]]     <- can.knots[[1]]
-            partition[, t] <- can.partition
-            z.sites[, t]   <- can.z.sites
+            partition[, t] <- can.partition.t
+            z.sites[, t]   <- can.z.sites.t
             mu[, t]        <- can.mu.t
             acc.w[t]       <- acc.w[t] + 1
             cur.ll         <- can.ll
@@ -344,6 +349,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
 	    rej <- -0.5 * sum(can.rss - cur.rss) - 
 	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2))
+	    
+	    if (length(rej) > 1) {
+	      stop("rej for delta is too long")
+	    }
 	           
 	    if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
 	      delta     <- can.delta
@@ -360,9 +369,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     # update sigma (sill)
     if (debug) { print("sigma") }
-    if (!fixsigma) {  # sigma.by.knots=T means same sigma for all knots
-      # if (!sigma.by.knots | (nknots == 1)) { commenting out for debug
-      if (!sigma.by.knots) {
+    if (!fixsigma) {  # sigma.by.knots=F means same sigma for all knots
+      if (!sigma.by.knots | (nknots == 1)) {
       	rss <- rep(NA, nt)
       	for (t in 1:nt) {
       	  rss[t] <- t(res[, t]) %*% prec %*% res[, t] / (1 - delta^2)
@@ -421,6 +429,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update sigma.alpha and sigma.beta
     if (debug) { print("sigma.alpha and sigma.beta") }
     sigma.knots.inv <- 1 / sigma.knots
+    
+    if (!fixsigma.beta) {
+      a.star <- sigma.beta.a + nt * nknots * sigma.alpha
+      b.star <- sigma.beta.b + sum(sigma.knots.inv)
+      
+      sigma.beta <- rgamma(1, a.star, b.star)
+    }
+    
     if (!fixsigma.alpha) {
       att.sigma.alpha <- att.sigma.alpha + 1
       logsigma.alpha <- log(sigma.alpha)
@@ -439,13 +455,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       } }
     }
               
-    if (!fixsigma.beta) {
-      a.star <- sigma.beta.a + nt * nknots * sigma.alpha
-      b.star <- sigma.beta.b + sum(sigma.knots.inv)
-      
-      sigma.beta <- rgamma(1, a.star, b.star)
-    }
-    
     # rho and nu
     if (debug) { print("rho and nu") }
     if (!fixrho | !fixnu) {
@@ -644,9 +653,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       # plot(keepers.sigma[start:iter, , 3], ylab="sigma 3", xlab="iteration",
            # type="l")
-      plot(keepers.sigma[start:iter, , 5], ylab="sigma 5", xlab="iteration", 
+      plot(keepers.sigma[start:iter, 1, 1], ylab="sigma 1, 1", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, , 30], ylab="sigma 30", xlab="iteration", 
+      plot(keepers.sigma[start:iter, 1, 20], ylab="sigma 1, 20", xlab="iteration", 
            type="l")
       # plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
            # type="l")

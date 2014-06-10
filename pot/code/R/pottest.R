@@ -756,8 +756,7 @@ sigma.sites.t <- data$sigma.sites
 # hist(y, breaks=30)
 # sigma5 = 0.382, sigma 30 = 1.218
 # z1,3 = 6.156, z3,6=0.582, z3,16=15.000, z1,30=4.700
-source("auxfunctions.R")
-source("mcmc.R")
+
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             iters=10000, burn=5000, update=1000, iterplot=T,
@@ -773,6 +772,150 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             sigma.by.knots=T)
 end.time <- proc.time()
 
-end.time - start.time
+end.time - start.time 
 
+# Using MH sampling
+#   user  system elapsed 
+# 45.747   0.706  50.456 
 
+# Using Gibbs sampling
+#   user  system elapsed 
+# 31.108   0.479  31.844 
+
+rm(list=ls())
+
+library(fields)
+library(geoR)
+library(mvtnorm)
+library(evd)
+
+source("auxfunctions.R")
+source("mcmc.R")
+
+# set.seed(1)
+
+# iid n(0, 1)
+# data settings
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 30
+nsets <- 1
+nknots <- 1
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(10, -2, 3)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0.5
+
+sigma.alpha.t <- 5
+sigma.beta.t <- 2
+
+alpha.t <- 0.9
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, 
+                    sigma.alpha=sigma.alpha.t, sigma.beta=sigma.beta.t,
+                    delta=delta.t, rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=nknots)
+
+y <- data$y
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+sigma.knots.t <- data$sigma.knots
+sigma.sites.t <- data$sigma.sites
+# hist(y, breaks=30)
+# sigma5 = 0.382, sigma 30 = 1.218
+# z1,3 = 6.156, z3,6=0.582, z3,16=15.000, z1,30=4.700
+
+start.time <- proc.time()
+fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
+            iters=10000, burn=5000, update=1000, iterplot=T,
+            beta.init=beta.t, sigma.init=sigma.knots.t, 
+            sigma.alpha.init=sigma.alpha.t, 
+            sigma.beta.init=sigma.beta.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            debug=F, 
+            knots.init=knots.t, z.init=z.knots.t,
+            fixknots=F, fixz=F, fixbeta=F, 
+            fixsigma=F, fixsigma.alpha=F, fixsigma.beta=F,
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F,
+            sigma.by.knots=T)
+end.time <- proc.time()
+
+end.time - start.time 
+# Timing: Nothing fixed, 1 knot, 30 days, 50 sites, 0 threshold, 10000 iters, 5000 burn.
+#    user  system elapsed 
+# 180.361   1.681 181.302 
+
+rm(list=ls())
+
+library(fields)
+library(geoR)
+library(mvtnorm)
+library(evd)
+
+source("auxfunctions.R")
+source("mcmc.R")
+
+set.seed(100)
+
+# iid n(0, 1)
+# data settings
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 30
+nsets <- 1
+nknots <- 1
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(10, -2, 3)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0.5
+
+sigma.alpha.t <- 5
+sigma.beta.t <- 2
+
+alpha.t <- 0.8
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, 
+                    sigma.alpha=sigma.alpha.t, sigma.beta=sigma.beta.t,
+                    delta=delta.t, rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=nknots)
+
+y <- data$y
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+sigma.knots.t <- data$sigma.knots
+sigma.sites.t <- data$sigma.sites
+# hist(y, breaks=30)
+# sigma1,1 = 1.476, sigma2,5 = 0.367
+# z1,3 = 6.156, z3,6=0.582, z3,16=15.000, z1,30=4.700
+
+start.time <- proc.time()
+fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
+            iters=15000, burn=10000, update=1000, iterplot=T,
+            beta.init=c(0, 0, 0), sigma.init=1, 
+            sigma.alpha.init=sigma.alpha.t, 
+            sigma.beta.init=sigma.beta.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=0,
+            debug=F, 
+            knots.init=knots.t, z.init=z.knots.t,
+            fixknots=T, fixz=F, fixbeta=F, 
+            fixsigma=F, fixsigma.alpha=F, fixsigma.beta=F,
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F,
+            sigma.by.knots=T)
+end.time <- proc.time()
+quantile(fit$sigma.alpha[10000:15000], probs=c(0.025, 0.975))
+quantile(fit$sigma.beta[10000:15000], probs=c(0.025, 0.975))
+end.time - start.time 
