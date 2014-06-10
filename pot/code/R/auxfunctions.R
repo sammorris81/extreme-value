@@ -30,7 +30,8 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
 #   s(ns, 2): spatial locations
 #   x(ns, nt, np): Matrix of spatial covariates
 #   beta.y(np): parameters for mu.y
-#   sigma.sites(ns, nt): matrix of daily variance at each site
+#   sigma.alpha.t(1): hyperparameter for sigma terms
+#   sigma.beta.t(1): hyperparameter for sigma terms
 #   delta(1): skewness parameter
 #   rho(1): spatial range parameter
 #   nu.y(1): smoothness parameter for Matern covariance
@@ -45,7 +46,8 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
 #		knots(nknots, 2): knot locations
 #       fixr(nknots, nt): whether it was a gaussian or gamma random effect
 #########################################################################
-rpotspatial <- function(nt, s, x, beta, sigma.sites, delta, rho, nu, alpha, nknots=1){
+rpotspatial <- function(nt, s, x, beta, sigma.alpha.t, sigma.beta.t, 
+                        delta, rho, nu, alpha, nknots=1){
     
   # initial setup
   ns      <- nrow(s)
@@ -70,10 +72,13 @@ rpotspatial <- function(nt, s, x, beta, sigma.sites, delta, rho, nu, alpha, nkno
   }
   
   partition    <- Membership(s=s, knots=knots)
-   
+  sigma.knots <- 1 / rgamma(nt * nknots, sigma.alpha.t, sigma.beta.t)
+  sigma.knots <- matrix(sigma.knots, nrow=nknots, ncol=nt)
+  sigma.sites <- SigmaSites(sigma.knots=sigma.knots, partition=partition, nknots=nknots)
+  
   for (t in 1:nt) {
-  	sigma.t   <- sigma.sites[, t]
-  	z.knots.t <- sqrt(sigma.t) * abs(rnorm(n=nknots, mean=0, sd=1))
+  	sigma.knots.t   <- sigma.knots[, t]
+  	z.knots.t <- sqrt(sigma.knots.t) * abs(rnorm(n=nknots, mean=0, sd=1))
     z.sites.t <- ZBySites(z.knots.t, partition[, t])
     
     x.beta.t <- x[, t, ] %*% beta
@@ -85,8 +90,9 @@ rpotspatial <- function(nt, s, x, beta, sigma.sites, delta, rho, nu, alpha, nkno
       v.spat <- rep(0, ns)
     }
     
+    sigma.sites.t <- sigma.sites[, t]
     v.nug <- rnorm(ns, 0, sqrt(1 - alpha))
-    v.t <- sqrt(sigma.t) * sqrt(1 - delta^2) * ( v.nug + v.spat) 
+    v.t <- sqrt(sigma.sites.t) * sqrt(1 - delta^2) * ( v.nug + v.spat) 
     y[, t]       <- x.beta.t + delta * z.sites.t + v.t
     z.knots[, t] <- z.knots.t
     z.sites[, t] <- z.sites.t
@@ -94,7 +100,8 @@ rpotspatial <- function(nt, s, x, beta, sigma.sites, delta, rho, nu, alpha, nkno
     
   }
   
-  results <- list(y=y, z.knots=z.knots, z.sites=z.sites, knots=knots, v=v, cor=cor)
+  results <- list(y=y, z.knots=z.knots, z.sites=z.sites, knots=knots, v=v, cor=cor,
+                  sigma.knots=sigma.knots, sigma.sites=sigma.sites)
     
   return(results)
 }
@@ -238,7 +245,7 @@ ZBySites <- function(z.knots, partition){
   
   for (k in 1:nknots) {
   	these <- which(partition == k)
-  	z.sites[these] <- z[k]
+  	z.sites[these] <- z.knots[k]
   }
   
   return(z.sites)
@@ -291,10 +298,10 @@ LLike <- function(y, x.beta, sigma.sites, delta, prec, log.det, z.sites, log=T){
     stop("x.beta and y must have conforming size")
   }
   
-  if (missing(sigma)) {
+  if (missing(sigma.sites)) {
     stop("sigma must be defined")
-  } else if (length(sigma) != nt) {
-    stop("need a sigma for each day")
+  } else if ((nrow(sigma.sites) != ns) | (ncol(sigma.sites) != nt)) {
+    stop("need a sigma for each day/knot")
   }
   
   if (missing(delta)) {
@@ -308,14 +315,14 @@ LLike <- function(y, x.beta, sigma.sites, delta, prec, log.det, z.sites, log=T){
   log.like  <- rep(NA, nt)
 
   for (t in 1:nt) {
-    sigma.t <- sigma.sites[, t]
+    sigma.t <- sqrt(sigma.sites[, t])
     y.t <- y[, t]
     mu.t <- x.beta[, t] + delta * z.sites[, t]
-    ss.t <- t(y.t - mu.t) %*% prec %*% (y.t - mu.t)
-    log.like[t] <- -0.5 * ns * (log(sigma.t) + log(1 - delta^2)) + 0.5 * log.det -
-                    0.5 * ss.t / (sigma.t * (1 - delta^2))
+    ss.t <- t((y.t - mu.t) / sigma.t) %*% prec %*% ((y.t - mu.t) / sigma.t)
+    log.like[t] <- -0.5 * (sum(log(sigma.t)) + ns * (log(1 - delta^2))) + 
+                     0.5 * log.det - 0.5 * ss.t / (1 - delta^2)
   }
-    
+  
   if(!log){
     log.like <- exp(log.like)
   }

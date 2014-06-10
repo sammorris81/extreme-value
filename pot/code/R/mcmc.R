@@ -10,10 +10,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  iterplot=F, plotname=NULL,
                  # initial values
                  beta.init=NULL, sigma.init=1,
+                 sigma.alpha.init=0.1, sigma.beta.init=0.1,
                  rho.init=0.5, nu.init=0.5, alpha.init=0.5,
                  delta.init=0,
                  # priors
-                 beta.m=0, beta.s=10, sigma.alpha=0.1, sigma.beta=0.1,
+                 beta.m=0, beta.s=10, 
                  sigma.alpha.m=0, sigma.alpha.s=1, 
                  sigma.beta.a=0.1, sigma.beta.b=0.1,
                  logrho.m=-2, logrho.s=1,
@@ -121,25 +122,28 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	x.beta[, t] <- x[, t, ] %*% beta
   }
   
-  # initialize spatial covariance
-  rho <- rho.init
-  logrho <- log(rho)
-  nu  <- nu.init
-  lognu <- log(nu)
-  alpha <- alpha.init
-  
   if (length(sigma.init) == 1) {
     sigma.knots <- matrix(data=sigma.init, nrow=nknots, ncol=nt)
   } else {
-  	if (nrow(sigma.init) != nknots | ncol(sigma.init) != nt) {
-  	  stop("sigma.init must be a matrix with nknots rows and nt cols")
-  	}
+    if (nrow(sigma.init) != nknots | ncol(sigma.init) != nt) {
+      stop("sigma.init must be a matrix with nknots rows and nt cols")
+    }
     sigma.knots <- matrix(data=sigma.init, nrow=nknots, ncol=nt)
   }
   
   sigma.sites <- SigmaSites(sigma.knots=sigma.knots, partition=partition, 
                             nknots=nknots)
   
+  sigma.alpha <- sigma.alpha.init
+  sigma.beta <- sigma.beta.init
+  
+  # initialize spatial covariance
+  rho <- rho.init
+  logrho <- log(rho)
+  nu  <- nu.init
+  lognu <- log(nu)
+  alpha <- alpha.init
+    
   cor.mtx <- SpatCor(d=d, alpha=alpha, rho=rho, nu=nu)
   sig     <- cor.mtx$sig
   prec    <- cor.mtx$prec
@@ -187,12 +191,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	these.thresh.obs <- thresh.obs[, t]
       	these.missing.obs <- missing.obs[, t]
         
-        theta.t <- sqrt(sigma[, t] * (1 - delta^2) * alpha) * t(chol(cor)) %*% 
+        theta.t <- sqrt(sigma.sites[, t] * (1 - delta^2) * alpha) * t(chol(cor)) %*% 
                    rnorm(ns, 0, 1)
         
         # new expected value and standard deviation
         e.y <- mu[, t] + theta.t
-        s.y <- sqrt(sigma[, t] * (1 - delta^2) * (1 - alpha))
+        s.y <- sqrt(sigma.sites[, t] * (1 - delta^2) * (1 - alpha))
         upper.y <- thresh.mtx[, t]
         
         y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
@@ -220,14 +224,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             r1       <- y[these, t] - x.beta[these, t]
             r2       <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
             
-            vvv      <- sigma[, t] * (1 - delta^2)
+            # vvv      <- sigma[, t] * (1 - delta^2)
             prec.11  <- prec[these, these]
             prec.21  <- prec[-these, these]
             
             mu.z     <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21)
             lambda.z <- delta^2 * sum(prec.11) + 1 - delta^2
             mn.z     <- mu.z / lambda.z
-            sd.z     <- sqrt(sigma[, t] * (1 - delta^2) / lambda.z)
+            sd.z     <- sqrt(sigma.knots[k, t] * (1 - delta^2) / lambda.z)
         
             z.new   <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf) 
             # if any z come back as Inf it's because P(Y > T) = 0
@@ -243,7 +247,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           mu.z     <- delta * sum(prec %*% r)
           lambda.z <- delta^2 * sum(prec) + 1 - delta^2
           mn.z     <- mu.z / lambda.z
-          sd.z     <- sqrt(sigma[, t] * (1 - delta^2) / lambda.z)
+          sd.z     <- sqrt(sigma.knots[, t] * (1 - delta^2) / lambda.z)
           z.new    <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf)
           
           # if any z come back as Inf it's because P(Y > T) = 0
@@ -268,8 +272,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         for (t in 1:nt) {
           can.knots[[1]] <- matrix(NA, nrow=nknots, ncol=2)
           att.w[t] <- att.w[t] + 1
-          ss.t <- t(y[, t] - mu[, t]) %*% prec %*% (y[, t] - mu[, t])
-          cur.ll <- -0.5 * ss.t / (sigma[, t] * (1 - delta^2))
+          ss.t <- t((y[, t] - mu[, t]) / sigma.sites[, t]) %*% prec %*% 
+                  ((y[, t] - mu[, t]) / sigma.sites[, t])
+          cur.ll <- -0.5 * ss.t / (1 - delta^2)
           
           for (k in 1:nknots) {
         	can.knots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
@@ -278,9 +283,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           can.partition <- Membership(s=s, knots=can.knots)
           can.z.sites <- ZBySites(z.knots=z.knots, partition=can.partition)
           can.mu.t <- x.beta[, t] + delta * can.z.sites
+          can.sigma.sites <- SigmaSites(sigma.knots, can.partition, nknots)
           
-          can.ss <- t(y[, t] - can.mu.t) %*% prec %*% (y[, t] - can.mu.t)
-          can.ll <- -0.5 * can.ss / (sigma[, t] * (1 - delta^2))
+          can.ss <- t((y[, t] - can.mu.t) / can.sigma.sites[, t]) %*% prec %*% 
+                    ((y[, t] - can.mu.t) / can.sigma.sites[, t])
+          can.ll <- -0.5 * can.ss / (1 - delta^2)
           
           rej <- sum(can.ll - cur.ll)  # prior is uniform and candidate is symmetric
           
@@ -295,6 +302,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           
         } # end nt
         
+        sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
       }  # fi nknots > 1
     }  # fi !fixknots
     
@@ -306,7 +314,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       for (t in 1:nt) {
         x.t <- x[, t, ]
-        ttt <- t(x.t) %*% prec / (sigma[, t] * (1 - delta^2))
+        ttt <- t(x.t) %*% prec / (sigma.sites[, t] * (1 - delta^2))
         vvv <- vvv + ttt %*% x.t
         mmm <- mmm + ttt %*% (y[, t] - delta * z.sites[, t])
       }
@@ -327,12 +335,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       att.delta <- att.delta + 1
       
       res <- y - mu
-      cur.rss <- SumSquares(res, prec) / (1 - delta^2)
+      cur.rss <- SumSquares(res, prec, sigma.sites) / (1 - delta^2)
       can.delta <- rnorm(1, delta, mh.delta)
 
       if (can.delta > -1 & can.delta < 1) {
 	    can.res     <- y - x.beta - can.delta * z.sites
-	    can.rss <- SumSquares(can.res, prec) / (1 - can.delta^2)
+	    can.rss <- SumSquares(can.res, prec, sigma.sites) / (1 - can.delta^2)
 
 	    rej <- -0.5 * sum(can.rss - cur.rss) - 
 	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2))
@@ -352,62 +360,76 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     # update sigma (sill)
     if (debug) { print("sigma") }
-    if (!fixsigma) {
+    if (!fixsigma) {  # sigma.by.knots=T means same sigma for all knots
+      # if (!sigma.by.knots | (nknots == 1)) { commenting out for debug
       if (!sigma.by.knots) {
-        alpha.star <- sigma.alpha + nknots / 2 + ns / 2
-        beta.star  <- sigma.beta + colSums(z.knots^2) / 2 + rss / 2
-        sigma      <- 1 / rgamma(nt, alpha.star, beta.star)
-        
+      	rss <- rep(NA, nt)
+      	for (t in 1:nt) {
+      	  rss[t] <- t(res[, t]) %*% prec %*% res[, t] / (1 - delta^2)
+      	}
+        alpha.star  <- sigma.alpha + nknots / 2 + ns / 2
+        beta.star   <- sigma.beta + colSums(z.knots^2) / 2 + rss / 2
+        sigma.knots <- 1 / rgamma(nt, alpha.star, beta.star)
+        sigma.knots <- matrix(sigma.knots, nknots, nt)
       } else {
-        logsig.knots <- log(sig.knots)
         for (k in 1:nknots) {
-          acc.sigma[k, ] <- acc.sigma[k, ] + 1
-          can.logsig.knots <- logsig.knots
+          att.sigma[k, ] <- att.sigma[k, ] + 1
+          can.logsig.knots <- logsig.knots <- log(sigma.knots)
           can.logsig.knots[k, ] <- rnorm(nt, logsig.knots[k, ], mh.sigma[k, ])
-          can.sigma.knots <- exp(sigma.knots)
-          can.sigma.sites <- SigmaSites(sigma.knots=can.sigma.knots, partition=partition,
-                                        nknots=nknots)
+          can.sigma.knots <- matrix(exp(can.logsig.knots), nknots, nt)
           
-          can.rss <- SumSquares(res=res, prec=prec, sigma.sites=can.sigma.sites)
-          cur.rss <- SumSquares(res=res, prec=prec, sigma.sites=sigma.sites)
-          ns.tl <- colSums(partition == k)  # find the number of sites in each partition
-          can.ll <- -0.5 * (ns.tl + 1) * can.logsig.knots[k, ] -
-                    0.5 * (z.knots[k, ]^2 / can.sigma.knots[k, ] + can.rss)
-                    
-          cur.ll <- -0.5 * (ns.tl + 1) * logsig.knots[k, ] -
-                    0.5 * (z.knots[k, ]^2 / sigma.knots[k, ] + cur.rss)
-                    
-          rej <- can.ll - cur.ll +
+          can.sigma.sites <- SigmaSites(can.sigma.knots, partition, nknots)
+          
+          can.rss <- SumSquares(res, prec, can.sigma.sites)
+          cur.rss <- SumSquares(res, prec, sigma.sites)
+  
+          ns.k <- colSums(partition == k)
+  
+          if ((nrow(can.sigma.sites) != ns) | (ncol(can.sigma.sites) != nt)) {
+            stop("can.sigma.sites is not the correct dimensions")
+          }
+
+          if ((length(can.rss) != nt) | (length(cur.rss) != nt) | (length(ns.k) != nt)) {
+            stop("one of can.rss, cur.rss, or ns.k is not the correct length")
+          }  
+  
+          can.ll <- -0.5 * (ns.k + 1) * can.logsig.knots[k, ] - 
+                    0.5 * (z.knots[k, ]^2 / can.sigma.knots[k, ] + can.rss / (1 - delta^2))
+            
+          cur.ll <- -0.5 * (ns.k + 1) * logsig.knots[k, ] - 
+                    0.5 * (z.knots[k, ]^2 / sigma.knots[k, ] + cur.rss / (1 - delta^2))
+  
+          rej <- can.ll - cur.ll + 
                  dInvG(can.sigma.knots[k, ], sigma.alpha, sigma.beta, log=T) - 
                  dInvG(sigma.knots[k, ], sigma.alpha, sigma.beta, log=T)
-          
-          if (length(rej) != nt){
-            stop("rej for sigma is not the correct length")
+  
+          if (length(rej) != nt) {
+            stop("rej is not the correct length")
           }
-          
-          for (t in 1:nt) {
-            if (!is.na(rej[t])) { if (-rej[t] < rexp(1, 1)) {
-              logsig.knots[k, t] <- can.logsig.knots[k, t]
-              sigma.sites[k, t] <- can.sigma.sites[k, t]
-              acc.sigma[k, t] <- acc.sigma[k, t] + 1
-            }}
-          }         
+
+          # accept / reject       
+          mh.compare <- rexp(nt, 1)
+          mh.update <- (-rej < mh.compare) & (!is.nan(rej))
+          sigma.knots[k, mh.update] <- can.sigma.knots[k, mh.update]
+          acc.sigma[k, mh.update] <- acc.sigma[k, mh.update] + 1
+  
         }  # end nknots
-        
-      }
+        sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
+      }  # fi nknots == 1
     }  # fi !fixsigma
     
     # update sigma.alpha and sigma.beta
     if (debug) { print("sigma.alpha and sigma.beta") }
+    sigma.knots.inv <- 1 / sigma.knots
     if (!fixsigma.alpha) {
       att.sigma.alpha <- att.sigma.alpha + 1
       logsigma.alpha <- log(sigma.alpha)
-      can.logsigma.alpha <- rnorm(1, mean=logsigma.alpha, sd=mh.sigma.alpha)
+      can.logsigma.alpha <- rnorm(1, logsigma.alpha, mh.sigma.alpha)
       can.sigma.alpha <- exp(can.logsigma.alpha)
-      can.ll <- sum(dgamma(sigma, can.sigma.alpha, sigma.beta, log=T))
-      cur.ll <- sum(dgamma(sigma, sigma.alpha, sigma.beta, log=T))
+      can.ll <- sum(dgamma(sigma.knots.inv, can.sigma.alpha, sigma.beta, log=T))
+      cur.ll <- sum(dgamma(sigma.knots.inv, sigma.alpha, sigma.beta, log=T))
     
-      rej <- can.ll - cur.ll +
+      rej <- sum(can.ll - cur.ll) +
              dnorm(can.logsigma.alpha, sigma.alpha.m, sigma.alpha.s) - 
              dnorm(logsigma.alpha, sigma.alpha.m, sigma.alpha.s)
     
@@ -419,7 +441,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               
     if (!fixsigma.beta) {
       a.star <- sigma.beta.a + nt * nknots * sigma.alpha
-      b.star <- sigma.beta.b + sum(sigma)
+      b.star <- sigma.beta.b + sum(sigma.knots.inv)
       
       sigma.beta <- rgamma(1, a.star, b.star)
     }
@@ -428,7 +450,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("rho and nu") }
     if (!fixrho | !fixnu) {
       
-      cur.rss <- SumSquares(res, prec) / (1 - delta^2)
+      cur.rss <- SumSquares(res, prec, sigma.sites) / (1 - delta^2)
       
       if (!fixrho) {
       	att.rho    <- att.rho + 1
@@ -464,7 +486,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.prec    <- can.cor.mtx$prec
         can.log.det <- can.cor.mtx$log.det
         
-        can.rss     <- SumSquares(res, can.prec) / (1 - delta^2)    
+        can.rss     <- SumSquares(res, can.prec, sigma.sites) / (1 - delta^2)    
                       
         rej <- -0.5 * sum(can.rss - cur.rss) + 
                0.5 * nt * (can.log.det - log.det) + 
@@ -494,7 +516,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("alpha") }
     if (!fixalpha) {
     
-      cur.rss  <- SumSquares(res, prec) / (1 - delta^2)
+      cur.rss  <- SumSquares(res, prec, sigma.sites) / (1 - delta^2)
                       
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
@@ -506,7 +528,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.prec    <- can.cor.mtx$prec
       can.log.det <- can.cor.mtx$log.det
     
-      can.rss <- SumSquares(res, can.prec) / (1 - delta^2)
+      can.rss <- SumSquares(res, can.prec, sigma.sites) / (1 - delta^2)
                       
       rej <- -0.5 * sum(can.rss - cur.rss) + 
              0.5 * nt * (can.log.det - log.det) +
@@ -542,7 +564,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       s.22.inv <- prec
       
       e.y.pred <- mu.pred - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
-      v.y.pred <- sigma[, t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
+      v.y.pred <- sigma.sites[, t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
       
       if (np > 1) {
         v.y.pred <- diag(diag(v.y.pred))
@@ -562,7 +584,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (debug) { print("keepers") }
   keepers.z[iter, , ]       <- z.knots
   keepers.beta[iter, ]      <- beta
-  keepers.sigma[iter, , ]   <- sigma
+  keepers.sigma[iter, , ]   <- sigma.knots
   keepers.sigma.alpha[iter] <- sigma.alpha
   keepers.sigma.beta[iter]  <- sigma.beta
   keepers.delta[iter]       <- delta
@@ -624,15 +646,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.sigma[start:iter, , 5], ylab="sigma 5", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, , 13], ylab="sigma 13", xlab="iteration", 
+      plot(keepers.sigma[start:iter, , 30], ylab="sigma 30", xlab="iteration", 
            type="l")
-      plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
-           type="l")
+      # plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
+           # type="l")
       # plot(keepers.z[start:iter, 3, 6], ylab="z 3,6", xlab="iteration",
            # type="l")
       # plot(keepers.z[start:iter, 3, 16], ylab="z 3,16", xlab="iteration", 
            # type="l")
-      plot(keepers.z[start:iter, 1, 30], ylab="z 1,30", xlab="iteration",
+      # plot(keepers.z[start:iter, 1, 30], ylab="z 1,30", xlab="iteration",
+           # type="l")
+      plot(keepers.sigma.alpha[start:iter], ylab="sigma.alpha", xlab="iteration",
+           type="l")
+      plot(keepers.sigma.beta[start:iter], ylab="sigma.beta", xlab="iteration",
            type="l")
   	}
   	
