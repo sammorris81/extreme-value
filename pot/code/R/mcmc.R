@@ -436,24 +436,35 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       sigma.beta <- rgamma(1, a.star, b.star)
     }
+
+#     Update the sigma.alpha terms on a grid
+#     lll<-mmm<-seq(.5,30,.5)
+#     for(l in 1:length(lll)){
+#       lll[l]<-sum(dgamma(1/r,mmm[l],sig.r,log=T))
+#     }
+#     xi.r<-sample(mmm,1,prob=exp(lll-max(lll)))
     
     if (!fixsigma.alpha) {
       att.sigma.alpha <- att.sigma.alpha + 1
       logsigma.alpha <- log(sigma.alpha)
       can.logsigma.alpha <- rnorm(1, logsigma.alpha, mh.sigma.alpha)
       can.sigma.alpha <- exp(can.logsigma.alpha)
-      can.ll <- sum(dgamma(sigma.knots.inv, can.sigma.alpha, sigma.beta, log=T))
-      cur.ll <- sum(dgamma(sigma.knots.inv, sigma.alpha, sigma.beta, log=T))
+      if ((can.sigma.alpha >= 0.01) & (can.sigma.alpha < 10)) {
+        cat("can.sigma.alpha =", can.sigma.alpha, "sigma.alpha =", sigma.alpha, "\n")
+        cat("sigma.beta =", sigma.beta, "\n")
+        can.ll <- sum(dgamma(sigma.knots.inv, can.sigma.alpha, sigma.beta, log=T))
+        cur.ll <- sum(dgamma(sigma.knots.inv, sigma.alpha, sigma.beta, log=T))
     
-      rej <- sum(can.ll - cur.ll) +
-             dnorm(can.logsigma.alpha, sigma.alpha.m, sigma.alpha.s) - 
-             dnorm(logsigma.alpha, sigma.alpha.m, sigma.alpha.s)
+        rej <- sum(can.ll - cur.ll) +
+                   dnorm(can.logsigma.alpha, sigma.alpha.m, sigma.alpha.s) - 
+                   dnorm(logsigma.alpha, sigma.alpha.m, sigma.alpha.s)
     
-      if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-        sigma.alpha <- can.sigma.alpha
-        acc.sigma.alpha <- acc.sigma.alpha + 1
-      } }
-    }
+        if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+          sigma.alpha <- can.sigma.alpha
+          acc.sigma.alpha <- acc.sigma.alpha + 1
+        } }
+      }  # fi can.sigma.alpha
+    }  # fi !fixsigma.alpha
               
     # rho and nu
     if (debug) { print("rho and nu") }

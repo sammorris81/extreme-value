@@ -1,5 +1,6 @@
 rm(list=ls())
 
+options(warn=2)
 library(fields)
 library(geoR)
 library(mvtnorm)
