@@ -159,7 +159,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
   acc.sigma <- att.sigma <- mh.sigma <- matrix(0.1, nrow=nknots, ncol=nt)
-  acc.sigma.alpha <- att.sigma.alpha <- mh.sigma.alpha <- 0.1 
+  # acc.sigma.alpha <- att.sigma.alpha <- mh.sigma.alpha <- 0.1 
   acc.delta <- att.delta <- mh.delta <- 0.1  
   acc.rho   <- att.rho   <- mh.rho   <- 1
   acc.nu    <- att.nu    <- mh.nu    <- 1
@@ -445,25 +445,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 #     xi.r<-sample(mmm,1,prob=exp(lll-max(lll)))
     
     if (!fixsigma.alpha) {
-      att.sigma.alpha <- att.sigma.alpha + 1
-      logsigma.alpha <- log(sigma.alpha)
-      can.logsigma.alpha <- rnorm(1, logsigma.alpha, mh.sigma.alpha)
-      can.sigma.alpha <- exp(can.logsigma.alpha)
-      if ((can.sigma.alpha >= 0.01) & (can.sigma.alpha < 10)) {
-        cat("can.sigma.alpha =", can.sigma.alpha, "sigma.alpha =", sigma.alpha, "\n")
-        cat("sigma.beta =", sigma.beta, "\n")
-        can.ll <- sum(dgamma(sigma.knots.inv, can.sigma.alpha, sigma.beta, log=T))
-        cur.ll <- sum(dgamma(sigma.knots.inv, sigma.alpha, sigma.beta, log=T))
-    
-        rej <- sum(can.ll - cur.ll) +
-                   dnorm(can.logsigma.alpha, sigma.alpha.m, sigma.alpha.s) - 
-                   dnorm(logsigma.alpha, sigma.alpha.m, sigma.alpha.s)
-    
-        if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-          sigma.alpha <- can.sigma.alpha
-          acc.sigma.alpha <- acc.sigma.alpha + 1
-        } }
-      }  # fi can.sigma.alpha
+      lll <- mmm <- seq(0.5, 30, 0.5)
+      for (l in 1:length(lll)) {
+        lll[l] <- sum(dgamma(sigma.knots.inv, mmm[l], sigma.beta, log=T))
+      }
+      sigma.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
+      
     }  # fi !fixsigma.alpha
               
     # rho and nu
@@ -637,7 +624,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  accrate.rho   <- round(acc.rho / att.rho, 3)
   	  accrate.nu    <- round(acc.nu / att.nu, 3)
   	  accrate.alpha <- round(acc.alpha / att.alpha, 3)
-  	  accrate.sigma.alpha <- round(acc.sigma.alpha / att.sigma.alpha, 3)
+  	  # accrate.sigma.alpha <- round(acc.sigma.alpha / att.sigma.alpha, 3)
   	  	
   	  par(mfrow=c(3, 4))
   	  if (iter > burn) {
@@ -678,7 +665,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       plot(keepers.z[start:iter, 1, 26], ylab="z 1,26", xlab="iteration",
            type="l")
       plot(keepers.sigma.alpha[start:iter], ylab="sigma.alpha", xlab="iteration",
-           type="l", main=bquote("ACCR" == .(accrate.sigma.alpha)))
+           type="l")
       plot(keepers.sigma.beta[start:iter], ylab="sigma.beta", xlab="iteration",
            type="l")
   	}
@@ -714,14 +701,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }
     
-    if (att.sigma.alpha > 50) {
-      if (acc.sigma.alpha / att.sigma.alpha < 0.25) { 
-        mh.sigma.alpha <- mh.sigma.alpha * 0.8
-      }
-      if (acc.sigma.alpha / att.sigma.alpha > 0.50) {
-        mh.sigma.alpha <- mh.sigma.alpha * 1.2
-      }
-    }
+    # if (att.sigma.alpha > 50) {
+      # if (acc.sigma.alpha / att.sigma.alpha < 0.25) { 
+        # mh.sigma.alpha <- mh.sigma.alpha * 0.8
+      # }
+      # if (acc.sigma.alpha / att.sigma.alpha > 0.50) {
+        # mh.sigma.alpha <- mh.sigma.alpha * 1.2
+      # }
+    # }
     
     if (att.delta > 50) {
       if (acc.delta / att.delta < 0.25) { mh.delta <- mh.delta * 0.8 }

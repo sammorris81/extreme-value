@@ -10,7 +10,7 @@ source("mcmc.R")
 
 set.seed(1234)
 
-delta.t <- 0.5
+delta.t <- 0.8
 image.name <- "coverage_del_50.RData"
 
 # data settings
@@ -49,6 +49,7 @@ q.start <- burn + 1
 
 tic <- proc.time()
 for (set in 1:nsets) {
+  set <- 5
   set.seed(set)
   data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, 
                       sigma.alpha=sigma.alpha.t, sigma.beta=sigma.beta.t, 
@@ -67,7 +68,7 @@ for (set in 1:nsets) {
   cat("Dataset", set, "started \n")
 
   fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
-              iters=iters, burn=burn, update=1000, iterplot=F, 
+              iters=iters, burn=burn, update=1000, iterplot=T, 
               beta.init=c(0, 0, 0), sigma.init=1, 
               sigma.alpha.init=1, sigma.beta.init=1,
               rho.init=0.5, nu.init=0.5, alpha.init=0.5, delta.init=0,
