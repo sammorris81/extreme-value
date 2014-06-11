@@ -336,7 +336,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     # update delta
     if (debug) { print("delta") }
-    if (!fixdelta) {
+    if (!fixdelta & (iter > 100)) {
       att.delta <- att.delta + 1
       
       res <- y - mu
@@ -344,7 +344,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.delta <- rnorm(1, delta, mh.delta)
 
       if (can.delta > -1 & can.delta < 1) {
-	    can.res     <- y - x.beta - can.delta * z.sites
+	    can.res <- y - x.beta - can.delta * z.sites
 	    can.rss <- SumSquares(can.res, prec, sigma.sites) / (1 - can.delta^2)
 
 	    rej <- -0.5 * sum(can.rss - cur.rss) - 
@@ -422,8 +422,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           acc.sigma[k, mh.update] <- acc.sigma[k, mh.update] + 1
   
         }  # end nknots
-        sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
       }  # fi nknots == 1
+      sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
     }  # fi !fixsigma
     
     # update sigma.alpha and sigma.beta
@@ -626,6 +626,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  accrate.rho   <- round(acc.rho / att.rho, 3)
   	  accrate.nu    <- round(acc.nu / att.nu, 3)
   	  accrate.alpha <- round(acc.alpha / att.alpha, 3)
+  	  accrate.sigma.alpha <- round(acc.sigma.alpha / att.sigma.alpha, 3)
   	  	
   	  par(mfrow=c(3, 4))
   	  if (iter > burn) {
@@ -635,10 +636,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  }
   	  plot(keepers.beta[start:iter, 1], ylab="beta0", xlab="iteration", 
            type="l")
-      plot(keepers.beta[start:iter, 2], ylab="beta1", xlab="iteration",
-           type="l", main=plotmain)
-      plot(keepers.beta[start:iter, 3], ylab="beta2", xlab="iteration",
-           type="l")
+      # plot(keepers.beta[start:iter, 2], ylab="beta1", xlab="iteration",
+           # type="l", main=plotmain)
+      # plot(keepers.beta[start:iter, 3], ylab="beta2", xlab="iteration",
+           # type="l")
       plot(keepers.ll[start:iter], ylab="loglike", xlab="iteration",
            type="l")
       plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
@@ -655,18 +656,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.sigma[start:iter, 1, 1], ylab="sigma 1, 1", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, 1, 20], ylab="sigma 1, 20", xlab="iteration", 
+      plot(keepers.sigma[start:iter, 1, 25], ylab="sigma 1, 25", xlab="iteration", 
            type="l")
-      # plot(keepers.z[start:iter, 1, 3], ylab="z 1,3", xlab="iteration", 
-           # type="l")
+      plot(keepers.z[start:iter, 1, 8], ylab="z 1,8", xlab="iteration", 
+           type="l")
       # plot(keepers.z[start:iter, 3, 6], ylab="z 3,6", xlab="iteration",
            # type="l")
       # plot(keepers.z[start:iter, 3, 16], ylab="z 3,16", xlab="iteration", 
            # type="l")
-      # plot(keepers.z[start:iter, 1, 30], ylab="z 1,30", xlab="iteration",
-           # type="l")
-      plot(keepers.sigma.alpha[start:iter], ylab="sigma.alpha", xlab="iteration",
+      plot(keepers.z[start:iter, 1, 26], ylab="z 1,26", xlab="iteration",
            type="l")
+      plot(keepers.sigma.alpha[start:iter], ylab="sigma.alpha", xlab="iteration",
+           type="l", main=bquote("ACCR" == .(accrate.sigma.alpha)))
       plot(keepers.sigma.beta[start:iter], ylab="sigma.beta", xlab="iteration",
            type="l")
   	}

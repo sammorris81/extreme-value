@@ -16,7 +16,7 @@ image.name <- "coverage_del_50.RData"
 s <- cbind(runif(50), runif(50))
 ns <- nrow(s)
 nt <- 30
-nsets <- 1
+nsets <- 40
 nknots <- 1
 
 x <- array(1, c(ns, nt, 3))
@@ -66,7 +66,7 @@ for (set in 1:nsets) {
   cat("Dataset", set, "started \n")
 
   fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
-              iters=iters, burn=burn, update=1000, iterplot=T, 
+              iters=iters, burn=burn, update=1000, iterplot=F, 
               beta.init=c(0, 0, 0), sigma.init=1, 
               sigma.alpha.init=1, sigma.beta.init=1,
               rho.init=0.5, nu.init=0.5, alpha.init=0.5, delta.init=0,

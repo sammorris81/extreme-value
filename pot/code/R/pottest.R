@@ -862,7 +862,7 @@ library(evd)
 source("auxfunctions.R")
 source("mcmc.R")
 
-set.seed(100)
+# set.seed(100)
 
 # iid n(0, 1)
 # data settings
@@ -899,16 +899,16 @@ knots.t <- data$knots
 sigma.knots.t <- data$sigma.knots
 sigma.sites.t <- data$sigma.sites
 # hist(y, breaks=30)
-# sigma1,1 = 1.476, sigma2,5 = 0.367
-# z1,3 = 6.156, z3,6=0.582, z3,16=15.000, z1,30=4.700
+# sigma1,1 = 0.303, sigma1,25 = 1.339
+# z1,8 = 0.101, z1,26 = 0.972
 
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             iters=15000, burn=10000, update=1000, iterplot=T,
-            beta.init=c(0, 0, 0), sigma.init=1, 
+            beta.init=c(10, -2, 3), sigma.init=sigma.knots.t, 
             sigma.alpha.init=sigma.alpha.t, 
-            sigma.beta.init=sigma.beta.t, rho.init=rho.t,
-            nu.init=nu.t, alpha.init=alpha.t, delta.init=0,
+            sigma.beta.init=sigma.beta.t, rho.init=0.5,
+            nu.init=nu.t, alpha.init=0.5, delta.init=0,
             debug=F, 
             knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=F, fixbeta=F, 
@@ -916,6 +916,5 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             fixrho=F, fixnu=F, fixalpha=F, fixdelta=F,
             sigma.by.knots=T)
 end.time <- proc.time()
-quantile(fit$sigma.alpha[10000:15000], probs=c(0.025, 0.975))
-quantile(fit$sigma.beta[10000:15000], probs=c(0.025, 0.975))
+
 end.time - start.time 
