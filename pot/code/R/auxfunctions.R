@@ -74,7 +74,7 @@ rpotspatial <- function(nt, s, x, beta, sigma.alpha.t, sigma.beta.t,
   partition    <- Membership(s=s, knots=knots)
   sigma.knots <- 1 / rgamma(nt * nknots, sigma.alpha.t, sigma.beta.t)
   sigma.knots <- matrix(sigma.knots, nrow=nknots, ncol=nt)
-  sigma.sites <- SigmaSites(sigma.knots=sigma.knots, partition=partition, nknots=nknots)
+  sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
   
   for (t in 1:nt) {
   	sigma.knots.t   <- sigma.knots[, t]

@@ -66,7 +66,7 @@ for (set in 1:nsets) {
 # z11 = 0.348, z13 = 2.177
   cat("Dataset", set, "started \n")
 
-  fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=1,
+  fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
               iters=iters, burn=burn, update=1000, iterplot=F, 
               beta.init=c(0, 0, 0), sigma.init=1, 
               sigma.alpha.init=1, sigma.beta.init=1,

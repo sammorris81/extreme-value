@@ -857,12 +857,11 @@ rm(list=ls())
 library(fields)
 library(geoR)
 library(mvtnorm)
-library(evd)
 
 source("auxfunctions.R")
 source("mcmc.R")
 
-# set.seed(100)
+set.seed(100)
 
 # iid n(0, 1)
 # data settings
@@ -870,7 +869,7 @@ s <- cbind(runif(50), runif(50))
 ns <- nrow(s)
 nt <- 30
 nsets <- 1
-nknots <- 1
+nknots <- 3
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
@@ -881,7 +880,7 @@ for (t in 1:nt) {
 beta.t <- c(10, -2, 3)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0.5
+delta.t <- 0.8
 
 sigma.alpha.t <- 5
 sigma.beta.t <- 2
@@ -899,16 +898,16 @@ knots.t <- data$knots
 sigma.knots.t <- data$sigma.knots
 sigma.sites.t <- data$sigma.sites
 # hist(y, breaks=30)
-# sigma1,1 = 0.303, sigma1,25 = 1.339
-# z1,8 = 0.101, z1,26 = 0.972
+# sigma1,1 = 0.358, sigma2,12 = 1.388
+# z1,8 = 0.159, z2,26 = 1.109
 
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             iters=15000, burn=10000, update=1000, iterplot=T,
-            beta.init=c(10, -2, 3), sigma.init=sigma.knots.t, 
+            beta.init=beta.t, sigma.init=sigma.knots.t, 
             sigma.alpha.init=sigma.alpha.t, 
-            sigma.beta.init=sigma.beta.t, rho.init=0.5,
-            nu.init=nu.t, alpha.init=0.5, delta.init=0,
+            sigma.beta.init=sigma.beta.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
             debug=F, 
             knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=F, fixbeta=F, 

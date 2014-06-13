@@ -315,7 +315,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("beta") }
     if (!fixbeta) {  # debug
       vvv <- diag(p) / beta.s^2
-      mmm <- 0
+      mmm <- rep(beta.m, p)
       
       for (t in 1:nt) {
         x.t <- x[, t, ]
@@ -335,8 +335,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mu  <- x.beta + delta * z.sites
     
     # update delta
+    #     Update the sigma.alpha terms on a grid
+    #     lll<-mmm<-seq(.5,30,.5)
+    #     for(l in 1:length(lll)){
+    #       lll[l]<-sum(dgamma(1/r,mmm[l],sig.r,log=T))
+    #     }
+    #     xi.r<-sample(mmm,1,prob=exp(lll-max(lll)))
     if (debug) { print("delta") }
-    if (!fixdelta & (iter > 100)) {
+    if (!fixdelta) {
       att.delta <- att.delta + 1
       
       res <- y - mu
@@ -360,6 +366,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 	    }}
 	  }  # fi can.delta
       
+      # lll <- mmm <- seq(-0.9999, 0.9999, 0.01)
+      # for (l in 1:length(lll)) {
+      	# lll[l] <- sum(LLike(y, x.beta, sigma.sites, mmm[l], prec, log.det, z.sites))
+      # }
+      # delta <- sample(mmm, 1, prob=exp(lll - max(lll)))
+      
     }  # fi !fixdelta
     
     #### Spatial correlation
@@ -370,7 +382,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update sigma (sill)
     if (debug) { print("sigma") }
     if (!fixsigma) {  # sigma.by.knots=F means same sigma for all knots
-      if (!sigma.by.knots | (nknots == 1)) {
+      #if (!sigma.by.knots | (nknots == 1)) {
+      if (!sigma.by.knots) {
       	rss <- rep(NA, nt)
       	for (t in 1:nt) {
       	  rss[t] <- t(res[, t]) %*% prec %*% res[, t] / (1 - delta^2)
@@ -640,6 +653,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.ll[start:iter], ylab="loglike", xlab="iteration",
            type="l")
+      plot(keepers.z[start:iter, 1, 8], ylab="z 1, 8", xlab="iteration", 
+           type="l")
+      # plot(keepers.z[start:iter, 3, 6], ylab="z 3, 6", xlab="iteration",
+           # type="l")
+      # plot(keepers.z[start:iter, 3, 16], ylab="z 3, 16", xlab="iteration", 
+           # type="l")
+      plot(keepers.z[start:iter, 2, 26], ylab="z 2, 26", xlab="iteration",
+           type="l")
       plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.delta)))
       plot(keepers.rho[start:iter], ylab="rho", xlab="iteration", 
@@ -654,15 +675,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.sigma[start:iter, 1, 1], ylab="sigma 1, 1", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, 1, 25], ylab="sigma 1, 25", xlab="iteration", 
-           type="l")
-      plot(keepers.z[start:iter, 1, 8], ylab="z 1,8", xlab="iteration", 
-           type="l")
-      # plot(keepers.z[start:iter, 3, 6], ylab="z 3,6", xlab="iteration",
-           # type="l")
-      # plot(keepers.z[start:iter, 3, 16], ylab="z 3,16", xlab="iteration", 
-           # type="l")
-      plot(keepers.z[start:iter, 1, 26], ylab="z 1,26", xlab="iteration",
+      plot(keepers.sigma[start:iter, 2, 12], ylab="sigma 2, 12", xlab="iteration", 
            type="l")
       plot(keepers.sigma.alpha[start:iter], ylab="sigma.alpha", xlab="iteration",
            type="l")
