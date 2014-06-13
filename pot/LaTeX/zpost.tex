@@ -34,7 +34,7 @@ Let
 \end{align*}
 Then
 \begin{align*}
-    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 \sigma^2 } \left[ \frac{ 1 }{ (1 - \delta^2)}
+    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \frac{ 1 }{ (1 - \delta^2)}
         \left( \begin{array}{c}
             R_1 - \delta z_l \bOne\\
             R_2
@@ -47,13 +47,13 @@ Then
             R_1 - \delta z_l \bOne\\
             R_2
         \end{array} \right)
-        +  z_l^2 \right]
+        +  \frac{ z_l^2 }{ \sigma_l^2 }\right]
     \right\} I(z_l > 0) \\
-        &\propto \exp \left\{ -\frac{ 1 }{ 2 \sigma^2 } \left[ \Lambda_z z_l^2 - 2 \mu_z z_l \right] \right\} I(z_l > 0)
+        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_l z_l^2 - 2 \mu_l z_l \right] \right\} I(z_l > 0)
 \end{align*}
 where
 \begin{align*}
-    \mu_z &= \frac{ \delta}{(1 - \delta^2)} ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
-    \Lambda_z &= \frac{\delta^2 \bOne^T \Omega_{11} \bOne }{ (1 - \delta^2) } + 1.
+    \mu_l &= \frac{ \delta}{(1 - \delta^2)} ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
+    \Lambda_l &= \frac{\delta^2 \bOne^T \Omega_{11} \bOne }{ (1 - \delta^2) } + \frac{ 1 }{ \sigma^2_l }.
 \end{align*}
-Then $Z_l | \ldots \sim N_{(0, \infty)} (\Lambda_z^{-1} \mu_z, \sigma^2 \Lambda_z^{-1})$
+Then $Z_l | \ldots \sim N_{(0, \infty)} (\Lambda_l^{-1} \mu_l, \Lambda_l^{-1})$

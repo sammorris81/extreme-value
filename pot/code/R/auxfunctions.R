@@ -76,11 +76,11 @@ rpotspatial <- function(nt, s, x, beta, sigma.alpha.t, sigma.beta.t,
   sigma.knots <- matrix(sigma.knots, nrow=nknots, ncol=nt)
   sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
   
+  z.knots <- sqrt(sigma.knots) * abs(rnorm(n=(nknots * nt), mean=0, sd=1))
+  z.knots <- matrix(z.knots, nrow=nknots, ncol=nt)
+  z.sites <- ZBySites(z.knots, partition, nknots)
+  
   for (t in 1:nt) {
-  	sigma.knots.t   <- sigma.knots[, t]
-  	z.knots.t <- sqrt(sigma.knots.t) * abs(rnorm(n=nknots, mean=0, sd=1))
-    z.sites.t <- ZBySites(z.knots.t, partition[, t])
-    
     x.beta.t <- x[, t, ] %*% beta
      
     if (alpha != 0) {
@@ -91,11 +91,10 @@ rpotspatial <- function(nt, s, x, beta, sigma.alpha.t, sigma.beta.t,
     }
     
     sigma.sites.t <- sigma.sites[, t]
+    z.sites.t <- z.sites[, t]
     v.nug <- rnorm(ns, 0, sqrt(1 - alpha))
     v.t <- sqrt(sigma.sites.t) * sqrt(1 - delta^2) * ( v.nug + v.spat) 
     y[, t]       <- x.beta.t + delta * z.sites.t + v.t
-    z.knots[, t] <- z.knots.t
-    z.sites[, t] <- z.sites.t
     v[, t]       <- v.t
     
   }
@@ -232,21 +231,32 @@ CorFx <- function(d, alpha, rho, nu, cov=F){
 
 ################################################################
 # Arguments:
-#   z.knots(nknots): vector of random effects with one entry per knot
-#   partition(ns): partition membership vector
+#   z.knots(nknots, nt): matrix of random effects with one entry per knot/day
+#   partition(ns, nt): partition membership matrix
 #
 # Returns:
-#   z.sites(ns): vector of random effects with one entry per site
+#   z.sites(ns, nt): matrix of random effects with one entry per site/day
 ################################################################
-ZBySites <- function(z.knots, partition){
-  nknots  <- length(z.knots)
-  ns      <- length(partition)
-  z.sites <- rep(NA, ns)
-  
-  for (k in 1:nknots) {
-  	these <- which(partition == k)
-  	z.sites[these] <- z.knots[k]
+ZBySites <- function(z.knots, partition, nknots){
+  if (nrow(z.knots) != nknots) {
+    stop("z.knots has the wrong number of rows")
   }
+  
+  if (ncol(z.knots) != ncol(partition)) {
+    stop("z.knots and partition should have the same number of columns")
+  }
+  
+  ns      <- nrow(partition)
+  nt      <- ncol(partition)
+  z.sites <- matrix(NA, ns, nt)
+  
+  for (t in 1:nt) {
+    for (k in 1:nknots) {
+  	  these <- which(partition[, t] == k)
+  	  z.sites[these, t] <- z.knots[k, t]
+    }
+  }
+  
   
   return(z.sites)
 }
@@ -261,6 +271,10 @@ ZBySites <- function(z.knots, partition){
 #   ss(nt): vector of daily sums of squares
 ################################################################
 SumSquares <- function(res, prec, sigma.sites){
+  if ((nrow(res) != nrow(sigma.sites)) | (ncol(res) != ncol(sigma.sites))) {
+    stop("res and sigma.sites do not have the same dimensions")
+  }
+  
   nt <- ncol(res)
   ss <- rep(NA, nt)
   

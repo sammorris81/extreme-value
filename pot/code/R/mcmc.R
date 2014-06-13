@@ -102,11 +102,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # initialize random effects
   z.knots <- matrix(1, nrow=nknots, ncol=nt)
-  z.sites <- matrix(NA, nrow=ns, ncol=nt)
   if (fixz) {z.knots <- z.init}
-  for (t in 1:nt) {
-  	z.sites[, t] <- ZBySites(z.knots[, t], partition[, t])
-  }
+  z.sites <- ZBySites(z.knots, partition, nknots)
     
   # initialize parameters
   if (is.null(beta.init)) {
@@ -226,13 +223,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             r2       <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
             
             # vvv      <- sigma[, t] * (1 - delta^2)
-            prec.11  <- prec[these, these]
-            prec.21  <- prec[-these, these]
+            prec.t     <- diag(1 / (sqrt(sigma.sites[, t]))) %*% prec %*% diag(1 / (sqrt(sigma.sites[, t])))
+            prec.11.t  <- prec.t[these, these]
+            prec.21.t  <- prec.t[-these, these]
             
-            mu.z     <- delta * sum(t(r1) %*% prec.11 + t(r2) %*% prec.21)
-            lambda.z <- delta^2 * sum(prec.11) + 1 - delta^2
+            mu.z     <- delta * sum(t(r1) %*% prec.11.t + t(r2) %*% prec.21.t)
+            lambda.z <- delta^2 * sum(prec.11.t) + (1 - delta^2) / sigma.knots[k, t]
             mn.z     <- mu.z / lambda.z
-            sd.z     <- sqrt(sigma.knots[k, t] * (1 - delta^2) / lambda.z)
+            sd.z     <- sqrt((1 - delta^2) / lambda.z)
         
             z.new   <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf) 
             # if any z come back as Inf it's because P(Y > T) = 0
@@ -273,26 +271,32 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         for (t in 1:nt) {
           can.knots[[1]] <- matrix(NA, nrow=nknots, ncol=2)
           att.w[t] <- att.w[t] + 1
-          ss.t <- t((y[, t] - mu[, t]) / sigma.sites[, t]) %*% prec %*% 
-                  ((y[, t] - mu[, t]) / sigma.sites[, t])
-          cur.ll <- -0.5 * ss.t / (1 - delta^2)
+          res.t <- matrix((y[, t] - mu[, t]), ns, 1)
+          sigma.sites.t <- matrix(sigma.sites[, t], ns, 1)
+          ss.t <- SumSquares(res.t, prec, sigma.sites.t) / (1 - delta^2)
+          cur.ll <- -0.5 * sum(log(sigma.sites[, t])) - 0.5 * ss.t
           
           for (k in 1:nknots) {
         	can.knots[[1]][k, ] <- rnorm(2, knots[[t]][k, ], mh.w[t])
           }
         
           can.partition.t <- Membership(s=s, knots=can.knots)
-          can.z.sites.t <- ZBySites(z.knots=z.knots, partition=can.partition.t)
-          can.mu.t <- x.beta[, t] + delta * can.z.sites.t
+          z.knots.t <- matrix(z.knots[, t], nknots, 1)
+          can.z.sites.t <- ZBySites(z.knots=z.knots.t, partition=can.partition.t, nknots=nknots)
           can.sigma.sites.t <- SigmaSites(sigma.knots, can.partition.t, nknots)
+          can.mu.t <- x.beta[, t] + delta * can.z.sites.t
+          can.res.t <- matrix((y[, t] - can.mu.t), ns, 1)
+          can.ss.t <- SumSquares(can.res.t, prec, can.sigma.sites.t) / (1 - delta^2)
           
           if (length(can.sigma.sites.t) != ns) {
             stop("can.sigma.sites.t is the wrong length.")
           }
+          
+          if (length(can.ss.t) != 1) {
+            stop("can.ss.t is the wrong length")
+          }
 
-          can.ss <- t((y[, t] - can.mu.t) / can.sigma.sites.t) %*% prec %*% 
-                    ((y[, t] - can.mu.t) / can.sigma.sites.t)
-          can.ll <- -0.5 * can.ss / (1 - delta^2)
+          can.ll <- -0.5 * sum(log(can.sigma.sites.t)) - 0.5 * can.ss.t
           
           rej <- sum(can.ll - cur.ll)  # prior is uniform and candidate is symmetric
           
@@ -307,7 +311,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           
         } # end nt
         
+        partition <- Membership(s=s, knots=knots)
+        z.sites <- ZBySites(z.knots, partition, nknots=nknots)
         sigma.sites <- SigmaSites(sigma.knots, partition, nknots)
+        mu <- x.beta + delta* z.sites
       }  # fi nknots > 1
     }  # fi !fixknots
     
@@ -573,11 +580,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   ##############################################
   if (np > 0) {
     partition.pred <- Membership(s=s.pred, knots=knots)
+    z.sites.pred <- ZBySites(z.knots=z.knots, partition=partition.pred, nknots)
     
     for (t in 1:nt) {
-      x.beta.pred  <- x.pred[, t, ] %*% beta
-      z.sites.pred <- ZBySites(z.knots=z.knots[, t], partition.pred)
-      mu.pred      <- x.beta.pred + delta * z.sites.pred
+      x.beta.pred.t  <- x.pred[, t, ] %*% beta
+      z.sites.pred.t <- z.sites.pred[, t]
+      mu.pred      <- x.beta.pred.t + delta * z.sites.pred.t
       
       s.11     <- 1
       s.12     <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
@@ -659,7 +667,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       # plot(keepers.z[start:iter, 3, 16], ylab="z 3, 16", xlab="iteration", 
            # type="l")
-      plot(keepers.z[start:iter, 2, 26], ylab="z 2, 26", xlab="iteration",
+      plot(keepers.z[start:iter, 3, 21], ylab="z 3, 21", xlab="iteration",
            type="l")
       plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.delta)))
@@ -675,7 +683,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.sigma[start:iter, 1, 1], ylab="sigma 1, 1", xlab="iteration", 
            type="l")
-      plot(keepers.sigma[start:iter, 2, 12], ylab="sigma 2, 12", xlab="iteration", 
+      plot(keepers.sigma[start:iter, 3, 21], ylab="sigma 3, 21", xlab="iteration", 
            type="l")
       plot(keepers.sigma.alpha[start:iter], ylab="sigma.alpha", xlab="iteration",
            type="l")

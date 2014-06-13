@@ -861,7 +861,7 @@ library(mvtnorm)
 source("auxfunctions.R")
 source("mcmc.R")
 
-set.seed(100)
+set.seed(1000)
 
 # iid n(0, 1)
 # data settings
@@ -898,8 +898,12 @@ knots.t <- data$knots
 sigma.knots.t <- data$sigma.knots
 sigma.sites.t <- data$sigma.sites
 # hist(y, breaks=30)
-# sigma1,1 = 0.358, sigma2,12 = 1.388
-# z1,8 = 0.159, z2,26 = 1.109
+# sigma1,1 = 0.395, sigma3,21 = 1.071
+# z1,8 = 0.090, z3,21 = 1.318
+
+
+source("auxfunctions.R")
+source("mcmc.R")
 
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
@@ -908,11 +912,12 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             sigma.alpha.init=sigma.alpha.t, 
             sigma.beta.init=sigma.beta.t, rho.init=rho.t,
             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            sigma.beta.a=0.1, sigma.beta.b=0.1,
             debug=F, 
             knots.init=knots.t, z.init=z.knots.t,
-            fixknots=T, fixz=F, fixbeta=F, 
-            fixsigma=F, fixsigma.alpha=F, fixsigma.beta=F,
-            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F,
+            fixknots=T, fixz=F, fixbeta=T, 
+            fixsigma=T, fixsigma.alpha=T, fixsigma.beta=T,
+            fixrho=T, fixnu=T, fixalpha=T, fixdelta=T,
             sigma.by.knots=T)
 end.time <- proc.time()
 
