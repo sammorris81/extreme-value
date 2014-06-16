@@ -880,12 +880,12 @@ for (t in 1:nt) {
 beta.t <- c(10, -2, 3)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0.8
+delta.t <- 0
 
-sigma.alpha.t <- 5
-sigma.beta.t <- 2
+sigma.alpha.t <- 3
+sigma.beta.t <- 1
 
-alpha.t <- 0.8
+alpha.t <- 0.9
 
 data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, 
                     sigma.alpha=sigma.alpha.t, sigma.beta=sigma.beta.t,
@@ -898,9 +898,9 @@ knots.t <- data$knots
 sigma.knots.t <- data$sigma.knots
 sigma.sites.t <- data$sigma.sites
 # hist(y, breaks=30)
-# sigma1,1 = 0.395, sigma3,21 = 1.071
-# z1,8 = 0.090, z3,21 = 1.318
 
+# sigma1,1 = 0.342, sigma3,20 = 1.960
+# z1,8 = 1.208, z3,21 = 0.008
 
 source("auxfunctions.R")
 source("mcmc.R")
@@ -912,12 +912,12 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             sigma.alpha.init=sigma.alpha.t, 
             sigma.beta.init=sigma.beta.t, rho.init=rho.t,
             nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
-            sigma.beta.a=0.1, sigma.beta.b=0.1,
+            sigma.beta.a=0.01, sigma.beta.b=0.01,
             debug=F, 
             knots.init=knots.t, z.init=z.knots.t,
-            fixknots=T, fixz=F, fixbeta=T, 
-            fixsigma=T, fixsigma.alpha=T, fixsigma.beta=T,
-            fixrho=T, fixnu=T, fixalpha=T, fixdelta=T,
+            fixknots=T, fixz=T, fixbeta=T, 
+            fixsigma=F, fixsigma.alpha=F, fixsigma.beta=F,
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T,
             sigma.by.knots=T)
 end.time <- proc.time()
 
