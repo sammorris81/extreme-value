@@ -145,9 +145,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   lognu <- log(nu)
   alpha <- alpha.init
     
-  cor.mtx <- SpatCor(d=d, alpha=alpha, rho=rho, nu=nu)
-  prec.cor    <- cor.mtx$prec
-  logdet.prec     <- cor.mtx$logdet.prec
+  cor.mtx     <- SpatCor(d=d, alpha=alpha, rho=rho, nu=nu)
+  prec.cor    <- cor.mtx$prec.cor
+  logdet.prec <- cor.mtx$logdet.prec
   
   if (delta.init < -1 | delta.init > 1) {
     stop("delta.init must be between -1 and 1.")
@@ -157,7 +157,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # MH tuning params
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
-  acc.tau <- att.tau <- mh.tau <- matrix(0.1, nrow=nknots, ncol=nt)
+  acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
   # acc.sigma.alpha <- att.sigma.alpha <- mh.sigma.alpha <- 0.1 
   acc.delta <- att.delta <- mh.delta <- 0.1  
   acc.rho   <- att.rho   <- mh.rho   <- 1
@@ -174,7 +174,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   # initial values
   mu <- x.beta + delta * z.sites
-  cur.ll <- LLike(y=y, x.beta=x.beta, tau.sites=tau.sites, delta=delta, prec=prec, 
+  cur.ll <- LLike(y=y, x.beta=x.beta, tau.sites=tau.sites, delta=delta, prec.cor=prec.cor, 
                   logdet.prec=logdet.prec, z.sites=z.sites, log=T)
   
   for (iter in 1:iters) { for (ttt in 1:thin) {
@@ -227,7 +227,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             r2       <- y[-these, t] - x.beta[-these, t] - delta * z.sites[-these, t]
             
             # vvv      <- sigma[, t] * (1 - delta^2)
-            prec.t     <- diag(tau.sites[, t]) %*% prec %*% diag(tau.sites[, t])
+            prec.t     <- diag(tau.sites[, t]) %*% prec.cor %*% diag(tau.sites[, t])
             prec.11.t  <- prec.t[these, these]
             prec.21.t  <- prec.t[-these, these]
             
@@ -246,11 +246,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             z.sites[these, t] <- z.new
           }  # end nknots
         } else if (nknots == 1) {
+          prec.cov <- diag(sqrt(tau.sites[, t])) %*% prec.cor %*% diag(sqrt(tau.sites[, t]))
           r        <- y[, t] - x.beta[, t]
-          mu.z     <- delta * sum(prec %*% r)
-          lambda.z <- delta^2 * sum(prec) + 1 - delta^2
+          mu.z     <- delta * sum(prec.cov %*% r)
+          lambda.z <- delta^2 * sum(prec.cov) + (1 - delta^2) * tau.knots[, t]
           mn.z     <- mu.z / lambda.z
-          sd.z     <- sqrt((1 - delta^2) / (lambda.z * tau.sites[, t]))
+          sd.z     <- sqrt((1 - delta^2) / lambda.z)
           z.new    <- rTNorm(mn=mn.z, sd=sd.z, lower=0, upper=Inf)
           
           # if any z come back as Inf it's because P(Y > T) = 0
@@ -277,7 +278,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           att.w[t] <- att.w[t] + 1
           res.t <- matrix((y[, t] - mu[, t]), ns, 1)
           tau.sites.t <- matrix(tau.sites[, t], ns, 1)
-          ss.t <- SumSquares(res.t, prec, tau.sites.t) / (1 - delta^2)
+          ss.t <- SumSquares(res.t, prec.cor, tau.sites.t) / (1 - delta^2)
           cur.ll <- 0.5 * sum(log(tau.sites.t)) - 0.5 * ss.t
           
           for (k in 1:nknots) {
@@ -290,7 +291,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           can.tau.sites.t <- TauSites(tau.knots, can.partition.t, nknots)
           can.mu.t <- x.beta[, t] + delta * can.z.sites.t
           can.res.t <- matrix((y[, t] - can.mu.t), ns, 1)
-          can.ss.t <- SumSquares(can.res.t, prec, can.tau.sites.t) / (1 - delta^2)
+          can.ss.t <- SumSquares(can.res.t, prec.cor, can.tau.sites.t) / (1 - delta^2)
           
           if (length(can.tau.sites.t) != ns) {
             stop("can.tau.sites.t is the wrong length.")
@@ -331,7 +332,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       for (t in 1:nt) {
         x.t <- x[, t, ]
-        prec.t <- sqrt(diag(tau.sites[, t])) %*% prec %*% sqrt(diag(tai.sites[, t]))
+        prec.t <- sqrt(diag(tau.sites[, t])) %*% prec.cor %*% sqrt(diag(tau.sites[, t]))
         ttt <- t(x.t) %*% prec.t / (1 - delta^2)
         vvv <- vvv + ttt %*% x.t
         mmm <- mmm + ttt %*% (y[, t] - delta * z.sites[, t])
@@ -352,15 +353,20 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       att.delta <- att.delta + 1
       
       res <- y - mu
-      cur.rss <- SumSquares(res, prec, tau.sites) / (1 - delta^2)
-      can.delta <- rnorm(1, delta, mh.delta)
-
-      if (can.delta > -1 & can.delta < 1) {
+      cur.rss <- SumSquares(res, prec.cor, tau.sites) / (1 - delta^2)
+      delta.alpha <- delta / sqrt(1 - delta^2)
+      # can.delta <- rnorm(1, delta, mh.delta)
+      can.delta.alpha <- rnorm(1, delta.alpha, mh.delta)
+      
+      # if (can.delta > -1 & can.delta < 1) {
+      	can.delta <- can.delta.alpha / sqrt(1 + can.delta.alpha^2)
 	    can.res <- y - (x.beta + can.delta * z.sites)
-	    can.rss <- SumSquares(can.res, prec, tau.sites) / (1 - can.delta^2)
+	    can.rss <- SumSquares(can.res, prec.cor, tau.sites) / (1 - can.delta^2)
 
-	    rej <- -0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2)) - 
-	           0.5 * sum(can.rss - cur.rss)
+	    rej <- dnorm(can.delta.alpha, 0, 1, log=T) - dnorm(delta.alpha, 0, 1, log=T)
+	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2)) - 
+	           0.5 * sum(can.rss) / (1 - can.delta^2) + 
+	           0.5 * sum(cur.rss) / (1 - delta^2)
 	    
 	    if (length(rej) > 1) {
 	      stop("rej for delta is too long")
@@ -370,11 +376,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 	      delta     <- can.delta
 	      acc.delta <- acc.delta + 1
 	    }}
-	  }  # fi can.delta
+	  # }  # fi can.delta
       
       # lll <- mmm <- seq(-0.9999, 0.9999, 0.01)
       # for (l in 1:length(lll)) {
-      	# lll[l] <- sum(LLike(y, x.beta, tau.sites, mmm[l], prec, logdet.prec, z.sites))
+      	# lll[l] <- sum(LLike(y, x.beta, tau.sites, mmm[l], prec.cor, logdet.prec, z.sites))
       # }
       # delta <- sample(mmm, 1, prob=exp(lll - max(lll)))
       
@@ -392,7 +398,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (!tau.by.knots) {
       	rss <- rep(NA, nt)
       	for (t in 1:nt) {
-      	  rss[t] <- t(res[, t]) %*% prec %*% res[, t] / (1 - delta^2)
+      	  rss[t] <- t(res[, t]) %*% prec.cor %*% res[, t] / (1 - delta^2)
       	}
         alpha.star  <- tau.alpha + nknots / 2 + ns / 2
         beta.star   <- tau.beta + colSums(z.knots^2) / 2 + rss / 2
@@ -400,57 +406,64 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         tau.knots <- matrix(tau.knots, nknots, nt)
       } else {
         for (k in 1:nknots) {
-          for (t in 1:nt) {
-          att.tau[k, t] <- att.tau[k, t] + 1
+          att.tau[k, ] <- att.tau[k, ] + 1
+          can.tau.knots <- tau.knots
           can.logtau.knots <- logtau.knots <- log(tau.knots)
-          can.logtau.knots[k, t] <- rnorm(1, logtau.knots[k, t], mh.tau[k, t])
-          can.tau.knots <- exp(can.logtau.knots)
+          can.logtau.knots[k, ] <- rnorm(nt, logtau.knots[k, ], mh.tau[k, ])
+          can.tau.knots[k, ] <- exp(can.logtau.knots[k, ])
           can.tau.sites <- TauSites(can.tau.knots, partition, nknots)
                     
-          # can.rss <- SumSquares(res, prec, can.tau.sites)
-          # cur.rss <- SumSquares(res, prec, tau.sites)
+          can.rss <- SumSquares(res, prec.cor, can.tau.sites)
+          cur.rss <- SumSquares(res, prec.cor, tau.sites)
   
-          # ns.k <- sum(partition[, t] == k)
+          ns.k <- colSums(partition == k)
   
-          # if ((nrow(can.tau.sites) != ns) | (ncol(can.tau.sites) != nt)) {
-            # stop("can.tau.sites is not the correct dimensions")
-          # }
+          if ((nrow(can.tau.sites) != ns) | (ncol(can.tau.sites) != nt)) {
+            stop("can.tau.sites is not the correct dimensions")
+          }
 
-          # if ((length(can.rss) != nt) | (length(cur.rss) != nt) | (length(ns.k) != nt)) {
-            # stop("one of can.rss, cur.rss, or ns.k is not the correct length")
-          # }  
+          if ((length(can.rss) != nt) | (length(cur.rss) != nt) | (length(ns.k) != nt)) {
+            stop("one of can.rss, cur.rss, or ns.k is not the correct length")
+          }  
   
-          can.ll <- LLike(y, x.beta, can.tau.sites, delta, prec, logdet.prec, z.sites, log=T)
-          cur.ll <- LLike(y, x.beta, tau.sites, delta, prec, logdet.prec, z.sites, log=T)
+          # can.ll <- LLike(y, x.beta, can.tau.sites, delta, prec.cor, logdet.prec, z.sites, log=T)
+          # cur.ll <- LLike(y, x.beta, tau.sites, delta, prec.cor, logdet.prec, z.sites, log=T)
+          
           # can.ll <- 0.5 * (ns.k + 1) * can.logtau.knots[k, ] - 
-                    # 0.5 * (z.knots[k, ]^2 / can.tau.knots[k, ] + can.rss / (1 - delta^2))
+                    # 0.5 * (z.knots[k, ]^2 * can.tau.knots[k, ] + can.rss / (1 - delta^2))
             
           # cur.ll <- 0.5 * (ns.k + 1) * logtau.knots[k, ] - 
-                    # 0.5 * (z.knots[k, ]^2 / tau.knots[k, ] + cur.rss / (1 - delta^2))
+                    # 0.5 * (z.knots[k, ]^2 * tau.knots[k, ] + cur.rss / (1 - delta^2))
+          
+          tau.alpha.star <- tau.alpha + 0.5 + 0.5 * ns.k
+          tau.beta.star  <- tau.beta + 0.5 * z.knots[k, ]^2
+          
+          rej <- dgamma(can.tau.knots[k, ], tau.alpha.star, tau.beta.star, log=T) -
+                 dgamma(tau.knots[k, ], tau.alpha.star, tau.beta.star, log=T) - 
+                 0.5 * (can.rss - cur.rss)
+                 
   
-          rej <- can.ll - cur.ll + 
-                 dgamma(can.tau.knots[k, t], tau.alpha, tau.beta, log=T) -
-                 dgamma(tau.knots[k, t], tau.alpha, tau.beta, log=T)
-                 # dgamma(can.tau.knots[k, ], tau.alpha, tau.beta, log=T) - 
-                 # dgamma(tau.knots[k, ], tau.alpha, tau.beta, log=T)
-  
-          # if (length(rej) != nt) {
-            # stop("rej is not the correct length")
-          # }
+          if (length(rej) != nt) {
+            stop("rej is not the correct length")
+          }
 
           # accept / reject       
           # mh.compare <- rexp(1, 1)
           # mh.update <- (-rej < mh.compare) & (!is.na(rej))
           # tau.knots[k, mh.update] <- can.tau.knots[k, mh.update]
           # acc.tau[k, mh.update] <- acc.tau[k, mh.update] + 1
-          if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
-            tau.knots[k, t] <- can.tau.knots[k, t]
-            acc.tau[k, t] <- acc.tau[k, t] + 1
-          }}
+          for (t in 1:nt) {
+            if (!is.na(rej[t])) { if (-rej[t] < rexp(1, 1)) {
+              tau.knots[k, t] <- can.tau.knots[k, t]
+              acc.tau[k, t] <- acc.tau[k, t] + 1
+            }}
+          }
+          
+          tau.sites <- TauSites(tau.knots, partition, nknots)
         }  # end nknots
       }  # fi nknots == 1
-      cat("tau.knots", tau.knots, "\n")
-      tau.sites <- TauSites(tau.knots, partition, nknots)
+      # cat("tau.knots", tau.knots, "\n")
+      
     }  # fi !fixtau
     
     # update tau.alpha and tau.beta
@@ -476,7 +489,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	ll.tau <- dgamma(tau.knots, mmm[l], tau.beta, log=T)
         lll[l] <- sum(ll.tau)
       }
-      cat("lll is", lll, "\n")
+      # cat("lll is", lll, "\n")
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
       
     }  # fi !fixtau.alpha
@@ -485,7 +498,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("rho and nu") }
     if (!fixrho | !fixnu) {
       
-      cur.rss <- SumSquares(res, prec, tau.sites) / (1 - delta^2)
+      cur.rss <- SumSquares(res, prec.cor, tau.sites)
       
       if (!fixrho) {
       	att.rho    <- att.rho + 1
@@ -514,20 +527,20 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # }
       # can.alpha <- pnorm(can.phi.alpha)
       
-      if (can.nu <= 10) {  # for numerical stability
+      if (can.nu <= 10 & can.rho < 3) {  # for numerical stability
         # can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
         can.cor.mtx     <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
-        can.prec        <- can.cor.mtx$prec
+        can.prec.cor    <- can.cor.mtx$prec.cor
         can.logdet.prec <- can.cor.mtx$logdet.prec
         
-        can.rss     <- SumSquares(res, can.prec, tau.sites) / (1 - delta^2)    
+        can.rss     <- SumSquares(res, can.prec.cor, tau.sites)    
                       
-        rej <- -0.5 * sum(can.rss - cur.rss) + 
-               0.5 * nt * (can.logdet.prec - logdet.prec) + 
-               dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
+        rej <- dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
                dnorm(logrho, logrho.m, logrho.s, log=T) +
                dnorm(can.lognu, lognu.m, lognu.s, log=T) -
-               dnorm(lognu, lognu.m, lognu.s, log=T) # + 
+               dnorm(lognu, lognu.m, lognu.s, log=T) - 
+               0.5 * sum(can.rss - cur.rss) / (1 - delta^2) + 
+               0.5 * nt * (can.logdet.prec - logdet.prec) # + 
                # dnorm(can.phi.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
                # dnorm(phi.alpha, mean=alpha.m, sd=alpha.s, log=T)
         
@@ -535,8 +548,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           rho         <- can.rho
           nu          <- can.nu
           # alpha       <- can.alpha
-          sig         <- can.sig
-          prec        <- can.prec
+          prec.cor    <- can.prec.cor
           logdet.prec <- can.logdet.prec
           if (!fixrho) { acc.rho <- acc.rho + 1 }
           if (!fixnu) { acc.nu <- acc.nu + 1 }
@@ -549,27 +561,27 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (debug) { print("alpha") }
     if (!fixalpha) {
     
-      cur.rss  <- SumSquares(res, prec, tau.sites) / (1 - delta^2)
+      cur.rss  <- SumSquares(res, prec.cor, tau.sites)
                       
       att.alpha      <- att.alpha + 1
       norm.alpha     <- qnorm(alpha)
       can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
       can.alpha      <- pnorm(can.norm.alpha)
       
-      can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
-      can.prec    <- can.cor.mtx$prec
+      can.cor.mtx     <- SpatCor(d=d, alpha=can.alpha, rho=rho, nu=nu)
+      can.prec.cor    <- can.cor.mtx$prec.cor
       can.logdet.prec <- can.cor.mtx$logdet.prec
     
-      can.rss <- SumSquares(res, can.prec, tau.sites) / (1 - delta^2)
+      can.rss <- SumSquares(res, can.prec.cor, tau.sites)
                       
-      rej <- -0.5 * sum(can.rss - cur.rss) + 
-             0.5 * nt * (can.logdet.prec - logdet.prec) +
-             dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-             dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
-      
+      rej <- dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+             dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+             0.5 * sum(can.rss - cur.rss) / (1 - delta^2) + 
+             0.5 * nt * (can.logdet.prec - logdet.prec)
+
       if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
         alpha       <- can.alpha
-        prec        <- can.prec
+        prec.cor    <- can.prec.cor
         logdet.prec <- can.logdet.prec
         acc.alpha   <- acc.alpha + 1
       }}
@@ -592,7 +604,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       s.11     <- 1
       s.12     <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
-      s.22.inv <- prec
+      s.22.inv <- prec.cor
       
       e.y.pred <- mu.pred - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
       v.y.pred <- tau.sites[, t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
@@ -607,7 +619,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }  # fi np > 0
   
   cur.ll <- LLike(y=y, x.beta=x.beta, tau.sites=tau.sites, delta=delta, 
-                  prec=prec, logdet.prec=logdet.prec, z.sites=z.sites, log=T)
+                  prec.cor=prec.cor, logdet.prec=logdet.prec, z.sites=z.sites, log=T)
   
   ##############################################
   # Keep track of iterations
@@ -648,7 +660,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  accrate.rho   <- round(acc.rho / att.rho, 3)
   	  accrate.nu    <- round(acc.nu / att.nu, 3)
   	  accrate.alpha <- round(acc.alpha / att.alpha, 3)
-  	  # accrate.tau.alpha <- round(acc.tau.alpha / att.tau.alpha, 3)
+  	  accrate.tau   <- round(acc.tau / att.tau, 3)
   	  	
   	  par(mfrow=c(3, 4))
   	  if (iter > burn) {
@@ -685,9 +697,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # plot(keepers.tau[start:iter, , 3], ylab="sigma 3", xlab="iteration",
            # type="l")
       plot(keepers.tau[start:iter, 1, 1], ylab="tau 1, 1", xlab="iteration", 
-           type="l")
-      plot(keepers.tau[start:iter, 3, 21], ylab="tau 3, 21", xlab="iteration", 
-           type="l")
+           type="l", main=bquote("ACCR" == .(accrate.tau[1, 1])))
+      plot(keepers.tau[start:iter, 3, 20], ylab="tau 3, 20", xlab="iteration", 
+           type="l", main=bquote("ACCR" == .(accrate.tau[3, 20])))
       plot(keepers.tau.alpha[start:iter], ylab="tau.alpha", xlab="iteration",
            type="l")
       plot(keepers.tau.beta[start:iter], ylab="tau.beta", xlab="iteration",
@@ -717,7 +729,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     accrate.tau <- acc.tau / att.tau
     for (t in 1:nt) {
       for (k in 1:nknots) {
-        if (att.tua[k, t] > 50) {
+        if (att.tau[k, t] > 50) {
           if (accrate.tau[k, t] < 0.25) { 
             mh.tau[k, t] <- mh.tau[k, t] * 0.8 
           }
@@ -727,6 +739,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         } 
       }
     }
+    #cat("accrate.tau is", accrate.tau)
     
     # if (att.sigma.alpha > 50) {
       # if (acc.sigma.alpha / att.sigma.alpha < 0.25) { 
@@ -739,10 +752,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     accrate.delta <- acc.delta / att.delta
     if (att.delta > 50) {
+      cat("mh.delta is", mh.delta, "\n")
+      cat("accrate.delta is", accrate.delta, "\n")
       if (accrate.delta < 0.25) { mh.delta <- mh.delta * 0.8 }
       if (accrate.delta > 0.50) { mh.delta <- mh.delta * 1.2 }
       acc.delta <- att.delta <- 0.1
-      # print(mh.delta)
     }
     
     accrate.rho <- acc.rho / att.rho

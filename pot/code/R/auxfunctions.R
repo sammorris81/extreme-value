@@ -63,7 +63,7 @@ rpotspatial <- function(nt, s, x, beta, tau.alpha.t, tau.beta.t,
   max1    <- max(s[, 1])
   min2    <- min(s[, 2])
   max2    <- max(s[, 2])
-  
+
   for (t in 1:nt) {
     # generate the knot locations
     knots[[t]]      <- matrix(NA, nknots, 2)
@@ -72,11 +72,11 @@ rpotspatial <- function(nt, s, x, beta, tau.alpha.t, tau.beta.t,
   }
   
   partition    <- Membership(s=s, knots=knots)
-  tau.knots <- rgamma(nt * nknots, tau.alpha.t, tau.beta.t)
+  tau.knots <- rgamma(nknots * nt, tau.alpha.t, tau.beta.t)
   sigma.knots <- 1 / tau.knots
   z.knots <- sqrt(sigma.knots) * abs(rnorm(n=(nknots * nt), mean=0, sd=1))
   
-  tau.knots <- matrix(sigma.knots, nrow=nknots, ncol=nt)
+  tau.knots <- matrix(tau.knots, nrow=nknots, ncol=nt)
   tau.sites <- TauSites(tau.knots, partition, nknots)
   sigma.sites <- 1 / tau.sites
   z.knots <- matrix(z.knots, nrow=nknots, ncol=nt)
@@ -84,25 +84,29 @@ rpotspatial <- function(nt, s, x, beta, tau.alpha.t, tau.beta.t,
   
   for (t in 1:nt) {
     x.beta.t <- x[, t, ] %*% beta
-     
-    if (alpha != 0) {
-      cor    <- alpha * matern(u=d, phi=rho, kappa=nu)
-      v.spat <- t(chol(cor)) %*% rnorm(ns, 0, 1)
-    } else {
-      v.spat <- rep(0, ns)
-    }
     
     sigma.sites.t <- sigma.sites[, t]
+    cor.mtx       <- SpatCor(d=d, alpha=alpha, rho=rho, nu=nu)
+    cor           <- cor.mtx$sig
+    cov.t         <- diag(sqrt(sigma.sites.t)) %*% cor %*% diag(sqrt(sigma.sites.t))
+     
+    # if (alpha != 0) {
+      # cor    <- alpha * matern(u=d, phi=rho, kappa=nu)
+      # v.spat <- t(chol(cor)) %*% rnorm(ns, 0, 1)
+    # } else {
+      # v.spat <- rep(0, ns)
+    # }
+    
     z.sites.t <- z.sites[, t]
-    v.nug <- rnorm(ns, 0, sqrt(1 - alpha))
-    v.t <- sqrt(sigma.sites.t) * sqrt(1 - delta^2) * ( v.nug + v.spat) 
-    y[, t]       <- x.beta.t + delta * z.sites.t + v.t
-    v[, t]       <- v.t
+    # v.nug     <- rnorm(ns, 0, sqrt(1 - alpha))
+    v.t       <- sqrt(1 - delta^2) * t(chol(cov.t)) %*% rnorm(ns, 0, 1) 
+    y[, t]    <- x.beta.t + delta * z.sites.t + v.t
+    v[, t]    <- v.t
     
   }
   
   results <- list(y=y, z.knots=z.knots, z.sites=z.sites, knots=knots, v=v, cor=cor,
-                  sigma.knots=sigma.knots, sigma.sites=sigma.sites)
+                  tau.knots=tau.knots, tau.sites=tau.sites)
     
   return(results)
 }
@@ -187,7 +191,7 @@ ScaleLocs <- function(s){
 #
 # Returns:
 #   list: 
-#     prec(ns, ns): precision matrix
+#     prec.cor(ns, ns): precision matrix (correlation)
 #     logdet.prec(nknots): logdet(prec)
 #     sig(ns, ns): correlation matrix
 ################################################################
@@ -198,9 +202,9 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
   sig.chol    <- chol(sig)
   diag.chol   <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
   logdet.prec <- -2 * sum(log(diag.chol))
-  prec        <- chol2inv(sig.chol)
+  prec.cor    <- chol2inv(sig.chol)
   
-  results <- list(prec=prec, logdet.prec=logdet.prec, sig=sig)
+  results <- list(prec.cor=prec.cor, logdet.prec=logdet.prec, sig=sig)
 
   return(results)
 
@@ -264,13 +268,13 @@ ZBySites <- function(z.knots, partition, nknots){
 ################################################################
 # Arguments:
 #   res(ns, nt): matrix of residuals
-#   prec(ns, ns): precision matrix
+#   prec.cor(ns, ns): precision matrix (correlation)
 #   tau.sites(ns, nt): matrix of daily precision at each site
 #
 # Returns:
 #   ss(nt): vector of daily sums of squares
 ################################################################
-SumSquares <- function(res, prec, tau.sites){
+SumSquares <- function(res, prec.cor, tau.sites){
   if ((nrow(res) != nrow(tau.sites)) | (ncol(res) != ncol(tau.sites))) {
     stop("res and tau.sites do not have the same dimensions")
   }
@@ -280,7 +284,7 @@ SumSquares <- function(res, prec, tau.sites){
   
   for (t in 1:nt) {
     tau.sites.t <- sqrt(tau.sites[, t])
-    ss[t] <- t(res[, t] * tau.sites.t) %*% prec %*% (res[, t] / tau.sites.t)
+    ss[t] <- t(res[, t] * tau.sites.t) %*% prec.cor %*% (res[, t] * tau.sites.t)
   }
   
   return(ss)
@@ -292,14 +296,14 @@ SumSquares <- function(res, prec, tau.sites){
 #   x.beta(ns, nt): XBeta matrix
 #   tau.sites(ns, nt): matrix of daily precision at each site
 #   delta(1): skewness parameter
-#   prec(ns, ns): precision matrix
+#   prec.cor(ns, ns): precision matrix (correlation)
 #   logdet.prec(1): logdet(prec)
 #   z.sites(ns, nt): matrix of random effects
 #
 # Returns:
 #   llike(nt): (log)likelihood
 ################################################################
-LLike <- function(y, x.beta, tau.sites, delta, prec, logdet.prec, z.sites, log=T){
+LLike <- function(y, x.beta, tau.sites, delta, prec.cor, logdet.prec, z.sites, log=T){
   
   if (missing(y)) {
     stop("y must be defined")
@@ -333,8 +337,8 @@ LLike <- function(y, x.beta, tau.sites, delta, prec, logdet.prec, z.sites, log=T
     y.t <- y[, t]
     mu.t <- x.beta[, t] + delta * z.sites[, t]
     std.res.t <- (y.t - mu.t) * tau.t
-    ss.t <- t(std.res.t) %*% prec %*% (std.res.t)
-    log.like[t] <- 0.5 * (sum(log(tau.t)) + ns * (log(1 - delta^2))) + 
+    ss.t <- t(std.res.t) %*% prec.cor %*% (std.res.t)
+    log.like[t] <- 0.5 * (sum(log(tau.t)) - ns * (log(1 - delta^2))) + 
                    0.5 * logdet.prec - 0.5 * ss.t / (1 - delta^2)
   }
   
