@@ -159,7 +159,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   acc.w <- att.w <- mh.w <- rep(0.1, nt)  # knot locations
   acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
   # acc.sigma.alpha <- att.sigma.alpha <- mh.sigma.alpha <- 0.1 
-  acc.delta <- att.delta <- mh.delta <- 0.1  
+  acc.delta <- att.delta <- mh.delta <- 0.01  
   acc.rho   <- att.rho   <- mh.rho   <- 1
   acc.nu    <- att.nu    <- mh.nu    <- 1
   acc.alpha <- att.alpha <- mh.alpha <- 1
@@ -353,20 +353,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       att.delta <- att.delta + 1
       
       res <- y - mu
-      cur.rss <- SumSquares(res, prec.cor, tau.sites) / (1 - delta^2)
-      delta.alpha <- delta / sqrt(1 - delta^2)
-      # can.delta <- rnorm(1, delta, mh.delta)
-      can.delta.alpha <- rnorm(1, delta.alpha, mh.delta)
+      cur.rss <- SumSquares(res, prec.cor, tau.sites)
+      # delta.tan <- tan(delta * pi / 2)
       
-      # if (can.delta > -1 & can.delta < 1) {
-      	can.delta <- can.delta.alpha / sqrt(1 + can.delta.alpha^2)
+      can.delta <- rnorm(1, delta, mh.delta)
+      # can.delta.tan <- rnorm(1, delta.tan, mh.delta)
+      
+      if (can.delta > -1 & can.delta < 1) {
+      	# can.delta <- atan(can.delta.tan) * 2 / pi
 	    can.res <- y - (x.beta + can.delta * z.sites)
-	    can.rss <- SumSquares(can.res, prec.cor, tau.sites) / (1 - can.delta^2)
+	    can.rss <- SumSquares(can.res, prec.cor, tau.sites)
 
-	    rej <- dnorm(can.delta.alpha, 0, 1, log=T) - dnorm(delta.alpha, 0, 1, log=T)
-	           0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2)) - 
-	           0.5 * sum(can.rss) / (1 - can.delta^2) + 
-	           0.5 * sum(cur.rss) / (1 - delta^2)
+	    rej <- -0.5 * nt * ns * (log(1 - can.delta^2) - log(1 - delta^2)) - 
+	           0.5 * (sum(can.rss) / (1 - can.delta^2) - sum(cur.rss) / (1 - delta^2))
 	    
 	    if (length(rej) > 1) {
 	      stop("rej for delta is too long")
@@ -376,7 +375,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 	      delta     <- can.delta
 	      acc.delta <- acc.delta + 1
 	    }}
-	  # }  # fi can.delta
+	  }  # fi can.delta
       
       # lll <- mmm <- seq(-0.9999, 0.9999, 0.01)
       # for (l in 1:length(lll)) {
@@ -440,7 +439,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           
           rej <- dgamma(can.tau.knots[k, ], tau.alpha.star, tau.beta.star, log=T) -
                  dgamma(tau.knots[k, ], tau.alpha.star, tau.beta.star, log=T) - 
-                 0.5 * (can.rss - cur.rss)
+                 0.5 * (can.rss - cur.rss) / (1 - delta^2)
                  
   
           if (length(rej) != nt) {
@@ -663,11 +662,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  accrate.tau   <- round(acc.tau / att.tau, 3)
   	  	
   	  par(mfrow=c(3, 4))
-  	  if (iter > burn) {
-  	    start <- burn
-  	  } else {
-  	    start <- 1
-  	  }
+  	  # if (iter > burn) {
+  	    # start <- burn
+  	  # } else {
+  	    # start <- 1
+  	  # }
+  	  start <- 1
   	  plot(keepers.beta[start:iter, 1], ylab="beta0", xlab="iteration", 
            type="l")
       # plot(keepers.beta[start:iter, 2], ylab="beta1", xlab="iteration",
@@ -682,7 +682,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       # plot(keepers.z[start:iter, 3, 16], ylab="z 3, 16", xlab="iteration", 
            # type="l")
-      plot(keepers.z[start:iter, 3, 20], ylab="z 3, 20", xlab="iteration",
+      plot(keepers.z[start:iter, 1, 20], ylab="z 1, 20", xlab="iteration",
            type="l")
       plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.delta)))
@@ -696,10 +696,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       # plot(keepers.tau[start:iter, , 3], ylab="sigma 3", xlab="iteration",
            # type="l")
+      # plot(keepers.tau[start:iter, 1, 1], ylab="tau 1, 1", xlab="iteration", 
+           # type="l", main=bquote("ACCR" == .(accrate.tau[1, 1])))
+      # plot(keepers.tau[start:iter, 1, 20], ylab="tau 1, 20", xlab="iteration", 
+           # type="l", main=bquote("ACCR" == .(accrate.tau[1, 20])))
       plot(keepers.tau[start:iter, 1, 1], ylab="tau 1, 1", xlab="iteration", 
-           type="l", main=bquote("ACCR" == .(accrate.tau[1, 1])))
-      plot(keepers.tau[start:iter, 3, 20], ylab="tau 3, 20", xlab="iteration", 
-           type="l", main=bquote("ACCR" == .(accrate.tau[3, 20])))
+           type="l")
+      plot(keepers.tau[start:iter, 1, 20], ylab="tau 1, 20", xlab="iteration", 
+           type="l")
       plot(keepers.tau.alpha[start:iter], ylab="tau.alpha", xlab="iteration",
            type="l")
       plot(keepers.tau.beta[start:iter], ylab="tau.beta", xlab="iteration",

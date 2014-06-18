@@ -941,9 +941,9 @@ source("mcmc.R")
 # data settings
 s <- cbind(runif(50), runif(50))
 ns <- nrow(s)
-nt <- 30
+nt <- 90
 nsets <- 1
-nknots <- 3
+nknots <- 2
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
@@ -974,17 +974,12 @@ tau.sites.t <- data$tau.sites
 sigma.knots.t <- 1 / tau.knots.t
 sigma.sites.t <- 1 / tau.sites.t
 
-# hist(y, breaks=30)
-
-# tau1,1 = 2.923, tau3,20 = 0.510
-# z1,8 = 1.208, z3,21 = 0.008
-
 source("auxfunctions.R")
 source("mcmc.R")
 
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
-            iters=15000, burn=10000, update=1000, iterplot=T,
+            iters=10000, burn=5000, update=100, iterplot=T,
             beta.init=beta.t, tau.init=tau.knots.t, 
             tau.alpha.init=tau.alpha.t, 
             tau.beta.init=tau.beta.t, rho.init=rho.t,
@@ -994,10 +989,29 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, 
             fixtau=F, fixtau.alpha=F, fixtau.beta=F,
-            fixrho=F, fixnu=F, fixalpha=F, fixdelta=F,
+            fixrho=T, fixnu=T, fixalpha=T, fixdelta=F,
             tau.by.knots=T)
 end.time <- proc.time()
 
+# hist(y, breaks=30)
+
+# seed 1000 - 30 days
+# tau1,1 = 2.923, tau3,20 = 0.510
+
+# seed 1000 - 50 days
+# tau1,1 = 4.163, tau3,20 = 2.311
+
+# seed 1001 - 30 days
+# tau1,1 = 3.826, tau3,20 = 0.592
+
+# seed 1001 - 50 days
+# tau1,1 = 1.148, tau3,20 = 5.609
+
+# seed 1002 - 30 days
+# tau1,1 = 4.500, tau3,20 = 1.715
+
+# seed 1002 - 50 days
+# tau1,1 = 3.697, tau3,20 = 5.346
 
 # for debugging mcmc
 y=y; s=s; x=x; thresh=0; nknots=nknots
