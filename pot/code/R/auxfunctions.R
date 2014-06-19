@@ -350,13 +350,58 @@ LLike <- function(y, x.beta, tau.sites, delta, prec.cor, logdet.prec, z.sites, l
 }
 
 ################################################################
-# IG(a, b) density function
+# Arguments:
+#   preds(yp, iters): mcmc predictions at validation
+#                         locations
+#   probs(nprobs): sample quantiles for scoring
+#   validate(np): validation data
+#
+# Returns:
+#   score(nprobs): a single quantile score per quantile
 ################################################################
-dInvG <- function(x, a, b, log=T){
-  lll <- -(a + 1) * log(x) - b / x
-  if (!log) {
-    lll<-exp(lll)
+QuantScore <- function(preds, probs, validate){
+  np <- length(validate)
+  nprobs <- length(probs)
+        
+  # apply gives nprobs x n. looking to find each site's quantile over all
+  # of the days.
+  pred.quants <- apply(preds, 1, quantile, probs=probs, na.rm=T)
+    
+  scores.sites <- matrix(NA, nrow=nprobs, ncol=np)
+    
+  for (q in 1:nprobs) {
+    diff <- pred.quants[q] - validate
+    i <- ifelse(diff >= 0, 1, 0)
+    scores.sites[q, ] <- 2 * (i - probs[q]) * diff
   }
     
-  return(lll)
+  scores <- apply(scores.sites, 1, mean, na.rm=T)
+
+  return(scores)
 }
+
+################################################################
+# Arguments:
+#   preds(yp, iters): mcmc predictions at validation
+#                         locations
+#   probs(nthreshs): sample quantiles for scoring
+#   validate(np): validation data
+#
+# Returns:
+#   list:
+#     scores(nthreshs): a single brier score per threshold
+################################################################
+BrierScore <- function(preds, probs, validate){
+  nthreshs <- length(probs)
+  thresholds <- quantile(validate, probs=probs, na.rm=T)
+    
+  scores <- rep(NA, nthreshs)
+  for (b in 1:nthreshs) {
+    pat <- apply((preds > thresholds[b]), 1, mean)
+    ind <- validate < thresholds[b]
+    scores[b] <- mean((ind - pat)^2, na.rm=T)
+  }
+    
+  return(scores)
+}
+
