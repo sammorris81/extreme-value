@@ -954,7 +954,7 @@ for (t in 1:nt) {
 beta.t <- c(10, -2, 3)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0.8
+delta.t <- 0
 
 tau.alpha.t <- 3
 tau.beta.t <- 1
@@ -989,7 +989,7 @@ fit <- mcmc(y=y, s=s, x=x, thresh=0, nknots=nknots,
             knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, 
             fixtau=F, fixtau.alpha=F, fixtau.beta=F,
-            fixrho=T, fixnu=T, fixalpha=T, fixdelta=F,
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T,
             tau.by.knots=T)
 end.time <- proc.time()
 
@@ -1034,3 +1034,79 @@ fixrho=F; fixnu=F; fixalpha=F; fixdelta=T
 tau.by.knots=T
 
 end.time - start.time 
+
+
+rm(list=ls())
+
+library(fields)
+library(geoR)
+library(mvtnorm)
+
+source("auxfunctions.R")
+source("mcmc.R")
+
+# set.seed(1000)
+
+# iid n(0, 1)
+# data settings
+s <- cbind(runif(50), runif(50))
+ns <- nrow(s)
+nt <- 90
+nsets <- 1
+nknots <- 2
+
+x <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
+}
+
+beta.t <- c(10, -2, 3)
+rho.t <- 0.1
+nu.t <- 0.5
+delta.t <- 0
+
+tau.alpha.t <- 3
+tau.beta.t <- 1
+
+alpha.t <- 0.8
+
+data <- rpotspatial(nt=nt, s=s, x=x, beta=beta.t, 
+                    tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                    delta=delta.t, rho=rho.t, nu=nu.t, alpha=alpha.t, nknots=nknots)
+
+y <- data$y
+z.knots.t <- data$z.knots
+z.sites.t <- data$z.sites
+knots.t <- data$knots
+tau.knots.t <- data$tau.knots
+tau.sites.t <- data$tau.sites
+sigma.knots.t <- 1 / tau.knots.t
+sigma.sites.t <- 1 / tau.sites.t
+
+source("auxfunctions.R")
+source("mcmc.R")
+
+s.pred <- matrix(runif(20), 10, 2)
+x.pred <- array(1, c(ns, nt, 3))
+for (t in 1:nt) {
+  x.pred[, t, 2] <- s.pred[, 1]
+  x.pred[, t, 3] <- s.pred[, 2]
+}
+
+start.time <- proc.time()
+fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
+            thresh=0, nknots=nknots,
+            iters=10000, burn=5000, update=100, iterplot=T,
+            beta.init=beta.t, tau.init=tau.knots.t, 
+            tau.alpha.init=tau.alpha.t, 
+            tau.beta.init=tau.beta.t, rho.init=rho.t,
+            nu.init=nu.t, alpha.init=alpha.t, delta.init=delta.t,
+            tau.beta.a=0.01, tau.beta.b=0.01,
+            debug=F, 
+            knots.init=knots.t, z.init=z.knots.t,
+            fixknots=T, fixz=T, fixbeta=T, 
+            fixtau=F, fixtau.alpha=F, fixtau.beta=F,
+            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T,
+            tau.by.knots=T)
+end.time <- proc.time()

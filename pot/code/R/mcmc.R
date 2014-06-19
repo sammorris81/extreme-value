@@ -593,28 +593,46 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # Spatial Predictions
   ##############################################
   if (np > 0) {
+  	mu <- x.beta + delta * z.sites  # just want to make sure it's up to date
     partition.pred <- Membership(s=s.pred, knots=knots)
-    z.sites.pred <- ZBySites(z.knots=z.knots, partition=partition.pred, nknots)
+    z.sites.pred   <- ZBySites(z.knots=z.knots, partition=partition.pred, nknots)
+    tau.sites.pred <- TauSites(tau.knots=tau.knots, partition=partition.pred, nknots)
     
     for (t in 1:nt) {
-      x.beta.pred.t  <- x.pred[, t, ] %*% beta
-      z.sites.pred.t <- z.sites.pred[, t]
-      mu.pred      <- x.beta.pred.t + delta * z.sites.pred.t
+      x.beta.pred.t    <- x.pred[, t, ] %*% beta
+      z.sites.pred.t   <- z.sites.pred[, t]
+      tau.sites.pred.t <- tau.sites.pred[, t]
+      tau.sites.t      <- tau.sites[, t]
+     
+      sigma.sites.pred.t <- 1 / tau.sites.pred.t
+      sigma.sites.t      <- 1 / tau.sites.t
       
-      s.11     <- 1
-      s.12     <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
-      s.22.inv <- prec.cor
+      mu.pred.t <- x.beta.pred.t + delta * z.sites.pred.t
       
+      # d12 is np x n, so to add in the tau terms to the covariance matrices, the 
+      # row contribution to the covariance comes from tau.sites.pred.t and the 
+      # column should be from tau.sites.t
+      s.11 <- diag(sigma.sites.pred.t, nrow=np)
+      s.12 <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
+      s.12 <- diag(sqrt(sigma.sites.pred.t)) %*% s.12 %*% diag(sqrt(sigma.sites.t))
+      
+      s.22.inv <- diag(sqrt(tau.sites.t)) %*% prec.cor %*% diag(sqrt(tau.sites.t))
+      
+      # double check here. how do the tau sites fit in?
       e.y.pred <- mu.pred - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
-      v.y.pred <- tau.sites[, t] * (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
+      v.y.pred <- (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
       
-      if (np > 1) {
-        v.y.pred <- diag(diag(v.y.pred))
+      sd.y.pred <- sqrt(diag(v.y.pred))
+      
+      if (length(e.y.pred) != np) {
+        stop("e.y.pred is the wrong length")
+      } else if (length(sd.y.pred) != np) {
+      	stop("sd.y.pred is the wrong length")
       }
       
-      y.pred[, t, iter] <- rmvnorm(1, mean=e.y.pred, sigma=v.y.pred)
+      y.pred[, t, iter] <- rnorm(1, mean=e.y.pred, sd=sd.y.pred)
       
-    }
+    }  # end t
   }  # fi np > 0
   
   cur.ll <- LLike(y=y, x.beta=x.beta, tau.sites=tau.sites, delta=delta, 
