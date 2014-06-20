@@ -9,6 +9,9 @@
 .Rdata
 *.RData
 
+# Profiled output
+Rprof.out
+
 # LaTeX aux typsetting files
 *.aux
 *.bbl

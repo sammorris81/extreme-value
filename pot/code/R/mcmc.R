@@ -393,8 +393,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update tau (inverse-sill)
     if (debug) { print("tau") }
     if (!fixtau) {  # tau.by.knots=F means same tau for all knots
-      #if (!tau.by.knots | (nknots == 1)) {
-      if (!tau.by.knots) {
+      if (!tau.by.knots | (nknots == 1)) {
+      # if (!tau.by.knots) {
       	rss <- rep(NA, nt)
       	for (t in 1:nt) {
       	  rss[t] <- t(res[, t]) %*% prec.cor %*% res[, t] / (1 - delta^2)
@@ -592,7 +592,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   ##############################################
   # Spatial Predictions
   ##############################################
-  if (np > 0) {
+
+  if (np > 0) { 	
   	mu <- x.beta + delta * z.sites  # just want to make sure it's up to date
     partition.pred <- Membership(s=s.pred, knots=knots)
     z.sites.pred   <- ZBySites(z.knots=z.knots, partition=partition.pred, nknots)
@@ -619,7 +620,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       s.22.inv <- diag(sqrt(tau.sites.t)) %*% prec.cor %*% diag(sqrt(tau.sites.t))
       
       # double check here. how do the tau sites fit in?
-      e.y.pred <- mu.pred - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
+      e.y.pred <- mu.pred.t - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
       v.y.pred <- (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
       
       sd.y.pred <- sqrt(diag(v.y.pred))
@@ -630,11 +631,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	stop("sd.y.pred is the wrong length")
       }
       
-      y.pred[, t, iter] <- rnorm(1, mean=e.y.pred, sd=sd.y.pred)
+      y.pred[, t, iter] <- rnorm(np, mean=e.y.pred, sd=sd.y.pred)
       
     }  # end t
   }  # fi np > 0
-  
+
   cur.ll <- LLike(y=y, x.beta=x.beta, tau.sites=tau.sites, delta=delta, 
                   prec.cor=prec.cor, logdet.prec=logdet.prec, z.sites=z.sites, log=T)
   
@@ -694,13 +695,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.ll[start:iter], ylab="loglike", xlab="iteration",
            type="l")
-      plot(keepers.z[start:iter, 1, 8], ylab="z 1, 8", xlab="iteration", 
-           type="l")
+      # plot(keepers.z[start:iter, 1, 8], ylab="z 1, 8", xlab="iteration", 
+           # type="l")
       # plot(keepers.z[start:iter, 3, 6], ylab="z 3, 6", xlab="iteration",
            # type="l")
       # plot(keepers.z[start:iter, 3, 16], ylab="z 3, 16", xlab="iteration", 
            # type="l")
-      plot(keepers.z[start:iter, 1, 20], ylab="z 1, 20", xlab="iteration",
+      # plot(keepers.z[start:iter, 1, 20], ylab="z 1, 20", xlab="iteration",
+           # type="l")
+      plot(y.pred[1, 1, start:iter], ylab="ypred 1, 1", xlab="iteration", 
+           type="l")
+      plot(y.pred[5, 1, start:iter], ylab="ypred 5, 1", xlab="iteration", 
            type="l")
       plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.delta)))

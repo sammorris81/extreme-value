@@ -1035,7 +1035,7 @@ tau.by.knots=T
 
 end.time - start.time 
 
-
+####  Checking to make sure prediction functions work
 rm(list=ls())
 
 library(fields)
@@ -1051,9 +1051,9 @@ source("mcmc.R")
 # data settings
 s <- cbind(runif(50), runif(50))
 ns <- nrow(s)
-nt <- 90
+nt <- 30
 nsets <- 1
-nknots <- 2
+nknots <- 1
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
@@ -1061,7 +1061,7 @@ for (t in 1:nt) {
   x[, t, 3] <- s[, 2]
 }
 
-beta.t <- c(10, -2, 3)
+beta.t <- c(10, 0, 0)
 rho.t <- 0.1
 nu.t <- 0.5
 delta.t <- 0
@@ -1087,17 +1087,19 @@ sigma.sites.t <- 1 / tau.sites.t
 source("auxfunctions.R")
 source("mcmc.R")
 
-s.pred <- matrix(runif(20), 10, 2)
-x.pred <- array(1, c(ns, nt, 3))
+np <- 10
+s.pred <- matrix(runif(np * 2), np, 2)
+x.pred <- array(1, c(np, nt, 3))
 for (t in 1:nt) {
   x.pred[, t, 2] <- s.pred[, 1]
   x.pred[, t, 3] <- s.pred[, 2]
 }
 
+# Rprof(line.profiling=T)
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
             thresh=0, nknots=nknots,
-            iters=10000, burn=5000, update=100, iterplot=T,
+            iters=10000, burn=5000, update=1000, iterplot=T,
             beta.init=beta.t, tau.init=tau.knots.t, 
             tau.alpha.init=tau.alpha.t, 
             tau.beta.init=tau.beta.t, rho.init=rho.t,
@@ -1110,3 +1112,24 @@ fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
             fixrho=F, fixnu=F, fixalpha=F, fixdelta=T,
             tau.by.knots=T)
 end.time <- proc.time()
+# Rprof(NULL)
+
+# for debugging mcmc
+y=y; s=s; x=x; s.pred=s.pred; x.pred=x.pred; 
+thresh=0; nknots=nknots
+thresh.quant=T; scale=T
+iters=15000; burn=10000; update=1000; iterplot=F
+beta.init=beta.t; tau.init=tau.knots.t
+tau.alpha.init=tau.alpha.t
+tau.beta.init=tau.beta.t; rho.init=rho.t
+nu.init=nu.t; alpha.init=alpha.t; delta.init=delta.t
+tau.beta.a=0.01; tau.beta.b=0.01
+logrho.m=-2; logrho.s=1
+lognu.m=-1.2; lognu.s=1
+alpha.m=0; alpha.s=1
+debug=F 
+knots.init=knots.t; z.init=z.knots.t
+fixknots=T; fixz=T; fixbeta=T
+fixtau=F; fixtau.alpha=F; fixtau.beta=F
+fixrho=F; fixnu=F; fixalpha=F; fixdelta=T
+tau.by.knots=T
