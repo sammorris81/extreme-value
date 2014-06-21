@@ -3,7 +3,7 @@ library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
-load('cv.RData')
+load('cv-setup.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
