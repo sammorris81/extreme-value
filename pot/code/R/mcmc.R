@@ -692,6 +692,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	    # start <- 1
   	  # }
   	  start <- 1
+  	  cat("dim(y.pred) is ", dim(y.pred))
   	  plot(keepers.beta[start:iter, 1], ylab="beta0", xlab="iteration", 
            type="l")
       # plot(keepers.beta[start:iter, 2], ylab="beta1", xlab="iteration",
