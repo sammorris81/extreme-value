@@ -204,7 +204,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
         
         # if any y.impute.t come back as -Inf it's because P(Y < T) = 0
-        y.impute.t <- ifelse(y.impute.t == -Inf, thresh.mtx.fudge[, t], y.impute.t)
+        usefudge <- y.impute.t == -Inf
+        y.impute.t[usefudge] <- thresh.mtx.fudge[usefudge, t]
+        # y.impute.t <- ifelse(y.impute.t == -Inf, thresh.mtx.fudge[, t], y.impute.t)
         y.imputed[these.thresh.obs, t] <- y.impute.t[these.thresh.obs]
         
         y.missing.t <- rnorm(n=ns, mean=e.y, sd=s.y)
@@ -447,7 +449,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           }
 
           # accept / reject       
-          # mh.compare <- rexp(1, 1)
+          # mh.compare <- rexp(nt, 1)
           # mh.update <- (-rej < mh.compare) & (!is.na(rej))
           # tau.knots[k, mh.update] <- can.tau.knots[k, mh.update]
           # acc.tau[k, mh.update] <- acc.tau[k, mh.update] + 1
@@ -598,32 +600,35 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     partition.pred <- Membership(s=s.pred, knots=knots)
     z.sites.pred   <- ZBySites(z.knots=z.knots, partition=partition.pred, nknots)
     tau.sites.pred <- TauSites(tau.knots=tau.knots, partition=partition.pred, nknots)
+    res.std <- (y - mu) * sqrt(tau.sites)
+    
+    # these don't change from day to day
+    s.11 <- diag(1, nrow=np)
+    s.12 <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
+    s.12.22.inv <- s.12 %*% prec.cor
     
     for (t in 1:nt) {
       x.beta.pred.t    <- x.pred[, t, ] %*% beta
       z.sites.pred.t   <- z.sites.pred[, t]
       tau.sites.pred.t <- tau.sites.pred[, t]
       tau.sites.t      <- tau.sites[, t]
+      res.std.t        <- res.std[, t]
      
       sigma.sites.pred.t <- 1 / tau.sites.pred.t
       sigma.sites.t      <- 1 / tau.sites.t
       
       mu.pred.t <- x.beta.pred.t + delta * z.sites.pred.t
       
-      # d12 is np x n, so to add in the tau terms to the covariance matrices, the 
-      # row contribution to the covariance comes from tau.sites.pred.t and the 
-      # column should be from tau.sites.t
-      s.11 <- diag(sigma.sites.pred.t, nrow=np)
-      s.12 <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
-      s.12 <- diag(sqrt(sigma.sites.pred.t)) %*% s.12 %*% diag(sqrt(sigma.sites.t))
-      
-      s.22.inv <- diag(sqrt(tau.sites.t)) %*% prec.cor %*% diag(sqrt(tau.sites.t))
-      
       # double check here. how do the tau sites fit in?
-      e.y.pred <- mu.pred.t - s.12 %*% s.22.inv %*% (y[, t] - mu[, t])
-      v.y.pred <- (1 - delta^2) * (s.11 - s.12 %*% s.22.inv %*% t(s.12))
+      # would this also work as
+      # s.11 <- diag(1, nrow=np)
+      # s.12 <- matrix(alpha * matern(d12, phi=rho, kappa=nu), nrow=np, ncol=ns)
+      # s.22.inv <- prec.cor
       
-      sd.y.pred <- sqrt(diag(v.y.pred))
+      # s.12.22.inv <- s.12 %*% prec.cor
+      e.y.pred <- mu.pred.t - sqrt(sigma.sites.pred.t) * s.12.22.inv %*% res.std.t
+      v.y.pred <- (1 - delta^2) * (s.11 - s.12.22.inv %*% t(s.12))
+      sd.y.pred <- sqrt(diag(v.y.pred)) * sqrt(sigma.sites.pred.t)
       
       if (length(e.y.pred) != np) {
         stop("e.y.pred is the wrong length")

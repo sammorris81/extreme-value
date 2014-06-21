@@ -1095,11 +1095,11 @@ for (t in 1:nt) {
   x.pred[, t, 3] <- s.pred[, 2]
 }
 
-# Rprof(line.profiling=T)
+Rprof(line.profiling=T)
 start.time <- proc.time()
 fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
             thresh=0, nknots=nknots,
-            iters=10000, burn=5000, update=1000, iterplot=T,
+            iters=5000, burn=1000, update=100, iterplot=T,
             beta.init=beta.t, tau.init=tau.knots.t, 
             tau.alpha.init=tau.alpha.t, 
             tau.beta.init=tau.beta.t, rho.init=rho.t,
@@ -1112,8 +1112,8 @@ fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
             fixrho=F, fixnu=F, fixalpha=F, fixdelta=T,
             tau.by.knots=T)
 end.time <- proc.time()
-# Rprof(NULL)
-
+Rprof(NULL)
+summaryRprof(lines="show")
 # for debugging mcmc
 y=y; s=s; x=x; s.pred=s.pred; x.pred=x.pred; 
 thresh=0; nknots=nknots

@@ -17,6 +17,8 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
   lower.u <- pnorm(lower, mn, sd)
   upper.u <- pnorm(upper, mn, sd)
   
+  # replace <- ((mn / sd) > 5) & (lower == 0)
+  # lower.u[replace] <- 0
   lower.u <- ifelse( mn / sd > 5 & lower == 0, 0, lower.u )
   U <- runif(length(mn), lower.u, upper.u)
   y <- qnorm(U, mn, sd)
@@ -200,6 +202,9 @@ SpatCor <- function(d, alpha, rho, nu=0.5, eps=10^(-5)){
 
   sig         <- CorFx(d, alpha, rho, nu, cov=FALSE)
   sig.chol    <- chol(sig)
+  # diag.chol   <- diag(sig.chol)
+  # replace     <- diag(sig.chol) < eps
+  # diag.chol[replace] <- eps
   diag.chol   <- ifelse(diag(sig.chol) < eps, eps, diag(sig.chol))
   logdet.prec <- -2 * sum(log(diag.chol))
   prec.cor    <- chol2inv(sig.chol)
@@ -281,10 +286,10 @@ SumSquares <- function(res, prec.cor, tau.sites){
   
   nt <- ncol(res)
   ss <- rep(NA, nt)
+  std.res <- res * sqrt(tau.sites)
   
   for (t in 1:nt) {
-    tau.sites.t <- sqrt(tau.sites[, t])
-    ss[t] <- t(res[, t] * tau.sites.t) %*% prec.cor %*% (res[, t] * tau.sites.t)
+    ss[t] <- t(std.res[, t]) %*% prec.cor %*% (std.res[, t])
   }
   
   return(ss)
