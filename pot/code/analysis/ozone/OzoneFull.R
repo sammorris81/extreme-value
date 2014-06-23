@@ -35,7 +35,7 @@ fit.5 <- mcmc(y=y, s=s.scale, x=X,
             iters=30000, burn=25000, update=1000, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
             nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T, scale=T,
-            fixz=T, z.init=matrix(rep(0, nt), 1, nt))
+            fixz=T, z.init=matrix(rep(0, nt * nknots), nknots, nt))
 toc.set <- proc.time()
 time.set <- (toc.set - tic.set)[3]
 
@@ -51,7 +51,7 @@ fit.10 <- mcmc(y=y, s=s.scale, x=X,
             iters=30000, burn=25000, update=1000, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
             nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T, scale=T,
-            fixz=T, z.init=matrix(rep(0, nt), 1, nt))
+            fixz=T, z.init=matrix(rep(0, nt * nknots), nknots, nt))
 toc.set <- proc.time()
 time.set <- (toc.set - tic.set)[3]
 
