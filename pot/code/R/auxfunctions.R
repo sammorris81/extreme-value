@@ -115,6 +115,45 @@ rpotspatial <- function(nt, s, x, beta, tau.alpha.t, tau.beta.t,
 
 ################################################################
 # Arguments:
+#   coords(ns, 2): spatial locations
+#   y(ns, nt): observed data matrix
+#
+# Returns: 
+#   rho.ml(1): ML estimate for rho with first order trend
+################################################################
+RhoML <- function(coords, y) {
+  if (!is.matrix(y)) {
+    stop("y should be a matrix with ns rows and nt cols")
+  }
+  
+  ns <- nrow(y)
+  nt <- ncol(y)
+  
+  length.real <- ns - sum(is.na(y[, 1]))
+  real.obj <- rep(1, length.real)
+  coords.obj <- coords
+  y.obj <- y[, 1]
+  
+  for (t in 2:nt) {
+    length.real <- ns - sum(is.na(y[, t]))
+    real.obj    <- c(real.obj, rep(t, length.real))
+    coords.obj  <- rbind(coords.obj, coords)
+    y.obj       <- c(y.obj, y[, t])
+  }
+  
+  data.obj <- cbind(coords.obj, y.obj)
+  data.gd  <- as.geodata(data.obj, realisations=real.obj)
+  
+  fit.ml <- likfit(geodata, trend="1st", ini.cov.pars=c(1, 0.5), realisations=T,
+                   fix.nugget=F, fix.kappa=F, kappa=0.5, cov.model="matern")
+                   
+  rho.ml <- fit.ml$phi
+  return(rho.ml)
+}
+
+
+################################################################
+# Arguments:
 #   s(ns, 2): spatial locations
 #   knots[nt](nknots, 2): list of knot locations matrices
 #

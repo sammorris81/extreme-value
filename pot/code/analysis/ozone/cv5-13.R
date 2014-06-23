@@ -7,9 +7,9 @@ load('cv-setup.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 7
-threshold <- 0.99
-nknots <- 1
+setting <- 13
+threshold <- 0
+nknots <- 10
 outputfile <- paste("cv-", setting, ".RData", sep="")
 start <- proc.time()
 
@@ -36,6 +36,7 @@ for(val in 1:5){
                        beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
                        nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T, 
                        fixz=T, z.init=matrix(0, nrow=nknots, ncol=nt), scale=T)
+
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 	
