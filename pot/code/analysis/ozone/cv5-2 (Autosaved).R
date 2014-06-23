@@ -7,8 +7,8 @@ load('cv-setup.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 7
-threshold <- 0.99
+setting <- 2
+threshold <- 0
 nknots <- 1
 outputfile <- paste("cv-", setting, ".RData", sep="")
 start <- proc.time()
@@ -25,6 +25,8 @@ for(val in 1:5){
 	X.o <- X[-val.idx,,]
 	S.o <- s[-val.idx,]
 	
+	rho.ml <- RhoML(S.o, y.o, cov=X.o[, , 4])
+	
 	y.p <- y[val.idx,]
 	X.p <- X[val.idx,,]
 	S.p <- s[val.idx,]
@@ -33,8 +35,9 @@ for(val in 1:5){
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p, 
 	                   thresh=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
-                       beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
-                       nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T, 
+                       beta.init=beta.init, tau.init=tau.init, 
+                       rho.init=rho.ml, fixrho=T,
+                       nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T,
                        fixz=T, z.init=matrix(0, nrow=nknots, ncol=nt), scale=F)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]

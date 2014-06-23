@@ -121,7 +121,7 @@ rpotspatial <- function(nt, s, x, beta, tau.alpha.t, tau.beta.t,
 # Returns: 
 #   rho.ml(1): ML estimate for rho with first order trend
 ################################################################
-RhoML <- function(coords, y) {
+RhoML <- function(coords, y, cov) {
   if (!is.matrix(y)) {
     stop("y should be a matrix with ns rows and nt cols")
   }
@@ -133,19 +133,23 @@ RhoML <- function(coords, y) {
   real.obj <- rep(1, length.real)
   coords.obj <- coords
   y.obj <- y[, 1]
+  CMAQ.obj <- matrix(cov[, 1], nrow=ns, ncol=1)
   
   for (t in 2:nt) {
     length.real <- ns - sum(is.na(y[, t]))
     real.obj    <- c(real.obj, rep(t, length.real))
     coords.obj  <- rbind(coords.obj, coords)
     y.obj       <- c(y.obj, y[, t])
+    CMAQ.obj    <- rbind(CMAQ.obj, matrix(cov[, t], nrow=ns, ncol=1))
   }
   
-  data.obj <- cbind(coords.obj, y.obj)
-  data.gd  <- as.geodata(data.obj, realisations=real.obj)
+  data.obj <- cbind(coords.obj, y.obj, CMAQ.obj)
+  data.gd  <- as.geodata(data.obj, realisations=real.obj, covar.col=4, covar.name="CMAQ")
   
-  fit.ml <- likfit(geodata, trend="1st", ini.cov.pars=c(1, 0.5), realisations=T,
-                   fix.nugget=F, fix.kappa=F, kappa=0.5, cov.model="matern")
+  trend <- trend.spatial("1st", data.gd, add.to.trend=~CMAQ)
+  
+  fit.ml <- likfit(data.gd, trend=trend, ini.cov.pars=c(1, 1), realisations=T,
+                   fix.nugget=F, fix.kappa=F, cov.model="matern")
                    
   rho.ml <- fit.ml$phi
   return(rho.ml)
