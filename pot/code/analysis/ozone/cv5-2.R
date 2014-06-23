@@ -29,7 +29,7 @@ for(val in 1:5){
 	
 	y.p <- y[val.idx,]
 	X.p <- X[val.idx,,]
-	S.p <- s.scale[val.idx,]
+	S.p <- s[val.idx,]
 	
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p, 

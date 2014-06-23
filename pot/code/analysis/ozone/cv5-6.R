@@ -25,7 +25,7 @@ for(val in 1:5){
 	X.o <- X[-val.idx,,]
 	S.o <- s[-val.idx,]
 	
-	rho.ml <- RhoML(S.o, y.o)
+	rho.ml <- RhoML(S.o, y.o, cov=X.o[, , 4])
 	
 	y.p <- y[val.idx,]
 	X.p <- X[val.idx,,]
