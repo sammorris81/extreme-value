@@ -11,7 +11,7 @@ threshold <- 0
 nknots <- 1
 start <- proc.time()
 
-set.seed(setting*100)
+set.seed(1)
 
 tic.set <- proc.time()
 fit.1 <- mcmc(y=y, s=s.scale, x=X, 
@@ -27,7 +27,7 @@ threshold <- 0
 nknots <- 5
 start <- proc.time()
 
-set.seed(setting*100)
+set.seed(2)
 
 tic.set <- proc.time()
 fit.5 <- mcmc(y=y, s=s.scale, x=X, 
@@ -43,7 +43,7 @@ threshold <- 0
 nknots <- 10
 start <- proc.time()
 
-set.seed(setting*100)
+set.seed(3)
 
 tic.set <- proc.time()
 fit.10 <- mcmc(y=y, s=s.scale, x=X, 
