@@ -171,7 +171,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.ll <- matrix(NA, nrow=iters, ncol=nt)
   keepers.tau.alpha <- keepers.tau.beta <- rep(NA, iters)
   keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- rep(NA, iters)
-  keepers.nparts <- matrix(NA, nrow=iters, ncol=nt)
+  if (nknots > 1) {
+    keepers.nparts <- matrix(NA, nrow=iters, ncol=nt)
+  } 
   
   # initial values
   mu <- x.beta + delta * z.sites
@@ -666,7 +668,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
   keepers.ll[iter, ]      <- cur.ll
-  keepers.nparts[iter, ]  <- nparts
+  if (nknots > 1) { keepers.nparts[iter, ]  <- nparts }
 
   ##############################################
   # Display current value
@@ -836,7 +838,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # Return output
   ##############################################
   stop.time <- proc.time()
-  results   <- list(time=stop.time-start.time,
+  if (nknots > 1) {
+    results <- list(time=stop.time-start.time,
                     z=keepers.z,
                     beta=keepers.beta,
                     tau=keepers.tau,
@@ -848,6 +851,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                     alpha=keepers.alpha,
                     yp=y.pred,
                     nparts=keepers.nparts)
-  
+  } else {
+    results <- list(time=stop.time-start.time,
+                    z=keepers.z,
+                    beta=keepers.beta,
+                    tau=keepers.tau,
+                    tau.alpha=keepers.tau.alpha,
+                    tau.beta=keepers.tau.beta,
+                    delta=keepers.delta,
+                    rho=keepers.rho,
+                    nu=keepers.nu,
+                    alpha=keepers.alpha,
+                    yp=y.pred)
+  }
   return(results)
 }
