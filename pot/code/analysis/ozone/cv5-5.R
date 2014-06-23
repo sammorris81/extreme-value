@@ -9,7 +9,7 @@ source('../../R/auxfunctions.R')
 
 setting <- 5
 threshold <- 0
-nknots <- 2
+nknots <- 5
 outputfile <- paste("cv-", setting, ".RData", sep="")
 start <- proc.time()
 

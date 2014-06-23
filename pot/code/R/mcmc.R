@@ -397,71 +397,78 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (!fixtau) {  # tau.by.knots=F means same tau for all knots
       if (!tau.by.knots | (nknots == 1)) {
       # if (!tau.by.knots) {
-      	rss <- rep(NA, nt)
-      	for (t in 1:nt) {
-      	  rss[t] <- t(res[, t]) %*% prec.cor %*% res[, t] / (1 - delta^2)
-      	}
-        alpha.star  <- tau.alpha + nknots / 2 + ns / 2
-        beta.star   <- tau.beta + colSums(z.knots^2) / 2 + rss / 2
-        tau.knots <- rgamma(nt, alpha.star, beta.star)
+      	# rss <- rep(NA, nt)
+      	# for (t in 1:nt) {
+      	  # rss[t] <- t(res[, t]) %*% prec.cor %*% res[, t] / (1 - delta^2)
+      	# }
+        # alpha.star  <- tau.alpha + 0.5 * nknots + 0.5 * ns
+        # beta.star   <- tau.beta + 0.5 * colSums(z.knots^2) + 0.5 * rss
+        # tau.knots <- rgamma(nt, alpha.star, beta.star)
+        tau.knots <- TauUpdate(res, prec.cor, tau.alpha, tau.beta, z.knots, delta)
         tau.knots <- matrix(tau.knots, nknots, nt)
       } else {
+      	ns.k.0 <- 0  # debug
         for (k in 1:nknots) {
-          att.tau[k, ] <- att.tau[k, ] + 1
-          can.tau.knots <- tau.knots
-          can.logtau.knots <- logtau.knots <- log(tau.knots)
-          can.logtau.knots[k, ] <- rnorm(nt, logtau.knots[k, ], mh.tau[k, ])
-          can.tau.knots[k, ] <- exp(can.logtau.knots[k, ])
-          can.tau.sites <- TauSites(can.tau.knots, partition, nknots)
-                    
-          can.rss <- SumSquares(res, prec.cor, can.tau.sites)
-          cur.rss <- SumSquares(res, prec.cor, tau.sites)
-  
           ns.k <- colSums(partition == k)
-  
-          if ((nrow(can.tau.sites) != ns) | (ncol(can.tau.sites) != nt)) {
-            stop("can.tau.sites is not the correct dimensions")
-          }
-
-          if ((length(can.rss) != nt) | (length(cur.rss) != nt) | (length(ns.k) != nt)) {
-            stop("one of can.rss, cur.rss, or ns.k is not the correct length")
-          }  
-  
-          # can.ll <- LLike(y, x.beta, can.tau.sites, delta, prec.cor, logdet.prec, z.sites, log=T)
-          # cur.ll <- LLike(y, x.beta, tau.sites, delta, prec.cor, logdet.prec, z.sites, log=T)
+          # ns.k.0 <- sum(ns.k == 0) + ns.k.0  # debug
           
-          # can.ll <- 0.5 * (ns.k + 1) * can.logtau.knots[k, ] - 
-                    # 0.5 * (z.knots[k, ]^2 * can.tau.knots[k, ] + can.rss / (1 - delta^2))
-            
-          # cur.ll <- 0.5 * (ns.k + 1) * logtau.knots[k, ] - 
-                    # 0.5 * (z.knots[k, ]^2 * tau.knots[k, ] + cur.rss / (1 - delta^2))
-          
-          tau.alpha.star <- tau.alpha + 0.5 + 0.5 * ns.k
-          tau.beta.star  <- tau.beta + 0.5 * z.knots[k, ]^2
-          
-          rej <- dgamma(can.tau.knots[k, ], tau.alpha.star, tau.beta.star, log=T) -
-                 dgamma(tau.knots[k, ], tau.alpha.star, tau.beta.star, log=T) - 
-                 0.5 * (can.rss - cur.rss) / (1 - delta^2)
-                 
-  
-          if (length(rej) != nt) {
-            stop("rej is not the correct length")
-          }
-
-          # accept / reject       
-          # mh.compare <- rexp(nt, 1)
-          # mh.update <- (-rej < mh.compare) & (!is.na(rej))
-          # tau.knots[k, mh.update] <- can.tau.knots[k, mh.update]
-          # acc.tau[k, mh.update] <- acc.tau[k, mh.update] + 1
           for (t in 1:nt) {
-            if (!is.na(rej[t])) { if (-rej[t] < rexp(1, 1)) {
-              tau.knots[k, t] <- can.tau.knots[k, t]
-              acc.tau[k, t] <- acc.tau[k, t] + 1
-            }}
-          }
+            if (ns.k[t] == 0) {
+              alpha.star <- tau.alpha + 0.5
+              beta.star  <- tau.beta + 0.5 * z.knots[k, t]^2
+              tau.knots[k, t] <- rgamma(1, alpha.star, beta.star)
+            } else if (ns.k[t] == ns) {
+              res.kt <- matrix(res[, t], nrow=ns, ncol=1)
+              tau.knots[k, t] <- TauUpdate(res=res.kt, prec.cor, tau.alpha, tau.beta,
+                                           z.knots=z.knots[k, t], delta)
+            } else {
+              att.tau[k, t] <- att.tau[k, t] + 1
+              can.tau.knots <- tau.knots
+              can.logtau.knots <- logtau.knots <- log(tau.knots)
+              can.logtau.knots[k, t] <- rnorm(1, logtau.knots[k, t], mh.tau[k, ])
+              can.tau.knots[k, t] <- exp(can.logtau.knots[k, t])
+              can.tau.sites <- TauSites(can.tau.knots, partition, nknots)
+              
+              res.t <- matrix(res[, t], nrow=ns, ncol=1)
+              can.tau.sites.t <- matrix(can.tau.sites[, t], nrow=ns, ncol=1)
+              tau.sites.t <- matrix(tau.sites[, t], nrow=ns, ncol=1)                   
+              can.rss <- SumSquares(res.t, prec.cor, can.tau.sites.t)
+              cur.rss <- SumSquares(res.t, prec.cor, tau.sites.t)
+  
+              if ((nrow(can.tau.sites) != ns) | (ncol(can.tau.sites) != nt)) {
+                stop("can.tau.sites is not the correct dimensions")
+              }
+
+              if ((length(can.rss) != 1) | (length(cur.rss) != 1)) {
+                stop("one of can.rss or cur.rss is not the correct length")
+              }  
           
+              tau.alpha.star <- tau.alpha + 0.5 + 0.5 * ns.k[t]
+              tau.beta.star  <- tau.beta + 0.5 * z.knots[k, t]^2
+          
+              rej <- dgamma(can.tau.knots[k, t], tau.alpha.star, tau.beta.star, log=T) -
+                     dgamma(tau.knots[k, t], tau.alpha.star, tau.beta.star, log=T) - 
+                     0.5 * (can.rss - cur.rss) / (1 - delta^2)             
+  
+              if (length(rej) != 1) {
+                stop("rej is not the correct length")
+              }
+
+              # accept / reject       
+              # mh.compare <- rexp(nt, 1)
+              # mh.update <- (-rej < mh.compare) & (!is.na(rej))
+              # tau.knots[k, mh.update] <- can.tau.knots[k, mh.update]
+              # acc.tau[k, mh.update] <- acc.tau[k, mh.update] + 1
+              if (!is.na(rej)) { if (-rej < rexp(1, 1)) {
+                tau.knots[k, t] <- can.tau.knots[k, t]
+                acc.tau[k, t] <- acc.tau[k, t] + 1
+              } }
+            }  # fi ns.k[t] == 0
+          }  # end nt
           tau.sites <- TauSites(tau.knots, partition, nknots)
         }  # end nknots
+        
+        # cat("There are", ns.k.0, "partition/day with no sites. \n")  # debug
       }  # fi nknots == 1
       # cat("tau.knots", tau.knots, "\n")
       
@@ -692,7 +699,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	    # start <- 1
   	  # }
   	  start <- 1
-  	  cat("dim(y.pred) is ", dim(y.pred))
   	  plot(keepers.beta[start:iter, 1], ylab="beta0", xlab="iteration", 
            type="l")
       # plot(keepers.beta[start:iter, 2], ylab="beta1", xlab="iteration",
@@ -701,18 +707,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            # type="l")
       plot(keepers.ll[start:iter], ylab="loglike", xlab="iteration",
            type="l")
-      # plot(keepers.z[start:iter, 1, 8], ylab="z 1, 8", xlab="iteration", 
-           # type="l")
+      plot(keepers.z[start:iter, 1, 8], ylab="z 1, 8", xlab="iteration", 
+           type="l")
       # plot(keepers.z[start:iter, 3, 6], ylab="z 3, 6", xlab="iteration",
            # type="l")
       # plot(keepers.z[start:iter, 3, 16], ylab="z 3, 16", xlab="iteration", 
            # type="l")
-      # plot(keepers.z[start:iter, 1, 20], ylab="z 1, 20", xlab="iteration",
+      plot(keepers.z[start:iter, 1, 20], ylab="z 1, 20", xlab="iteration",
+           type="l")
+      # plot(y.pred[1, 1, start:iter], ylab="ypred 1, 1", xlab="iteration", 
            # type="l")
-      plot(y.pred[1, 1, start:iter], ylab="ypred 1, 1", xlab="iteration", 
-           type="l")
-      plot(y.pred[5, 1, start:iter], ylab="ypred 5, 1", xlab="iteration", 
-           type="l")
+      # plot(y.pred[5, 1, start:iter], ylab="ypred 5, 1", xlab="iteration", 
+           # type="l")
       plot(keepers.delta[start:iter], ylab="delta", xlab="iteration", 
            type="l", main=bquote("ACCR" == .(accrate.delta)))
       plot(keepers.rho[start:iter], ylab="rho", xlab="iteration", 

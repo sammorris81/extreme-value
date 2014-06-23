@@ -297,6 +297,37 @@ SumSquares <- function(res, prec.cor, tau.sites){
 
 ################################################################
 # Arguments:
+#   res(ns, nt): vector of residuals
+#   prec.cor(ns, ns): precision matrix (correlation)
+#   tau.alpha(1): hyperparameter for gamma distribution
+#   tau.beta(1): hyperparameter for gamma distribution
+#   z.knots(nt): matrix of random effects with one entry per knot/day
+#   delta(1): skewness parameter
+#
+# Returns:
+#   tau.knots(nt): vector of daily precision for current knot
+################################################################
+TauUpdate <- function(res, prec.cor, tau.alpha, tau.beta, z.knots, delta) {  
+  nt <- ncol(res)
+  
+  if (length(z.knots) != nt) {
+    stop("TauUpdate only generates precision terms for a single knot.")
+  }
+  
+  ns <- nrow(res)
+  rss <- rep(NA, nt)
+  
+  for (t in 1:nt) {
+    rss[t] <- t(res[, t]) %*% prec.cor %*% res[, t] / (1 - delta^2)
+  }
+  
+  alpha.star <- tau.alpha + 0.5 + 0.5 * ns
+  beta.star  <- tau.beta + 0.5 * z.knots^2 + 0.5 * rss
+  tau.knots <- rgamma(nt, alpha.star, beta.star)
+}
+
+################################################################
+# Arguments:
 #   y(ns, nt): observed data matrix
 #   x.beta(ns, nt): XBeta matrix
 #   tau.sites(ns, nt): matrix of daily precision at each site
