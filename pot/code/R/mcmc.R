@@ -171,6 +171,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.ll <- matrix(NA, nrow=iters, ncol=nt)
   keepers.tau.alpha <- keepers.tau.beta <- rep(NA, iters)
   keepers.delta <- keepers.rho <- keepers.nu <- keepers.alpha <- rep(NA, iters)
+  keepers.nparts <- matrix(NA, nrow=iters, ncol=nt)
   
   # initial values
   mu <- x.beta + delta * z.sites
@@ -407,10 +408,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         tau.knots <- TauUpdate(res, prec.cor, tau.alpha, tau.beta, z.knots, delta)
         tau.knots <- matrix(tau.knots, nknots, nt)
       } else {
-      	ns.k.0 <- 0  # debug
+      	nparts <- rep(0, nt)  # effective number of partitions
         for (k in 1:nknots) {
           ns.k <- colSums(partition == k)
-          # ns.k.0 <- sum(ns.k == 0) + ns.k.0  # debug
+          nparts <- nparts + (ns.k != 0)  # add if there are sites
           
           for (t in 1:nt) {
             if (ns.k[t] == 0) {
@@ -665,6 +666,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
   keepers.ll[iter, ]      <- cur.ll
+  keepers.nparts[iter, ]  <- nparts
 
   ##############################################
   # Display current value
@@ -844,7 +846,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                     rho=keepers.rho,
                     nu=keepers.nu,
                     alpha=keepers.alpha,
-                    yp=y.pred)
+                    yp=y.pred,
+                    nparts=keepers.nparts)
   
   return(results)
 }
