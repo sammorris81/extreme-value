@@ -538,7 +538,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # }
       # can.alpha <- pnorm(can.phi.alpha)
       
-      if (can.nu <= 10 & can.rho < 3) {  # for numerical stability
+      if (can.nu <= 10 & ((scale & can.rho <= 3) | !scale)) {  # for numerical stability
         # can.cor.mtx <- SpatCor(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
         can.cor.mtx     <- SpatCor(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
         can.prec.cor    <- can.cor.mtx$prec.cor
