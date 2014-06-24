@@ -34,7 +34,7 @@ for(val in 1:5){
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p, 
 	                   thresh=threshold, nknots=nknots, 
-                       iters=5000, burn=1000, update=100, iterplot=F,
+                       iters=5000, burn=1000, update=10, iterplot=T,
                        beta.init=beta.init, tau.init=tau.init, 
                        rho.init=rho.ml, fixrho=T,
                        nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T,

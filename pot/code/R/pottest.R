@@ -1045,7 +1045,7 @@ library(mvtnorm)
 source("auxfunctions.R")
 source("mcmc.R")
 
-# set.seed(1000)
+set.seed(1000)
 
 # iid n(0, 1)
 # data settings
@@ -1064,7 +1064,7 @@ for (t in 1:nt) {
 beta.t <- c(10, 0, 0)
 rho.t <- 0.1
 nu.t <- 0.5
-delta.t <- 0
+delta.t <- 0.5
 
 tau.alpha.t <- 3
 tau.beta.t <- 1
@@ -1095,9 +1095,9 @@ for (t in 1:nt) {
   x.pred[, t, 3] <- s.pred[, 2]
 }
 
-Rprof(line.profiling=T)
+# Rprof(line.profiling=T)
 start.time <- proc.time()
-fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
+fit <- mcmc(y=y, s=s, x=x, # s.pred=s.pred, x.pred=x.pred,
             thresh=0, nknots=nknots,
             iters=5000, burn=1000, update=100, iterplot=T,
             beta.init=beta.t, tau.init=tau.knots.t, 
@@ -1109,10 +1109,10 @@ fit <- mcmc(y=y, s=s, x=x, s.pred=s.pred, x.pred=x.pred,
             knots.init=knots.t, z.init=z.knots.t,
             fixknots=T, fixz=T, fixbeta=T, 
             fixtau=F, fixtau.alpha=F, fixtau.beta=F,
-            fixrho=F, fixnu=F, fixalpha=F, fixdelta=T,
+            fixrho=T, fixnu=F, fixalpha=F, fixdelta=T,
             tau.by.knots=T)
 end.time <- proc.time()
-Rprof(NULL)
+# Rprof(NULL)
 summaryRprof(lines="show")
 # for debugging mcmc
 y=y; s=s; x=x; s.pred=s.pred; x.pred=x.pred; 

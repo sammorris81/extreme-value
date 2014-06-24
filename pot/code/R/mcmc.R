@@ -508,7 +508,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # rho and nu
     if (debug) { print("rho and nu") }
     if (!fixrho | !fixnu) {
-      
+      print(tau.sites[, 1])
       cur.rss <- SumSquares(res, prec.cor, tau.sites)
       
       if (!fixrho) {
