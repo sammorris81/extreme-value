@@ -25,11 +25,11 @@ for(val in 1:5){
 	val.idx <- cv.lst[[val]]
 	y.o <- y[-val.idx,]
 	X.o <- X[-val.idx,,]
-	S.o <- s[-val.idx,]
+	S.o <- s.scale[-val.idx,]
 	
 	y.p <- y[val.idx,]
 	X.p <- X[val.idx,,]
-	S.p <- s[val.idx,]
+	S.p <- s.scale[val.idx,]
 	
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,

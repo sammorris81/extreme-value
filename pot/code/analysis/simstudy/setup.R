@@ -30,12 +30,9 @@ rm(list=ls())
 library(fields)
 library(geoR)
 library(mvtnorm)
-library(evd)
 
 # necessary functions
-# setwd('~/repos-svn/dissertation/extreme-value/potv2/code/analysis/simstudy')
 source('../../R/mcmc.R')
-source('../../R/densities.R')
 source('../../R/auxfunctions.R')
 
 # data settings
