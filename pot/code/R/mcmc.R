@@ -39,8 +39,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   nt <- ncol(y)    # number of days
   p  <- dim(x)[3]  # number of covariates
 
-
-  # rescale the x and y coordinates to be in [0, 1] x [0, 1]
   predictions <- !is.null(s.pred) & !is.null(x.pred)
   np <- 0
   y.pred <- NULL
@@ -72,7 +70,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize partition
   knots_con <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
   knots     <- pnorm(knots_con)
-  print(dim(knots))
     
   # initialize parameters
   beta    <- rep(0, p)
@@ -439,11 +436,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     yp <- matrix(NA, np, nt)
 
     for (t in 1:nt) {
-      xp.beta  <- xp[, t, ] %*% beta
+      xp.beta  <- x.pred[, t, ] %*% beta
       if (nknots == 1) {
         gp <- 1
       } else {
-        gp       <- mem(sp, knots[, , t])  # find the right partition
+        gp       <- mem(s.pred, knots[, , t])  # find the right partition
       }
       siggp    <- 1 / sqrt(tau[gp, t])  # get the partition's variance
       taug.t   <- sqrt(taug[, t])
@@ -492,7 +489,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       plot(keepers.nu[1:iter], type="l")
       plot(keepers.alpha[1:iter], type="l")
     }
-    cat("iter", iter)
+    cat("\t iter", iter, "\n")
   }
   
   

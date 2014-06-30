@@ -1,3 +1,4 @@
+options(warn=2)
 library(fields)
 library(geoR)
 library(mvtnorm)
@@ -8,8 +9,9 @@ source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
 setting <- 2
-threshold <- 0
+method <- "t"
 nknots <- 1
+threshold <- 0
 outputfile <- paste("cv-", setting, ".RData", sep="")
 start <- proc.time()
 
@@ -25,20 +27,17 @@ for(val in 1:5){
 	X.o <- X[-val.idx,,]
 	S.o <- s[-val.idx,]
 	
-	rho.ml <- RhoML(S.o, y.o, cov=X.o[, , 4])
-	
 	y.p <- y[val.idx,]
 	X.p <- X[val.idx,,]
 	S.p <- s[val.idx,]
 	
 	tic.set <- proc.time()
-	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p, 
+	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
+	                   method=method,
 	                   thresh=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
-                       beta.init=beta.init, tau.init=tau.init, 
-                       rho.init=rho.ml, fixrho=T,
-                       nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T,
-                       fixz=T, z.init=matrix(0, nrow=nknots, ncol=nt), scale=F)
+                       beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
+                       nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 	

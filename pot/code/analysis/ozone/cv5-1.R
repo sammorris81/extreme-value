@@ -1,3 +1,4 @@
+options(warn=2)
 library(fields)
 library(geoR)
 library(mvtnorm)
@@ -36,8 +37,7 @@ for(val in 1:5){
 	                   thresh=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
                        beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
-                       nu.init=0.5, alpha.init=0.5, delta.init=0, fixdelta=T, 
-                       fixz=T, z.init=matrix(0, nrow=nknots, ncol=nt), scale=F)
+                       nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 	

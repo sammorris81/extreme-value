@@ -1,5 +1,7 @@
 options(warn=2)
 #set.seed(0820)
+source("mcmc.R")
+source("auxfunctions.R")
 
 ns <- 20
 nt <- 50
