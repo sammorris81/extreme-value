@@ -477,7 +477,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.rho[iter]       <- rho
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
-  y.pred[iter, , ]        <- yp
+  if (predictions) {
+    y.pred[iter, , ] <- yp
+  }
   
   if (iter %% update == 0) {
     if (iterplot) {
@@ -495,14 +497,24 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   } #end iters
 
-results <- list(tau=keepers.tau, 
-                beta=keepers.beta,
-                tau.alpha=keepers.tau.alpha,
-                tau.beta=keepers.tau.beta,
-                rho=keepers.rho,
-                nu=keepers.nu,
-                alpha=keepers.alpha,
-                yp=y.pred)
+if (predictions) {
+  results <- list(tau=keepers.tau, 
+                  beta=keepers.beta,
+                  tau.alpha=keepers.tau.alpha,
+                  tau.beta=keepers.tau.beta,
+                  rho=keepers.rho,
+                  nu=keepers.nu,
+                  alpha=keepers.alpha,
+                  yp=y.pred)
+} else { 
+  results <- list(tau=keepers.tau, 
+                  beta=keepers.beta,
+                  tau.alpha=keepers.tau.alpha,
+                  tau.beta=keepers.tau.beta,
+                  rho=keepers.rho,
+                  nu=keepers.nu,
+                  alpha=keepers.alpha)
+}
 return(results)
 }#end mcmc()
 

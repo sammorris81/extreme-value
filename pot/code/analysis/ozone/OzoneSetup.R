@@ -97,3 +97,50 @@ save.image(file="cv-setup.RData")
 # setting 3: t5
 # setting 4: t0 T = 0.9
 # setting 5: t5 T = 0.9
+
+# chi plot
+# bin information
+d <- as.vector(dist(s))
+j <- 1:54
+i <- 2:55
+ij <- expand.grid(i, j)
+ij <- ij[(ij[1] > ij[2]), ]
+sites <- cbind(d, ij)
+dist <- rdist(s)
+diag(dist) <- 0
+
+bins <- seq(0, 600, 50)
+bins <- c(bins, 900)
+
+probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
+threshs <- quantile(y, probs=probs, na.rm=T)
+exceed <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+for (thresh in 1:length(threshs)){
+  exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
+  for (t in 1:nt) {
+    these <- which(y[, t] > threshs[thresh])
+    n.na <- sum(is.na(y[, t]))
+    for (b in 1:(length(bins) - 1)) {
+      for (site in these){
+        inbin <- (dist[site, ] > bins[b]) & (dist[site, ] < bins[b+1])
+        att[b] <- att[b] + sum(inbin) - sum(is.na(y[inbin, t]))
+        acc[b] <- acc[b] + sum(y[inbin, t] > threshs[thresh], na.rm=T)
+      }
+      if (att[b] == 0) {
+        exceed.thresh[b] <- 0
+      } else {
+        exceed.thresh[b] <- acc[b] / att[b]
+      }
+    }
+  }
+  exceed[, thresh] <- exceed.thresh
+}
+
+xplot <- (0:12) + 0.5
+plot(xplot, exceed[, 1], type="b", ylim=c(min(exceed), max(exceed)), ylab="exceed", xaxt="n", xlab="bin distance", pch=1, lty=3)
+axis(1, at=0:12, labels=bins[-14])
+for (line in 2:9) { 
+	lines(xplot, exceed[, line], lty=3)
+	points(xplot, exceed[, line], pch=line)
+}
+legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quantiles")
