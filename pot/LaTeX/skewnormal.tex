@@ -52,14 +52,18 @@ Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-norm
 When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
 
 \subsection{Complete data}\label{s:model}
-Consider the spatial process
+Consider a skew Gaussian spatial process
 \begin{align} \label{eq:fullmodel}
-  Y_t(\bs) &= X_t(\bs) \beta + e_t(\bs)\\
-  e_t(\bs) &= \delta z_t(\bs) + v_t(\bs)
+  Y_t(\bs) &= X_t(\bs) \beta + \sigma_1 z_t(\bs) + v_t(\bs)
 \end{align}
-where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N_{(0, \infty)}(0, \sigma_t^2)$, $\delta \in (-1, 1)$ controls skew, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_t^2(1 - \delta^2)$.
+where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N_{(0, \infty)}(0, 1)$, $\sigma_1 \in \calR$, $\sigma_2, \sigma_0 \in \calR^+$, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_{tl}^2$.
+It can be shown \citep{Zhang2010} that $Y_t(\bs)$ follows a skew normal distribution with skewness parameter $\alpha = \frac{ \sigma_1 }{ \sigma_{tl} }$.
+We can then reexpress the model in (\ref{eq:fullmodel}) as
+\begin{align}
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs)
+\end{align}
+where $z_t(\bs) = z_{tl}$, $z_{tl} \iid N_{(0, \infty)}(0, \sigma_{tl}^2)$, and $v_t(\bs)$ is defined as before.
 
-Then $Y_t(\bs)$ is skew normal within each partition \citep{Minozzo2012}.
 We model this with a Bayesian hierarchical model as follows.
 Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that
 \begin{align*}
@@ -67,14 +71,14 @@ Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that
 \end{align*}
 Then
 \begin{align}
-    Y_t(\bs) \mid \Theta, z_{t1}, \ldots, z_{tL} &= X_t(\bs) \beta + \delta z_t(\bs) + v_t(\bs) \label{eq:hier}\\
-    z_{tl}(\bs) \mid \Theta &\sim N_{(0, \infty)}(0, \sigma^2_t)\\
+    Y_t(\bs) \mid \Theta, z_{t1}, \ldots, z_{tL} &= X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs) \label{eq:hier}\\
+    z_{tl}(\bs) \mid \Theta &\sim N_{(0, \infty)}(0, \sigma^2_{tl})\\
     v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
-    \sigma^2_t &\iid IG(\alpha, \beta)\\
-    \delta &\sim Unif(-1, 1)\\
+    \sigma^2_{tl} &\iid IG(\alpha, \beta)\\
+    \alpha &\sim N(0, 10)\\
     w_{tk} &\sim Unif(\calD)
 \end{align}
-where $\Theta = \{w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \delta, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t$ is a \Matern covariance matrix with variance $\sigma_t^2 (1 - \delta^2)$, spatial range $\rho$ and smoothness $\nu$; and $\calD$ is the spatial domain of interest.
+where $\Theta = \{w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \delta, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t$ is a \Matern covariance matrix with variance $\sigma_{tl}^2 (1 - \delta^2)$, spatial range $\rho$ and smoothness $\nu$; and $\calD$ is the spatial domain of interest.
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
@@ -90,7 +94,7 @@ So we sample $Y_t(\bs) \sim N_{(-\infty, T)}$
 
 \subsection{Parameter updates}\label{s:params}
 To update $\Theta$ given the current value of the complete data $\bY_1, \ldots, \bY_T$, we use a standard Gibbs updates for all parameters except for the knot locations which are done using a Metropolis update.
-See Appendix A.1 for details regarding Gibbs sampling and $|u_t(\bs)|$.
+See Appendix A.1 for details regarding Gibbs sampling.
 
 \subsection{Spatial prediction}\label{s:pred}
 Given $\bY_t$ the usual Kriging equations give the predictive distribution for $Y_t(\bs^*)$ at prediction location $(\bs^*)$
@@ -107,6 +111,7 @@ Given $\bY_t$ the usual Kriging equations give the predictive distribution for $
 \input{zpost.tex}
 \input{betapost.tex}
 \input{sigpost.tex}
+\input{alphapost.tex}
 
 \section*{Appendix A.2: MCMC Details}
 

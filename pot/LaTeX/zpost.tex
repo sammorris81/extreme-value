@@ -1,6 +1,3 @@
-
-
-
 %\subsubsection*{Conditional posterior of $U | Y$}\label{s:condu}
 % Let $Y_i | U \sim \mbox{N}(U, \sigma^2)$, $i = 1, \ldots, n$, let $\tau = 1 / \sigma^2$, and let $\pi(U) \propto \exp \left\{ -\frac{ u^2 \theta }{ 2 } \right\}$. 
 % Then the conditional posterior of $U \mid \ldots$ is 
@@ -22,7 +19,7 @@ For simplicity, drop the subscript $t$ and define
 R(\bs) = \left\{ 
     \begin{array}{ll}
         Y(\bs) - X(\bs) \beta &s \in P_l\\[1em]
-        Y(\bs) - X(\bs) \beta - \delta z(\bs) \qquad & s \notin P_l
+        Y(\bs) - X(\bs) \beta - \alpha z(\bs) \qquad & s \notin P_l
     \end{array} 
 \right.
 \end{align*}
@@ -34,9 +31,9 @@ Let
 \end{align*}
 Then
 \begin{align*}
-    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \frac{ 1 }{ (1 - \delta^2)}
+    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[
         \left( \begin{array}{c}
-            R_1 - \delta z_l \bOne\\
+            R_1 - \alpha z_l \bOne\\
             R_2
         \end{array} \right)^T
         \left( \begin{array}{cc}
@@ -44,7 +41,7 @@ Then
             \Omega_{21} & \Omega_{22}
         \end{array} \right)
         \left( \begin{array}{c}
-            R_1 - \delta z_l \bOne\\
+            R_1 - \alpha z_l \bOne\\
             R_2
         \end{array} \right)
         +  \frac{ z_l^2 }{ \sigma_l^2 }\right]
@@ -53,7 +50,7 @@ Then
 \end{align*}
 where
 \begin{align*}
-    \mu_l &= \frac{ \delta}{(1 - \delta^2)} ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
-    \Lambda_l &= \frac{\delta^2 \bOne^T \Omega_{11} \bOne }{ (1 - \delta^2) } + \frac{ 1 }{ \sigma^2_l }.
+    \mu_l &= ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
+    \Lambda_l &= \alpha^2 \bOne^T \Omega_{11} \bOne + \frac{ 1 }{ \sigma^2_l }.
 \end{align*}
 Then $Z_l | \ldots \sim N_{(0, \infty)} (\Lambda_l^{-1} \mu_l, \Lambda_l^{-1})$

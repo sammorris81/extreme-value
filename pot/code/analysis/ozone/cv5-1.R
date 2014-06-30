@@ -9,6 +9,7 @@ source('../../R/auxfunctions.R')
 
 setting <- 1
 threshold <- 0
+method <- "gaussian"
 nknots <- 1
 outputfile <- paste("cv-", setting, ".RData", sep="")
 start <- proc.time()
@@ -30,7 +31,8 @@ for(val in 1:5){
 	S.p <- s[val.idx,]
 	
 	tic.set <- proc.time()
-	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p, 
+	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
+	                   method=method 
 	                   thresh=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
                        beta.init=beta.init, tau.init=tau.init, rho.init=0.5,

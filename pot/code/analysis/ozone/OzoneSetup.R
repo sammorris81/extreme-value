@@ -92,19 +92,8 @@ tau.init <- 1
 
 save.image(file="cv-setup.RData")
 
-# setting 1:  T = 0.00,  1 partition
-# setting 2:  T = 0.00,  1 partition, rhofixed
-# setting 3:  T = 0.80,  1 partition
-# setting 4:  T = 0.80,  1 partition, rhofixed
-# setting 5:  T = 0.95,  1 partition
-# setting 6:  T = 0.95,  1 partition, rhofixed
-# setting 7:  T = 0.99,  1 partition
-# setting 8:  T = 0.99,  1 partition, rhofixed
-# setting 9:  T = 0.00,  5 partitions
-# setting 10: T = 0.80,  5 partitions
-# setting 11: T = 0.95,  5 partitions
-# setting 12: T = 0.99,  5 partitions
-# setting 13: T = 0.00, 10 partitions
-# setting 14: T = 0.80, 10 partitions
-# setting 15: T = 0.95, 10 partitions
-# setting 16: T = 0.99, 10 partitions
+# setting 1: gaussian
+# setting 2: t0
+# setting 3: t5
+# setting 4: t0 T = 0.9
+# setting 5: t5 T = 0.9
