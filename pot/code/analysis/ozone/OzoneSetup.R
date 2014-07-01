@@ -136,11 +136,78 @@ for (thresh in 1:length(threshs)){
   exceed[, thresh] <- exceed.thresh
 }
 
+par(mfrow=c(1, 2))
 xplot <- (0:12) + 0.5
-plot(xplot, exceed[, 1], type="b", ylim=c(min(exceed), max(exceed)), ylab="exceed", xaxt="n", xlab="bin distance", pch=1, lty=3)
+plot(xplot, exceed[, 1], type="b", ylim=c(0, 0.75), ylab="exceed", xaxt="n", xlab="bin distance", pch=1, lty=3, main="chi-plot ozone")
 axis(1, at=0:12, labels=bins[-14])
 for (line in 2:9) { 
 	lines(xplot, exceed[, line], lty=3)
 	points(xplot, exceed[, line], pch=line)
 }
-legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quantiles")
+legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quants")
+
+# Making the chi plot
+# Residuals after lm
+y.lm <- y[, 1]
+x.lm <- X[, 1, ]
+for (t in 2:nt) {
+  y.lm <- c(y.lm, y[, t])
+  x.lm <- rbind(x.lm, X[, t, ]) 
+}
+ozone.lm <- lm(y.lm ~ x.lm)
+ozone.res <- residuals(ozone.lm)
+ozone.int <- ozone.lm$coefficients[1]
+ozone.beta1 <- ozone.lm$coefficients[3]
+ozone.beta2 <- ozone.lm$coefficients[4]
+ozone.cmaq <- ozone.lm$coefficients[5]
+ozone.beta <- c(ozone.int, ozone.beta1, ozone.beta2, ozone.cmaq)
+res <- matrix(NA, ns, nt)
+for (t in 1:nt) {
+  res[, t] <- y[, t] - X[, t, ] %*% ozone.beta
+}
+
+d <- as.vector(dist(s))
+j <- 1:54
+i <- 2:55
+ij <- expand.grid(i, j)
+ij <- ij[(ij[1] > ij[2]), ]
+sites <- cbind(d, ij)
+dist <- rdist(s)
+diag(dist) <- 0
+
+bins <- seq(0, 600, 50)
+bins <- c(bins, 900)
+
+probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
+threshs <- quantile(res, probs=probs, na.rm=T)
+exceed.res <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+
+for (thresh in 1:length(threshs)){
+  exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
+  for (t in 1:nt) {
+    these <- which(res[, t] > threshs[thresh])
+    n.na <- sum(is.na(res[, t]))
+    for (b in 1:(length(bins) - 1)) {
+      for (site in these){
+        inbin <- (dist[site, ] > bins[b]) & (dist[site, ] < bins[b+1])
+        att[b] <- att[b] + sum(inbin) - sum(is.na(res[inbin, t]))
+        acc[b] <- acc[b] + sum(res[inbin, t] > threshs[thresh], na.rm=T)
+      }
+      if (att[b] == 0) {
+        exceed.thresh[b] <- 0
+      } else {
+        exceed.thresh[b] <- acc[b] / att[b]
+      }
+    }
+  }
+  exceed.res[, thresh] <- exceed.thresh
+}
+
+xplot <- (0:12) + 0.5
+plot(xplot, exceed.res[, 1], type="b", ylim=c(0, 0.75), ylab="exceed", xaxt="n", xlab="bin distance", pch=1, lty=3, main="chi-plot ozone residuals")
+axis(1, at=0:12, labels=bins[-14])
+for (line in 2:9) { 
+	lines(xplot, exceed.res[, line], lty=3)
+	points(xplot, exceed.res[, line], pch=line)
+}
+legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quants")

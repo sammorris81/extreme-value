@@ -10,7 +10,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  thresh=0, thresh.quant=T, nknots=1, 
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
-                # initial values
+                 # initial values
                  beta.init=NULL, 
                  tau.init=1,
                  tau.alpha.init=0.1, 
@@ -18,13 +18,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  rho.init=0.5, 
                  nu.init=0.5, 
                  alpha.init=0.5,
-                # priors
+                 # priors
                  beta.m=0, beta.s=10, 
                  tau.alpha.m=0, tau.alpha.s=1, 
                  tau.beta.a=0.1, tau.beta.b=0.1,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
-                 alpha.m=0, alpha.s=1
+                 alpha.m=0, alpha.s=1,
+                 # skew inits
+                 z.init=1, z.alpha.init=0,
+                 # skew priors
+                 z.alpha.m=0, z.alpha.s=2, skew=T
         ){
     
   library(geoR)
@@ -103,6 +107,24 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
   }
   
+  zg <- matrix(0, ns, nt)
+  if (length(z.init) == 1) {
+    cat("initializing all z terms to", z.init, "\n")
+  }
+  z <- matrix(z.init, nknots, nt)
+  for (t in 1:nt) {
+    zg[, t] <- z[g[, t], t]
+  }
+  
+  if (skew) {
+    z.alpha <- z.alpha.init
+  } else {
+  	if (z.alpha.init != 0) {
+  	  warning("z.alpha.init being ignored since skew=F")
+  	}
+    z.alpha <- 0
+  }
+  
   # easier to keep calculations in the precision scale for MCMC
   sigma2    <- 1 / tau
   sigma2g   <- 1 / taug
@@ -129,7 +151,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   acc.delta <- att.delta <- mh.delta <- 0.1  
   acc.rho   <- att.rho   <- mh.rho   <- 0.1
   acc.nu    <- att.nu    <- mh.nu    <- 0.1
-  acc.alpha <- att.alpha <- mh.alpha <- 0.1
+  acc.alpha <- att.alpha <- mh.alpha <- 0.5
   att.tau   <- acc.tau   <- mh.tau   <- rep(1,ns)    
   
   # storage
@@ -141,7 +163,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.nparts    <- matrix(NA, nrow=iters, ncol=nt)
   keepers.rho       <- rep(NA, iters)
   keepers.nu        <- rep(NA, iters)
-  keepers.alpha     <- rep(NA, iters) 
+  keepers.alpha     <- rep(NA, iters)
+  keepers.z         <- array(NA, dim=c(iters, nknots, nt))
+  keepers.z.alpha   <- rep(NA, iters)
   
 
   # initial values
@@ -153,7 +177,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     # impute data below threshold
     if (thresh != 0) {
-      mu <- x.beta
+      mu <- x.beta + z.alpha * zg
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
       
@@ -195,10 +219,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     for (t in 1:nt) {
        x.t    <- x[, t, ]
        g12    <- sqrt(taug[,t])
-       prec.t <- diag(g12)%*%prec.cor%*%diag(g12) #faster with sweeps!
+       prec.t <- diag(g12) %*% prec.cor %*% diag(g12) #faster with sweeps!
        ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
-       mmm    <- mmm + ttt %*% y[, t]
+       mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
     } 
     vvv <- solve(vvv)
     beta <- vvv %*% mmm + t(chol(vvv)) %*% rnorm(p)
@@ -206,7 +230,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
-    mu  <- x.beta
+    mu  <- x.beta + z.alpha * zg
     
 
     # update partitions
@@ -214,12 +238,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (nknots > 1) {
       for(t in 1:nt){
         att.w[1]      <- att.w[1] + 1
-        can_knots_con <- knots_con[,,t] + mh.w[1] * rnorm(2 * nknots)
+        can_knots_con <- knots_con[, , t] + mh.w[1] * rnorm(2 * nknots)
         can_knots     <- pnorm(can_knots_con)
         cang          <- mem(s, can_knots)
-        cantaug       <- tau[cang, t]   
+        cantaug       <- tau[cang, t]
+        canzg         <- z[cang, t]
+        canres        <- y - x.beta - z.alpha * canzg   
 
-        R <- -0.5 * quad.form(prec.cor, sqrt(cantaug) * res[, t]) +
+        R <- -0.5 * quad.form(prec.cor, sqrt(cantaug) * canres[, t]) +
               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res[, t]) +
               0.5 * sum(log(cantaug)) -
               0.5 * sum(log(taug[, t])) +
@@ -231,13 +257,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           knots[, , t]     <- can_knots
           g[, t]           <- cang
           taug[, t]        <- cantaug
+          zg[, t]          <- canzg
           acc.w[1]         <- acc.w[1] + 1
         }}
       }
     }
 
     #### Spatial correlation
-
+    mu <- x.beta + z.alpha * zg
     res <- y - mu
 
     # update tau
@@ -357,11 +384,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
     
     R <- -0.5 * sum(can.rss - cur.rss) + 
-         0.5 * nt * (can.logdet.prec - logdet.prec) + 
-         dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
-         dnorm(logrho, logrho.m, logrho.s, log=T) + 
-         dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
-         dnorm(lognu, lognu.m, lognu.s, log=T)
+          0.5 * nt * (can.logdet.prec - logdet.prec) + 
+          dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
+          dnorm(logrho, logrho.m, logrho.s, log=T) + 
+          dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
+          dnorm(lognu, lognu.m, lognu.s, log=T)
          
     if (!is.na(R)) { if (log(runif(1)) < R) {
       rho <- can.rho
@@ -403,9 +430,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
     
     R <- -0.5 * sum(can.rss - cur.rss) + 
-         0.5 * nt * (can.logdet.prec - logdet.prec) +
-         dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-         dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
+          0.5 * nt * (can.logdet.prec - logdet.prec) +
+          dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+          dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
     
     if (!is.na(R)) { if (log(runif(1)) < R) {
       alpha <- can.alpha
@@ -420,8 +447,50 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       acc.alpha <- att.alpha <- 1
     }
     
-    # spatial prediction
+    if (skew) {
+      # Skewness parameter
+      vvv <- 1 / z.alpha.s^2
+      mmm <- z.alpha.m
     
+      for (t in 1:nt) {
+      	prec.cov <- diag(sqrt(taug[, t])) %*% prec.cor %*% diag(sqrt(taug[, t]))
+        ttt <- zg[, t] %*% prec.cov
+        vvv <- vvv + ttt %*% zg[, t]
+        mmm <- mmm + ttt %*% (y[, t] - x.beta[, t])
+      }
+    
+      vvv <- 1 / vvv
+      mmm <- vvv * mmm 
+    
+      z.alpha <- rnorm(1, mmm, sqrt(vvv))
+    
+      # z random effect
+      mu <- y - x.beta - z.alpha * zg
+      
+      for (t in 1:nt) {
+        for (k in 1:nknots) {
+          these <- which(g[, t] == k)
+          r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
+          r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
+          prec.cov <- diag(sqrt(taug[, t])) %*% prec.cor %*% diag(sqrt(taug[, t]))
+          prec.11 <- prec.cov[these, these, drop=F]  # with cov
+          prec.21 <- prec.cov[-these, these, drop=F]
+          lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
+          
+          mu.l <- z.alpha * sum(t(r.1) %*% prec.11 + t(r.2) %*% prec.21)
+          
+          e.z <- mu.l / lambda.l
+          sd.z <- 1 / sqrt(lambda.l)
+          z.new <- rTNorm(mn=e.z, sd=sd.z, lower=0, upper=Inf)
+          if (z.new == Inf) {  # if z.new comes back Inf, then P(z > 0) = 0
+            z.new = 0.00001
+          }
+        
+          z[k, t] <- z.new
+          zg[these, t] <- z.new
+        }
+      }
+    }    
   }  # end nthin
   
   # predictions
@@ -442,10 +511,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       } else {
         gp       <- mem(s.pred, knots[, , t])  # find the right partition
       }
-      siggp    <- 1 / sqrt(tau[gp, t])  # get the partition's variance
-      taug.t   <- sqrt(taug[, t])
+      zgp    <- z[gp, t]
+      siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's variance
+      taug.t <- sqrt(taug[, t])
 
-      mup <- xp.beta - sqrt(siggp) * s.12.22.inv %*% (taug.t * res[, t])
+      mup <- xp.beta + z.alpha * zgp - sqrt(siggp) * s.12.22.inv %*% (taug.t * res[, t])
       sdp <- sqrt(siggp * corp)
       
       yp[, t] <- mup + sdp * rnorm(np, 0, 1)
@@ -480,16 +550,29 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (predictions) {
     y.pred[iter, , ] <- yp
   }
+  if (skew) {
+    keepers.z.alpha[iter] <- z.alpha
+    keepers.z[iter, , ]   <- z
+  }
   
   if (iter %% update == 0) {
     if (iterplot) {
-      par(mfrow=c(3, 2))
+      if (skew) {
+        par(mfrow=c(3, 3))
+      } else {
+        par(mfrow=c(3, 2))
+      }
       plot(keepers.beta[1:iter, 1], type="l")
       plot(keepers.tau.alpha[1:iter], type="l")
       plot(keepers.tau.beta[1:iter], type="l")
       plot(keepers.rho[1:iter], type="l")
       plot(keepers.nu[1:iter], type="l")
       plot(keepers.alpha[1:iter], type="l")
+      if (skew) {
+        plot(keepers.z.alpha[1:iter], type="l")
+        plot(keepers.z[1:iter, 1, 1], type="l")
+        plot(keepers.z[1:iter, 1, 48], type="l")
+      }
     }
     cat("\t iter", iter, "\n")
   }
@@ -497,24 +580,25 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   } #end iters
 
-if (predictions) {
-  results <- list(tau=keepers.tau, 
-                  beta=keepers.beta,
-                  tau.alpha=keepers.tau.alpha,
-                  tau.beta=keepers.tau.beta,
-                  rho=keepers.rho,
-                  nu=keepers.nu,
-                  alpha=keepers.alpha,
-                  yp=y.pred)
-} else { 
-  results <- list(tau=keepers.tau, 
-                  beta=keepers.beta,
-                  tau.alpha=keepers.tau.alpha,
-                  tau.beta=keepers.tau.beta,
-                  rho=keepers.rho,
-                  nu=keepers.nu,
-                  alpha=keepers.alpha)
+if (!predictions) {
+  y.pred <- NULL
 }
+if (!skew) {
+  z <- NULL
+  z.alpha <- NULL
+}
+
+results <- list(tau=keepers.tau, 
+                beta=keepers.beta,
+                tau.alpha=keepers.tau.alpha,
+                tau.beta=keepers.tau.beta,
+                rho=keepers.rho,
+                nu=keepers.nu,
+                alpha=keepers.alpha,
+                yp=y.pred,
+                z.alpha=z.alpha,
+                z=z)
+
 return(results)
 }#end mcmc()
 
