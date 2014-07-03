@@ -140,3 +140,7 @@ fit<-mcmc(Y, s, x, s.pred=sp, x.pred=xp, method="t", skew=T,
 test <- rnorm(10000, 0, 1)
 norm.test <- pnorm(test)
 hist(norm.test, breaks=80)
+
+
+Y <- rpotspat(ns, nt, X=x, s, beta=15, alpha=0.95, gau.rho=0.1, t.rho=0.1, nu=0.5, mixprob=1, z.alpha=3, tau.alpha=2, tau.beta=8, nknots=5)
+hist(Y$y)

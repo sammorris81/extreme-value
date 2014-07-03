@@ -79,37 +79,36 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   beta    <- rep(0, p)
   beta[1] <- mean(y)
   x.beta  <- matrix(beta[1], ns, nt)
-    
+  
+  # initialize partitioning
+  if (nknots == 1) {
+    g <- matrix(1, ns, nt)
+  } else {
+    g <- matrix(0, ns, nt)
+    for (t in 1:nt) {
+      g[, t] <- mem(s, knots[, , t])
+    }
+  }
+  
+  # initialize variance
   taug <- matrix(0, ns, nt)
   if (method == "gaussian") {  # single knot for all days
   	if (length(tau.init) > 1) {
   	  stop("for gaussian, tau.init should be a single value")
   	}
-    g <- matrix(1, ns, nt)
-    tau <- matrix(tau.init, nknots, nt)
-    tau.init <- matrix(tau.init, ns, nt)
+  	tau <- matrix(tau.init, nknots, nt)
+    tau.init <- matrix(tau.init, ns, nt) 
   } else if (method == "t") {  # knots vary by day and partition
   	if (length(tau.init) == 1) {
-  	  cat("initializing all tau terms to", tau.init, "\n")
+  	  cat("\t initializing all tau terms to", tau.init, "\n")
   	}
   	tau  <- matrix(tau.init, nknots, nt)
-    if (nknots == 1) {
-      g <- matrix(1, ns, nt)
-      for (t in 1:nt) {
-        taug[, t] <- tau[g[, t], t]
-      }
-    } else {
-      g <- matrix(0,ns,nt) 
-      for(t in 1:nt){
-        g[,t]    <-mem(s,knots[,,t])
-        taug[,t] <- tau[g[,t],t]   
-      }
-    }
+    taug[, t] <- tau[g[, t], t]   
   }
   
   zg <- matrix(0, ns, nt)
   if (length(z.init) == 1) {
-    cat("initializing all z terms to", z.init, "\n")
+    cat("\t initializing all z terms to", z.init, "\n")
   }
   z <- matrix(z.init, nknots, nt)
   for (t in 1:nt) {
@@ -137,10 +136,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   nu     <- nu.init
   lognu  <- log(nu)
   alpha  <- alpha.init
-    
-#  cor.mtx     <- SpatCor(d=d, alpha=alpha, rho=rho, nu=nu)
-#  prec.cor    <- cor.mtx$prec.cor
-#  logdet.prec <- cor.mtx$logdet.prec
  
   C <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
   prec.cor<-solve(C)
@@ -166,12 +161,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.alpha     <- rep(NA, iters)
   keepers.z         <- array(NA, dim=c(iters, nknots, nt))
   keepers.z.alpha   <- rep(NA, iters)
-  
-
-  # initial values
-#  cur.ll <- LLike(y=y, x.beta=x.beta, tau.sites=taug, delta=delta, 
-#                  prec.cor=prec.cor, 
-#                  logdet.prec=logdet.prec, log=T)
+  keepers.avgparts  <- matrix(NA, nrow=iters, ncol=nt)  # avg partitions per day
   
   for (iter in 1:iters) { for (ttt in 1:thin) {
     
@@ -232,11 +222,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
     mu  <- x.beta + z.alpha * zg
     
-
     # update partitions
     res <- y - mu
     if (nknots > 1) {
-      for(t in 1:nt){
+      avgparts <- rep(0, nt)
+      for (t in 1:nt) {
         att.w[1]      <- att.w[1] + 1
         can_knots_con <- knots_con[, , t] + mh.w[1] * rnorm(2 * nknots)
         can_knots     <- pnorm(can_knots_con)
@@ -260,8 +250,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           zg[, t]          <- canzg
           acc.w[1]         <- acc.w[1] + 1
         }}
+        
+        # find the avg num of partitions per day
+        for (k in 1:nknots) {
+          if (sum(g[, t] == k) != 0) {
+            avgparts[t] <- avgparts[t] + 1
+          } 
+        }
       }
     }
+    
+    
 
     #### Spatial correlation
     mu <- x.beta + z.alpha * zg
@@ -547,12 +546,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.rho[iter]       <- rho
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
+  
   if (predictions) {
     y.pred[iter, , ] <- yp
   }
   if (skew) {
     keepers.z.alpha[iter] <- z.alpha
     keepers.z[iter, , ]   <- z
+  }
+  if (nknots > 1) {
+    keepers.avgparts[iter, ] <- avgparts
   }
   
   if (iter %% update == 0) {
@@ -580,6 +583,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   } #end iters
 
+if (nknots == 1) {
+  keepers.avgparts = matrix(1, iters, nt)
+}
 if (!predictions) {
   y.pred <- NULL
 }
@@ -597,7 +603,8 @@ results <- list(tau=keepers.tau,
                 alpha=keepers.alpha,
                 yp=y.pred,
                 z.alpha=z.alpha,
-                z=z)
+                z=z,
+                avgparts=keepers.avgparts)
 
 return(results)
 }#end mcmc()

@@ -23,16 +23,138 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
 }
 
 CorFx <- function(d, alpha, rho, nu){
-
   library(geoR)    
   cor       <- alpha * matern(d, rho, nu)
   diag(cor) <- 1
 
-return(cor)}
+  return(cor)
+}
 
 
 mem<-function(s,knots){
-   library(fields)
-   d<-rdist(s,knots)
-   g<-apply(d,1,which.min)
-g}
+  library(fields)
+  d<-rdist(s,knots)
+  g<-apply(d,1,which.min)
+
+  return(g)
+}
+
+rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,  
+                     mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
+
+  p <- dim(x)[3]
+  ns <- nrow(s)
+  
+  y <- matrix(NA, ns, nt)
+  tau <- matrix(NA, nknots, nt)
+  z <- matrix(NA, nknots, nt)
+  g <- matrix(NA, ns, nt)
+   
+  d <- as.matrix(dist(s))
+  # gau is used if mixprob = 0
+  gau.C   <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
+  gau.tau <- matrix(rgamma(1, tau.alpha, tau.beta), nknots, nt)
+  gau.sd  <- 1 / sqrt(gau.tau)
+  gau.z   <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  
+  # t is used if mixprob = 1
+  t.C   <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
+  t.tau <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
+  t.sd  <- 1 / sqrt(t.tau)
+  t.z   <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  
+  knots <- array(NA, dim=c(nknots, nt, 2))
+  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 2])
+  min.s2 <- min(s[, 2]); max.s2 <- max(s[, 2])
+
+  for (t in 1:nt) {
+    knots[, t, 1] <- runif(nknots, min.s1, max.s1)
+    knots[, t, 2] <- runif(nknots, min.s2, max.s2)
+    knots.t <- matrix(knots[, t, ], nknots, 2)
+    g <- mem(s, knots.t)
+
+    dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
+    if (dist) {
+      taug <- t.tau[g, t]
+      zg   <- t.z[g, t]
+      C    <- t.C
+    } else {
+      taug <- gau.tau[g, t]
+      zg   <- gau.z[g, t]
+      C    <- gau.C
+    }  
+        
+    if (p == 1) {
+      x.beta <- matrix(x[, t, ], ns, 1) * beta 
+    } else {
+      x.beta <- x[, t, ] %*% beta
+    }
+    mu <- x.beta + z.alpha * zg
+    
+    sdg  <- 1 / sqrt(taug)
+    y.t <- t(chol(C)) %*% matrix(rnorm(ns), ns, 1)
+    y.t <- mu + sdg * y.t
+    y[, t] <- y.t
+  }
+  
+  results <- list(y=y, tau=tau, z=z, knots=knots)
+}
+
+
+################################################################
+# Arguments:
+#   preds(yp, nt, iters): mcmc predictions at validation
+#                         locations
+#   probs(nprobs): sample quantiles for scoring
+#   validate(np, nt): validation data
+#
+# Returns:
+#   score(nprobs): a single quantile score per quantile
+################################################################
+QuantScore <- function(preds, probs, validate){
+  nt <- ncol(validate)
+  np <- nrow(validate)
+  nprobs <- length(probs)
+        
+  # apply gives nprobs x nsites. looking to find each site's quantile over all
+  # of the days.
+  pred.quants <- apply(preds, 1, quantile, probs=probs, na.rm=T)
+    
+  scores.sites <- array(NA, dim=c(nprobs, np, nt))
+    
+  for (q in 1:nprobs) {
+    diff <- pred.quants[q, ] - validate
+    i <- ifelse(diff >= 0, 1, 0)
+    scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
+  }
+    
+  scores <- apply(scores.sites, 1, mean, na.rm=T)
+
+  return(scores)
+}
+
+################################################################
+# Arguments:
+#   preds(yp, nt, iters): mcmc predictions at validation
+#                         locations
+#   probs(nthreshs): sample quantiles for scoring
+#   validate(np, nt): validation data
+#
+# Returns:
+#   list:
+#     scores(nthreshs): a single brier score per threshold
+#     threshs(nthreshs): sample quantiles from dataset
+################################################################
+BrierScore <- function(preds, probs, validate){
+  nthreshs <- length(probs)
+  thresholds <- quantile(validate, probs=probs, na.rm=T)
+    
+  scores <- rep(NA, nthreshs)
+  for (b in 1:nthreshs) {
+    pat <- apply((preds > thresholds[b]), c(1, 2), mean)
+    ind <- validate < thresholds[b]
+    scores[b] <- mean((ind - pat)^2, na.rm=T)
+  }
+    
+  return(scores)
+}
