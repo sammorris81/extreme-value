@@ -103,7 +103,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  cat("\t initializing all tau terms to", tau.init, "\n")
   	}
   	tau  <- matrix(tau.init, nknots, nt)
-    taug[, t] <- tau[g[, t], t]   
+  	for (t in 1:nt) {
+      taug[, t] <- tau[g[, t], t]   
+    }
   }
   
   zg <- matrix(0, ns, nt)
