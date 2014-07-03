@@ -12,6 +12,9 @@
 # Profiled output
 Rprof.out
 
+# Regular output
+*.out
+
 # LaTeX aux typsetting files
 *.aux
 *.bbl
