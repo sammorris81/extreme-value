@@ -103,16 +103,24 @@ nk <- 4
 g <- rep(1:4, each=5)
 tau <- matrix(rgamma(nk * nt, a, b), nk, nt)
 taug <- tau[g, ]
+z.alpha <- 0
 
 nk <- 1
 g <- rep(1, ns)
 tau <- matrix(rgamma(nt, a, b), nk, nt)
 taug <- tau[g, ]
+z.alpha <- 0
+
+nk <- 1
+g <- rep(1, ns)
+tau <- matrix(rgamma(1, a, b), nk, nt)
+taug <- tau[g, ]
+z.alpha <- 5
+
 
 sdg <- 1 / sqrt(taug)
 sd <- 1 / sqrt(tau)
 Y <- t(chol(C)) %*% matrix(rnorm(ns * nt), ns, nt)
-z.alpha <- 3
 z <- matrix(abs(rnorm(nk * nt, 0, 1)), nk, nt) * sd 
 zg <- z[g, ]
 mu <- x.beta + z.alpha * zg
@@ -129,13 +137,13 @@ Cp <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
 yp <- t(chol(Cp)) %*% matrix(rnorm(ns * nt), ns, nt)
 yp <- mu + sdg * yp
 
-thresh <- 0
+thresh <- 0.90
 
-fit<-mcmc(Y, s, x, s.pred=sp, x.pred=xp, method="t", skew=T,
-          thresh=thresh, thresh.quant=T, nknots=nk, iterplot=T,
+fit<-mcmc(Y, s, x, s.pred=sp, x.pred=xp, method="t", skew=F,
+          thresh=0.9, thresh.quant=T, nknots=nk, iterplot=T,
           iters=10000, burn=5000, update=100, thin=1,
           rho.init=rho, nu.init=nu, alpha.init=alpha, z.init=z,
-          z.alpha.m=1, z.alpha.s=1, z.alpha.init=z.alpha)
+          z.alpha.m=1, z.alpha.s=1, z.alpha.init=0)
           
 test <- rnorm(10000, 0, 1)
 norm.test <- pnorm(test)

@@ -5,7 +5,7 @@
 #
 # data settings:
 #	1 - Gaussian
-#   2 - skew-Gaussian (alpha = 5)
+# 2 - skew-Gaussian (alpha = 5)
 #	3 - skew-t (alpha = 5)
 #	4 - skew-t w/partition (5 knots)
 #	5 - 1/2 Gaussian, 1/2 t
@@ -15,9 +15,9 @@
 #
 # analysis methods:
 #	1 - Gaussian
-#   2 - skew-Gaussian
-#   3 - skew-t
-#   4 - skew-t w/partition (5 knots)
+# 2 - skew-Gaussian
+# 3 - skew-t
+# 4 - skew-t w/partition (5 knots)
 #	5 - t
 #	6 - t w/partition (5 knots)
 #	7 - t (thresh = 0.90)
@@ -83,9 +83,9 @@ for(d in 1:nsets){
                      update=update, thin=thin)
   toc <- proc.time()
   (toc - tic)[3]
-  cat("end: skew t-1 (T=0.90) \n")
+  cat("end: t-1 (T=0.90) \n")
 	
-  cat("start: skew t-5 (T=0.90) \n")
+  cat("start: t-5 (T=0.90) \n")
   tic <- proc.time()
   fit.4[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p, 
                      method="t", skew=F, thresh=0.90, nknots=5, 
@@ -93,7 +93,7 @@ for(d in 1:nsets){
                      update=update, thin=thin)
   toc <- proc.time()
   (toc - tic)[3]
-  cat("end: skew t-5 (T=0.90) \n")
+  cat("end: t-5 (T=0.90) \n")
 	
   save(fit.1, fit.2, fit.3, fit.4, file=outputfile)
 }

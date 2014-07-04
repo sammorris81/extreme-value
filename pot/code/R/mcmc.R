@@ -174,6 +174,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       y.imputed <- matrix(y, ns, nt)
       
       cor <- alpha * matern(u=d, phi=rho, kappa=nu)
+      diag(cor) <- 1
       for (t in 1:nt) {
         these.thresh.obs <- thresh.obs[, t]
         these.missing.obs <- missing.obs[, t]
@@ -366,6 +367,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     logrho <- log(rho)
     can.logrho <- rnorm(1, logrho, mh.rho)
+    # can.logrho <- logrho 
     can.rho <- exp(can.logrho)
     
     lognu  <- log(nu)
