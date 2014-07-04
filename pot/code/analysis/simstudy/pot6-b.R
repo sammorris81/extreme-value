@@ -4,29 +4,30 @@
 # standard kriging methods
 #
 # data settings:
-#	1 - Gaussian
+# 1 - Gaussian
 # 2 - skew-Gaussian (alpha = 5)
-#	3 - skew-t (alpha = 5)
-#	4 - skew-t w/partition (5 knots)
-#	5 - 1/2 Gaussian, 1/2 t
-#	6 - 1/2 Gaussian, 1/2 t w/partition (5 knots)
-#	7 - 1/2 Gaussian (range = 0.40), 1/2 t (range = 0.10)
-#	8 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
+# 3 - skew-t (alpha = 5)
+# 4 - skew-t w/partition (5 knots)
+# 5 - 1/2 Gaussian, 1/2 t
+# 6 - 1/2 Gaussian, 1/2 t w/partition (5 knots)
+# 7 - 1/2 Gaussian (range = 0.40), 1/2 t (range = 0.10)
+# 8 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
 #
 # analysis methods:
-#	1 - Gaussian
+# 1 - Gaussian
 # 2 - skew-Gaussian
 # 3 - skew-t
 # 4 - skew-t w/partition (5 knots)
-#	5 - t
-#	6 - t w/partition (5 knots)
-#	7 - t (thresh = 0.90)
-#	8 - t w/partition (5 knots, thresh = 0.90)
+# 5 - t
+# 6 - t w/partition (5 knots)
+# 7 - t (thresh = 0.90)
+# 8 - t w/partition (5 knots, thresh = 0.90)
 #	
 #########################################################################
 
 library(fields)
 library(geoR)
+options(warn=2)
 
 #### Load simdata
 rm(list = ls())
@@ -44,6 +45,7 @@ y.validate <- array(NA, dim=c(ntest, nt, nsets))
 start <- proc.time()
 
 for(d in 1:nsets){
+  cat("start dataset", d, "\n")
   set.seed(setting * 100 + d)
   y.d <- y[, , d, setting]
   obs <- rep(c(T, F), 100)[1:ns]

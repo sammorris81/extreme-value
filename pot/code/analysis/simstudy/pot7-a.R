@@ -18,15 +18,16 @@
 # 2 - skew-Gaussian
 # 3 - skew-t
 # 4 - skew-t w/partition (5 knots)
-#	5 - t
-#	6 - t w/partition (5 knots)
-#	7 - t (thresh = 0.90)
-#	8 - t w/partition (5 knots, thresh = 0.90)
+# 5 - t
+# 6 - t w/partition (5 knots)
+# 7 - t (thresh = 0.90)
+# 8 - t w/partition (5 knots, thresh = 0.90)
 #
 #########################################################################
 
 library(fields)
 library(geoR)
+options(warn=2)
 
 #### Load simdata
 rm(list = ls())
@@ -44,6 +45,7 @@ y.validate <- array(NA, dim=c(ntest, nt, nsets))
 start <- proc.time()
 
 for(d in 1:nsets){
+  cat("start dataset", d, "\n")
   set.seed(setting * 100 + d)
   y.d <- y[, , d, setting]
   obs <- rep(c(T, F), 100)[1:ns]
