@@ -173,8 +173,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
       
-      cor <- alpha * matern(u=d, phi=rho, kappa=nu)
-      diag(cor) <- 1
+      cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
       for (t in 1:nt) {
         these.thresh.obs <- thresh.obs[, t]
         these.missing.obs <- missing.obs[, t]
@@ -186,7 +185,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         # nugget error
         # new expected value and standard deviation
         e.y <- mu[, t] + theta.t
-        s.y <- sqrt((1 - alpha) * sig.t)
+        s.y <- sqrt(1 - alpha) * sig.t
         upper.y <- thresh.mtx[, t]
         
         y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
@@ -365,11 +364,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     att.rho <- att.rho + 1
     att.nu  <- att.nu + 1
     
+    # original
     logrho <- log(rho)
     can.logrho <- rnorm(1, logrho, mh.rho)
-    # can.logrho <- logrho 
     can.rho <- exp(can.logrho)
-    
+
     lognu  <- log(nu)
     can.lognu <- rnorm(1, lognu, mh.nu)
     can.nu <- exp(can.lognu)
@@ -582,6 +581,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }
     cat("\t iter", iter, "\n")
+    # cat("\t nu = ", nu, "\n")
+    # cat("\t alpha = ", alpha, "\n")
+    # cat("\t rho = ", rho, "\n")
   }
   
   

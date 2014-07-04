@@ -109,7 +109,7 @@ nk <- 1
 g <- rep(1, ns)
 tau <- matrix(rgamma(nt, a, b), nk, nt)
 taug <- tau[g, ]
-z.alpha <- 0
+z.alpha <- 5
 
 nk <- 1
 g <- rep(1, ns)
@@ -143,7 +143,7 @@ fit<-mcmc(Y, s, x, s.pred=sp, x.pred=xp, method="t", skew=F,
           thresh=0.9, thresh.quant=T, nknots=nk, iterplot=T,
           iters=10000, burn=5000, update=100, thin=1,
           rho.init=rho, nu.init=nu, alpha.init=alpha, z.init=z,
-          z.alpha.m=1, z.alpha.s=1, z.alpha.init=0)
+          z.alpha.m=1, z.alpha.s=1, z.alpha.init=0, logrho.s=1)
           
 test <- rnorm(10000, 0, 1)
 norm.test <- pnorm(test)
