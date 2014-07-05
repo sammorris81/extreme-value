@@ -45,14 +45,14 @@ nknots.t <- c(1, 1, 1, 5, 1, 5, 1, 1)
 gau.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.40, 0.10)
 t.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.40)
 z.alpha.t <- c(0, 5, 5, 5, 0, 0, 0, 0)
-tau.alpha.t <- 3
-tau.beta.t  <- 5
+tau.alpha.t <- 2
+tau.beta.t  <- 8
 
 
 # covariate data
-s         <- cbind(runif(75), runif(75))
+s         <- cbind(runif(60), runif(60))
 ns        <- nrow(s)  
-nt        <- 20
+nt        <- 50
 nsets     <- 20
 nsettings <- length(mixprob.t) 
 ntest     <- floor(ns / 2)
