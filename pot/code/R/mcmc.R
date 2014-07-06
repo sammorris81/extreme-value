@@ -172,6 +172,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mu <- x.beta + z.alpha * zg
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
+      res <- y - mu
       
       cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
       for (t in 1:nt) {
@@ -188,6 +189,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         s.y <- sqrt(1 - alpha) * sig.t
         upper.y <- thresh.mtx[, t]
         
+        # conditional means and sds using precision matrices (Geweke, 2005)
+        # e.y <- rep(NA, ns)
+  
+        # prec.cov <- diag(sqrt(taug[, t])) %*% prec.cor %*% diag(sqrt(taug[, t]))
+        # s.y <- 1 / sqrt(diag(prec.cov))
+        # for (i in 1:ns) {
+          # e.y[i] <- mu[i, t] - s.y[i]^2 * (prec.cov[i, -i]) %*% res[-i, t]
+        # }
+
         y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
        
         # if any y.impute.t come back as -Inf, it's because P(Y < T) = 0
@@ -203,6 +213,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # Only the sites/days with missing/thresholded observations are different from
       # the true y in y.imputed
       y <- y.imputed
+
     }
     
     # update beta
