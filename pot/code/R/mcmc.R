@@ -140,7 +140,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   alpha  <- alpha.init
  
   C <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
-  prec.cor<-solve(C)
+  chol.C <- chol(C)
+  prec.cor <- chol2inv(chol.C)
+  logdet.prec <- -sum(log(diag(chol.C)))  # already includes 0.5
   
   # MH tuning params
   acc.w     <- att.w     <- mh.w     <- rep(0.1, nt)  # knot locations
@@ -165,6 +167,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.z.alpha   <- rep(NA, iters)
   keepers.avgparts  <- matrix(NA, nrow=iters, ncol=nt)  # avg partitions per day
   
+  tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
     
     # impute data below threshold
@@ -172,7 +175,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mu <- x.beta + z.alpha * zg
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
-      res <- y - mu
       
       cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
       for (t in 1:nt) {
@@ -189,15 +191,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         s.y <- sqrt(1 - alpha) * sig.t
         upper.y <- thresh.mtx[, t]
         
-        # conditional means and sds using precision matrices (Geweke, 2005)
-        # e.y <- rep(NA, ns)
-  
-        # prec.cov <- diag(sqrt(taug[, t])) %*% prec.cor %*% diag(sqrt(taug[, t]))
-        # s.y <- 1 / sqrt(diag(prec.cov))
-        # for (i in 1:ns) {
-          # e.y[i] <- mu[i, t] - s.y[i]^2 * (prec.cov[i, -i]) %*% res[-i, t]
-        # }
-
         y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
        
         # if any y.impute.t come back as -Inf, it's because P(Y < T) = 0
@@ -226,8 +219,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
        ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
        mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
-    } 
-    vvv <- solve(vvv)
+    }
+    
+    vvv <- chol2inv(chol(vvv))
     beta <- vvv %*% mmm + t(chol(vvv)) %*% rnorm(p)
       
     for (t in 1:nt) {
@@ -273,8 +267,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }
     
-    
-
     #### Spatial correlation
     mu <- x.beta + z.alpha * zg
     res <- y - mu
@@ -370,24 +362,114 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
     }
    
+    # # update rho and nu
+    # att.rho <- att.rho + 1
+    # att.nu  <- att.nu + 1
     
-    # update rho and nu
-    att.rho <- att.rho + 1
+    # # original
+    # logrho <- log(rho)
+    # can.logrho <- rnorm(1, logrho, mh.rho)
+    # can.rho <- exp(can.logrho)
+
+    # lognu  <- log(nu)
+    # can.lognu <- rnorm(1, lognu, mh.nu)
+    # can.nu <- exp(can.lognu)
+    
+    # can.C <- CorFx(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
+    # can.chol.C <- chol(can.C)
+    # can.prec.cor <- chol2inv(can.chol.C))
+    # can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
+    
+    # can.rss <- rep(NA, nt)
+    # cur.rss <- rep(NA, nt)
+    # for (t in 1:nt) {
+      # can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t]) 
+      # cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
+    # }
+    
+    # R <- -0.5 * sum(can.rss - cur.rss) + 
+          # nt * (can.logdet.prec - logdet.prec) + 
+          # dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
+          # dnorm(logrho, logrho.m, logrho.s, log=T) + 
+          # dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
+          # dnorm(lognu, lognu.m, lognu.s, log=T)
+         
+    # if (!is.na(R)) { if (log(runif(1)) < R) {
+      # rho <- can.rho
+      # nu <- can.nu
+      # C <- can.C
+      # chol.C <- can.chol.C
+      # prec.cor <- can.prec.cor
+      # logdet.prec <- can.logdet.prec
+      # cur.rss <- can.rss
+      # acc.rho <- acc.rho + 1
+      # acc.nu  <- acc.nu + 1
+    # }}
+    
+    # if (att.rho > 50) {
+      # if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
+      # if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
+      # acc.rho <- att.rho <- 1
+    # }
+    
+    # if (att.nu > 50) {
+      # if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
+      # if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
+      # acc.nu <- att.nu <- 1
+    # }
+    
+    # update rho
+    # att.rho <- att.rho + 1
+    
+    # logrho <- log(rho)
+    # can.logrho <- rnorm(1, logrho, mh.rho)
+    # can.rho <- exp(can.logrho)
+    
+    # can.C <- CorFx(d=d, alpha=alpha, rho=can.rho, nu=nu)
+    # can.chol.C <- chol(can.C)
+    # can.prec.cor <- chol2inv(can.chol.C))
+    # can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
+    
+    # can.rss <- rep(NA, nt)
+    # cur.rss <- rep(NA, nt)
+    # for (t in 1:nt) {
+      # can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t]) 
+      # cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
+    # }
+    
+    # R <- -0.5 * sum(can.rss - cur.rss) + 
+          # nt * (can.logdet.prec - logdet.prec) + 
+          # dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
+          # dnorm(logrho, logrho.m, logrho.s, log=T)
+         
+    # if (!is.na(R)) { if (log(runif(1)) < R) {
+      # rho <- can.rho
+      # C <- can.C
+      # chol.C <- can.chol.C
+      # prec.cor <- can.prec.cor
+      # logdet.prec <- can.logdet.prec
+      # cur.rss <- can.rss
+      # acc.rho <- acc.rho + 1
+    # }}
+    
+    # if (att.rho > 50) {
+      # cat("\t acc.rate.rho", acc.rho / att.rho, "\n")
+      # if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
+      # if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
+      # acc.rho <- att.rho <- 1
+    # }
+    
+    # update nu
     att.nu  <- att.nu + 1
     
-    # original
-    logrho <- log(rho)
-    can.logrho <- rnorm(1, logrho, mh.rho)
-    can.rho <- exp(can.logrho)
-
     lognu  <- log(nu)
     can.lognu <- rnorm(1, lognu, mh.nu)
     can.nu <- exp(can.lognu)
     
-    can.C <- CorFx(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
-    can.prec.cor <- solve(can.C)
-    can.logdet.prec <- log(det(can.prec.cor))
-    logdet.prec <- log(det(prec.cor))  
+    can.C <- CorFx(d=d, alpha=alpha, rho=rho, nu=can.nu)
+    can.chol.C <- chol(can.C)
+    can.prec.cor <- chol2inv(can.chol.C))
+    can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
     
     can.rss <- rep(NA, nt)
     cur.rss <- rep(NA, nt)
@@ -397,34 +479,54 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
     
     R <- -0.5 * sum(can.rss - cur.rss) + 
-          0.5 * nt * (can.logdet.prec - logdet.prec) + 
-          dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
-          dnorm(logrho, logrho.m, logrho.s, log=T) + 
+          nt * (can.logdet.prec - logdet.prec) + 
           dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
           dnorm(lognu, lognu.m, lognu.s, log=T)
          
     if (!is.na(R)) { if (log(runif(1)) < R) {
-      rho <- can.rho
       nu <- can.nu
+      C <- can.C
+      chol.C <- can.chol.C
       prec.cor <- can.prec.cor
       logdet.prec <- can.logdet.prec
       cur.rss <- can.rss
-      acc.rho <- acc.rho + 1
       acc.nu  <- acc.nu + 1
     }}
-    
-    if (att.rho > 50) {
-      if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
-      if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
-      acc.rho <- att.rho <- 1
-    }
     
     if (att.nu > 50) {
       if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
       if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
       acc.nu <- att.nu <- 1
     }
-       
+        
+    # update rho with discrete uniform
+    mu <- x.beta + z.alpha * zg
+    res <- y - mu
+    lll <- mmm <- seq(0.05, 1.25, 0.02)
+    can.C <- array(NA, dim=c(ns, ns, length(lll)))
+    can.prec.cor <- array(NA, dim=c(ns, ns, length(lll)))
+    can.logdet.prec <- rep(NA, length(lll))
+    can.rss <- matrix(NA, nrow=length(lll), ncol=nt)
+    
+    for (l in 1:length(lll)) {
+      can.C[, , l] <- CorFx(d=d, alpha=alpha, rho=mmm[l], nu=nu)
+      can.chol.C <- chol(can.C[, , l])
+      can.prec.cor[, , l] <- chol2inv(can.chol.C)
+      can.logdet.prec[l] <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
+      for (t in 1:nt) {
+        can.rss[l, t] <- quad.form(can.prec.cor[, , l], sqrt(taug[, t]) * res[, t])
+      }
+      lll[l] <- nt * can.logdet.prec[l] - 0.5 * sum(can.rss[l, ])
+    }
+    
+    rho.idx <- sample(length(mmm), 1, prob=exp(lll - max(lll)))
+    rho <- mmm[rho.idx]
+    C <- can.C[, , rho.idx]
+    chol.C <- chol(C)
+    prec.cor <- can.prec.cor[, , rho.idx]
+    logdet.prec <- can.logdet.prec[rho.idx]
+    cur.rss <- can.rss[rho.idx, ]
+        
     # update alpha
     att.alpha <- att.alpha + 1
     
@@ -433,9 +535,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     can.alpha <- pnorm(can.norm.alpha)
     
     can.C <- CorFx(d=d, alpha=can.alpha, rho=rho, nu=nu)
-    can.prec.cor <- solve(can.C)
-    can.logdet.prec <- log(det(can.prec.cor))
-    logdet.prec <- log(det(prec.cor))
+    can.chol.C <- chol(can.C)
+    can.prec.cor <- chol2inv(can.chol.C)
+    can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
     
     can.rss <- rep(NA, nt)
     for (t in 1:nt) {
@@ -449,7 +551,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     if (!is.na(R)) { if (log(runif(1)) < R) {
       alpha <- can.alpha
+      C <- can.C
+      chol.C <- can.chol.C
       prec.cor <- can.prec.cor
+      logdet.prec <- can.logdet.prec
       cur.rss <- can.rss
       acc.alpha <- acc.alpha + 1
     }}
@@ -481,11 +586,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mu <- y - x.beta - z.alpha * zg
       
       for (t in 1:nt) {
+        prec.cov <- diag(sqrt(taug[, t])) %*% prec.cor %*% diag(sqrt(taug[, t]))
         for (k in 1:nknots) {
           these <- which(g[, t] == k)
           r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
           r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
-          prec.cov <- diag(sqrt(taug[, t])) %*% prec.cor %*% diag(sqrt(taug[, t]))
           prec.11 <- prec.cov[these, these, drop=F]  # with cov
           prec.21 <- prec.cov[-these, these, drop=F]
           lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
@@ -591,7 +696,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         plot(keepers.z[1:iter, 1, 48], type="l")
       }
     }
+    
+    toc <- proc.time()
     cat("\t iter", iter, "\n")
+    cat("\t elapsed time", (toc - tic)[3], "\n")
+    tic <- proc.time()
     # cat("\t nu = ", nu, "\n")
     # cat("\t alpha = ", alpha, "\n")
     # cat("\t rho = ", rho, "\n")
