@@ -316,7 +316,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             nparts <- length(these)
 
             if(nparts==0){
-              tau[k, t]<-rgamma(1, tau.alpha, tau.beta)
+              tau[k, t] <- rgamma(1, tau.alpha, tau.beta)
+              if (tau[k, t] < 1e-6) {
+                tau[k, t] <- 1e-6
+              }
             }       
             else{      
               att.tau[nparts] <- att.tau[nparts] + 1
@@ -328,6 +331,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
               cantau    <- tau[, t]
               cantau[k] <- rgamma(1, aaa, bbb)
+              if (cantau[k] < 1e-6) {
+                cantau[k] <- 1e-6
+              }
               cantaug   <- cantau[g[, t]]
 
               canll <- 0.5 * sum(log(cantaug)) -
@@ -336,7 +342,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               R    <- canll - curll[t] +
                       dgamma(cantau[k], tau.alpha, tau.beta, log=TRUE) -
                       dgamma(tau[k, t], tau.alpha, tau.beta, log=TRUE) +
-                      dgamma(tau[k, t], aaa, bbb, log=TRUE) -
+                      tryCatch(
+                        {dgamma(tau[k, t], aaa, bbb, log=TRUE)}, 
+                        warning = function(w) {
+                          print(paste("knot", k, ", day", t))
+                          print(paste("aaa =", aaa))
+                          print(paste("bbb =", bbb))
+                          print(paste("tau[k, t] =", tau[k, t]))
+                          print(paste("g[, t] =", g[, t]))
+                      }) -
                       dgamma(cantau[k], aaa, bbb, log=TRUE)
 
               if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -695,9 +709,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (iter %% update == 0) {
     if (iterplot) {
       if (skew) {
-        par(mfrow=c(3, 3))
+        par(mfrow=c(4, 3))
       } else {
-        par(mfrow=c(3, 2))
+        par(mfrow=c(3, 3))
       }
       plot(keepers.beta[1:iter, 1], type="l")
       plot(keepers.tau.alpha[1:iter], type="l")
@@ -710,6 +724,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         plot(keepers.z[1:iter, 1, 1], type="l")
         plot(keepers.z[1:iter, 1, 48], type="l")
       }
+      plot(keepers.tau[1:iter, 1, 1], type="l")
+      plot(keepers.tau[1:iter, 1, 10], type="l")
+      plot(keepers.tau[1:iter, 1, 20], type="l")
     }
     
     toc <- proc.time()

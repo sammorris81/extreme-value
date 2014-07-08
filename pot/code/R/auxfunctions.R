@@ -103,7 +103,7 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
 
 ################################################################
 # Arguments:
-#   preds(yp, nt, iters): mcmc predictions at validation
+#   preds(iters, yp, nt): mcmc predictions at validation
 #                         locations
 #   probs(nprobs): sample quantiles for scoring
 #   validate(np, nt): validation data
@@ -118,7 +118,7 @@ QuantScore <- function(preds, probs, validate){
         
   # apply gives nprobs x nsites. looking to find each site's quantile over all
   # of the days.
-  pred.quants <- apply(preds, 1, quantile, probs=probs, na.rm=T)
+  pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
     
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
     
@@ -135,7 +135,7 @@ QuantScore <- function(preds, probs, validate){
 
 ################################################################
 # Arguments:
-#   preds(yp, nt, iters): mcmc predictions at validation
+#   preds(iters, yp, nt): mcmc predictions at validation
 #                         locations
 #   probs(nthreshs): sample quantiles for scoring
 #   validate(np, nt): validation data
@@ -151,7 +151,7 @@ BrierScore <- function(preds, probs, validate){
     
   scores <- rep(NA, nthreshs)
   for (b in 1:nthreshs) {
-    pat <- apply((preds > thresholds[b]), c(1, 2), mean)
+    pat <- apply((preds > thresholds[b]), c(2, 3), mean)
     ind <- validate < thresholds[b]
     scores[b] <- mean((ind - pat)^2, na.rm=T)
   }
