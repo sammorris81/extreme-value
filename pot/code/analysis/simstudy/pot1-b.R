@@ -34,11 +34,13 @@ options(warn=2)
 #### Load simdata
 rm(list = ls())
 load(file='./simdata.RData')
+source('../../R/mcmc.R')
+source('../../R/auxfunctions.R')
 
 setting <- 1
 analysis <- "b"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
-nsets <- 10
+nsets <- 5
 
 outputfile <- paste(setting, "-", analysis, ".RData", sep="")
 set.seed(setting)

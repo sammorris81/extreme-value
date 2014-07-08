@@ -59,18 +59,23 @@ source("../../R/auxfunctions.R")
 		     # betas.gpd, betas.gam, betas.mvn,
 		     # probs, thresholds)
 
-probs <- c(0.9, 0.95, 0.97, 0.99, 0.995, 0.999)
-thresholds <- c(0.8, 0.85, 0.9, 0.95, 0.97, 0.99)
+probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
+thresholds <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
 nsets <- 5 # Number of cv sets
 nbetas <- 4 # number of betas
 
 quant.score.gau <- matrix(NA, length(probs), nsets)
 quant.score.t10 <- matrix(NA, length(probs), nsets)
 quant.score.t19 <- matrix(NA, length(probs), nsets)
+quant.score.t50 <- matrix(NA, length(probs), nsets)
+quant.score.t59 <- matrix(NA, length(probs), nsets)
 
 brier.score.gau <- matrix(NA, length(thresholds), nsets)
 brier.score.t10 <- matrix(NA, length(thresholds), nsets)
 brier.score.t19 <- matrix(NA, length(thresholds), nsets)
+brier.score.t50 <- matrix(NA, length(thresholds), nsets)
+brier.score.t59 <- matrix(NA, length(thresholds), nsets)
+
 
 usable <- (25000+1):30000
 load("cv5-1.RData")
@@ -93,6 +98,16 @@ for (d in 1:nsets) {
   brier.score.t10[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
+load("cv5-3.RData")
+for (d in 1:nsets) {
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- y[val.idx, ]
+  pred.d <- fit.d$yp[usable, , ]
+  quant.score.t50[, d] <- QuantScore(pred.d, probs, validate)
+  brier.score.t50[, d] <- BrierScore(pred.d, thresholds, validate)
+}
+
 load("cv5-4.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
@@ -103,8 +118,20 @@ for (d in 1:nsets) {
   brier.score.t19[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
+load("cv5-5.RData")
+for (d in 1:nsets) {
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- y[val.idx, ]
+  pred.d <- fit.d$yp[usable, , ]
+  quant.score.t59[, d] <- QuantScore(pred.d, probs, validate)
+  brier.score.t59[, d] <- BrierScore(pred.d, thresholds, validate)
+}
+
 savelist <- list(quant.score.gau, quant.score.t10, quant.score.t19, 
+             quant.score.t50, quant.score.t59,
 		     brier.score.gau, brier.score.t10, brier.score.t19, 
+		     brier.score.t50, brier.score.t59,
 		     probs, thresholds)
 
 save(savelist, file="cv-scores.RData")

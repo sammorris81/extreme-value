@@ -166,6 +166,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.z         <- array(NA, dim=c(iters, nknots, nt))
   keepers.z.alpha   <- rep(NA, iters)
   keepers.avgparts  <- matrix(NA, nrow=iters, ncol=nt)  # avg partitions per day
+  return.iters      <- (burn + 1):iters
   
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
@@ -742,26 +743,33 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } #end iters
 
 if (nknots == 1) {
-  keepers.avgparts = matrix(1, iters, nt)
+  keepers.avgparts <- NULL
+} else {
+  keepers.avgparts <- keepers.avgparts[return.iters, ]
 }
 if (!predictions) {
   y.pred <- NULL
+} else {
+  y.pred <- y.pred[return.iters, , ]
 }
 if (!skew) {
-  z <- NULL
-  z.alpha <- NULL
+  keepers.z <- NULL
+  keepers.z.alpha <- NULL
+} else {
+  keepers.z <- keepers.z[return.iters, , ]
+  keepers.z.alpha <- keepers.z.alpha[return.iters]
 }
 
-results <- list(tau=keepers.tau, 
-                beta=keepers.beta,
-                tau.alpha=keepers.tau.alpha,
-                tau.beta=keepers.tau.beta,
-                rho=keepers.rho,
-                nu=keepers.nu,
-                alpha=keepers.alpha,
+results <- list(tau=keepers.tau[return.iters, , ], 
+                beta=keepers.beta[return.iters, ],
+                tau.alpha=keepers.tau.alpha[return.iters],
+                tau.beta=keepers.tau.beta[return.iters],
+                rho=keepers.rho[return.iters],
+                nu=keepers.nu[return.iters],
+                alpha=keepers.alpha[return.iters],
                 yp=y.pred,
-                z.alpha=z.alpha,
-                z=z,
+                z.alpha=keepers.z.alpha,
+                z=keepers.z,
                 avgparts=keepers.avgparts)
 
 return(results)

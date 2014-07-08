@@ -96,10 +96,3 @@ save(y, tau.t, z.t, knots.t, ns, nt, s, nsets,
      x, ntest,  # covariate data that should be the same for all datasets
      file='simdata.RData')
 rm(list=ls())
-
-# reload required functions into workspace
-load(file='./simdata.RData')
-source('../../R/mcmc.R')
-source('../../R/auxfunctions.R')
-
-save.image(file='simdata.RData')
