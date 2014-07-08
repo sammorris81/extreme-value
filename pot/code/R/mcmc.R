@@ -714,7 +714,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     toc <- proc.time()
     cat("\t iter", iter, "\n")
-    cat("\t elapsed time", (toc - tic)[3], "\n")
+    # cat("\t elapsed time", (toc - tic)[3], "\n")
     tic <- proc.time()
     # cat("\t nu = ", nu, "\n")
     # cat("\t alpha = ", alpha, "\n")
