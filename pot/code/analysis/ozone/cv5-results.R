@@ -59,6 +59,15 @@ source("../../R/auxfunctions.R")
 		     # betas.gpd, betas.gam, betas.mvn,
 		     # probs, thresholds)
 
+
+quant.score.gau <- matrix(NA, length(probs), nsets)
+quant.score.t10 <- matrix(NA, length(probs), nsets)
+quant.score.t19 <- matrix(NA, length(probs), nsets)
+
+brier.score.gau <- matrix(NA, length(thresholds), nsets)
+brier.score.t10 <- matrix(NA, length(thresholds), nsets)
+brier.score.t19 <- matrix(NA, length(thresholds), nsets)
+
 probs <- c(0.9, 0.95, 0.97, 0.99, 0.995, 0.999)
 thresholds <- c(0.8, 0.85, 0.9, 0.95, 0.97, 0.99)
 nsets <- 5 # Number of cv sets
