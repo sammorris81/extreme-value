@@ -12,7 +12,7 @@ setting <- 1
 method <- "gaussian"
 nknots <- 1
 threshold <- 0
-outputfile <- paste("cv-", setting, ".RData", sep="")
+outputfile <- paste("cv5-", setting, ".RData", sep="")
 start <- proc.time()
 
 fit <- vector(mode="list", length=5)
