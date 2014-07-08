@@ -60,7 +60,7 @@ source("../../R/auxfunctions.R")
 		     # probs, thresholds)
 
 usable <- (25000+1):30000
-load("cv-1.RData")
+load("cv5-1.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -70,7 +70,7 @@ for (d in 1:nsets) {
   brier.score.gau[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
-load("cv-2.RData")
+load("cv5-2.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -80,7 +80,7 @@ for (d in 1:nsets) {
   brier.score.t10[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
-load("cv-4.RData")
+load("cv5-4.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
