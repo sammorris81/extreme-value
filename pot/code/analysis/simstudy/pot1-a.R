@@ -39,7 +39,7 @@ source('../../R/auxfunctions.R')
 
 setting <- 1
 analysis <- "a"
-iters <- 5000; burn <- 10000; update <- 1000; thin <- 1
+iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
 outputfile <- paste(setting, "-", analysis, ".RData", sep="")
