@@ -44,7 +44,7 @@ nsets <- 5
 
 outputfile <- paste(setting, "-", analysis, ".RData", sep="")
 set.seed(setting)
-fit.1 <- fit.2 <- fit.3 <- fit.4 <- fit.5 <- vector(mode="list", length=nsets)
+fit.1 <- fit.2 <- fit.3 <- fit.4 <-vector(mode="list", length=nsets)
 y.validate <- array(NA, dim=c(ntest, nt, nsets))
 
 start <- proc.time()
@@ -102,15 +102,15 @@ for(d in 1:nsets){
   (toc - tic)[3]
   cat("end: skew t-1 (T=0.90) \n")
   
-  cat("start: skew t-5 (T=0.90) \n")
-  tic <- proc.time()
-  fit.5[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                     method="t", skew=T, thresh=0.90, nknots=5,
-                     iterplot=F, iters=iters, burn=burn,
-                     update=update, thin=thin)
-  toc <- proc.time()
-  (toc - tic)[3]
-  cat("end: skew t-5 (T=0.90) \n")
+  # cat("start: skew t-5 (T=0.90) \n")
+  # tic <- proc.time()
+  # fit.5[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                     # method="t", skew=T, thresh=0.90, nknots=5,
+                     # iterplot=F, iters=iters, burn=burn,
+                     # update=update, thin=thin)
+  # toc <- proc.time()
+  # (toc - tic)[3]
+  # cat("end: skew t-5 (T=0.90) \n")
 
-  save(fit.1, fit.2, fit.3, fit.4, fit.5, file=outputfile)
+  save(fit.1, fit.2, fit.3, fit.4, file=outputfile)
 }
