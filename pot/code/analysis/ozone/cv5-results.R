@@ -14,53 +14,8 @@ source("../../R/auxfunctions.R")
 # # abline(0,1)
 # # print(mean(y.full.p>lo & y.full.p<hi))
 
-# probs <- c(0.9, 0.95, 0.97, 0.99, 0.995, 0.999)
-# thresholds <- c(0.8, 0.85, 0.9, 0.95, 0.97, 0.99)
-# nsets <- 5 # Number of cv sets
-# nbetas <- 4 # number of betas
-
-# quant.score.gau <- matrix(NA, length(probs), nsets)
-# quant.score.t10 <- matrix(NA, length(probs), nsets)
-# quant.score.t19 <- matrix(NA, length(probs), nsets)
-
-# brier.score.gau <- matrix(NA, length(thresholds), nsets)
-# brier.score.t10 <- matrix(NA, length(thresholds), nsets)
-# brier.score.t19 <- matrix(NA, length(thresholds), nsets)
-
-# # iters x betas x threshold x method
-# betas.gpd <- array(NA, dim=c(iters, nbetas, nsets, nsettings))
-# betas.gam <- array(NA, dim=c(iters, nbetas, nsets, nsettings))
-# betas.mvn <- array(NA, dim=c(iters, nbetas, nsets, nsettings)) 
-
-# usable <- (25000+1):iters
-# for(setting in c(1, 2, 4)){
-	# dataset <- paste("cv-", setting, ".RData", sep="")
-	# load(dataset)
-	# for(d in 1:nsets){
-		# fit.d   <- fit[[d]]
-		# val.idx <- cv.lst[[d]]
-		# validate <- y[val.idx,]
-		# pred <- fit.d$yp[usable, , ]
-		# quant.score.gau[, d, setting] <- quant.score
-		# quant.score.gpd[,d,setting] <- quant.score(pred.gpd[,,usable,d], probs, validate) 
-		# quant.score.gam[,d,setting] <- quant.score(pred.gam[,,usable,d], probs, validate)
-		# quant.score.mvn[,d,setting] <- quant.score(pred.mvn[,,usable,d], probs, validate)
-		# brier.score.gpd[,d,setting] <- brier.score(pred.gpd[,,usable,d], thresholds, validate)
-		# brier.score.gam[,d,setting] <- brier.score(pred.gam[,,usable,d], thresholds, validate)
-		# brier.score.mvn[,d,setting] <- brier.score(pred.mvn[,,usable,d], thresholds, validate)
-		# betas.gpd[,,d,setting] <- beta.gpd[,,d]
-		# betas.gam[,,d,setting] <- beta.gam[,,d]
-		# betas.mvn[,,d,setting] <- beta.mvn[,,d]
-	# }
-# }
-
-# savelist <- list(quant.score.gpd, quant.score.gam, quant.score.mvn, 
-		     # brier.score.gpd, brier.score.gam, brier.score.mvn, 
-		     # betas.gpd, betas.gam, betas.mvn,
-		     # probs, thresholds)
-
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
-thresholds <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
+thresholds <- quantile(y, probs=probs, na.rm=T)
 nsets <- 5 # Number of cv sets
 nbetas <- 4 # number of betas
 
@@ -75,7 +30,6 @@ brier.score.t10 <- matrix(NA, length(thresholds), nsets)
 brier.score.t19 <- matrix(NA, length(thresholds), nsets)
 brier.score.t50 <- matrix(NA, length(thresholds), nsets)
 brier.score.t59 <- matrix(NA, length(thresholds), nsets)
-
 
 usable <- (25000+1):30000
 load("cv5-1.RData")
@@ -135,21 +89,46 @@ savelist <- list(quant.score.gau, quant.score.t10, quant.score.t19,
 		     probs, thresholds)
 
 save(savelist, file="cv-scores.RData")
-# load("cv.RData")
-# source("mcmc.R")
-# load("cv-scores.RData")
 
-# quant.score.gpd <- savelist[[1]]
-# quant.score.gam <- savelist[[2]]
-# quant.score.mvn <- savelist[[3]]
-# brier.score.gpd <- savelist[[4]]
-# brier.score.gam <- savelist[[5]]
-# brier.score.mvn <- savelist[[6]]
-# betas.gpd <- savelist[[7]]
-# betas.gam <- savelist[[8]]
-# betas.mvn <- savelist[[9]]
-# probs <- savelist[[10]]
-# thresholds <- savelist[[11]]
+rm(list=ls())
+load("cv-setup.RData")
+source("../../R/auxfunctions.R")
+load("cv-scores.RData")
+
+quant.score.gau <- savelist[[1]]
+quant.score.t10 <- savelist[[2]]
+quant.score.t19 <- savelist[[3]]
+quant.score.t50 <- savelist[[4]]
+quant.score.t59 <- savelist[[5]]
+brier.score.gau <- savelist[[6]]
+brier.score.t10 <- savelist[[7]]
+brier.score.t19 <- savelist[[8]]
+brier.score.t50 <- savelist[[9]]
+brier.score.t59 <- savelist[[10]]
+probs <- savelist[[11]]
+thresholds <- savelist[[12]]
+
+quant.score.mean <- matrix(NA, 5, length(probs))
+brier.score.mean <- matrix(NA, 5, length(thresholds))
+
+quant.score.mean[1, ] <- apply(quant.score.gau, 1, mean)
+quant.score.mean[2, ] <- apply(quant.score.t10, 1, mean)
+quant.score.mean[3, ] <- apply(quant.score.t19, 1, mean)
+quant.score.mean[4, ] <- apply(quant.score.t50, 1, mean)
+quant.score.mean[5, ] <- apply(quant.score.t59, 1, mean)
+
+brier.score.mean[1, ] <- apply(brier.score.gau, 1, mean)
+brier.score.mean[2, ] <- apply(brier.score.t10, 1, mean)
+brier.score.mean[3, ] <- apply(brier.score.t19, 1, mean)
+brier.score.mean[4, ] <- apply(brier.score.t50, 1, mean)
+brier.score.mean[5, ] <- apply(brier.score.t59, 1, mean)
+
+plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Quantile Scores for ozone analysis", xlab="quantile", ylab="score")
+for (i in 2:5) {
+  lines(probs, quant.score.mean[i, ], lty=i)
+  points(probs, quant.score.mean[i, ], pch=i)
+}
+legend("bottomleft", lty=1:5, pch=1:5, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)"))
 
 # quant.score.mean <- array(NA, dim=c(3, length(probs), 3))
 # brier.score.mean <- array(NA, dim=c(3, length(probs), 3))

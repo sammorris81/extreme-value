@@ -100,7 +100,6 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
   results <- list(y=y, tau=tau, z=z, knots=knots)
 }
 
-
 ################################################################
 # Arguments:
 #   preds(iters, yp, nt): mcmc predictions at validation
@@ -111,25 +110,24 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
 # Returns:
 #   score(nprobs): a single quantile score per quantile
 ################################################################
-QuantScore <- function(preds, probs, validate){
-  nt <- ncol(validate)
-  np <- nrow(validate)
-  nprobs <- length(probs)
-        
-  # apply gives nprobs x nsites. looking to find each site's quantile over all
-  # of the days.
-  pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
-    
+QuantScore <- function(preds, probs, validate) {
+  nt <- ncol(validate)  # number of prediction days
+  np <- nrow(validate)  # number of prediction sites
+  nprobs <- length(probs)  # number of quantiles to find quantile score
+  
+  # we need to know the predicted quantiles for each site and day in the validation set
+  pred.quants <- apply(preds, c(2, 3), quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
+  
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
-    
+  
   for (q in 1:nprobs) {
-    diff <- pred.quants[q, ] - validate
-    i <- ifelse(diff >= 0, 1, 0)
+    diff <- pred.quants[q, , ] - validate
+    i <- diff >= 0  # diff >= 0 means qhat is larger
     scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
   }
-    
+  
   scores <- apply(scores.sites, 1, mean, na.rm=T)
-
+  
   return(scores)
 }
 
@@ -137,7 +135,7 @@ QuantScore <- function(preds, probs, validate){
 # Arguments:
 #   preds(iters, yp, nt): mcmc predictions at validation
 #                         locations
-#   probs(nthreshs): sample quantiles for scoring
+#   thresholds(nthreshs): sample quantiles for scoring
 #   validate(np, nt): validation data
 #
 # Returns:
@@ -145,16 +143,53 @@ QuantScore <- function(preds, probs, validate){
 #     scores(nthreshs): a single brier score per threshold
 #     threshs(nthreshs): sample quantiles from dataset
 ################################################################
-BrierScore <- function(preds, probs, validate){
-  nthreshs <- length(probs)
-  thresholds <- quantile(validate, probs=probs, na.rm=T)
-    
+BrierScore <- function(preds, thresholds, validate) {
+  nthreshs <- length(thresholds)
+  
   scores <- rep(NA, nthreshs)
   for (b in 1:nthreshs) {
     pat <- apply((preds > thresholds[b]), c(2, 3), mean)
-    ind <- validate < thresholds[b]
-    scores[b] <- mean((ind - pat)^2, na.rm=T)
+    i <- validate > thresholds[b]
+    scores[b] <- mean((i - pat)^2, na.rm=T)
   }
-    
+  
   return(scores)
 }
+
+
+# QuantScore <- function(preds, probs, validate){
+  # nt <- ncol(validate)
+  # np <- nrow(validate)
+  # nprobs <- length(probs)
+        
+  # # apply gives nprobs x nsites. looking to find each site's quantile over all
+  # # of the days.
+  # pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
+    
+  # scores.sites <- array(NA, dim=c(nprobs, np, nt))
+    
+  # for (q in 1:nprobs) {
+    # diff <- pred.quants[q, ] - validate
+    # i <- ifelse(diff >= 0, 1, 0)
+    # scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
+  # }
+    
+  # scores <- apply(scores.sites, 1, mean, na.rm=T)
+
+  # return(scores)
+# }
+
+
+# BrierScore <- function(preds, probs, validate){
+  # nthreshs <- length(probs)
+  # thresholds <- quantile(validate, probs=probs, na.rm=T)
+    
+  # scores <- rep(NA, nthreshs)
+  # for (b in 1:nthreshs) {
+    # pat <- apply((preds > thresholds[b]), c(2, 3), mean)
+    # ind <- validate < thresholds[b]
+    # scores[b] <- mean((ind - pat)^2, na.rm=T)
+  # }
+    
+  # return(scores)
+# }
