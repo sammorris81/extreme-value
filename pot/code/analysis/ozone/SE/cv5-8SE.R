@@ -4,15 +4,15 @@ library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
-load('cv-setup.RData')
-source('../../R/mcmc.R')
-source('../../R/auxfunctions.R')
+load('cv-setup-se.RData')
+source('../../../R/mcmc.R')
+source('../../../R/auxfunctions.R')
 
-setting <- 5
+setting <- 8
 method <- "t"
 nknots <- 5
-threshold <- 0.90
-outputfile <- paste("cv5-", setting, ".RData", sep="")
+threshold <- 0
+outputfile <- paste("cv5-", setting, "SE.RData", sep="")
 start <- proc.time()
 
 fit <- vector(mode="list", length=5)
@@ -33,7 +33,7 @@ for(val in 1:5){
 	
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-	                   method=method, skew=F,
+	                   method=method, skew=T,
 	                   thresh=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
                        beta.init=beta.init, tau.init=tau.init, rho.init=0.5,

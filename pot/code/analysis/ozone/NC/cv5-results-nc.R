@@ -32,7 +32,7 @@ brier.score.t50 <- matrix(NA, length(thresholds), nsets)
 brier.score.t59 <- matrix(NA, length(thresholds), nsets)
 
 usable <- (25000+1):30000
-load("cv5-1.RData")
+load("cv5-1NC.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -42,7 +42,7 @@ for (d in 1:nsets) {
   brier.score.gau[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
-load("cv5-2.RData")
+load("cv5-2NC.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -52,7 +52,7 @@ for (d in 1:nsets) {
   brier.score.t10[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
-load("cv5-3.RData")
+load("cv5-3NC.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -62,7 +62,7 @@ for (d in 1:nsets) {
   brier.score.t50[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
-load("cv5-4.RData")
+load("cv5-4NC.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -72,7 +72,7 @@ for (d in 1:nsets) {
   brier.score.t19[, d] <- BrierScore(pred.d, thresholds, validate)
 }
 
-load("cv5-5.RData")
+load("cv5-5NC.RData")
 for (d in 1:nsets) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -88,12 +88,12 @@ savelist <- list(quant.score.gau, quant.score.t10, quant.score.t19,
 		     brier.score.t50, brier.score.t59,
 		     probs, thresholds)
 
-save(savelist, file="cv-scores.RData")
+save(savelist, file="cv-scores-nc.RData")
 
 rm(list=ls())
-load("cv-setup.RData")
+load("cv-setup-nc.RData")
 source("../../R/auxfunctions.R")
-load("cv-scores.RData")
+load("cv-scores-nc.RData")
 
 quant.score.gau <- savelist[[1]]
 quant.score.t10 <- savelist[[2]]
@@ -123,7 +123,7 @@ brier.score.mean[3, ] <- apply(brier.score.t19, 1, mean)
 brier.score.mean[4, ] <- apply(brier.score.t50, 1, mean)
 brier.score.mean[5, ] <- apply(brier.score.t59, 1, mean)
 
-plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Quantile Scores for ozone analysis", xlab="quantile", ylab="score")
+plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Quantile Scores for ozone analysis (NC only)", xlab="quantile", ylab="score")
 for (i in 2:5) {
   lines(probs, quant.score.mean[i, ], lty=i)
   points(probs, quant.score.mean[i, ], pch=i)

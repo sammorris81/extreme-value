@@ -13,26 +13,7 @@ x <- CMAQ_OZONE$x
 s <- CMAQ_OZONE$s
 l <- CMAQ_OZONE$poly
 
-#Bounds of the subset for initial analysis
-xb<-c(1201,1850)
-yb<-c(-450,-250)
-AL <- 1:26
-MD1 <- 27:33
-FL <- 37:45
-GA <- 46:69
-IL <- 70:76
-IN <- 77:104
-KY <- 105:135
-MD2 <- 136:150
-MS <- 151:155
-NC <- 155:196
-OH <- 197:223
-PA <- 224:231
-SC <- 232:252
-TN <- 253:274
-
 #Plot the data
-
 library(fields)
 par(mfrow=c(2,2))
 
@@ -41,7 +22,7 @@ plot(as.vector(x),as.vector(y),xlim=lim,ylim=lim,
      xlab="CMAQ output (ppb)",ylab="Monitor data (ppb)")
 abline(0,1,lwd=2,col=2)
 
-plot(s,axes=F,pch=19,main="Monitor locations",xlab="",ylab="")
+plot(s,axes=F,pch=19,main="Monitor locations",xlab="",ylab="", type="n")
 lines(l)
 abline(v=xb[1],col=2)
 abline(v=xb[2],col=2)
@@ -54,7 +35,26 @@ image.plot(1:307,1:92,x,zlim=lim,xlab="Station",ylab="Day",main="CMAQ data")
 
 
 #Extract subset
-NC<-(s[,1]>xb[1]) & (s[,1]<xb[2]) & (s[,2]>yb[1]) & (s[,2]<yb[2])
+# NC<-(s[,1]>xb[1]) & (s[,1]<xb[2]) & (s[,2]>yb[1]) & (s[,2]<yb[2])
+AL <- 1:26
+DE <- 27:30
+DC <- 31:33
+FL <- 34:45
+GA <- 46:69
+IL <- 70:76
+IN <- 77:104
+KY <- 105:135
+MD <- 136:150
+MS <- 151:154
+NJ <- 155
+NC <- 156:196
+OH <- 197:223
+PA <- 224:231
+SC <- 232:252
+TN <- 253:274
+VA <- 275:299
+WV <- 300:307
+
 s<-s[NC,]
 x<-x[NC,]
 y<-y[NC,]
@@ -69,6 +69,9 @@ excl <- which(rowMeans(is.na(y))>0.50)
 s <- s[-excl,]
 x <- x[-excl,]
 y <- y[-excl,]
+
+plot(s)
+lines(l)
 
 #### Rescale s so each dimension is in (0, 1)
 s.scale <- matrix(NA, nrow=nrow(s), ncol=ncol(s))
@@ -87,13 +90,13 @@ for(t in 1:nt){
 
 #### 5-fold cross validation
 set.seed(2087)
-cv.idx <- sample(1:nrow(s), nrow(s), replace=F)
+cv.idx <- sample(nrow(s), nrow(s), replace=F)
 
-cv.1 <- cv.idx[1:11]
-cv.2 <- cv.idx[12:22]
-cv.3 <- cv.idx[23:33]
-cv.4 <- cv.idx[34:44]
-cv.5 <- cv.idx[45:55]
+cv.1 <- cv.idx[1:17]
+cv.2 <- cv.idx[18:34]
+cv.3 <- cv.idx[35:51]
+cv.4 <- cv.idx[52:68]
+cv.5 <- cv.idx[69:85]
 
 cv.lst <- list(cv.1=cv.1, cv.2=cv.2, cv.3=cv.3, cv.4=cv.4, cv.5=cv.5)
 
@@ -103,7 +106,7 @@ nt <- ncol(y)
 beta.init <- rep(0, dim(X)[3])
 tau.init <- 1
 
-save.image(file="cv-setup.RData")
+save.image(file="cv-setup-nc.RData")
 
 # setting 1: gaussian
 # setting 2: t0

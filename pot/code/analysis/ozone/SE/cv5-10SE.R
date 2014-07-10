@@ -4,15 +4,16 @@ library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
-load('cv-setup.RData')
-source('../../R/mcmc.R')
-source('../../R/auxfunctions.R')
+load('cv-setup-se.RData')
+source('../../../R/mcmc.R')
+source('../../../R/auxfunctions.R')
 
-setting <- 4
+setting <- 10
 method <- "t"
 nknots <- 1
-threshold <- 0.90
-outputfile <- paste("cv5-", setting, ".RData", sep="")
+threshold <- 0
+outputfile <- paste("cv5-", setting, "SE.RData", sep="")
+X <- X[, , c(1, 2, 3)]
 start <- proc.time()
 
 fit <- vector(mode="list", length=5)
