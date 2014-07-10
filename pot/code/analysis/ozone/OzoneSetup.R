@@ -14,30 +14,43 @@ s <- CMAQ_OZONE$s
 l <- CMAQ_OZONE$poly
 
 #Bounds of the subset for initial analysis
-xb<-c(1200,1850)
-yb<-c(-500,-200)
-
+xb<-c(1201,1850)
+yb<-c(-450,-250)
+AL <- 1:26
+MD1 <- 27:33
+FL <- 37:45
+GA <- 46:69
+IL <- 70:76
+IN <- 77:104
+KY <- 105:135
+MD2 <- 136:150
+MS <- 151:155
+NC <- 155:196
+OH <- 197:223
+PA <- 224:231
+SC <- 232:252
+TN <- 253:274
 
 #Plot the data
 
-# library(fields)
-# par(mfrow=c(2,2))
+library(fields)
+par(mfrow=c(2,2))
 
-# lim<-c(0,130)
-# plot(as.vector(x),as.vector(y),xlim=lim,ylim=lim,
-     # xlab="CMAQ output (ppb)",ylab="Monitor data (ppb)")
-# abline(0,1,lwd=2,col=2)
+lim<-c(0,130)
+plot(as.vector(x),as.vector(y),xlim=lim,ylim=lim,
+     xlab="CMAQ output (ppb)",ylab="Monitor data (ppb)")
+abline(0,1,lwd=2,col=2)
 
-# plot(s,axes=F,pch=19,main="Monitor locations",xlab="",ylab="")
-# lines(l)
-# abline(v=xb[1],col=2)
-# abline(v=xb[2],col=2)
-# abline(h=yb[1],col=2)
-# abline(h=yb[2],col=2)
+plot(s,axes=F,pch=19,main="Monitor locations",xlab="",ylab="")
+lines(l)
+abline(v=xb[1],col=2)
+abline(v=xb[2],col=2)
+abline(h=yb[1],col=2)
+abline(h=yb[2],col=2)
 
-# image.plot(1:307,1:92,y,zlim=lim,xlab="Station",ylab="Day",main="Monitor data")
+image.plot(1:307,1:92,y,zlim=lim,xlab="Station",ylab="Day",main="Monitor data")
 
-# image.plot(1:307,1:92,x,zlim=lim,xlab="Station",ylab="Day",main="CMAQ data")
+image.plot(1:307,1:92,x,zlim=lim,xlab="Station",ylab="Day",main="CMAQ data")
 
 
 #Extract subset
@@ -45,8 +58,8 @@ NC<-(s[,1]>xb[1]) & (s[,1]<xb[2]) & (s[,2]>yb[1]) & (s[,2]<yb[2])
 s<-s[NC,]
 x<-x[NC,]
 y<-y[NC,]
-# plot(s)
-# lines(l)
+plot(s)
+lines(l)
 
 #########################################################################
 #### Exclude if monitoring site is missing more than 50% of the 
