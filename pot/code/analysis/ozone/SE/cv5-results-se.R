@@ -54,38 +54,27 @@ savelist <- list(quant.score, brier.score,
 
 save(savelist, file="cv-scores-se.RData")
 
-# rm(list=ls())
-# load("cv-setup-se.RData")
-# source("../../R/auxfunctions.R")
-# load("cv-scores-se.RData")
+rm(list=ls())
+load("cv-setup-se.RData")
+source("../../../R/auxfunctions.R")
+load("cv-scores-se.RData")
 
-# quant.score.gau <- savelist[[1]]
-# quant.score.t10 <- savelist[[2]]
-# quant.score.t19 <- savelist[[3]]
-# quant.score.t50 <- savelist[[4]]
-# quant.score.t59 <- savelist[[5]]
-# brier.score.gau <- savelist[[6]]
-# brier.score.t10 <- savelist[[7]]
-# brier.score.t19 <- savelist[[8]]
-# brier.score.t50 <- savelist[[9]]
-# brier.score.t59 <- savelist[[10]]
-# probs <- savelist[[11]]
-# thresholds <- savelist[[12]]
+quant.score <- savelist[[1]]
+brier.score <- savelist[[2]]
+beta.0 <- savelist[[3]]
+beta.1 <- savelist[[4]]
+beta.2 <- savelist[[5]]
+beta.3 <- savelist[[6]]
+probs <- savelist[[7]]
+thresholds <- savelist[[8]]
 
-# quant.score.mean <- matrix(NA, 5, length(probs))
-# brier.score.mean <- matrix(NA, 5, length(thresholds))
+quant.score.mean <- matrix(NA, 16, length(probs))
+brier.score.mean <- matrix(NA, 16, length(thresholds))
 
-# quant.score.mean[1, ] <- apply(quant.score.gau, 1, mean)
-# quant.score.mean[2, ] <- apply(quant.score.t10, 1, mean)
-# quant.score.mean[3, ] <- apply(quant.score.t19, 1, mean)
-# quant.score.mean[4, ] <- apply(quant.score.t50, 1, mean)
-# quant.score.mean[5, ] <- apply(quant.score.t59, 1, mean)
-
-# brier.score.mean[1, ] <- apply(brier.score.gau, 1, mean)
-# brier.score.mean[2, ] <- apply(brier.score.t10, 1, mean)
-# brier.score.mean[3, ] <- apply(brier.score.t19, 1, mean)
-# brier.score.mean[4, ] <- apply(brier.score.t50, 1, mean)
-# brier.score.mean[5, ] <- apply(brier.score.t59, 1, mean)
+for (i in 1:16) {
+  quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
+  brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
+}
 
 # plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Quantile Scores for ozone analysis (NC only)", xlab="quantile", ylab="score")
 # for (i in 2:5) {

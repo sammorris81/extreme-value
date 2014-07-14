@@ -3,11 +3,11 @@ library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
-source('../../R/mcmc.R')
-source('../../R/auxfunctions.R')
+source('../../../R/mcmc.R')
+source('../../../R/auxfunctions.R')
 
 #### Setup from Brian
-load("OzoneData.RData")
+load("../OzoneData.RData")
 y <- CMAQ_OZONE$y
 x <- CMAQ_OZONE$x
 s <- CMAQ_OZONE$s
