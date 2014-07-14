@@ -76,9 +76,27 @@ for (i in 1:16) {
   brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
 }
 
-# plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Quantile Scores for ozone analysis (NC only)", xlab="quantile", ylab="score")
-# for (i in 2:5) {
-  # lines(probs, quant.score.mean[i, ], lty=i)
-  # points(probs, quant.score.mean[i, ], pch=i)
-# }
-# legend("bottomleft", lty=1:5, pch=1:5, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)"))
+par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
+
+plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="With CMAQ", xlab="quantile", ylab="score")
+for (i in 2:8) {
+  lines(probs, quant.score.mean[i, ], lty=i)
+  points(probs, quant.score.mean[i, ], pch=i)
+}
+title(main="Quantile Scores - Ozone: NC, SC, GA", outer=T)
+
+plot(probs, quant.score.mean[9, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
+for (i in 10:16) {
+  lines(probs, quant.score.mean[i, ], lty=(i-8))
+  points(probs, quant.score.mean[i, ], pch=(i-8))
+}
+
+plot(probs, (quant.score.mean[9, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
+for (i in 2:8) {
+  lines(probs, (quant.score.mean[(i+8), ] - quant.score.mean[i, ]), lty=i)
+  points(probs, (quant.score.mean[(i+8), ] - quant.score.mean[i, ]), pch=i)
+}
+
+plot(probs, quant.score.mean[1, ], type="n", axes=F)
+
+legend("center", lty=1:8, pch=1:8, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5"))
