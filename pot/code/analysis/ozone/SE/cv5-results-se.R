@@ -27,7 +27,7 @@ beta.1 <- array(NA, dim=c(5000, nsets, 16))
 beta.2 <- array(NA, dim=c(5000, nsets, 16))
 beta.3 <- array(NA, dim=c(5000, nsets, 8)) 
 
-usable <- (25000+1):30000
+# usable <- (25000+1):30000
 
 for (i in 1:16) {
   file <- paste("cv5-", i, "SE.RData", sep="")
@@ -36,14 +36,14 @@ for (i in 1:16) {
     fit.d <- fit[[d]]
     val.idx <- cv.lst[[d]]
     validate <- y[val.idx, ]
-    pred.d <- fit.d$yp[usable, , ]
+    pred.d <- fit.d$yp[, , ]
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
-    beta.0[, d, i] <- fit.d$beta[usable, 1]
-    beta.1[, d, i] <- fit.d$beta[usable, 2]
-    beta.2[, d, i] <- fit.d$beta[usable, 3]
+    beta.0[, d, i] <- fit.d$beta[, 1]
+    beta.1[, d, i] <- fit.d$beta[, 2]
+    beta.2[, d, i] <- fit.d$beta[, 3]
     if (i <= 8) {
-      beta.3[, d, i] <- fit.d$beta[usable, 4]
+      beta.3[, d, i] <- fit.d$beta[, 4]
     }
   }
 }
