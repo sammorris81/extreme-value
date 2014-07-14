@@ -1,5 +1,5 @@
 load("cv-setup-se.RData")
-source("../../R/auxfunctions.R")
+source("../../../R/auxfunctions.R")
 
 # # X11()
 # # boxplot(log(fit.schlather$gpdre))
