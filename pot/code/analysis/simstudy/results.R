@@ -146,6 +146,7 @@ for(setting in 1:nsettings){
   }
   cat("dataset", dataset, "-a \n")
   dataset <- paste(setting,"-b.RData", sep="")
+  load(dataset)
   for (d in 1:nsets){
   	thresholds <- quantile(y[, , d, setting], probs=probs, na.rm=T)
     validate <- y[!obs, , d, setting]
