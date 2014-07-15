@@ -143,7 +143,7 @@ for(setting in 1:nsettings){
   dataset <- paste(setting,"-b.RData", sep="")
   for (d in 1:nsets){
   	thresholds <- quantile(y[, , d, setting], probs=probs, na.rm=T)
-    validate <- y.validate[, , d]
+    validate <- y[!obs, , d, setting]
     
     pred <- fit.1$yp  # skew-t5
     quant.score[, d, 6, setting] <- QuantScore(pred, probs, validate) 
