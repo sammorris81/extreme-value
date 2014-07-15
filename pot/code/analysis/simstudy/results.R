@@ -33,6 +33,7 @@ nt <- dim(y)[2]
 nsets <- 5
 nsettings <- dim(y)[4]
 nmethods <- 9
+obs <- rep(c(T, F), 100)[1:ns]
 
 source("../../R/auxfunctions.R")	# Included for easy access if we need to change score functions
 
@@ -73,7 +74,7 @@ for(setting in 1:nsettings){
   
   for(d in 1:nsets){  # fit.1 is gaussian, fit.2 is t, etc.
   	thresholds <- quantile(y[, , d, setting], probs=probs, na.rm=T)
-    validate <- y.validate[, , d]
+    validate <- y[!obs, , d, setting]
     
     pred <- fit.1$yp  # gaussian
     quant.score[, d, 1, setting] <- QuantScore(pred, probs, validate) 
