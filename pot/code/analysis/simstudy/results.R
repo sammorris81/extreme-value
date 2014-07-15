@@ -76,7 +76,7 @@ for(setting in 1:nsettings){
   	thresholds <- quantile(y[, , d, setting], probs=probs, na.rm=T)
     validate <- y[!obs, , d, setting]
     
-    pred <- fit.1$yp  # gaussian
+    pred <- fit.1[[d]]$yp  # gaussian
     quant.score[, d, 1, setting] <- QuantScore(pred, probs, validate) 
     brier.score[, d, 1, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 1, setting] <- quantile(fit.1$beta[, 1], probs=intervals)
@@ -88,7 +88,7 @@ for(setting in 1:nsettings){
     nu[, d, 1, setting] <- quantile(fit.1$nu, probs=intervals)
     alpha[, d, 1, setting] <- quantile(fit.1$alpha, probs=intervals)
     
-    pred <- fit.2$yp  # t1
+    pred <- fit.2[[d]]$yp  # t1
     quant.score[, d, 2, setting] <- QuantScore(pred, probs, validate)
     brier.score[, d, 2, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 2, setting] <- quantile(fit.2$beta[, 1], probs=intervals)
@@ -100,7 +100,7 @@ for(setting in 1:nsettings){
     nu[, d, 2, setting] <- quantile(fit.2$nu, probs=intervals)
     alpha[, d, 2, setting] <- quantile(fit.2$alpha, probs=intervals)
     
-    pred <- fit.3$yp  # t5
+    pred <- fit.3[[d]]$yp  # t5
     quant.score[, d, 3, setting] <- QuantScore(pred, probs, validate)
     brier.score[, d, 3, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 3, setting] <- quantile(fit.3$beta[, 1], probs=intervals)
@@ -113,7 +113,7 @@ for(setting in 1:nsettings){
     alpha[, d, 3, setting] <- quantile(fit.3$alpha, probs=intervals)
     avgparts[, d, 1, setting] <- mean(fit.3$avgparts)
     
-    pred <- fit.4$yp  # skew-gaussian
+    pred <- fit.4[[d]]$yp  # skew-gaussian
     quant.score[, d, 4, setting] <- QuantScore(pred, probs, validate)
     brier.score[, d, 4, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 4, setting] <- quantile(fit.4$beta[, 1], probs=intervals)
@@ -126,7 +126,7 @@ for(setting in 1:nsettings){
     alpha[, d, 4, setting] <- quantile(fit.4$alpha, probs=intervals)
     z.alpha[, d, 1, setting] <- quantile(fit.4$z.alpha, probs=intervals)
     
-    pred <- fit.5$yp  # skew-t1
+    pred <- fit.5[[d]]$yp  # skew-t1
     quant.score[, d, 5, setting] <- QuantScore(pred, probs, validate) 
     brier.score[, d, 5, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 5, setting] <- quantile(fit.5$beta[, 1], probs=intervals)
@@ -145,7 +145,7 @@ for(setting in 1:nsettings){
   	thresholds <- quantile(y[, , d, setting], probs=probs, na.rm=T)
     validate <- y[!obs, , d, setting]
     
-    pred <- fit.1$yp  # skew-t5
+    pred <- fit.1[[d]]$yp  # skew-t5
     quant.score[, d, 6, setting] <- QuantScore(pred, probs, validate) 
     brier.score[, d, 6, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 6, setting] <- quantile(fit.1$beta[, 1], probs=intervals)
@@ -159,7 +159,7 @@ for(setting in 1:nsettings){
     z.alpha[, d, 3, setting] <- quantile(fit.1$z.alpha, probs=intervals)
     avgparts[, d, 2, setting] <- mean(fit.1$avgparts)
     
-    pred <- fit.2$yp  # t1 (T=0.90)
+    pred <- fit.2[[d]]$yp  # t1 (T=0.90)
     quant.score[, d, 7, setting] <- QuantScore(pred, probs, validate) 
     brier.score[, d, 7, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 7, setting] <- quantile(fit.2$beta[, 1], probs=intervals)
@@ -171,7 +171,7 @@ for(setting in 1:nsettings){
     nu[, d, 7, setting] <- quantile(fit.2$nu, probs=intervals)
     alpha[, d, 7, setting] <- quantile(fit.2$alpha, probs=intervals)
     
-    pred <- fit.3$yp  # t5 (T=0.90)
+    pred <- fit.3[[d]]$yp  # t5 (T=0.90)
     quant.score[, d, 8, setting] <- QuantScore(pred, probs, validate) 
     brier.score[, d, 8, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 8, setting] <- quantile(fit.3$beta[, 1], probs=intervals)
@@ -184,7 +184,7 @@ for(setting in 1:nsettings){
     alpha[, d, 8, setting] <- quantile(fit.3$alpha, probs=intervals)
     avgparts[, d, 3, setting] <- mean(fit.3$avgparts)
     
-    pred <- fit.4$yp  # skew-t1 (T=0.90)
+    pred <- fit.4[[d]]$yp  # skew-t1 (T=0.90)
     quant.score[, d, 9, setting] <- QuantScore(pred, probs, validate) 
     brier.score[, d, 9, setting] <- BrierScore(pred, thresholds, validate)
     beta.0[, d, 9, setting] <- quantile(fit.4$beta[, 1], probs=intervals)
