@@ -50,7 +50,7 @@ source("../../R/auxfunctions.R")	# Included for easy access if we need to change
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
 
 quant.score <- array(NA, dim=c(length(probs), nsets, nmethods, nsettings))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, nmethods, nsettings))
+brier.score <- array(NA, dim=c(length(probs), nsets, nmethods, nsettings))
 
 # storage for the interval endpoints
 intervals <- c(0.01, 0.025, 0.05, 0.1, 0.9, 0.95, 0.975, 0.99)
