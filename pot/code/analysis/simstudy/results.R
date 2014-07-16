@@ -145,6 +145,9 @@ for(setting in 1:nsettings){
     z.alpha[, d, 2, setting] <- quantile(fit$z.alpha, probs=intervals)
   }
   cat("dataset", dataset, "-a \n")
+  rm(fit, fit.1, fit.2, fit.3, fit.4, fit.5)
+  gc()
+  
   dataset <- paste(setting,"-b.RData", sep="")
   load(dataset)
   for (d in 1:nsets){
@@ -207,7 +210,9 @@ for(setting in 1:nsettings){
     alpha[, d, 9, setting] <- quantile(fit$alpha, probs=intervals)
     z.alpha[, d, 4, setting] <- quantile(fit$z.alpha, probs=intervals)
   }
-  cat("dataset", dataset, "-b \n")	
+  cat("dataset", dataset, "-b \n")
+  rm(fit, fit.1, fit.2, fit.3, fit.4)	
+  gc()
 }
 
 save(
@@ -216,6 +221,10 @@ save(
 	probs, thresholds, 
 	file="scores.RData"
 )
+
+# get single brier scores and quantile scores for each setting x method x quantile
+quant.score.mean <- apply(quant.score, c(1, 3, 4), mean)
+brier.score.mean <- apply(brier.score, c(1, 3, 4), mean)
 
 # rm(list=ls())
 # load("scores.RData")
