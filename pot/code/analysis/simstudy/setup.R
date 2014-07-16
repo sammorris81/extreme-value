@@ -4,24 +4,25 @@
 # standard kriging methods
 #
 # data settings:
-#	1 - Gaussian
-#   2 - skew-Gaussian (alpha = 5)
-#	3 - skew-t (alpha = 5)
-#	4 - skew-t w/partition (5 knots)
-#	5 - 1/2 Gaussian, 1/2 t
-#	6 - 1/2 Gaussian, 1/2 t w/partition (5 knots)
-#	7 - 1/2 Gaussian (range = 0.40), 1/2 t (range = 0.10)
-#	8 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
+#   1 - Gaussian
+#   2 - t-1
+#   3 - t-5
+#   4 - skew t-1 (alpha = 3)
+#   5 - skew t-5 w/partition (alpha = 3)
+#   6 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
 #
 # analysis methods:
-#	1 - Gaussian
-#   2 - skew-Gaussian
-#   3 - skew-t
-#   4 - skew-t w/partition (5 knots)
-#	5 - t
-#	6 - t w/partition (5 knots)
-#	7 - t (thresh = 0.90)
-#	8 - t w/partition (5 knots, thresh = 0.90)
+#   1 - Gaussian
+#   2 - t-1
+#   3 - t-5
+#   4 - skew Gaussian
+#   5 - skew t-5
+#   6 - skew t-1
+#   7 - Gaussian (T = 0.90)
+#   8 - t-1 (T = 0.90)
+#   9 - t-5 (T = 0.90)
+#  10 - skew Gaussian (T = 0.90)
+#  11 - skew t-1 (T = 0.90)
 #	
 #########################################################################
 
@@ -40,11 +41,11 @@ source('../../R/auxfunctions.R')
 beta.t <- c(10, 2, -3)
 nu.t <- 0.5
 alpha.t <- 0.9
-mixprob.t <- c(0, 1, 1, 1, 0.5, 0.5, 0.5, 0.5)  # 0: Gaussian, 1: t
-nknots.t <- c(1, 1, 1, 5, 1, 5, 1, 1)
-gau.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.40, 0.10)
-t.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.40)
-z.alpha.t <- c(0, 3, 3, 3, 0, 0, 0, 0)
+mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t
+nknots.t <- c(1, 1, 5, 1, 5, 1)
+gau.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.10)
+t.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.40)
+z.alpha.t <- c(0, 0, 0, 3, 3, 0)
 tau.alpha.t <- 2
 tau.beta.t  <- 8
 
@@ -53,7 +54,7 @@ tau.beta.t  <- 8
 s         <- cbind(runif(60), runif(60))
 ns        <- nrow(s)  
 nt        <- 50
-nsets     <- 20
+nsets     <- 50
 nsettings <- length(mixprob.t) 
 ntest     <- floor(ns / 2)
 

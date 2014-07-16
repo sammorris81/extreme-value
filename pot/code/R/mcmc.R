@@ -97,7 +97,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  stop("for gaussian, tau.init should be a single value")
   	}
   	tau <- matrix(tau.init, nknots, nt)
-    tau.init <- matrix(tau.init, ns, nt) 
+    taug <- matrix(tau.init, ns, nt) 
   } else if (method == "t") {  # knots vary by day and partition
   	if (length(tau.init) == 1) {
   	  cat("\t initializing all tau terms to", tau.init, "\n")

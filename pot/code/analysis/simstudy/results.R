@@ -1,29 +1,29 @@
 #########################################################################
-# A simulation study to determine if a thresholded method improves
+# A simulation study to determine if a thresholded or skew methods improve
 # return-level estimation and threshold exceedance prediction over
 # standard kriging methods
 #
 # data settings:
-# 1 - Gaussian
-# 2 - skew-Gaussian (alpha = 5)
-# 3 - skew-t (alpha = 5)
-# 4 - skew-t w/partition (5 knots)
-# 5 - 1/2 Gaussian, 1/2 t
-# 6 - 1/2 Gaussian, 1/2 t w/partition (5 knots)
-# 7 - 1/2 Gaussian (range = 0.40), 1/2 t (range = 0.10)
-# 8 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
+#   1 - Gaussian
+#   2 - skew Gaussian (alpha = 3)
+#   3 - skew t-1 (alpha = 3)
+#   4 - skew t-5 w/partition (alpha = 3)
+#   5 - 1/2 Gaussian, 1/2 t
+#   6 - 1/2 Gaussian, 1/2 t w/partition (5 knots)
+#   7 - 1/2 Gaussian (range = 0.40), 1/2 t (range = 0.10)
+#   8 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
 #
 # analysis methods:
-#  1 - Gaussian
-#  2 - t
-#  3 - t w/partition (5 knots)
-#  4 - skew-Gaussian
-#  5 - skew-t
-#  6 - skew-t w/partition (5 knots)
-#  7 - t (thresh = 0.90)
-#  8 - t w/partition (5 knots, thresh = 0.90)
-#  9 - skew-t (thresh=0.90)
-#
+#   1 - Gaussian
+#   2 - t-1
+#   3 - t-5
+#   4 - skew Gaussian
+#   5 - skew t-1
+#   6 - skew t-5 
+#   7 - t-1 (T = 0.90)
+#   8 - t-5 (T = 0.90)
+#   9 - skew t-1 (T = 0.90)
+#	
 #########################################################################
 
 rm(list=ls())
@@ -222,80 +222,48 @@ save(
 	file="scores.RData"
 )
 
+
+rm(list=ls())
+load("simdata.RData")
+load("scores.RData")
+
+ns <- dim(y)[1]
+nt <- dim(y)[2]
+nsets <- 5
+nsettings <- dim(y)[4]
+nmethods <- 9
+
 # get single brier scores and quantile scores for each setting x method x quantile
 quant.score.mean <- apply(quant.score, c(1, 3, 4), mean)
 brier.score.mean <- apply(brier.score, c(1, 3, 4), mean)
 
-# rm(list=ls())
-# load("scores.RData")
+setting.title <- c("Gaussian", "skew Gaussian (alpha = 3)", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "1/2 Gaussian, 1/2 t", "1/2 Gaussian, 1/2 t-5", "1/2 Gaussian (range = 0.40), 1/2 t-1 (range = 0.10)", "1/2 Gaussian (range = 0.10), 1/2 t-1 (range = 0.4)")
+methods <- c("Gaussian", "t-1 (T = 0.0)", "t-5 (T = 0.0)", "skew Gaussian", "skew t-1 (T = 0.0)", "skew t-5 (T = 0.0)", "t-1 (T = 0.9)", "t-5 (T = 0.9)", "skew t-1 (T = 0.9)")
+bg <- c("firebrick1", "firebrick1", "firebrick1", "firebrick1", "firebrick1", "firebrick1", "dodgerblue1", "dodgerblue1", "dodgerblue1")
+col <- c("firebrick4", "firebrick4", "firebrick4", "firebrick4", "firebrick4", "firebrick4", "dodgerblue4", "dodgerblue4", "dodgerblue4")
+pch <- c(24, 24, 24, 22, 22, 22, 24, 24, 22)
+lty <- c(2, 1, 3, 2, 1, 3, 1, 3, 1)
 
-# # dim 1: number of analysis types; dim 2: number of probs/threshs; dim 3: number of settings
-# nsettings <- 9
-
-# quant.score.mean <- array(NA, dim=c(5, length(probs), nsettings))
-# brier.score.mean <- array(NA, dim=c(5, length(thresholds), nsettings))
-# for(setting in 1:nsettings){
-	# quant.score.mean[1,,setting] <- rowMeans(quant.score.1[,,setting])
-	# quant.score.mean[2,,setting] <- rowMeans(quant.score.2[,,setting])
-	# quant.score.mean[3,,setting] <- rowMeans(quant.score.3[,,setting])
-	# quant.score.mean[4,,setting] <- rowMeans(quant.score.4[,,setting])
-	# quant.score.mean[5,,setting] <- rowMeans(quant.score.5[,,setting])
-	
-	# brier.score.mean[1,,setting] <- rowMeans(brier.score.1[,,setting])
-	# brier.score.mean[2,,setting] <- rowMeans(brier.score.2[,,setting])
-	# brier.score.mean[3,,setting] <- rowMeans(brier.score.3[,,setting])
-	# brier.score.mean[4,,setting] <- rowMeans(brier.score.4[,,setting])
-	# brier.score.mean[5,,setting] <- rowMeans(brier.score.5[,,setting])
-# }
-
-# rownames(quant.score.mean) <- c("gaus", "t", "t-3", "t(.95)", "t(0.95)-3")
-# colnames(quant.score.mean) <- probs
-# rownames(brier.score.mean) <- c("gaus", "t", "t-3", "t(.95)", "t(0.95)-3")
-# colnames(brier.score.mean) <- thresholds
-
-# setting.title <- list()
-# setting.title[[1]] <- "data: gaussian"
-# setting.title[[2]] <- "data: t"
-# setting.title[[3]] <- "data: t with 3 knots"
-# setting.title[[4]] <- "data: 1/2 gaussian 1/2 t"
-# setting.title[[5]] <- "data: 1/2 gaussian 1/2 t with 3 knots"
-# setting.title[[6]] <- "data: 1/2 gaussian (range = 0.40), 1/2 t (range = 0.10)"
-# setting.title[[7]] <- "data: 1/2 gaussian (range = 0.10), 1/2 t (range = 0.40)"
-# setting.title[[8]] <- "data: 90% gaussian, 10% t"
-# setting.title[[9]] <- "data: 95% gaussian, 5% t"
-
-# for (setting in 1:nsettings) {
-  # qsplotname <- paste("plots/all-qs-set", setting, ".pdf", sep="")
-  # bsplotname <- paste("plots/all-bs-set", setting, ".pdf", sep="")
+quartz(width=15, height=12)
+par(mfrow=c(3, 3))
+for (setting in 1:nsettings) {  
+  ymax <- max(quant.score.mean[, , setting])
+  ymin <- min(quant.score.mean[, , setting])
+  plot(probs, quant.score.mean[, 1, setting], type='o', 
+       lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
+       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="quantile scores")
   
-  # ymax <- max(quant.score.mean[, , setting])
-  # ymin <- min(quant.score.mean[, , setting])
-  # plot(y=quant.score.mean[1, , setting], x=probs, type='l', lty=1, ylim=c(ymin, ymax),
-       # main=setting.title[[setting]], ylab="quantile scores", xaxt="n")
-  
-  # for (i in 2:5) {
-    # lines(y=quant.score.mean[i, , setting], x=probs, lty=i)
-  # }
-  
-  # axis(1, at=probs, labels=probs)
-  # legend(x="bottomleft", legend=rownames(quant.score.mean), lty=seq(1, 5))
-  # dev.print(file=qsplotname, device=pdf)
+  for (i in 2:nmethods) {
+    lines(probs, quant.score.mean[, i, setting], lty=lty[i], col=col[i])
+    points(probs, quant.score.mean[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+  }
 
-  # ymax <- max(brier.score.mean[, , setting])
-  # ymin <- min(brier.score.mean[, , setting])
-  # plot(y=brier.score.mean[1, , setting], x=thresholds, type='l', lty=1, ylim=c(ymin, ymax),
-       # main=setting.title[[setting]], ylab="brier scores", xaxt="n")
-  
-  # for (i in 2:5) {
-    # lines(y=brier.score.mean[i, , setting], x=thresholds, lty=i)
-  # }
-  
-  # axis(1, at=thresholds, labels=thresholds)
-  # legend(x="bottomright", legend=rownames(brier.score.mean), lty=seq(1, 5))
-  # dev.print(file=bsplotname, device=pdf)
+}
 
-# }
-
+plot(1, 1, type="n", axes=F, main="legend", ylab="", xlab="")
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, bty="n", cex=2)
+dev.print(file="plots/quantileplots.pdf", device=pdf)
+dev.off()
 
 
 # # thresholded models wrt to gaussian
