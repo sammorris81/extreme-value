@@ -35,8 +35,8 @@ analysis <- "c"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 1:10) {
-  fit.1 <- fit.2 <- fit.3 <- fit.4 <- fit.5 <- fit.6 <- vector(mode="list", length=nsets)
+for (g in 4:10) {
+  fit.1 <- fit.2 <- fit.3 <- fit.4 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
 
@@ -55,7 +55,7 @@ for (g in 1:10) {
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
 
-    cat("start: gaussian\n")
+    cat("  start: gaussian - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="gaussian", skew=F, thresh=0, nknots=1,
@@ -66,7 +66,7 @@ for (g in 1:10) {
     cat("  end: gaussian \n")
     cat("------------------\n")
 
-    cat("  start: skew t-1 \n")
+    cat("  start: skew t-1 - Set", dataset, "\n")
     tic <- proc.time()
     fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh=0, nknots=1,
@@ -77,7 +77,7 @@ for (g in 1:10) {
     cat("  end: skew t-1 \n")
     cat("------------------\n")
 
-    cat("start: skew t-1 (T=0.90) \n")
+    cat("start: skew t-1 (T=0.90) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh=0.90, nknots=1,
@@ -88,7 +88,7 @@ for (g in 1:10) {
     cat("  end: skew t-1 (T=0.90) \n")
     cat("------------------\n")
 
-    cat("  start: skew t-5 \n")
+    cat("  start: skew t-5 - Set", dataset, "\n")
     tic <- proc.time()
     fit.4[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh=0, nknots=5,
@@ -99,20 +99,9 @@ for (g in 1:10) {
     cat("  end: skew t-5 \n")
     cat("------------------\n")
 
-    cat("start: skew t-5 (T=0.90) \n")
-    tic <- proc.time()
-    fit.5[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh=0.90, nknots=5,
-                       iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
-    toc <- proc.time()
-    cat("  skew t-5 (T=0.90) took:", (toc - tic)[3], "\n")
-    cat("  end: skew t-5 (T=0.90) \n")
-    cat("------------------\n")
-
-    save(fit.1, fit.2, fit.3, fit.4, fit.5, file=outputfile)
+    save(fit.1, fit.2, fit.3, fit.4, file=outputfile)
   }
   
-  rm(fit.1, fit.2, fit.3, fit.4, fit.5)
+  rm(fit.1, fit.2, fit.3, fit.4)
   gc()
 }
