@@ -58,7 +58,7 @@ nu <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings)
 alpha <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 # not all methods use skew or multiple partitions
 z.alpha <- array(NA, dim=c(length(intervals), (nsets * ngroups), 4, nsettings))
-avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
+avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
 
 iters <- 20000; burn <- 10000
 for (group in 1:3) {
@@ -96,6 +96,7 @@ for (group in 1:3) {
       rho[, set.idx, 2, setting] <- quantile(fit$rho, probs=intervals)
       nu[, set.idx, 2, setting] <- quantile(fit$nu, probs=intervals)
       alpha[, set.idx, 2, setting] <- quantile(fit$alpha, probs=intervals)
+      z.alpha[, set.idx, 1, setting] <- quantile(fit$z.alpha, probs=intervals)
     
       fit <- fit.3[[d]]  # skew t-1 (T = 0.90)
       pred <- fit$yp  
@@ -109,7 +110,7 @@ for (group in 1:3) {
       rho[, set.idx, 3, setting] <- quantile(fit$rho, probs=intervals)
       nu[, set.idx, 3, setting] <- quantile(fit$nu, probs=intervals)
       alpha[, set.idx, 3, setting] <- quantile(fit$alpha, probs=intervals)
-      avgparts[, set.idx, 1, setting] <- mean(fit$avgparts)
+      z.alpha[, set.idx, 2, setting] <- quantile(fit$z.alpha, probs=intervals)
     
       fit <- fit.4[[d]]  # skew t-5
       pred <- fit$yp
@@ -123,9 +124,23 @@ for (group in 1:3) {
       rho[, set.idx, 4, setting] <- quantile(fit$rho, probs=intervals)
       nu[, set.idx, 4, setting] <- quantile(fit$nu, probs=intervals)
       alpha[, set.idx, 4, setting] <- quantile(fit$alpha, probs=intervals)
-      z.alpha[, set.idx, 1, setting] <- quantile(fit$z.alpha, probs=intervals)
+      z.alpha[, set.idx, 3, setting] <- quantile(fit$z.alpha, probs=intervals)
+      avgparts[, set.idx, 1, setting] <- mean(fit$avgparts)
+      
     
-      fit <- fit.5[[d]]  # skew t-5 (T = 0.90)
+    }
+    cat("dataset", dataset, "\n")
+    rm(fit, fit.1, fit.2, fit.3, fit.4)
+    gc()
+    
+    dataset <- paste(setting,"-a-",group,".RData", sep="")
+    load(dataset)
+    for(d in 1:nsets){  
+      set.idx <- (group - 1) * 5 + d
+      thresholds <- quantile(y[, , set.idx, setting], probs=probs, na.rm=T)
+      validate <- y[!obs, , set.idx, setting]
+      
+      fit <- fit.1[[d]]  # skew t-5 (T = 0.90)
       pred <- fit$yp
       quant.score[, set.idx, 5, setting] <- QuantScore(pred, probs, validate) 
       brier.score[, set.idx, 5, setting] <- BrierScore(pred, thresholds, validate)
@@ -137,10 +152,11 @@ for (group in 1:3) {
       rho[, set.idx, 5, setting] <- quantile(fit$rho, probs=intervals)
       nu[, set.idx, 5, setting] <- quantile(fit$nu, probs=intervals)
       alpha[, set.idx, 5, setting] <- quantile(fit$alpha, probs=intervals)
-      z.alpha[, set.idx, 2, setting] <- quantile(fit$z.alpha, probs=intervals)
+      z.alpha[, set.idx, 4, setting] <- quantile(fit$z.alpha, probs=intervals)
+      avgparts[, set.idx, 1, setting] <- mean(fit$avgparts)
     }
-    cat("dataset", dataset, "-c \n")
-    rm(fit, fit.1, fit.2, fit.3, fit.4, fit.5)
+    
+    cat("dataset", dataset, "\n")
     gc()
   }
 }
