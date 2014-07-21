@@ -102,7 +102,7 @@ for (g in 1:10) {
     cat("start: skew t-5 (T=0.90) \n")
     tic <- proc.time()
     fit.5[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh=0.90, nknots=1,
+                       method="t", skew=T, thresh=0.90, nknots=5,
                        iterplot=F, iters=iters, burn=burn,
                        update=update, thin=thin)
     toc <- proc.time()
