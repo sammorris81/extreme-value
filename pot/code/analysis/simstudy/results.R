@@ -161,11 +161,11 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 nsettings <- dim(y)[4]
-nmethods <- 9
+nmethods <- 5
 
 # get single brier scores and quantile scores for each setting x method x quantile
-quant.score.mean <- apply(quant.score, c(1, 3, 4), mean)
-brier.score.mean <- apply(brier.score, c(1, 3, 4), mean)
+quant.score.mean <- apply(quant.score, c(1, 3, 4), mean, na.rm=T)
+brier.score.mean <- apply(brier.score, c(1, 3, 4), mean, na.rm=T)
 
 setting.title <- c("Gaussian", "t-1", "t-5", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "1/2 Gaussian (range = 0.10), 1/2 t-1 (range = 0.4)")
 methods <- c("Gaussian", "skew t-1 (T = 0.0)", "skew t-5 (T = 0.0)", "skew t-1 (T = 0.9)", "skew t-5 (T = 0.9)")
@@ -175,7 +175,7 @@ pch <- c(24, 22, 22, 22, 22)
 lty <- c(2, 1, 3, 1, 3)
 
 quartz(width=15, height=12)
-par(mfrow=c(3, 3))
+par(mfrow=c(3, 2))
 for (setting in 1:nsettings) {  
   ymax <- max(quant.score.mean[, , setting])
   ymin <- min(quant.score.mean[, , setting])
