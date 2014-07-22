@@ -16,7 +16,13 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
   # replace <- ((mn / sd) > 5) & (lower == 0)
   # lower.u[replace] <- 0
   lower.u <- ifelse( mn / sd > 5 & lower == 0, 0, lower.u )
-  U <- runif(length(mn), lower.u, upper.u)
+  U <- tryCatch(runif(length(mn), lower.u, upper.u),
+                warning=function(e) { 
+                  cat("mn =", mn, "\n")
+                  cat("sd =", sd, "\n")
+                  cat("lower.u =", lower.u, "\n")
+                  cat("upper.u =", upper.u, "\n")	
+                })
   y <- qnorm(U, mn, sd)
   
   return(y)
