@@ -41,7 +41,7 @@ for (g in 1:10) {
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
 
   start <- proc.time()
-  for (d in 1:nsets) {
+  for (d in 2:nsets) {
   	dataset <- (g-1) * 5 + d
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
