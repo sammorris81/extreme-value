@@ -421,20 +421,22 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           dnorm(lognu, lognu.m, lognu.s, log=T) +
           dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
           dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
-         
-    if (!is.na(R)) { if (log(runif(1)) < R) {
-      rho <- can.rho
-      nu <- can.nu
-      alpha <- can.alpha
-      C <- can.C
-      chol.C <- can.chol.C
-      prec.cor <- can.prec.cor
-      logdet.prec <- can.logdet.prec
-      cur.rss <- can.rss
-      acc.rho <- acc.rho + 1
-      acc.nu  <- acc.nu + 1
-      acc.alpha <- acc.alpha + 1
-    }}
+    
+    if (can.nu <= 10) {  # sometimes nu gets lost in the MCMC and ends up way too big
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        rho <- can.rho
+        nu <- can.nu
+        alpha <- can.alpha
+        C <- can.C
+        chol.C <- can.chol.C
+        prec.cor <- can.prec.cor
+        logdet.prec <- can.logdet.prec
+        cur.rss <- can.rss
+        acc.rho <- acc.rho + 1
+        acc.nu  <- acc.nu + 1
+        acc.alpha <- acc.alpha + 1
+      }}
+    }
     
     if (att.rho > 50) {
       if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
@@ -734,7 +736,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       plot(keepers.tau[1:iter, 1, 1], type="l")
       plot(keepers.tau[1:iter, 1, 10], type="l")
-      plot(keepers.tau[1:iter, 1, 20], type="l")
+      plot(keepers.tau[1:iter, 1, 48], type="l")
     }
     
     toc <- proc.time()
