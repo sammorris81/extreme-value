@@ -16,7 +16,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  tau.alpha.init=0.1, 
                  tau.beta.init=0.1,
                  rho.init=0.5, 
-                 nu.init=0.5, 
+                 nu.init=0.5, fixnu=F,
                  alpha.init=0.5,
                  # priors
                  beta.m=0, beta.s=10, 
@@ -185,7 +185,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         # spatial error
         sig.t <- 1 / sqrt(taug[, t])
         theta.t <- sig.t * t(chol(cor)) %*% rnorm(ns, 0, 1)  # generate for all sites
-       
+        if (iter > 19000) {
+          cat("sig.t =", sig.t, "\n")
+          cat("theta.t =", theta.t, "\n")
+          cat("rho =", rho, "\n")
+          cat("alpha =", alpha, "\n")
+          cat("nu =", nu, "\n")
+        }
+        
         # nugget error
         # new expected value and standard deviation
         e.y <- mu[, t] + theta.t
@@ -394,7 +401,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     can.rho <- exp(can.logrho)
 
     lognu  <- log(nu)
-    can.lognu <- rnorm(1, lognu, mh.nu)
+    if (!fixnu) {
+      can.lognu <- rnorm(1, lognu, mh.nu)
+    } else {
+      can.lognu <- lognu
+    }
     can.nu <- exp(can.lognu)
     
     norm.alpha <- qnorm(alpha)
