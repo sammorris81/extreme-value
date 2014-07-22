@@ -192,7 +192,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         s.y <- sqrt(1 - alpha) * sig.t
         upper.y <- thresh.mtx[, t]
         
-        y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
+        # y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
+        y.impute.t <- tryCatch(rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y),
+                               warning = function(e) {
+                               	cat("sig.t = ", sig.t, "\n")
+                               	cat("e.y = ", e.y, "\n")
+                               	cat("s.y = ", s.y, "\n")
+                               	cat("alpha = ", alpha, "\n")
+                               })
        
         # if any y.impute.t come back as -Inf, it's because P(Y < T) = 0
         usefudge <- y.impute.t == -Inf
