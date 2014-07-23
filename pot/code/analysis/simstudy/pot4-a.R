@@ -42,6 +42,7 @@ for (g in 1:10) {
 
   start <- proc.time()
   for (d in 1:nsets) {
+  	d <- 4
   	dataset <- (g-1) * 5 + d
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
@@ -59,8 +60,8 @@ for (g in 1:10) {
     tic <- proc.time()
     fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh=0.90, nknots=5,
-                       iterplot=F, iters=iters, burn=burn, nu.init=0.5, fixnu=T,
-                       update=update, thin=thin)
+                       iterplot=T, iters=iters, burn=burn, nu.init=0.5, fixnu=T,
+                       update=100, thin=thin)
     toc <- proc.time()
     cat("  skew t-5 (T=0.90) took:", (toc - tic)[3], "\n")
     cat("  end: skew t-5 (T=0.90) \n")
