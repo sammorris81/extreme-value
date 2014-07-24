@@ -73,7 +73,7 @@ for (g in 1:10) {
                          error = function(e) {
                            cat("dataset", d, "not working \n")
                            "no results"
-                         }
+                         })
                        })
     toc <- proc.time()
     cat("  skew t-5 (T=0.90) took:", (toc - tic)[3], "\n")

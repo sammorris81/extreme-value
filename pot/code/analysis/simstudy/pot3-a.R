@@ -35,7 +35,7 @@ analysis <- "a"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 1:10) {
+for (g in 4:10) {
   fit.1 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
@@ -72,7 +72,7 @@ for (g in 1:10) {
                          error = function(e) {
                            cat("dataset", d, "not working \n")
                            "no results"
-                         }
+                         })
                        })
     toc <- proc.time()
     cat("  skew t-5 (T=0.90) took:", (toc - tic)[3], "\n")
