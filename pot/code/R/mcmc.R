@@ -16,7 +16,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  tau.alpha.init=0.1, 
                  tau.beta.init=0.1,
                  rho.init=0.5, 
-                 nu.init=0.5, fixnu=F,
+                 nu.init=0.5,
                  alpha.init=0.5,
                  # priors
                  beta.m=0, beta.s=10, 
@@ -25,6 +25,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  logrho.m=-2, logrho.s=1,
                  lognu.m=-1.2, lognu.s=1,
                  alpha.m=0, alpha.s=1,
+                 # covariance model
+                 cov.model="matern",  # or "exponential"
+                 rho.prior="cont",  # or "disc"
                  # skew inits
                  z.init=1, z.alpha.init=0,
                  # skew priors
@@ -138,11 +141,34 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   nu     <- nu.init
   lognu  <- log(nu)
   alpha  <- alpha.init
- 
-  C <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
-  chol.C <- chol(C)
-  prec.cor <- chol2inv(chol.C)
-  logdet.prec <- -sum(log(diag(chol.C)))  # already includes 0.5
+  
+  if (rho.prior == "cont") {
+    C <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
+    chol.C <- chol(C)
+    prec.cor <- chol2inv(chol.C)
+    logdet.prec <- -sum(log(diag(chol.C)))  # already includes 0.5
+  } else if (rho.prior == "disc"){  # precompute eigenvectors and eigenvalues
+  	if (cov.model != "exponential") {
+  	  stop('to use a discrete prior on rho, you must set cov.model = "exponential"')
+  	}
+  	
+    rhos <- seq(0.01, 1.2, 0.01)  # restricting spatial domain to [0, 1] x [0, 1]
+   	C.vectors <- array(NA, dim=c(ns, ns, length(rho)))
+   	C.values  <- matrix(NA, nrow=ns, ncol=length(rho))
+   	for (i in 1:length(rho)) {
+   	  temp.C <- cov.spatial(d, cov.model="exponential")
+   	  temp.C.eigen <- eigen(temp.C, symmetric=T)
+   	  C.vectors[, , i] <- temp.C.eigen$vectors
+   	  C.values[, i] <- temp.C.eigen$values
+   	}
+   	idx <- which(rhos == rho)
+   	prec.cor <- C.vectors[, , idx] %*% diag(1 / (1 - alpha + alpha * C.values[, idx])) %*% 
+   	            t(C.vectors[, , idx])
+   	logdet.prec <- 0.5 * logdet.exp(alpha=alpha, lambda=C.values[, idx])
+  } else {
+    stop("rho.prior must be cont or disc")
+  }
+  
   
   # MH tuning params
   acc.w     <- att.w     <- mh.w     <- rep(0.1, nt)  # knot locations

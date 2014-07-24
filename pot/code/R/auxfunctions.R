@@ -9,7 +9,7 @@
 # Returns:
 #   y(nt): truncated normal data
 #########################################################################
-rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
+rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0) {
   lower.u <- pnorm(lower, mn, sd)
   upper.u <- pnorm(upper, mn, sd)
   
@@ -28,7 +28,7 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0){
   return(y)
 }
 
-CorFx <- function(d, alpha, rho, nu){
+CorFx <- function(d, alpha, rho, nu) {
   library(geoR)    
   cor       <- alpha * matern(d, rho, nu)
   diag(cor) <- 1
@@ -37,13 +37,29 @@ CorFx <- function(d, alpha, rho, nu){
 }
 
 
-mem<-function(s,knots){
+mem <- function(s, knots) {
   library(fields)
-  d<-rdist(s,knots)
-  g<-apply(d,1,which.min)
+  d <- rdist(s, knots)
+  g <- apply(d, 1, which.min)
 
   return(g)
 }
+
+#########################################################################
+# Arguments:
+#   alpha(1): percentage of variation from spatial
+#   lambda(n): eigenvalues from correlation matrix
+#
+# Returns:
+#   logdet.prec(1): logdet of the prec(corr) matrix
+#########################################################################
+logdet.exp <- function(alpha, lambda) {
+  logdet.prec <- -sum(log(1 - alpha + alpha * lambda))
+  
+  return(logdet.prec)
+}
+
+
 
 rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,  
                      mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
