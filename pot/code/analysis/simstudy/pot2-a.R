@@ -42,7 +42,7 @@ for (g in 3:10) {
 
   start <- proc.time()
   for (d in 1:nsets) {
-  	dataset <- (g-1) * 5 + d
+    dataset <- (g-1) * 5 + d
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
