@@ -30,7 +30,7 @@ nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- rep(c(T, F), 100)[1:ns]
 
-setting <- 1
+setting <- 4
 filename <- paste("scores", setting, ".RData", sep="")
 
 source("../../R/auxfunctions.R")	# Included for easy access if we need to change score functions
