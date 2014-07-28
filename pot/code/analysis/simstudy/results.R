@@ -5,13 +5,11 @@
 #
 # data settings:
 #   1 - Gaussian
-#   2 - skew Gaussian (alpha = 3)
-#   3 - skew t-1 (alpha = 3)
-#   4 - skew t-5 w/partition (alpha = 3)
-#   5 - 1/2 Gaussian, 1/2 t
-#   6 - 1/2 Gaussian, 1/2 t w/partition (5 knots)
-#   7 - 1/2 Gaussian (range = 0.40), 1/2 t (range = 0.10)
-#   8 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
+#   2 - t-1
+#   3 - t-5
+#   4 - skew t-1 (alpha = 3)
+#   5 - skew t-5 w/partition (alpha = 3)
+#   6 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
 #
 # analysis methods:
 #  1 - Gaussian
