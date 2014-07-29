@@ -35,7 +35,7 @@ analysis <- "a"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 3:4) {
+for (g in 4:5) {
   fit.1 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
