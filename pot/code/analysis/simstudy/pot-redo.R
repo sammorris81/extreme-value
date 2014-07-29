@@ -84,11 +84,11 @@ g <- 3
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 #### Load simdata
 rm(list = ls())
@@ -150,11 +150,11 @@ g <- 1
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 # for (g in 1) {
 g <- 2
@@ -205,11 +205,11 @@ g <- 2
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 # for (g in 1) {
 g <- 6
@@ -260,11 +260,11 @@ g <- 6
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 #### Load simdata
 rm(list = ls())
@@ -326,11 +326,11 @@ g <- 2
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 # for (g in 1) {
 g <- 3
@@ -381,11 +381,11 @@ g <- 3
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 # for (g in 1) {
 g <- 6
@@ -436,11 +436,11 @@ g <- 6
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
 
 #### Load simdata
 rm(list = ls())
@@ -502,8 +502,8 @@ g <- 4
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
-  }
+  # }
   
   rm(fit.1)
   gc()
-}
+# }
