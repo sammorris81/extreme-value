@@ -1,0 +1,91 @@
+\documentclass[t]{beamer}
+\usepackage{beamerthemesplit}
+\usepackage{pstricks}
+\usepackage{graphicx}
+\usepackage{mdwlist}
+
+\usepackage{amssymb,latexsym,amsmath,amsthm,bbm}
+\usepackage{tikz}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{multirow}
+\usepackage{verbatim}
+\usepackage{alltt}
+\usepackage{mycommands}
+
+\usepackage{cmbright}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+
+
+\definecolor{wp-red}{RGB}{204,0,0}
+\definecolor{wp-gray}{RGB}{51,51,51}
+\definecolor{reynolds-red}{RGB}{153,0,0}
+\definecolor{pyroman-flame}{RGB}{209,81,34}
+\definecolor{hunt-yellow}{RGB}{253,215,38}
+\definecolor{genomic-green}{RGB}{125,140,31}
+\definecolor{innovation-blue}{RGB}{66,126,147}
+\definecolor{bio-indigo}{RGB}{65,86,161}
+
+\setbeamercolor{structure}{fg=wp-red}
+\setbeamercolor{title}{bg=white, fg=wp-red}  % changes color on title page
+\setbeamerfont{title}{series=\bfseries, size=\LARGE}
+\setbeamerfont{author}{series=\bfseries}
+
+\setbeamercolor{frametitle}{bg=wp-red, fg=white}  % changes color at top of frame
+\setbeamerfont{frametitle}{series=\mdseries}
+\setbeamercolor{title in head/foot}{fg=white, bg=wp-red}  % changes color for title in footer
+\setbeamerfont{title in head/foot}{series=\mdseries}
+\setbeamercolor{author in head/foot}{fg=white,bg=wp-gray}  % changes color for author in footer
+\setbeamerfont{author in head/foot}{series=\mdseries}
+
+
+\title[Spatiotemporal Modeling of Extreme Events] % (optional, use only with long paper titles)
+{
+  Spatiotemporal Modeling of Extreme Events
+}
+\author[B. Reich and S. Morris]{Brian Reich and Samuel Morris}
+\institute[NCSU]{North Carolina State University}
+\date{August 7, 2014}
+
+\begin{document}
+
+\begin{frame}
+\begin{center}
+  \titlepage
+\end{center}
+\end{frame}
+
+\begin{frame}{Motivation}
+  \begin{itemize}
+    \item Average behavior is important to understand, but it does not paint the whole picture.
+    \begin{itemize}
+      \item e.g. When constructing river levees, engineers need to be able to estimate a 100-year or 1000-year flood levels.
+    \end{itemize}
+    \item In geostatistical analysis, kriging uses spatial correlation to help inform prediction at unknown locations.
+    \item Want to explore ways to incorporate this spatial correlation when estimating the tails of the distribution.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Introduction to extremes}
+  \begin{itemize} \itemsep 1.5em
+  \item Two common methods for extremes:
+  \begin{enumerate}[1]
+    \item Block maxima
+    \begin{itemize}
+      \item Only use maxima of independent blocks (e.g. yearly maxima)
+      \item Lose information by throwing away non-maxima
+    \end{itemize}
+    \item Peaks over threshold
+    \begin{itemize}
+      \item Use all observations over a threshold
+      \item
+    \end{itemize}
+  \end{enumerate}
+
+  \end{itemize}
+\end{frame}
+
+
+
+\end{document}
