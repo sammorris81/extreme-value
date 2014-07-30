@@ -71,8 +71,9 @@ s <- s[-excl,]
 x <- x[-excl,]
 y <- y[-excl,]
 
-plot(s)
+plot(s, main="Ozone monitoring stations", xlab="", ylab="")
 lines(l)
+
 
 #### Rescale s so each dimension is in (0, 1)
 s.scale <- matrix(NA, nrow=nrow(s), ncol=ncol(s))

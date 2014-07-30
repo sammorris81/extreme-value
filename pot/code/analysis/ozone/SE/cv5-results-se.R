@@ -19,17 +19,17 @@ thresholds <- quantile(y, probs=probs, na.rm=T)
 nsets <- 5 # Number of cv sets
 nbetas <- 4 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 16))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 16))
+quant.score <- array(NA, dim=c(length(probs), nsets, 18))
+brier.score <- array(NA, dim=c(length(thresholds), nsets, 18))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 16))
-beta.1 <- array(NA, dim=c(5000, nsets, 16))
-beta.2 <- array(NA, dim=c(5000, nsets, 16))
-beta.3 <- array(NA, dim=c(5000, nsets, 8)) 
+beta.0 <- array(NA, dim=c(5000, nsets, 18))
+beta.1 <- array(NA, dim=c(5000, nsets, 18))
+beta.2 <- array(NA, dim=c(5000, nsets, 18))
+beta.3 <- array(NA, dim=c(5000, nsets, 9)) 
 
 # usable <- (25000+1):30000
 
-for (i in 1:16) {
+for (i in 1:18) {
   file <- paste("cv5-", i, "SE.RData", sep="")
   load(file)
   for (d in 1:nsets) {
@@ -42,7 +42,7 @@ for (i in 1:16) {
     beta.0[, d, i] <- fit.d$beta[, 1]
     beta.1[, d, i] <- fit.d$beta[, 2]
     beta.2[, d, i] <- fit.d$beta[, 3]
-    if (i <= 8) {
+    if (i <= 9) {
       beta.3[, d, i] <- fit.d$beta[, 4]
     }
   }
@@ -68,10 +68,10 @@ beta.3 <- savelist[[6]]
 probs <- savelist[[7]]
 thresholds <- savelist[[8]]
 
-quant.score.mean <- matrix(NA, 16, length(probs))
-brier.score.mean <- matrix(NA, 16, length(thresholds))
+quant.score.mean <- matrix(NA, 18, length(probs))
+brier.score.mean <- matrix(NA, 18, length(thresholds))
 
-for (i in 1:16) {
+for (i in 1:18) {
   quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
   brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
 }
@@ -79,22 +79,22 @@ for (i in 1:16) {
 par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
 
 plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="With CMAQ", xlab="quantile", ylab="score")
-for (i in 2:8) {
+for (i in 2:9) {
   lines(probs, quant.score.mean[i, ], lty=i)
   points(probs, quant.score.mean[i, ], pch=i)
 }
 title(main="Quantile Scores - Ozone: NC, SC, GA", outer=T)
 
-plot(probs, quant.score.mean[9, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
-for (i in 10:16) {
+plot(probs, quant.score.mean[10, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
+for (i in 11:18) {
   lines(probs, quant.score.mean[i, ], lty=(i-8))
   points(probs, quant.score.mean[i, ], pch=(i-8))
 }
 
-plot(probs, (quant.score.mean[9, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
-for (i in 2:8) {
-  lines(probs, (quant.score.mean[(i+8), ] - quant.score.mean[i, ]), lty=i)
-  points(probs, (quant.score.mean[(i+8), ] - quant.score.mean[i, ]), pch=i)
+plot(probs, (quant.score.mean[10, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
+for (i in 2:9) {
+  lines(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), lty=i)
+  points(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), pch=i)
 }
 
 plot(probs, quant.score.mean[1, ], type="n", axes=F)

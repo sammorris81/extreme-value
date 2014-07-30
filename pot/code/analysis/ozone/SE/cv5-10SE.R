@@ -9,7 +9,7 @@ source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 
 setting <- 10
-method <- "t"
+method <- "gaussian"
 nknots <- 1
 threshold <- 0
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")

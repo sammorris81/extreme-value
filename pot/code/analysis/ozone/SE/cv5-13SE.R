@@ -10,7 +10,7 @@ source('../../../R/auxfunctions.R')
 
 setting <- 13
 method <- "t"
-nknots <- 5
+nknots <- 1
 threshold <- 0.90
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")
 X <- X[, , c(1, 2, 3)]

@@ -10,8 +10,8 @@ source('../../../R/auxfunctions.R')
 
 setting <- 14
 method <- "t"
-nknots <- 1
-threshold <- 0
+nknots <- 5
+threshold <- 0.90
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")
 X <- X[, , c(1, 2, 3)]
 start <- proc.time()
@@ -34,7 +34,7 @@ for(val in 1:5){
 	
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-	                   method=method, skew=T,
+	                   method=method, skew=F,
 	                   thresh=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
                        beta.init=beta.init, tau.init=tau.init, rho.init=0.5,

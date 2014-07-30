@@ -11,7 +11,7 @@ source('../../../R/auxfunctions.R')
 setting <- 15
 method <- "t"
 nknots <- 1
-threshold <- 0.90
+threshold <- 0
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")
 X <- X[, , c(1, 2, 3)]
 start <- proc.time()
