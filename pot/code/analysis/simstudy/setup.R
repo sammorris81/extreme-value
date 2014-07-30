@@ -12,17 +12,11 @@
 #   6 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
 #
 # analysis methods:
-#   1 - Gaussian
-#   2 - t-1
-#   3 - t-5
-#   4 - skew Gaussian
-#   5 - skew t-5
-#   6 - skew t-1
-#   7 - Gaussian (T = 0.90)
-#   8 - t-1 (T = 0.90)
-#   9 - t-5 (T = 0.90)
-#  10 - skew Gaussian (T = 0.90)
-#  11 - skew t-1 (T = 0.90)
+#  1 - Gaussian
+#  2 - skew t-1
+#  3 - skew t-1 (T = 0.90)
+#  4 - skew t-5
+#  5 - skew t-5 (T = 0.90)
 #	
 #########################################################################
 

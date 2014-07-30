@@ -71,10 +71,18 @@ thresholds <- savelist[[8]]
 quant.score.mean <- matrix(NA, 18, length(probs))
 brier.score.mean <- matrix(NA, 18, length(thresholds))
 
+quant.score.se <- matrix(NA, 18, length(probs))
+brier.score.se <- matrix(NA, 18, length(thresholds))
+
 for (i in 1:18) {
   quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
+  quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(5)
   brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
+  brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(5)
 }
+
+quant.score.mean[(10:17),c(1, 6, 9:12)]
+quant.score.se[(10:17),c(1, 6, 9:12)]
 
 par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
 
@@ -87,8 +95,8 @@ title(main="Quantile Scores - Ozone: NC, SC, GA", outer=T)
 
 plot(probs, quant.score.mean[10, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
 for (i in 11:18) {
-  lines(probs, quant.score.mean[i, ], lty=(i-8))
-  points(probs, quant.score.mean[i, ], pch=(i-8))
+  lines(probs, quant.score.mean[i, ], lty=(i-9))
+  points(probs, quant.score.mean[i, ], pch=(i-9))
 }
 
 plot(probs, (quant.score.mean[10, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
@@ -99,4 +107,4 @@ for (i in 2:9) {
 
 plot(probs, quant.score.mean[1, ], type="n", axes=F)
 
-legend("center", lty=1:8, pch=1:8, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5"))
+legend("center", lty=1:9, pch=1:9, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5", "skew-t5 (T=0.9)"))
