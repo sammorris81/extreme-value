@@ -62,7 +62,7 @@ z.alpha <- array(NA, dim=c(length(intervals), (nsets * ngroups), 4, nsettings))
 avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
 
 iters <- 20000; burn <- 10000
-for (group in 1:6) {
+for (group in 1:10) {
   # for(setting in 1:nsettings){
     dataset <- paste(setting,"-c-",group,".RData", sep="")
     load(dataset)
