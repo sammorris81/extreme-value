@@ -15,8 +15,8 @@
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - skew t-1 (T = 0.90)
-#  4 - skew t-5
-#  5 - skew t-5 (T = 0.90)
+#  4 - skew t-3
+#  5 - skew t-3 (T = 0.90)
 #	
 #########################################################################
 
@@ -30,12 +30,12 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 6
-analysis <- "a"
+setting <- 1
+analysis <- "b"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 5:5) {
+for (g in 1:2) {
   fit.1 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
@@ -46,7 +46,7 @@ for (g in 5:5) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
-    obs <- rep(c(T, F), 100)[1:ns]
+    obs <- rep(c(T, T, F), 100)[1:ns]
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
     s.o <- s[obs, ]
@@ -55,28 +55,15 @@ for (g in 5:5) {
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
 
-    cat("  start: skew t-5 (T=0.90) - Set", dataset, "\n")
+    cat("  start: skew t-3 - Set", dataset, "\n")
     tic <- proc.time()
-    fit.1[[d]] <- tryCatch(
-                       mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh=0.90, nknots=5,
-                       iterplot=F, iters=iters, burn=burn, 
-                       update=update, thin=thin,
-                       nu.init=0.5, cov.model="exponential", rho.prior="cont"),
-                       error = function(e) {
-                         tryCatch(mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                         method="t", skew=T, thresh=0.90, nknots=5,
-                         iterplot=F, iters=iters, burn=burn, 
-                         update=update, thin=thin,
-                         nu.init=0.5, cov.model="exponential", rho.prior="disc"),
-                         error = function(e) {
-                           cat("dataset", d, "not working \n")
-                           "no results"
-                         })
-                       })
+    fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=T, thresh=0, nknots=3,
+                       iterplot=F, iters=iters, burn=burn,
+                       update=update, thin=thin)
     toc <- proc.time()
-    cat("  skew t-5 (T=0.90) took:", (toc - tic)[3], "\n")
-    cat("  end: skew t-5 (T=0.90) \n")
+    cat("  skew t-3 took:", (toc - tic)[3], "\n")
+    cat("  end: skew t-3 \n")
     cat("------------------\n")
 
     save(fit.1, file=outputfile)

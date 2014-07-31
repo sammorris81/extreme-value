@@ -64,7 +64,7 @@ avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
 iters <- 20000; burn <- 10000
 for (group in 1:10) {
   # for(setting in 1:nsettings){
-    dataset <- paste(setting,"-c-",group,".RData", sep="")
+    dataset <- paste("initial-run/",setting,"-c-",group,".RData", sep="")
     load(dataset)
     
     for(d in 1:nsets){  # fit.1 is gaussian, fit.2 is t, etc.
@@ -134,7 +134,7 @@ for (group in 1:10) {
     rm(fit, fit.1, fit.2, fit.3, fit.4)
     gc()
     
-    dataset <- paste(setting,"-a-",group,".RData", sep="")
+    dataset <- paste("initial-run/",setting,"-a-",group,".RData", sep="")
     load(dataset)
     for(d in 1:nsets){  
       set.idx <- (group - 1) * 5 + d

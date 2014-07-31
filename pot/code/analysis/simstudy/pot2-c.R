@@ -15,8 +15,8 @@
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - skew t-1 (T = 0.90)
-#  4 - skew t-5
-#  5 - skew t-5 (T = 0.90)
+#  4 - skew t-3
+#  5 - skew t-3 (T = 0.90)
 #	
 #########################################################################
 
@@ -35,8 +35,8 @@ analysis <- "c"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 4:10) {
-  fit.1 <- fit.2 <- fit.3 <- fit.4 <- vector(mode="list", length=nsets)
+for (g in 1:2) {
+  fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
 
@@ -46,7 +46,7 @@ for (g in 4:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
-    obs <- rep(c(T, F), 100)[1:ns]
+    obs <- rep(c(T, T, F), 100)[1:ns]
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
     s.o <- s[obs, ]
@@ -88,20 +88,9 @@ for (g in 4:10) {
     cat("  end: skew t-1 (T=0.90) \n")
     cat("------------------\n")
 
-    cat("  start: skew t-5 - Set", dataset, "\n")
-    tic <- proc.time()
-    fit.4[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh=0, nknots=5,
-                       iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
-    toc <- proc.time()
-    cat("  skew t-5 took:", (toc - tic)[3], "\n")
-    cat("  end: skew t-5 \n")
-    cat("------------------\n")
-
-    save(fit.1, fit.2, fit.3, fit.4, file=outputfile)
+    save(fit.1, fit.2, fit.3, file=outputfile)
   }
   
-  rm(fit.1, fit.2, fit.3, fit.4)
+  rm(fit.1, fit.2, fit.3)
   gc()
 }

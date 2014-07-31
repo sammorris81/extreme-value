@@ -45,12 +45,12 @@ tau.beta.t  <- 8
 
 
 # covariate data
-s         <- cbind(runif(60), runif(60))
+s         <- cbind(runif(130), runif(130))
 ns        <- nrow(s)  
 nt        <- 50
 nsets     <- 50
 nsettings <- length(mixprob.t) 
-ntest     <- floor(ns / 2)
+ntest     <- 30
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
