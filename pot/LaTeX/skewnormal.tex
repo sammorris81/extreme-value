@@ -1,0 +1,144 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[authoryear]{natbib}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{lineno}
+\usepackage{times}
+\usepackage{soul}
+\usepackage{color}
+
+\usepackage[left=1in,top=1in,right=1in]{geometry}
+\pdfpageheight 11in
+\pdfpagewidth 8.5in
+\linespread{1.0}
+\input{mycommands.sty}
+
+
+\begin{document}\linenumbers
+
+\begin{center}
+{\Large {\bf A new spatial model for points above a threshold}}\\
+\today
+\end{center}
+
+\section{Introduction}\label{s:intro}
+In most climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, ranfall).
+However, averages do not help regulators prepare for the unusual events that only happen once every 100 years.
+For example, it is important to have an idea of how much rain will come in a 100-year floor in order to construct strong enough river levees to protect lands from flooding.
+Unlike multivariate normal distributions, it is challenging to model multivariate extreme value distributions (e.g. generalized extreme value and generalized Pareto distribution) because few closed-form expressions exist for the density in more than two-dimensions \citep{Coles1991}.
+
+In a bivariate setting, the extremal coefficient describes the pairwise dependence between two spatial locations \citep{Smith1990}.
+Consider a spatial process $Y(\bs) \in \calR^n$ observed at locations $s \in \calD \subset \calR^2$.
+Then the extremal coefficient, $\theta(\bs_i, \bs_j) \in [1, 2]$, is defined as
+\begin{align}
+  \Pr(Y(\bs_i) < c, Y(\bs_j) < c) = \Pr(Y(\bs_i) < c)^{\theta(\bs_i, \bs_j) }. \label{eq:extremalcoef}
+\end{align}
+One way to characterize the dependence over the entire set of spatial locations is to calculate all of the pairwise extremal coefficients.
+Although this method provides information regarding the spatial structure of the observations, it does not fully characterize the joint spatial dependence.
+One way to account for this limitation is the use of pairwise composite likelihoods \citep{Padoan2010,Blanchet2011,Huser2013}.
+
+Recently, skew eliptical distributions have become a popular alternative to model correlated extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
+Specifically, the skew-normal and skew-t distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate t-distributions.
+In this paper, we present a modified version of the multivariate skew-t distribution that incorporates thresholding and random spatial partitions.
+The advantage of using a thresholded model as opposed to a non-thresholded model is that is allows for the tails of the distribution to inform the predictions in the tails \citep{DuMouchel1983}.
+The random spatial partitions increase the flexibility of the model by giving us a way to account for observations in spatial regions that may have higher variability due to certain regional climate variables (e.g. forest fires).
+
+\section{Statistical model}\label{s:model}
+
+Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ on day $t$.  To avoid bias in estimating tail parameters, we model the thresholded data
+\beq\label{Yt}
+  \Yt_t(\bs) = \left\{
+          \begin{array}{ll}
+            Y_t(\bs) & Y_t(\bs)>T \\
+            T & Y_t(\bs)\le T
+          \end{array}
+        \right.
+\eeq
+where $T$ is a pre-specified threshold.
+
+We first specify a model for the complete data, $Y_t(\bs)$, and then study the induced model for thresholded data, $\Yt_t(\bs)$.
+The full data model is given in Section \ref{s:data} assuming a skew normal distribution with a different variance each day.
+Computationally, the values below the threshold are updated using standard Bayesian missing data methods as described in Section \ref{s:comp}.
+The skew normal representation is from \citep{Zhang2010}.
+\subsection{Half-normal distribution}\label{s:hn}
+Let $u = |z|$ where $Z \sim N(\mu, \sigma^2)$.
+Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-normal distribution which we denote as $U \sim HN(0, 1)$, and the density is given by
+\begin{align}
+  f_U(u) = \frac{ \sqrt{2} }{ \sqrt{\pi \sigma^2} } \exp \left( - \frac{ u^2 }{ 2 \sigma^2 } \right) I(u > 0)
+\end{align}
+When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
+
+\subsection{Complete data}\label{s:data}
+Consider a skew Gaussian spatial process
+\begin{align} \label{eq:fullmodel}
+  Y_t(\bs) &= X_t(\bs) \beta + \sigma_1 z_t(\bs) + v_t(\bs)
+\end{align}
+where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N_{(0, \infty)}(0, 1)$, $\sigma_1 \in \calR$, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_{tl}^2$.
+It can be shown \citep{Zhang2010} that $Y_t(\bs)$ follows a skew normal distribution with skewness parameter $\alpha = \frac{ \sigma_1 }{ \sigma_{tl} }$.
+We can then reexpress the model in (\ref{eq:fullmodel}) as
+\begin{align}
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs)
+\end{align}
+where $z_t(\bs) = z_{tl}$, $z_{tl} \iid N_{(0, \infty)}(0, \sigma_{tl}^2)$, and $v_t(\bs)$ is defined as before.
+
+We model this with a Bayesian hierarchical model as follows.
+Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that
+\begin{align*}
+  P_{tl} = \{\bs_t : l = \argmin_k || \bs_t - w_{tk} ||\}.
+\end{align*}
+Then
+\begin{align}
+    Y_t(\bs) \mid \Theta, z_{t1}, \ldots, z_{tL} &= X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs) \label{eq:hier}\\
+    z_{tl}(\bs) \mid \Theta &\sim N_{(0, \infty)}(0, \sigma^2_{tl})\\
+    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma_t(\lambda))\\
+    \sigma^2_{tl} &\iid IG(\alpha, \beta)\\
+    \alpha &\sim N(0, 10)\\
+    w_{tk} &\sim Unif(\calD)
+\end{align}
+where $\Theta = \{w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \alpha, \lambda, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t(\lambda)$ is a \Matern covariance matrix with variance $\sigma_{tl}^2$, spatial range $\rho$, smoothness $\nu$, and $\lambda$ is the percentage of variation that can be attributed to the partial sill; and $\calD$ is the spatial domain of interest.
+
+\section{Computation}\label{s:comp}
+The MCMC for this model is fairly straightforward.
+First, we impute values below the threshold.
+Then, we update $\Theta$ using random walk MH or Gibbs sampling when appropriate.
+Finally, we make spatial precictions using conditional multivariate normal results and the fact that the distribution of $Y_t(\bs) \mid \Theta, z_{tl}$ is the usual multivariate normal distribution with a \Matern spatial covariance structure.
+
+\subsection{Imputation}\label{s:impute}
+We can use Gibbs sampling to update $Y_t(\bs)$ for observations that are below $T$, the thresholded value. Given $\Theta$, $Y_t(\bs)$ has truncated normal full conditional with these parameter values.
+So we sample $Y_t(\bs) \sim N_{(-\infty, T)}$
+
+\subsection{Parameter updates}\label{s:params}
+To update $\Theta$ given the current value of the complete data $\bY_1, \ldots, \bY_T$, we use a standard Gibbs updates for all parameters except for the knot locations which are done using a Metropolis update.
+See Appendix A.1 for details regarding Gibbs sampling.
+
+\subsection{Spatial prediction}\label{s:pred}
+Given $\bY_t$ the usual Kriging equations give the predictive distribution for $Y_t(\bs^*)$ at prediction location $(\bs^*)$
+
+
+\section{Data analysis}\label{s:analysis}
+
+
+\section{Conclusions}\label{s:con}
+
+\section*{Acknowledgments}
+
+\section*{Appendix A.1: Posterior distributions}
+\input{zpost.tex}
+\input{betapost.tex}
+\input{sigpost.tex}
+\input{alphapost.tex}
+
+\section*{Appendix A.2: MCMC Details}
+
+\subsection*{Priors}
+
+
+
+\bibliographystyle{rss}
+\bibliography{skewnormal}
+
+\end{document}
+
