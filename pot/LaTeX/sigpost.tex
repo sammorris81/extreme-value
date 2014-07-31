@@ -1,0 +1,14 @@
+\subsection*{Conditional posterior of $\sigma^2 \mid \ldots$}\label{s:sigpost}
+In the case where $L = 1$, then $\sigma^2$ has a conjugate posterior distribution. 
+Let $\sigma_t^2 \iid \mbox{IG}(\alpha_0, \beta_0)$. For simplicity, drop the subscript $t$. Then
+\begin{align*}
+    \pi(\sigma^2 \mid \ldots) & \propto (\sigma^2)^{ -\alpha_0 - 1 / 2 - n / 2 - 1} \exp \left\{ -\frac{\beta_0}{\sigma^2} - \frac{ z^2 }{2 \sigma^2} - \frac{ (\bY - \bmu)^T \Sigma^{-1} (\bY - \bmu) }{2 \sigma^2} \right\} \\
+    & \propto (\sigma^2)^{ -\alpha_0 - 1 / 2 - n / 2 - 1} \exp \left\{ - \frac{ 1 }{ \sigma^2 } \left[\beta_0 + \frac{ z^2 }{ 2 } + \frac{ 1 }{ 2 } (\bY - \bmu)^T \Sigma^{-1} (\bY - \mu) \right] \right\} \\
+    & \propto \mbox{IG} (\alpha^*, \beta^*)
+\end{align*}
+where
+\begin{align*}
+    \alpha^* &= \alpha_0 + \frac{1}{2} + \frac{n}{2} \\
+    \beta^* &= \beta_0 + \frac{ z^2 }{ 2 } + \frac{ 1 }{ 2 }(\bY - \bmu)^T \Sigma^{-1} (\bY - \bmu).
+\end{align*}
+In the case that $L > 1$, a random walk Metropolis Hastings step will be used to update $\sigma^2_{lt}$.

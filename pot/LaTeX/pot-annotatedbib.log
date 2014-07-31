@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.12.6)  7 APR 2014 17:06
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2014.4.11)  23 APR 2014 13:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -341,30 +341,34 @@ LaTeX Font Info:    Try loading font information for OT1+phv on input line 21.
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/psnfss/ot1phv.fd
 File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 )
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 28.
-LaTeX Font Info:    Try loading font information for U+msa on input line 29.
+LaTeX Font Info:    Try loading font information for U+msa on input line 22.
 
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 29.
+LaTeX Font Info:    Try loading font information for U+msb on input line 22.
 
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 29.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 60.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 22.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 46.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 78.
 
 (/usr/local/texlive/2013basic/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 60.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 78.
  [1
 
 {/usr/local/texlive/2013basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+
+Package natbib Warning: Citation `Zhang2010' on page 2 undefined on input line 
+96.
+
 (./pot-annotatedbib.bbl
 Missing character: There is no ƒ in font ptmr7t!
 Missing character: There is no ± in font ptmr7t!
@@ -374,37 +378,42 @@ Missing character: There is no ƒ in font ptmr7t!
 Missing character: There is no ± in font ptmr7t!
 Missing character: There is no Ã in font ptmr7t!
 Missing character: There is no Å in font ptmr7t!
-) [2] (./pot-annotatedbib.aux) ) 
+ [2])
+
+Package natbib Warning: There were undefined citations.
+
+[3] (./pot-annotatedbib.aux) ) 
 Here is how much of TeX's memory you used:
- 3993 strings out of 494536
- 53822 string characters out of 6167446
- 121945 words of memory out of 5000000
- 7144 multiletter control sequences out of 15000+600000
+ 4024 strings out of 494536
+ 54203 string characters out of 6167446
+ 123105 words of memory out of 5000000
+ 7175 multiletter control sequences out of 15000+600000
  26849 words of font info for 68 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 38i,10n,32p,344b,201s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2013basic/texmf-dist/fonts/
-enc/dvips/base/8r.enc}</usr/local/texlive/2013basic/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2013basic/texmf-dist/font
-s/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2013basic/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2013basic/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/local/texlive/2013basic/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2013basic/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2013basic
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2013bas
-ic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/201
-3basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/
-2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texli
-ve/2013basic/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive
-/2013basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013
-basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2013basic
-/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on pot-annotatedbib.pdf (2 pages, 146608 bytes).
+ 38i,18n,32p,335b,249s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2013basic/texmf-dist/fonts/en
+c/dvips/base/8r.enc}</usr/local/texlive/2013basic/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmex10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2013basic/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2013basic/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2013basic/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2013basic/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/local/texlive/2013basic/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2013basic
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2013bas
+ic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2013b
+asic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2
+013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texliv
+e/2013basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/tex
+live/2013basic/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texli
+ve/2013basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/20
+13basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2013bas
+ic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on pot-annotatedbib.pdf (3 pages, 159904 bytes).
 PDF statistics:
- 76 PDF objects out of 1000 (max. 8388607)
- 55 compressed objects within 1 object stream
+ 83 PDF objects out of 1000 (max. 8388607)
+ 60 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

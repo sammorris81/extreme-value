@@ -1,0 +1,570 @@
+\documentclass[slidestop,dvips]{beamer}
+\usepackage{beamerthemesplit}
+%\usepackage{graphics}
+\usepackage{pstricks}
+\usepackage{graphicx}
+
+
+\setbeamercolor{title}{fg=red}
+\setbeamercolor{frametitle}{fg=white}
+\setbeamercolor{structure}{fg=red}
+
+\title{Policy optimization for dynamic spatiotemporal systems \hspace{1em} \insertframenumber}
+\author{Brian Reich, NCSU}
+
+\newcommand{\btheta}{ \mbox{\boldmath $\theta$}}
+\newcommand{\blambda}{ \mbox{\boldmath $\lambda$}}
+\newcommand{\bmu}{ \mbox{\boldmath $\mu$}}
+\newcommand{\bsigma}{ \mbox{\boldmath $\sigma$}}
+\newcommand{\balpha}{ \mbox{\boldmath $\alpha$}}
+\newcommand{\bbeta}{ \mbox{\boldmath $\beta$}}
+\newcommand{\bdelta}{ \mbox{\boldmath $\delta$}}
+\newcommand{\bgamma}{ \mbox{\boldmath $\gamma$}}
+\newcommand{\brho}{ \mbox{\boldmath $\rho$}}
+\newcommand{\bnu}{ \mbox{\boldmath $\nu$}}
+\newcommand{\bpsi}{ \mbox{\boldmath $\psi$}}
+\newcommand{\btau}{ \mbox{\boldmath $\tau$}}
+\newcommand{\bepsilon}{ \mbox{\boldmath $\epsilon$}}
+\newcommand{\beps}{ \mbox{\boldmath $\varepsilon$}}
+\newcommand{\bX}{ \mbox{\boldmath X}}
+\newcommand{\bS}{ \mbox{\boldmath S}}
+\newcommand{\bx}{ {\bf x} }
+\newcommand{\by}{ \mbox{\boldmath y}}
+\newcommand{\bY}{ \mbox{\boldmath Y}}
+\newcommand{\bz}{ \mbox{\boldmath z}}
+\newcommand{\bZ}{ \mbox{\boldmath Z}}
+\newcommand{\bW}{ \mbox{\boldmath W}}
+\newcommand{\bb}{ \mbox{\boldmath b}}
+\newcommand{\bg}{ \mbox{\boldmath g}}
+\newcommand{\bL}{ \mbox{\boldmath L}}
+\newcommand{\bs}{ \mbox{\boldmath s}}
+\newcommand{\bt}{ \mbox{\boldmath t}}
+\newcommand{\bu}{ \mbox{\boldmath u}}
+\newcommand{\bv}{ \mbox{\boldmath v}}
+\newcommand{\bw}{ \mbox{\boldmath w}}
+\newcommand{\bfe}{ \mbox{\boldmath e}}
+\newcommand{\calA}{{\cal A}}
+\newcommand{\calI}{{\cal I}}
+
+\newcommand{\argmin}{{\mathop{\rm arg\, min}}}
+\newcommand{\argmax}{{\mathop{\rm arg\, max}}}
+\newcommand{\iid}{\stackrel{iid}{\sim}}
+
+\begin{document}
+
+
+
+\frame{\frametitle{}
+  \begin{center}
+   \huge{Policy optimization for dynamic spatiotemporal systems}\vspace{24pt}
+
+   \Large{Brian Reich}
+
+   \vspace{12pt}
+
+   \includegraphics[width=4.5in]{NCSU.ps}
+  \end{center}
+
+}
+
+
+\frame{\frametitle{Joint work with}
+
+\hspace{0.5in}   \includegraphics[width=1.25in, height=1.25in]{Drake.ps} \hspace{.5in}
+   \includegraphics[width=1.25in, height=1.25in, trim=0in 0.5in 0in 0in, clip=true]{Laber.ps}\\
+\hspace{0.5in}John Drake, UGA \hspace{0.55in}
+Eric Laber, NCSU\vspace{12pt}
+
+\hspace{0.5in}   \includegraphics[width=1.25in, height=1.25in]{Nick.ps} \hspace{.5in}
+   \includegraphics[width=1.25in, height=1.25in]{Krishna.ps}\\
+\hspace{0.5in}Nick Meyer, NCSU \hspace{0.5in}
+Krishna Pacifici, NCSU
+
+
+}
+
+\frame{\frametitle{Motivating example: White nose syndrome}
+\begin{itemize}
+ \item White-nose syndrome (WNS) is an emerging disease affecting hibernating bats.\vspace{12pt}
+ \item The first case was reported in 2007 in NY, and it has since spread rapidly throughout the Eastern US.\vspace{12pt}
+  \item It is estimated that the bat population has declined by 80\% in affected areas. \vspace{12pt}
+ \item This directly affects agriculture, as bats help control insects.\vspace{12pt}
+ \item This pest control is extremely valuable. \vspace{12pt}
+ \end{itemize}
+}
+
+\frame{\frametitle{Spread of white nose syndrome}
+\vspace{-1in}
+\begin{center}
+  \includegraphics[height=4.5in,width=4.5in]{WNSmap.ps}
+\end{center}
+}
+
+\frame{\frametitle{Some potential actions being considered and applied}
+
+Both active and preventative treatments are being considered.\vspace{12pt}
+
+ \begin{itemize}
+   \item Close infected caves to human access.\vspace{12pt}
+   \item Close uninfected caves to human access (currently being implemented by the Rocky Mountain region of USFWS).\vspace{12pt}
+   \item Biocontrol measures, such as introducing beneficial bacteria into caves.\vspace{12pt}
+   \item Create structures for bats that replace caves and that can be monitored and cleaned. \vspace{12pt}
+ \end{itemize}
+
+}
+
+\frame{\frametitle{Statement of the general problem}
+\begin{itemize}
+ \item Our objective is to develop a procedure for identifying the {\bf optimal policy} for allocating treatments in space and time.\vspace{12pt}
+ \item We define a specific reward criteria and try to find the policy which maximizes the expected reward. \vspace{12pt}
+ \item The policy must balance short-term and long-term rewards.\vspace{12pt}
+ \item We need the method to be interpretable and applicable in very high dimensions.\vspace{12pt}
+ \end{itemize}
+}
+
+
+\frame{\frametitle{Other applications of this general methodology}
+\begin{itemize}
+ \item {\bf Conservation}: select lands to protect or designate as easements.\vspace{12pt}
+ \item {\bf Wildlife management}: allocating catch sizes in each county.\vspace{12pt}
+ \item {\bf Forest fires}: deciding where and when to do controlled burns.\vspace{12pt}
+ \item {\bf Crime prevention}: assigning police officers to prevent crime.\vspace{12pt}
+ \item {\bf Sampling}: determining where to take the next observation.
+ \end{itemize}
+}
+
+
+\frame{\frametitle{Notation}
+\begin{itemize}
+ \item {\bf State}: $S_t = \{$all information collected by time $t\}$, including status of each county, covariates, spatial information, etc. \vspace{12pt}
+ \item {\bf Action}: $A_t = \{$the counties to treat at time $t\}$. \vspace{12pt}
+ \item {\bf Policy}: $\pi(S|\bgamma)$ ($\bgamma$ are parameters) maps states to actions $$A_t = \pi(S_t|\bgamma).$$
+ \item {\bf Reward}: $R$, e.g., the number of uninfected counties in 2050. \vspace{12pt}
+ \item {\bf Value}: $V_{\pi} = \mbox{E}_{\pi}(R)$ is the expected reward if we adhere to $\pi$.
+ \end{itemize}
+}
+
+\frame{\frametitle{Reinforcement learning (RL)}
+ There are many algorithms from RL (Sutton and Barto, 1998) that dynamically update the policy as data (state/action/reward) accrue, including:\vspace{12pt}
+  \begin{itemize}
+ \item Stochastic dynamic programming \vspace{12pt}
+ \item Q-learning \vspace{12pt}
+ \item SARSA \vspace{12pt}
+ \item Actor-critic\vspace{12pt}
+ \item Policy search\vspace{12pt}
+ \item many, many more.
+ \end{itemize}
+}
+
+
+\frame{\frametitle{Ms. Pacman}
+\vspace{-0.3in}
+\begin{center}
+  \includegraphics[height=9in,width=9in]{Pacman.ps}
+\end{center}
+}
+
+\frame{\frametitle{Ms. Pacman's policy}
+\begin{itemize}
+ \item Her actions are to move left, right, up, down or nowhere.\vspace{12pt}
+ \item The states are the locations of Ms. Pacman ($s_{current}$), the balls, the bad guys, etc.\vspace{12pt}
+ \item The reward is whether she wins or loses.\vspace{12pt}
+ \item The policy is the set of rules that determine her movements. \vspace{12pt}
+ \item If you had some time to kill, you could play the game thousands of times to estimate the value (probability of winning the game) of any policy you could dream up.\vspace{12pt}
+ \item Based on these data, you could pick the best policy to use in the future.
+ \end{itemize}
+}
+
+\frame{\frametitle{What might Ms. Pacman's policy look like?}
+\begin{itemize}
+ \item We need to decide where to go for any configuration of balls and bad guys.\vspace{12pt}
+ \item We could simplify the problem by extracting a few features from the states.\vspace{12pt}
+ \begin{enumerate}
+  \item $F_1(S_t,A) =$ distance from $s_{current}+A$ to the nearest ball
+  \item $F_2(S_t,A) =$ distance from $s_{current}+A$ to the nearest bad guy.\vspace{12pt}
+ \end{enumerate}
+ \item Policy:
+ $$
+    A_t= \pi(S_t;\bgamma) = \underset{A}{\argmax} \left\{F_1(S_t,A)\gamma_1 + F_2(S_t,A)\gamma_2\right\}.
+ $$
+ \item We could then find the $\bgamma$ that maximizes the value to obtain the optimal policy in this interpretable class of policies.
+
+ \end{itemize}
+}
+
+
+\frame{\frametitle{How is white nose syndrome different than Ms. Pacman?}
+\begin{itemize}
+ \item We only get to play the game once, and not for long.\vspace{6pt}
+ \item We have some time to make recommendations.\vspace{6pt}
+ \item Our state and action spaces are spatial and huge (2$^n$ states)!\vspace{6pt}
+ \item We want to exploit the scientific knowledge of our collaborators.\vspace{6pt}
+ \item We want a policy with a simple form to share with stake-holders.\vspace{6pt}
+ \item We need a policy that evolves over time and accounts for uncertainty.\vspace{6pt}
+ \end{itemize}
+
+Our contribution is to combine methods from RL, ecology, and statistics to accomplish these objectives within a unified framework.
+
+}
+
+\frame{\frametitle{Proposed policy search method}
+   We select a simple parametric form for the policy in terms of features constructed from the current state and potential actions:
+$$A_t = \pi(S_t;\bgamma) = \underset{A\in\calA_t}{\argmax} \sum_{l=1}^pF_l(S_t,A)\gamma_l.$$
+\begin{itemize}
+ \item $A_t$ is the recommended action, for example, the set of $m$ counties to be treated.\vspace{12pt}
+
+ \item $\calA_t$ is the set of possible actions at time $t$, for example, all combinations of $m$ counties of uninfected counties.
+ \end{itemize}
+}
+
+
+\frame{\frametitle{Proposed policy search method}
+   We select a simple parametric form for the policy in terms of features constructed from the current state and potential actions:
+$$A_t = \pi(S_t;\bgamma) = \underset{A\in\calA_t}{\argmax} \sum_{l=1}^pF_l(S_t,A)\gamma_l.$$
+\begin{itemize}
+ \item $F_l$ are the features and can be any function of the states (all information available at time $t$) and actions.\vspace{12pt}
+ \item Feature selection has the usual regression tradeoffs:
+ \begin{itemize}
+    \item Selecting many features gives a flexible class of policies
+     \item Selecting only a few features favors transparency.\vspace{12pt}
+ \end{itemize}
+ \item $\bgamma$ weights the features and must be optimized.
+ \end{itemize}
+}
+
+\frame{\frametitle{Proposed policy search method}
+   We select a simple parametric form for the policy in terms of features constructed from the current state and potential actions:
+$$A_t = \pi(S_t;\bgamma) = \underset{A\in\calA_t}{\argmax} \sum_{l=1}^pF_l(S_t,A)\gamma_l.$$
+\begin{itemize}
+ \item The ``myopic policy'' would take $p=1$ and $F_1(S_t,A)$ to be the posterior predictive mean number of sites infected at time $t+1$ if we treated sites $A$.\vspace{12pt}
+ \item Computing this feature requires fitting a spatiotemporal model.\vspace{12pt}
+ \item This is optimal if we are only concerned with the next time step, but we can do better by considering future time steps.
+
+ \end{itemize}
+}
+
+
+\frame{\frametitle{Feature selection}
+ Which features will help us beat the myopic policy?  We use information about medium-term predictions and network structure.\vspace{12pt}
+ \begin{itemize}
+ \item Average transmission probability from treated counties to other counties.\vspace{12pt}
+ \item Subgraph connectivity of the treated sites.\vspace{12pt}
+ \item Betweenness connectivity of the treated sites.\vspace{12pt}
+ \item Interactions.\vspace{12pt}
+ \end{itemize}
+}
+
+
+
+\frame{\frametitle{Outline of the computational algorithm}
+\begin{enumerate}
+ \item Fit a spatiotemporal model using data available at time $t$.\vspace{12pt}
+  \begin{itemize}
+    \item Gravity model (Maher et al., 2012) with time-evolving parameters.\vspace{12pt}
+  \end{itemize}
+ \item Obtain feature weights $\bgamma$ for use at time $t$.\vspace{12pt}
+  \begin{itemize}
+    \item The value of the policy indexed by a candidate $\bgamma$ is estimated using Monte Carlo sampling from the posterior predictive distribution.\vspace{12pt}
+    \item The optimal weight is found using stochastic gradient descent.\vspace{12pt}
+  \end{itemize}
+ \item Apply recommended treatments.\vspace{12pt}
+ \item Repeat steps 1-3 each year until the end of the study.
+ \end{enumerate}
+}
+
+
+\frame{\frametitle{1. Spatiotemporal gravity model}
+\begin{itemize}
+ \item Let $Y_{jt} = 1$ if county $j$ is infected in year $t$ and $Y_{jt}=0$ otherwise.\vspace{12pt}
+
+\item Given the history up to time $t$ ($H_{t}$), the probability of an infection in county $j$ at time $t$ is
+$$  \mbox{Prob}(Y_{jt}=1|H_{t}) = \left\{
+                       \begin{array}{ll}
+                         1 & Y_{jt-1}=1 \\
+                         1-\prod_{l\in \calI_{t-1}}(1-p_{jlt}) & Y_{jt-1}=0
+                       \end{array}
+                     \right.$$
+  \item $\calI_t$ is the set of indices of counties that are infected in year $t$.\vspace{12pt}
+ \item $p_{jlt}$ is the probability of a spread from county $l$ to county $j$ in year $t$.
+ \end{itemize}
+}
+
+\frame{\frametitle{1. Spatiotemporal gravity model}
+
+The infection probability is modeled as:
+$$\mbox{logit}(p_{jlt}) = \bX_{jt}^T\bbeta_t + \alpha_t A_{jt}- \rho_t \frac{d_{jl}}{(m_jm_l)^{\nu}} .$$
+\begin{itemize}
+ \item $\bX_{jt}$ are covariates and $\bbeta_t$ are dynamic coefficients.\vspace{12pt}
+ \item $A_{jt}$ indicates treatment, and $\alpha_t$ is the treatment effect.\vspace{12pt}
+ \item The final term controls spatial dependence:\vspace{12pt}
+ \begin{itemize}
+  \item $d_{jl}$ is the distance between counties,\vspace{6pt}
+   \item $m_j$ is the number of caves in county $j$,\vspace{6pt}
+   \item $\rho_t$ and $\nu$ are unknown parameters.
+  \end{itemize}
+ \end{itemize}
+}
+
+
+\frame{\frametitle{2. Obtain feature weights $\bgamma$ for use at time $t$}
+
+\begin{itemize}
+ \item The value of policy $\pi(S|\bgamma)$, denoted $V_{\bgamma}$, is the expected reward if we adhere to $\pi(S|\bgamma)$.\vspace{12pt}
+ \item To approximate the value, we sample many realizations of the process conditional on the current state with actions taken following $\pi(S|\bgamma)$.\vspace{12pt}
+ \item These posterior predictive draws account for uncertainty in the model parameters.\vspace{12pt}
+ \item These simulations could also account for any other sources of uncertainty that can be encoded in the statistical model, such as changes in the climate or land use.\vspace{12pt}
+ \end{itemize}
+}
+
+
+
+\frame{\frametitle{2. Obtain feature weights $\bgamma$ for use at time $t$}
+Optimization is done through stochastic gradient descent:\vspace{12pt}
+\begin{enumerate}
+\setcounter{enumi}{-1}
+ \item Set some initial value $\bgamma_0$ and compute its value $V_0$.\vspace{12pt}
+ \item Generate $\bgamma^* \sim \mbox{N}(\bgamma_t,c I_p)$ and compute its value $V^*$.\vspace{12pt}
+ \item Set $\bgamma_{t+1} = \bgamma_t+a_t(V_t-V^*)(\bgamma^*-\bgamma_t)$.\vspace{12pt}
+ \item Repeat 1-2 until convergence.\vspace{12pt}
+ \end{enumerate}
+ $a_t$ and $c$ are tuning parameters.
+}
+
+
+\frame{\frametitle{3. Apply recommended treatments}
+
+\begin{itemize}
+ \item Given a model and policy (which give the features and $\gamma_l$), the recommended action is
+ $$A_t = \pi(S_t;\bgamma) = \underset{A\in\calA_t}{\argmax} \sum_{l=1}^pF_l(S_t,A)\gamma_l.$$
+ \item This is a challenging discrete optimization problem.\vspace{12pt}
+ \item It must be done efficiently because it is also used in Monte Carlo simulations.\vspace{12pt}
+ \item We begin by adding sites sequentially one at a time.\vspace{12pt}
+ \item Once a full set is proposed, we cycle through the proposed sites and optimize them one at a time with the others fixed until convergence.
+ \end{itemize}
+}
+
+
+\frame{\frametitle{Results: Model comparisons}
+
+We compared six variants of the gravity model
+$$\mbox{logit}(p_{jlt}) = \bX_{jt}^T\bbeta_t + \rho_t \frac{d_{jl}}{(m_jm_l)^{\nu}} .$$
+
+\begin{enumerate}
+ \item Static ($\bbeta_t\equiv \bbeta$), non-spatial ($\rho_t\equiv 0$)\vspace{12pt}
+ \item Static, diffusion ($\nu\equiv 0$)\vspace{12pt}
+ \item Static, gravity\vspace{12pt}
+ \item Dynamic, non-spatial\vspace{12pt}
+ \item Dynamic, diffusion\vspace{12pt}
+ \item Dynamic, gravity\vspace{12pt}
+ \end{enumerate}
+}
+
+\frame{\frametitle{Results: Model comparisons}
+
+The dynamic gravity model has the smallest (best) DIC.\vspace{24pt}
+
+\begin{center}\begin{tabular}{llccc}
+Spatial model & Coefficient model & $DIC$ & ${\bar D}$ & $p_D$ \\\hline
+Non-spatial & Static  & 1307 & 1302 &  4.9 \\
+Diffusion   & Static  & 1003 &  997 &  5.8 \\
+Gravity     & Static  &  939 &  933 &  6.4 \\
+Non-spatial & Dynamic & 1223 & 1206 & 16.7 \\
+Diffusion   & Dynamic &  911 &  893 & 17.7 \\
+Gravity     & Dynamic &  878 &  860 & 18.0 \\
+\end{tabular}\end{center}}
+
+\frame{\frametitle{Results: Model adequacy}
+
+\begin{itemize}
+  \item In addition to comparing a few models, we want to show the dynamic gravity model is adequate.\vspace{12pt}
+  \item This is crucial, since our entire strategy relies on having a good predictive model.\vspace{12pt}
+  \item We use the Bayesian p-value:\vspace{12pt}
+  \begin{itemize}
+  \item Let $D_0$ be some summary statistic of the dataset, e.g., the number of infected counties in 2010.\vspace{12pt}
+  \item We sample $N = 10,000$ draws from the process, and compute $D_i$ for simulated dataset $i$.\vspace{12pt}
+  \item The p-value is then $p = \frac{1}{N}\sum_{i=1}^NI(D_0>D_i)$.
+\end{itemize}
+\end{itemize}
+
+}
+
+
+
+\frame{\frametitle{Results: Bayes p-values for the dynamic gravity model}
+
+\begin{center}\begin{tabular}{lccc}
+Statistic & Observed value & Predictive distribution & P-value \\\hline
+n inf & 148 & 149 ( 60 , 325 ) & 0.49 \\
+n inf 2007 & 1 & 1 ( 0 , 6 ) & 0.35 \\
+n inf 2008 & 14 & 10 ( 3 , 27 ) & 0.70 \\
+n inf 2009 & 26 & 26 ( 9 , 67 ) & 0.50 \\
+n inf 2010 & 35 & 36 ( 13 , 97 ) & 0.46 \\
+n inf 2011 & 38 & 37 ( 13 , 82 ) & 0.52 \\
+n inf 2012 & 33 & 36 ( 13 , 68 ) & 0.40 \\
+mean year & 2010 & 2010 ( 2010 , 2011 ) & 0.37 \\
+mean long & 1399 & 1347 ( 879 , 1605 ) & 0.64 \\
+mean lat & 393 & 388 ( 225 , 595 ) & 0.52 \\
+%mean dist from start & 608 & 653 ( 373 , 1095 ) & 0.38 \\
+min long & -290 & -97 ( -1816 , 817 ) & 0.47 \\
+min lat & -258 & -335 ( -826 , -187 ) & 0.80 \\
+max long & 2156 & 2051 ( 1950 , 2201 ) & 0.82 \\
+max lat & 1118 & 1118 ( 1016 , 1325 ) & 0.49 \\
+%max dist from start & 2218 & 2072 ( 1325 , 3666 ) & 0.51
+\end{tabular}\end{center}}
+
+\frame{\frametitle{Results: Bayes p-values for the static gravity model}
+
+\begin{center}\begin{tabular}{lccc}
+Statistic & Observed value & Predictive distribution & P-value \\\hline
+n inf & 148 & 97 ( 25 , 222 ) & 0.81 \\
+n inf 2007 & 1 & 2 ( 0 , 6 ) & 0.11 \\
+n inf 2008 & 14 & 4 ( 0 , 11 ) & 0.99 \\
+n inf 2009 & 26 & 8 ( 1 , 22 ) & 0.99 \\
+n inf 2010 & 35 & 15 ( 3 , 40 ) & 0.95 \\
+n inf 2011 & 38 & 26 ( 6 , 65 ) & 0.76 \\
+n inf 2012 & 33 & 40 ( 10 , 91 ) & 0.35 \\
+mean year & 2010 & 2011 ( 2010 , 2011 ) & 0.01 \\
+mean long & 1399 & 1415 ( 738 , 1730 ) & 0.47 \\
+mean lat & 393 & 447 ( 264 , 742 ) & 0.32 \\
+%mean dist from start & 608 & 568 ( 237 , 1208 ) & 0.57 \\
+min long & -290 & 192 ( -1766 , 1346 ) & 0.43 \\
+min lat & -258 & -265 ( -764 , 162 ) & 0.51 \\
+max long & 2156 & 2014 ( 1900 , 2156 ) & 0.88 \\
+max lat & 1118 & 1106 ( 965 , 1325 ) & 0.61 \\
+%max dist from start & 2218 & 1768 ( 728 , 3548 ) & 0.57 \\
+\end{tabular}\end{center}}
+
+
+\frame{\frametitle{Results: DLM coefficients $\bbeta_t$}
+
+\vspace{-0.3in}
+\begin{center}
+  \includegraphics[height=3.3in,width=3.3in]{dlm.ps}
+\end{center}
+}
+
+
+
+
+
+\frame{\frametitle{Simulation study}
+
+\begin{itemize}
+  \item To illustrate the proposed method, we estimate the value of several policies for data similar to the WNS data.\vspace{12pt}
+  \item We generate data from the gravity model with parameters set to the posterior mean.\vspace{12pt}
+  \item We consider both active and preventative treatments, with effect size that roughly halves the infection probabilities.\vspace{12pt}
+  \item Data are generated for 2007-2022 with treatments starting in 2012.\vspace{12pt}
+  \item The reward is the number of uninfected counties in 2022.\vspace{12pt}
+  \item We are allowed 30 treatments of each type each year.
+\end{itemize}
+
+}
+
+\frame{\frametitle{Methods for comparison}
+
+We compare 3 policies:\vspace{12pt}
+\begin{itemize}
+  \item No treatments.\vspace{12pt}
+  \item Nearest neighbor: Treat the counties nearest to an infected county, and infected counties nearest an uninfected county.\vspace{12pt}
+  \item The proposed policy search method.\vspace{12pt}
+\end{itemize}
+
+We generate 100 datasets and record the number of uninfected counties for each method.
+}
+
+
+
+\frame{\frametitle{\ }
+   \begin{center}
+   {\huge One realization with no treatments}
+   \end{center}
+}
+\frame{\frametitle{\ }
+   \begin{center}
+   {\huge One realization using the nearest neighbor policy}
+   \end{center}
+}
+\frame{\frametitle{\ }
+   \begin{center}
+   {\huge One realization using policy search}
+   \end{center}
+}
+
+
+\frame{\frametitle{Proportion of infected counties}
+
+\vspace{-0.3in}
+\begin{center}
+  \includegraphics[height=3.3in,width=3.3in]{valuePlot.ps}
+\end{center}
+
+}
+
+
+\frame{\frametitle{Monte Carlo 90\% intervals for $\bgamma$}
+
+\begin{center}\begin{tabular}{l|c}
+Feature & 90\% Interval\\\hline
+AIP over S & (-1.89 , -1.23 )\\
+AIP over neighbors of T  & (-3.73 , -3.36 )\\
+AIP over S weighted by SC & (-5.18 , -4.64 )\\
+AIP over S weighted by BC & (-1.81 , -1.30 )\\
+AIP over NI weighed by SC & (\ 2.58 , \ 2.85 )\\
+AIP over NI weighed by BC & (-2.01 , -1.53 )\\
+AIP over S weighted by WM & (-0.93 , -0.63 )\\
+AIP over T weighted by WM & (-1.63 , -1.05 )\\
+\end{tabular}\end{center}
+
+\begin{itemize}
+  \item AIP = average infection probability.
+  \item Set of counties: S = susceptible; T = treated; \\
+        NI = susceptible neighbors of infected counties.
+  \item Connectivity measures:  SC = subgraph; BC = betweenness; WM = walk measure.
+\end{itemize}
+
+}
+
+
+\frame{\frametitle{Summary}
+
+ \begin{itemize}
+ \item We have proposed a general framework for policy optimization for spatial decision problems. \vspace{6pt}
+ \item The key features are that we attain an interpretable policy and can handle non-stationarity and high dimensions.\vspace{6pt}
+ \item Our simulations illustrate the potential of this approach. \vspace{6pt}
+ \item Limitations:\vspace{0pt}
+ \begin{itemize}
+    \item Entirely model-based.\vspace{6pt}
+    \item Doesn't find the globally optimal policy.\vspace{6pt}
+    \item Not applicable in real time.\vspace{6pt}
+    \item Practical constraints?\vspace{6pt}
+ \end{itemize}
+ \item Future work:\vspace{0pt}
+ \begin{itemize}
+    \item Generalizing.\vspace{6pt}
+    \item Applications!\vspace{6pt}
+ \end{itemize}
+
+ \end{itemize}
+
+}
+
+
+\frame{\frametitle{Conservation in Puerto Rico}
+
+\vspace{-0.1in}
+\begin{center}
+  \includegraphics[height=3in,width=3in,  trim=0.5in 0.5in 0.5in 0.5in, clip=true]{PR.ps}
+\end{center}
+}
+
+
+\frame{\frametitle{\ }
+  \vspace{1in}
+  \begin{center}
+   {\Huge Thank you for your attention!}
+  \end{center}
+}
+
+
+\end{document}
+

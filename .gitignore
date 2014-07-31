@@ -1,16 +1,24 @@
 # History files
 .Rhistory
+.Rapp.history
 
 # Example code in package build process
 *-Ex.R
 
 # R data files from past sessions
 .Rdata
+*.RData
+
+# Profiled output
+Rprof.out
+
+# Regular output
+*.out
 
 # LaTeX aux typsetting files
-.aux
-.bbl
-.blg
-.fdb_latexmk
-.log
-.synctex.gz
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.log
+*.synctex.gz
