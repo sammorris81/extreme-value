@@ -24,7 +24,7 @@ s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[
 
 x.preds[, ] <- cbind(rep(1, nrow(s.preds)), s.scale.preds)
 X <- X[, , c(1, 2, 3)]
-X.preds <- array(1, dim=c(ns, nt, 3))
+X.preds <- array(1, dim=c(nrow(s.preds), nt, 3))
 for (t in 1:nt) {
   X.preds[, t, 2] <- s.scale.preds[, 1]
   X.preds[, t, 3] <- s.scale.preds[, 2]
