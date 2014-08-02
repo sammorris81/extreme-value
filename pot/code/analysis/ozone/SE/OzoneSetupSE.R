@@ -62,6 +62,7 @@ y<-y[SE,]
 plot(s)
 lines(l)
 
+
 #########################################################################
 #### Exclude if monitoring site is missing more than 50% of the 
 #### observations
