@@ -21,7 +21,15 @@ s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennesse
 s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
 s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
 s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[,2])[1])
-x.preds <- cbind(rep(1, nrow(s.preds)), s.scale.preds)
+
+x.preds[, ] <- cbind(rep(1, nrow(s.preds)), s.scale.preds)
+X <- X[, , c(1, 2, 3)]
+X.preds <- array(1, dim=c(ns, nt, 3))
+for (t in 1:nt) {
+  X.preds[, t, 2] <- s.scale.preds[, 1]
+  X.preds[, t, 3] <- s.scale.preds[, 2]
+}
+
 
 time.set <- rep(0, 5)
 iters <- 30000
@@ -37,7 +45,7 @@ start <- proc.time()
 set.seed(1)
 
 tic.set <- proc.time()
-fit.1 <- mcmc(y=y, s=s.scale, x=X, x.pred=x.preds, s.pred=s.preds,
+fit.1 <- mcmc(y=y, s=s.scale, x=X, x.pred=X.preds, s.pred=s.scale.preds,
             thresh=threshold, nknots=nknots, method=method, skew=skew,
             iters=iters, burn=burn, update=update, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
@@ -54,7 +62,7 @@ start <- proc.time()
 set.seed(2)
 
 tic.set <- proc.time()
-fit.2 <- mcmc(y=y, s=s.scale, x=X, x.pred=x.preds, s.pred=s.preds,
+fit.2 <- mcmc(y=y, s=s.scale, x=X, x.pred=X.preds, s.pred=s.scale.preds,
             thresh=threshold, nknots=nknots, method=method, skew=skew,
             iters=iters, burn=burn, update=update, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
@@ -71,7 +79,7 @@ start <- proc.time()
 set.seed(3)
 
 tic.set <- proc.time()
-fit.3 <- mcmc(y=y, s=s.scale, x=X, x.pred=x.preds, s.pred=s.preds,
+fit.3 <- mcmc(y=y, s=s.scale, x=X, x.pred=X.preds, s.pred=s.scale.preds,
             thresh=threshold, nknots=nknots, method=method, skew=skew,
             iters=iters, burn=burn, update=update, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
@@ -88,7 +96,7 @@ start <- proc.time()
 set.seed(4)
 
 tic.set <- proc.time()
-fit.4 <- mcmc(y=y, s=s.scale, x=X, x.pred=x.preds, s.pred=s.preds,
+fit.4 <- mcmc(y=y, s=s.scale, x=X, x.pred=X.preds, s.pred=s.scale.preds,
             thresh=threshold, nknots=nknots, method=method, skew=skew,
             iters=iters, burn=burn, update=update, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
@@ -105,7 +113,7 @@ start <- proc.time()
 set.seed(5)
 
 tic.set <- proc.time()
-fit.5 <- mcmc(y=y, s=s.scale, x=X, x.pred=x.preds, s.pred=s.preds,
+fit.5 <- mcmc(y=y, s=s.scale, x=X, x.pred=X.preds, s.pred=s.scale.preds,
             thresh=threshold, nknots=nknots, method=method, skew=skew,
             iters=iters, burn=burn, update=update, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
