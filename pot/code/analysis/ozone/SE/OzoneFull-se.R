@@ -8,15 +8,15 @@ source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 
 #### Create places for prediciton maps
-s1.preds <- seq(1050, 1800, length=150)
-s2.preds <- seq(-860, -250, length=150)
+s1.preds <- seq(1050, 1800, length=50)
+s2.preds <- seq(-860, -250, length=50)
 s.preds <- expand.grid(s1.preds, s2.preds)
 s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
 s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
 s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
 
-plot(s.preds)
-lines(l)
+# plot(s.preds)
+# lines(l)
 
 s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
 s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
