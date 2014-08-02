@@ -28,7 +28,7 @@ nsets <- 5
 ngroups <- 10
 nsettings <- dim(y)[4]
 nmethods <- 5
-obs <- rep(c(T, F), 100)[1:ns]
+obs <- c(rep(T, 100), rep(F, 30))
 
 setting <- 4
 filename <- paste("scores", setting, ".RData", sep="")
@@ -62,9 +62,9 @@ z.alpha <- array(NA, dim=c(length(intervals), (nsets * ngroups), 4, nsettings))
 avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
 
 iters <- 20000; burn <- 10000
-for (group in 1:10) {
+for (group in 1:2) {
   # for(setting in 1:nsettings){
-    dataset <- paste("initial-run/",setting,"-c-",group,".RData", sep="")
+    dataset <- paste(setting,"-c-",group,".RData", sep="")
     load(dataset)
     
     for(d in 1:nsets){  # fit.1 is gaussian, fit.2 is t, etc.
@@ -113,7 +113,15 @@ for (group in 1:10) {
       alpha[, set.idx, 3, setting] <- quantile(fit$alpha, probs=intervals)
       z.alpha[, set.idx, 2, setting] <- quantile(fit$z.alpha, probs=intervals)
     
-      fit <- fit.4[[d]]  # skew t-5
+    }
+    cat("dataset", dataset, "\n")
+    rm(fit, fit.1, fit.2, fit.3)
+    gc()
+    
+    dataset <- paste(setting,"-b-",group,".RData", sep="")
+    load(dataset)
+    for(d in 1:nsets){ 
+      fit <- fit.1[[d]]  # skew t-5
       pred <- fit$yp
       quant.score[, set.idx, 4, setting] <- QuantScore(pred, probs, validate)
       brier.score[, set.idx, 4, setting] <- BrierScore(pred, thresholds, validate)
@@ -127,14 +135,12 @@ for (group in 1:10) {
       alpha[, set.idx, 4, setting] <- quantile(fit$alpha, probs=intervals)
       z.alpha[, set.idx, 3, setting] <- quantile(fit$z.alpha, probs=intervals)
       avgparts[, set.idx, 1, setting] <- mean(fit$avgparts)
-      
-    
     }
-    cat("dataset", dataset, "\n")
-    rm(fit, fit.1, fit.2, fit.3, fit.4)
-    gc()
     
-    dataset <- paste("initial-run/",setting,"-a-",group,".RData", sep="")
+    cat("dataset", dataset, "\n")
+    rm(fit, fit.1)
+    
+    dataset <- paste(setting,"-a-",group,".RData", sep="")
     load(dataset)
     for(d in 1:nsets){  
       set.idx <- (group - 1) * 5 + d
@@ -158,6 +164,7 @@ for (group in 1:10) {
     }
     
     cat("dataset", dataset, "\n")
+    rm(fit, fit.1)
     gc()
   # }
   save(
