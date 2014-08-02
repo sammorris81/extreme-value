@@ -183,7 +183,7 @@
     \end{align*}
     where
     \begin{itemize} \setlength{\itemsep}{0.25em}
-      \item $\alpha \in \calR$ controls the skew
+      \item $\alpha \in \calR$ controls the skewness
       \item $z_t \iid N_{(0, \infty)}(0, \sigma^2_t)$ is a random effect
       \item $v_t(\bs)$ is a Gaussian process with variance $\sigma^2_t$ and \Matern correlation
       \item $\sigma_t^2 \iid \text{IG}(a, b)$
@@ -191,15 +191,12 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Skew-normal distribution}
+\begin{frame}{Spatial skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Conditioned on $z_t$ and $\sigma^2_t$, $Y_t(\bs)$ is Gaussian
-    \begin{itemize}
-      \item After marginalizing over $\sigma^2_t$, this becomes a multivariate $t$-distribution with $2a$ degrees of freedom.
-    \end{itemize}
+    \item \alert{Conditioned} on $z_t$ and $\sigma^2_t$, $Y_t(\bs)$ is Gaussian
     \item Can use standard geostatistical methods to fit this model.
     \item Predictions can be made through kriging.
-    \item Marginalizing over $z_t$ and $\sigma^2_t$ (via MCMC),
+    \item \alert{Marginalizing} over $z_t$ and $\sigma^2_t$ (via MCMC),
     \begin{align*}
       Y_t(\bs) \sim \text{skew-t}(\mu, \alpha, \text{df}=2a)
     \end{align*}
@@ -221,10 +218,10 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Daily random partition allows $z_t$ and $\sigma^2_t$ to vary by site.
     \begin{align*}
-      Y_t(\bs) = X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs)
+      Y_t(\bs) = X_t(\bs) \beta + \alpha z_t(\bs) + \sigma(\bs) v_t(\bs)
     \end{align*}
     \item Consider a set of daily knots $\{w_{t1}, \ldots, w_{tK}\}$ that define a daily partition
-    $\{P_{t1}, \ldots, P_{tK}\}$ such that
+    $P_{t1}, \ldots, P_{tK}$ such that
     \begin{align*}
       P_{tk} = \{s : k = \argmin_\ell|| \bs - w_{t\ell}|| \}
     \end{align*}
@@ -233,7 +230,7 @@
       z_t(\bs) &= z_{tk}\\
       \sigma^2_t(\bs) &= \sigma^2_{tk}
     \end{align*}
-    \item Within each partition $Y_t(\bs)$ has the same distribution as before.
+    \item Within each partition $Y_t(\bs)$ has the same MVT distribution as before.
   \end{itemize}
 \end{frame}
 
@@ -243,7 +240,7 @@
     \item Three main steps:
     \begin{enumerate}[1.]
       \item Impute missing observations and data below $T$
-      \item Update parameters with random walk Metropolis Hastings or Gibbs sampling
+      \item Update parameters with standard random walk Metropolis Hastings or Gibbs sampling
       \item Make spatial predictions
     \end{enumerate}
     \item Priors are selected to be conjugate when possible.
@@ -261,11 +258,11 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item 9 different analysis methods incorporating
     \begin{itemize}
-      \item Gaussian vs $t$
-      \item 1 partition vs 5 partitions
+      \item Gaussian vs $t$ vs skew-$t$ marginal distribution
+      \item $K=1$ partition vs $K=5$ partitions
       \item No thresholding vs thresholded
       \begin{itemize}
-        \item Thresholded data at 0.90 sample quantile
+        \item Thresholded data at $T=0.90$ sample quantile
       \end{itemize}
     \end{itemize}
     \item All methods use a \Matern or exponential covariance ($\nu = 0.5$)
@@ -278,26 +275,23 @@
   \begin{table}[htbp]
     \small
     \centering
-    \begin{tabular}{lrrrrrr}
-           & \multicolumn{6}{c}{Quantile}\\
-           \cline{2-7}
-    & 0.900 & 0.950 & 0.980 & 0.990 & 0.995 & 0.999\\
+    \begin{tabular}{l|c|r|rrrrr}
+          \multicolumn{3}{c}{\ } & \multicolumn{5}{c}{Quantile}\\
+           \hline
+  Marginal & $K$ & $T$  & 0.900 & 0.950 & 0.990 & 0.995 & 0.999\\
   \hline
-Gaussian & 16.38 & 15.76 & 15.02 & 14.52 & 14.08 & 13.22\\
-$t$-1 ($T=0$) & 16.15 & 15.51 & 14.62 & 14.00 & 13.43 & 12.32\\
-$t$-5 ($T=0$) & 13.61 & 12.66 & 11.61 & 10.96 & 10.40 & 9.34\\
-$t$-1 ($T=0.9$) & 5.52  & 3.58  & 2.28  & 1.77  & 1.47  & 1.10\\
-$t$-5 ($T=0.9$) & 5.98  & 4.27  & 2.99  & 2.41  & 2.03  & 1.49\\
-skew $t$-1 ($T=0$) & 9.24  & 7.27  & 5.26  & 4.13  & 3.27  & 1.96\\
-skew $t$-1 ($T=0.9$) & {\bf 4.91}  & {\bf 3.16} & {\bf 1.94}  & {\bf 1.45}  & {\bf 1.16}  & {\bf 0.82}\\
-skew $t$-5 ($T=0$) & 15.81 & 14.46 & 12.74 & 11.57 & 10.57 & 8.60\\
-skew $t$-5 ($T=0.9$) & & & & & &\\
+Gaussian & 1 & 0 & 16.38 & 15.76 & 14.52 & 14.08 & 13.22\\
+$t$ & 1 & 0 & 16.15 & 15.51 & 14.00 & 13.43 & 12.32\\
+$t$ & 5 & 0 & 13.61 & 12.66 & 10.96 & 10.40 & 9.34\\
+skew $t$ & 1 & 0 & 9.24  & 7.27 & 4.13  & 3.27  & 1.96\\
+skew $t$ & 5 & 0 & 15.81 & 14.46 & 11.57 & 10.57 & 8.60\\
+$t$ & 1 & 0.9 & 5.52  & 3.58  & 1.77  & 1.47  & 1.10\\
+$t$ & 5 & 0.9 & 5.98  & 4.27  & 2.41  & 2.03  & 1.49\\
+ skew $t$ & 1 & 0.9 & {\bf 4.91}  & {\bf 3.16} & {\bf 1.45}  & {\bf 1.16}  & {\bf 0.82}\\
+skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
 \hline
     \end{tabular}
   \end{table}
-  \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Quantile scores -- Still waiting on last set
-  \end{itemize}
 \end{frame}
 
 \begin{frame}{Simulation study settings}
