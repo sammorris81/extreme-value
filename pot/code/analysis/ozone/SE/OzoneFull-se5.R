@@ -22,7 +22,6 @@ s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
 s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
 s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[,2])[1])
 
-x.preds[, ] <- cbind(rep(1, nrow(s.preds)), s.scale.preds)
 X <- X[, , c(1, 2, 3)]
 X.preds <- array(1, dim=c(nrow(s.preds), nt, 3))
 for (t in 1:nt) {
