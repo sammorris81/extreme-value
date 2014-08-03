@@ -124,4 +124,56 @@ time.set[5] <- (toc.set - tic.set)[3]
 
 save(fit.1, fit.2, fit.3, fit.4, fit.5, file="OzoneFull.RData")
 
+# make the plots
+library(fields)
+library(geoR)
+library(mvtnorm)
 
+rm(list=ls())
+source('../../../R/mcmc.R')
+source('../../../R/auxfunctions.R')
+
+#### Setup from Brian
+load("../OzoneData.RData")
+y <- CMAQ_OZONE$y
+x <- CMAQ_OZONE$x
+s <- CMAQ_OZONE$s
+l <- CMAQ_OZONE$poly
+
+#Extract subset
+# NC<-(s[,1]>xb[1]) & (s[,1]<xb[2]) & (s[,2]>yb[1]) & (s[,2]<yb[2])
+AL <- 1:26
+DE <- 27:30
+DC <- 31:33
+FL <- 34:45
+GA <- 46:69
+IL <- 70:76
+IN <- 77:104
+KY <- 105:135
+MD <- 136:150
+MS <- 151:154
+NJ <- 155
+NC <- 156:196
+OH <- 197:223
+PA <- 224:231
+SC <- 232:252
+TN <- 253:274
+VA <- 275:299
+WV <- 300:307
+
+SE <- c(GA, NC, SC)
+s<-s[SE,]
+x<-x[SE,]
+y<-y[SE,]
+plot(s)
+lines(l)
+
+load('./OzoneFull2.RData')
+yp <- fit.2$yp
+q.95 <- apply(yp, 2, quantile, probs=c(0.95))
+
+p.exceed.75 <- rep(NA, 439)
+# for each site, how much of the posterior predictive is above 75ppb
+for (i in 1:439) {
+  p.exceed.75[i] <- mean(yp[, i, ] > 75)
+}
