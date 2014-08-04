@@ -38,7 +38,7 @@ alpha <- rep(NA, 3)
 
 
 load('./OzoneFull1.RData')
-tau[, 1] <- apply(fit.1$tau, c(2, 3), mean)
+tau[, 1] <- apply(fit.1$tau, 2, mean)
 beta[, 1] <- apply(fit.1$beta, 2, mean)
 rho[1] <- mean(fit.1$rho)
 nu[1] <- mean(fit.1$nu)
@@ -56,13 +56,13 @@ for (i in 1:439) {
 
 
 load('./OzoneFull2.RData')
-tau[, 2] <- apply(fit.2$tau, c(2, 3), mean)
+tau[, 2] <- apply(fit.2$tau, 2, mean)
 beta[, 2] <- apply(fit.2$beta, 2, mean)
 rho[2] <- mean(fit.2$rho)
 nu[2] <- mean(fit.2$nu)
 alpha[2] <- mean(fit.2$alpha)
 yp <- fit.2$yp
-post.med[, , 2] <- apply(yp, c(2, 3), quantile, probs=0.50)
+post.med[, , 2] <- apply(yp, 2, quantile, probs=0.50)
 quantiles.90[, 2] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 2] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 2] <- apply(yp, 2, quantile, probs=0.99)
@@ -73,7 +73,7 @@ for (i in 1:439) {
 }
 
 load('./OzoneFull3.RData')
-tau[, 3] <- apply(fit.3$tau, c(2, 3), mean)
+tau[, 3] <- apply(fit.3$tau, 2, mean)
 beta[, 3] <- apply(fit.3$beta, 2, mean)
 rho[3] <- mean(fit.3$rho)
 nu[3] <- mean(fit.3$nu)
