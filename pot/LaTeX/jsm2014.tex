@@ -267,14 +267,22 @@
 \end{frame}
 
 \begin{frame}{Data analysis}
-  \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for 92 days
-    \includegraphics[width=1\linewidth]{./plots/ozone_station.pdf}
-  \end{itemize}
+	\centering
+	Ozone monitoring station locations
+    \includegraphics[width=0.8\linewidth]{./plots/ozone_station.pdf}
+
 \end{frame}
 
-\begin{frame}{$\chi$-plot for selected ozone sample quantiles}
+\begin{frame}{Data analysis}
+  \centering
+  Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for days 5 and 34.
+    \includegraphics[width=1\linewidth]{./plots/ozone-day.pdf}
+
+\end{frame}
+
+\begin{frame}{Exploratory data analysis}
 	\centering
+	$\chi$-plot for residuals selected ozone sample quantiles
     \includegraphics[width=1\linewidth]{./plots/chi-plot-ozone-res.pdf}
 \end{frame}
 
@@ -350,42 +358,13 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Simulation study settings}
+\begin{frame}{Simulation study}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Data generated from 6 different settings.
-    \begin{enumerate}[1.]
-      \item Gaussian
-      \item $t$-1 with 4 degrees of freedom
-      \item $t$-5 with 4 degrees of freedom
-      \item skew $t$-1 with 4 degrees of freedom ($\alpha = 3$)
-      \item skew $t$-5 with 4 degrees of freedom ($\alpha = 3$)
-      \item Half-Gaussian, Half $t$-1 (spatial range = 0.4)
-    \end{enumerate}
-    \item Spatial settings
+    \item 6 different data settings:
     \begin{itemize}
-      \item $\bs \in [0, 1] \times [0, 1]$
-      \item Exponential covariance with range: 0.1
-      \item Ratio of spatial to nugget error: 0.9
+    	\item Gaussian vs $t$ vs skew-$t$ marginal distribution
+        \item $K=1$ partition vs $K=5$ partitions
     \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Simulation study methods}
-  \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item 5 different analysis methods
-    \begin{enumerate}[1.]
-      \item Gaussian
-      \item Skew $t$-1 ($T=0$)
-      \item Skew $t$-1 ($T=0.9$)
-      \item Skew $t$-5 ($T=0$)
-      \item Skew $t$-5 ($T=0.9$)
-    \end{enumerate}
-    \item All methods use a \Matern covariance structure except for method 5 which uses an exponential covariance ($\nu = 0.5$)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Simulation study results}
-  \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Results are similar to the results from the data analysis
     \item Biggest gains come from thresholding.
     \item Using skew models give additional gain, but small relative to gain for thresholding.
