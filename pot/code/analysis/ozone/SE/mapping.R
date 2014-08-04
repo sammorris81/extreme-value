@@ -26,7 +26,7 @@ rm(list=ls())
 # }
 
 probs <- c(0.90, 0.95, 0.99)
-quantiles.90 <- quantiles.95 <- quantiles.99 <- matrix(NA, dim=c(439, 5))
+quantiles.90 <- quantiles.95 <- quantiles.99 <- matrix(NA, nrow=439, ncol=5)
 p.exceed.75 <- array(NA, dim=c(439, 92, 5))
 
 load('./OzoneFull1.RData')
