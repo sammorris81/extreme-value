@@ -12,7 +12,7 @@ for (i in 1:3) {
 # for each site, how much of the posterior predictive is above 75ppb
 for (i in 1:439) {
   p.exceed.75[1, i] <- mean(yp[, i, ] > 75)
-}ri
+}
 load('./OzoneFull2.RData')
 yp <- fit.2$yp
 for (i in 1:3) {
