@@ -268,7 +268,7 @@ diag(cor) <- 1
 y.pred.t1 <- array(NA, dim=c(1000, np, nt))
 for (t in 1:nt) {
   mean.t <- X.preds[, t, ] %*% beta[, 2]
-  cov.t <- cor / tau[t, 1]
+  cov.t <- cor / tau[t, 2]
   chol.t <- chol(cov.t)
   for(i in 1:1000) {
     y.pred.t1[i, , t] <- mean.t + chol.t %*% rnorm(np, 0, 1)
@@ -281,7 +281,7 @@ diag(cor) <- 1
 y.pred.st1 <- array(NA, dim=c(1000, np, nt))
 for (t in 1:nt) {
   mean.t <- X.preds[, t, ] %*% beta[, 3] + z.alpha * z[t]
-  cov.t <- cor / tau[t, 1]
+  cov.t <- cor / tau[t, 3]
   chol.t <- chol(cov.t)
   for(i in 1:1000) {
     y.pred.t1T[i, , t] <- mean.t + chol.t %*% rnorm(np, 0, 1)
