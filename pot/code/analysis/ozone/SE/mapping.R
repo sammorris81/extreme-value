@@ -1,8 +1,8 @@
 rm(list=ls())
 
 probs <- c(0.90, 0.95, 0.99)
-quantiles <- array(NA, dim=c(5, 439, 3))
-p.exceed.75 <- matrix(NA, nrow=5, ncol=439)
+quantiles.90 <- quantiles.95 <- quantiles.99 <- array(NA, dim=c(439, 92, 5))
+p.exceed.75 <- array(NA, dim=c(439, 92, 5))
 
 load('./OzoneFull1.RData')
 yp <- fit.1$yp
@@ -54,3 +54,4 @@ for (i in 1:439) {
 }
 
 save(quantiles, p.exceed.75, file="predictions.RData")
+
