@@ -29,16 +29,17 @@ probs <- c(0.50, 0.90, 0.95, 0.99)
 quantiles.90 <- quantiles.95 <- quantiles.99 <- matrix(NA, nrow=439, ncol=5)
 p.exceed.75 <- array(NA, dim=c(439, 92, 5))
 post.med <- array(NA, dim=c(439, 92, 5))
-tau <- matrix(NA, 92, 5)
-beta <- matrix(NA, 3, 5)
-rho <- rep(NA, 5)
-nu <- rep(NA, 5)
-alpha <- rep(NA, 5)
+
+tau <- matrix(NA, 92, 3)
+beta <- matrix(NA, 3, 3)
+rho <- rep(NA, 3)
+nu <- rep(NA, 3)
+alpha <- rep(NA, 3)
 
 
 load('./OzoneFull1.RData')
-tau[, 1] <- apply(fit.1$tau, 2, mean)
-beta[, 1] <- apply(fit.1$beta, c(2, 3), mean)
+tau[, 1] <- apply(fit.1$tau, c(2, 3), mean)
+beta[, 1] <- apply(fit.1$beta, 2, mean)
 rho[1] <- mean(fit.1$rho)
 nu[1] <- mean(fit.1$nu)
 alpha[1] <- mean(fit.1$alpha)
@@ -55,8 +56,8 @@ for (i in 1:439) {
 
 
 load('./OzoneFull2.RData')
-tau[, 2] <- apply(fit.2$tau, 2, mean)
-beta[, 2] <- apply(fit.2$beta, c(2, 3), mean)
+tau[, 2] <- apply(fit.2$tau, c(2, 3), mean)
+beta[, 2] <- apply(fit.2$beta, 2, mean)
 rho[2] <- mean(fit.2$rho)
 nu[2] <- mean(fit.2$nu)
 alpha[2] <- mean(fit.2$alpha)
@@ -72,12 +73,13 @@ for (i in 1:439) {
 }
 
 load('./OzoneFull3.RData')
-tau[, 3] <- apply(fit.3$tau, 2, mean)
-beta[, 3] <- apply(fit.3$beta, c(2, 3), mean)
+tau[, 3] <- apply(fit.3$tau, c(2, 3), mean)
+beta[, 3] <- apply(fit.3$beta, 2, mean)
 rho[3] <- mean(fit.3$rho)
 nu[3] <- mean(fit.3$nu)
 alpha[3] <- mean(fit.3$alpha)
 z.alpha <- mean(fit.3$z.alpha)
+z <- apply(fit.3$z, c(2, 3), mean)
 yp <- fit.3$yp
 post.med[, , 3] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 3] <- apply(yp, 2, quantile, probs=0.90)
