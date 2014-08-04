@@ -25,14 +25,16 @@ rm(list=ls())
   # X.preds[, t, 3] <- s.scale.preds[, 2]
 # }
 
-probs <- c(0.90, 0.95, 0.99)
+probs <- c(0.50, 0.90, 0.95, 0.99)
 quantiles.90 <- quantiles.95 <- quantiles.99 <- matrix(NA, nrow=439, ncol=5)
 p.exceed.75 <- array(NA, dim=c(439, 92, 5))
+post.med <- array(NA, dim=c(439, 92, 5))
 
 load('./OzoneFull1.RData')
 rho <- mean(fit.1$rho)
 
 yp <- fit.1$yp
+post.med[, , 1] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 1] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 1] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 1] <- apply(yp, 2, quantile, probs=0.99)
@@ -45,6 +47,7 @@ for (i in 1:439) {
 
 load('./OzoneFull2.RData')
 yp <- fit.2$yp
+post.med[, , 2] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 2] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 2] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 2] <- apply(yp, 2, quantile, probs=0.99)
@@ -56,6 +59,7 @@ for (i in 1:439) {
 
 load('./OzoneFull3.RData')
 yp <- fit.3$yp
+post.med[, , 3] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 3] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 3] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 3] <- apply(yp, 2, quantile, probs=0.99)
@@ -67,6 +71,7 @@ for (i in 1:439) {
 
 load('./OzoneFull4.RData')
 yp <- fit.4$yp
+post.med[, , 4] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 4] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 4] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 4] <- apply(yp, 2, quantile, probs=0.99)
@@ -78,6 +83,7 @@ for (i in 1:439) {
 
 load('./OzoneFull5.RData')
 yp <- fit.5$yp
+post.med[, , 5] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 5] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 5] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 5] <- apply(yp, 2, quantile, probs=0.99)
@@ -87,7 +93,14 @@ for (i in 1:439) {
   }
 }
 
-save(quantiles.90, quantiles.95, quantiles.99, p.exceed.75, file="predictions.RData")
+save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, file="predictions.RData")
+
+# par(mfrow=c(1, 2))
+# zlim=range(y[, c(5, 34)], na.rm=T)
+# quilt.plot(x=s[, 1], y=s[, 2], z=y[, 5], nx=40, ny=40, zlim=zlim, main="Day 5")
+# lines(l)
+# quilt.plot(x=s[, 1], y=s[, 2], z=y[, 34], nx=40, ny=40, zlim=zlim, main="Day 34")
+# lines(l)
 
 # # load("predictions.RData")
 # #### Create places for prediciton maps
