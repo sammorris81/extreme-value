@@ -113,7 +113,7 @@ for (i in 1:439) {
   }
 }
 
-save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, file="predictions.RData")
+save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, tau, beta, rho, nu, alpha, z.alpha, file="predictions.RData")
 
 # # plot monitoring station ozone locations
 # plot(s, type="p", xlab="", ylab="")
@@ -127,40 +127,40 @@ save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, file="pred
 # quilt.plot(x=s[, 1], y=s[, 2], z=y[, 34], nx=40, ny=40, zlim=zlim, main="Day 34", xlab="", ylab="")
 # lines(l)
 
-load("predictions.RData")
-#### Create places for prediciton maps
-s1.preds <- seq(1050, 1800, length=25)
-s2.preds <- seq(-860, -250, length=25)
-s.preds <- expand.grid(s1.preds, s2.preds)
-s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
-s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
-s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
+# load("predictions.RData")
+# #### Create places for prediciton maps
+# s1.preds <- seq(1050, 1800, length=25)
+# s2.preds <- seq(-860, -250, length=25)
+# s.preds <- expand.grid(s1.preds, s2.preds)
+# s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
+# s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
+# s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
 
-s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
-s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
-s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[,2])[1])
+# s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
+# s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
+# s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[,2])[1])
 
-X <- X[, , c(1, 2, 3)]
-X.preds <- array(1, dim=c(nrow(s.preds), nt, 3))
-for (t in 1:nt) {
-  X.preds[, t, 2] <- s.scale.preds[, 1]
-  X.preds[, t, 3] <- s.scale.preds[, 2]
-}
+# X <- X[, , c(1, 2, 3)]
+# X.preds <- array(1, dim=c(nrow(s.preds), nt, 3))
+# for (t in 1:nt) {
+  # X.preds[, t, 2] <- s.scale.preds[, 1]
+  # X.preds[, t, 3] <- s.scale.preds[, 2]
+# }
 
 
-exceedance.1 <- exceedance.2 <- exceedance.3 <- exceedance.4 <- exceedance.5 <- rep(NA, 439)
-for (i in 1:439) {
-  exceedance.1[i] <- 1 - prod(1 - p.exceed.75[i, , 1])
-  exceedance.2[i] <- 1 - prod(1 - p.exceed.75[i, , 2])
-  exceedance.3[i] <- 1 - prod(1 - p.exceed.75[i, , 3])
-  exceedance.4[i] <- 1 - prod(1 - p.exceed.75[i, , 4])
-  exceedance.5[i] <- 1 - prod(1 - p.exceed.75[i, , 5])
-}
+# exceedance.1 <- exceedance.2 <- exceedance.3 <- exceedance.4 <- exceedance.5 <- rep(NA, 439)
+# for (i in 1:439) {
+  # exceedance.1[i] <- 1 - prod(1 - p.exceed.75[i, , 1])
+  # exceedance.2[i] <- 1 - prod(1 - p.exceed.75[i, , 2])
+  # exceedance.3[i] <- 1 - prod(1 - p.exceed.75[i, , 3])
+  # exceedance.4[i] <- 1 - prod(1 - p.exceed.75[i, , 4])
+  # exceedance.5[i] <- 1 - prod(1 - p.exceed.75[i, , 5])
+# }
 
-samp.p.exceed.75 <- rep(NA, 85)
-for (i in 1:85) {
-  samp.p.exceed.75[i] <- mean(y[i, ] > 75, na.rm=T)
-}
+# samp.p.exceed.75 <- rep(NA, 85)
+# for (i in 1:85) {
+  # samp.p.exceed.75[i] <- mean(y[i, ] > 75, na.rm=T)
+# }
 
 # quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=post.med[, 5, 1], nx=25, ny=25)
 # quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=post.med[, 34, 1], nx=25, ny=25)
