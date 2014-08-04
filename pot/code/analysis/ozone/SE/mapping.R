@@ -79,7 +79,7 @@ rho[3] <- mean(fit.3$rho)
 nu[3] <- mean(fit.3$nu)
 alpha[3] <- mean(fit.3$alpha)
 z.alpha <- mean(fit.3$z.alpha)
-z <- apply(fit.3$z, c(2, 3), mean)
+z <- apply(fit.3$z, 2, mean)
 yp <- fit.3$yp
 post.med[, , 3] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 3] <- apply(yp, 2, quantile, probs=0.90)
@@ -228,3 +228,16 @@ save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, tau, beta,
 # lines(l)
 
 # what if I took the posterior mean for each of the model parameters (gaussian and t-1 T=0.9 and skew-t-1 T=0.90 and just generated the data)
+# s1.preds <- seq(1050, 1800, length=50)
+# s2.preds <- seq(-860, -250, length=50)
+# s.preds <- expand.grid(s1.preds, s2.preds)
+
+# X.preds <- array(1, dim=c(nrow(s.preds), nt, 3))
+# for (t in 1:nt) {
+  # X.preds[, t, 2] <- s.scale.preds[, 1]
+  # X.preds[, t, 3] <- s.scale.preds[, 2]
+# }
+
+# d <- rdist(s.preds)
+# diag(d) <- 0
+# cor <- matern()
