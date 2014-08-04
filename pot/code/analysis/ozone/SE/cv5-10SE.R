@@ -13,7 +13,15 @@ method <- "gaussian"
 nknots <- 1
 threshold <- 0
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")
-X <- X[, , c(1, 2, 3)]
+X <- array(1, dim=c(ns, nt, 6))
+for (t in 1:nt) {
+  X[, t, 2] <- s[, 1]
+  X[, t, 3] <- s[, 2]
+  X[, t, 4] <- s[, 1]^2
+  X[, t, 5] <- s[, 2]^2
+  X[, t, 6] <- s[, 1] * s[, 2]
+}
+
 start <- proc.time()
 
 fit <- vector(mode="list", length=5)

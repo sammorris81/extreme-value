@@ -22,13 +22,21 @@ s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
 s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
 s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[,2])[1])
 
-X <- X[, , c(1, 2, 3)]
-X.preds <- array(1, dim=c(nrow(s.preds), nt, 3))
+X <- array(1, dim=c(ns, nt, 6))
+X.preds <- array(1, dim=c(nrow(s.preds), nt, 6))
 for (t in 1:nt) {
+  X[, t, 2] <- s[, 1]
+  X[, t, 3] <- s[, 2]
+  X[, t, 4] <- s[, 1]^2
+  X[, t, 5] <- s[, 2]^2
+  X[, t, 6] <- s[, 1] * s[, 2]
+  
   X.preds[, t, 2] <- s.scale.preds[, 1]
   X.preds[, t, 3] <- s.scale.preds[, 2]
+  X.preds[, t, 4] <- s.scale.preds[, 1]^2
+  X.preds[, t, 5] <- s.scale.preds[, 2]^2
+  X.preds[, t, 6] <- s.scale.preds[, 1] * s.scale.preds[, 2]
 }
-
 
 time.set <- rep(0, 5)
 iters <- 30000

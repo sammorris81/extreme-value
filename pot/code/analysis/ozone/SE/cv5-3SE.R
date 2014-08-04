@@ -13,6 +13,16 @@ method <- "t"
 nknots <- 3
 threshold <- 0
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")
+X.new <- array(1, dim=c(ns, nt, 7))
+for (t in 1:nt) {
+  X.new[, t, 2] <- s[, 1]
+  X.new[, t, 3] <- s[, 2]
+  X.new[, t, 4] <- s[, 1]^2
+  X.new[, t, 5] <- s[, 2]^2
+  X.new[, t, 6] <- s[, 1] * s[, 2]
+}
+X.new[, , 7] <- X[, , 4]
+X <- X.new
 start <- proc.time()
 
 fit <- vector(mode="list", length=5)

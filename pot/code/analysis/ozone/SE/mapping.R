@@ -235,6 +235,9 @@ nt <- 92
 s1.preds <- seq(1050, 1800, length=30)
 s2.preds <- seq(-860, -250, length=30)
 s.preds <- expand.grid(s1.preds, s2.preds)
+s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
+s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
+s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
 s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
 s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
 s.scale.preds[,2] <- (s.preds[,2] - range(s[,2])[1])/(range(s[,2])[2] - range(s[,2])[1])
@@ -249,43 +252,72 @@ for (t in 1:nt) {
 d <- rdist(s.preds)
 diag(d) <- 0
 
+days <- c(5, 34)
+
 # gaussian
 cor <- alpha[1] * matern(d, rho[1], nu[1])
 diag(cor) <- 1
-y.pred.gau <- array(NA, dim=c(1000, np, nt))
-for (t in 1:nt) {
+y.pred.gau <- array(NA, dim=c(1000, np, 2))
+for (t in days) {
   mean.t <- X.preds[, t, ] %*% beta[, 1]
   cov.t <- cor / tau[t, 1]
   chol.t <- chol(cov.t)
+  if (t == 5) {
+    t.idx <- 1
+  } else {
+    t.idx <- 2
+  }
   for(i in 1:1000) {
-    y.pred.gau[i, , t] <- mean.t + chol.t %*% rnorm(np, 0, 1)
+    y.pred.gau[i, , t.idx] <- mean.t + chol.t %*% rnorm(np, 0, 1)
   }
 }
+y.pred.gau.exceed <- apply((y.pred.gau>60), c(2, 3), mean)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=y.pred.gau.exceed[, 1], nx=30, ny=30)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=y.pred.gau.exceed[, 2], nx=30, ny=30)
+lines(l)
 
 # t-1 (T=0.90)
 cor <- alpha[2] * matern(d, rho[2], nu[2])
 diag(cor) <- 1
-y.pred.t1 <- array(NA, dim=c(1000, np, nt))
-for (t in 1:nt) {
+y.pred.t1 <- array(NA, dim=c(1000, np, 2))
+for (t in days) {
   mean.t <- X.preds[, t, ] %*% beta[, 2]
   cov.t <- cor / tau[t, 2]
   chol.t <- chol(cov.t)
+  if (t == 5) {
+    t.idx <- 1
+  } else {
+    t.idx <- 2
+  }
   for(i in 1:1000) {
-    y.pred.t1[i, , t] <- mean.t + chol.t %*% rnorm(np, 0, 1)
+    y.pred.t1[i, , t.idx] <- mean.t + chol.t %*% rnorm(np, 0, 1)
   }
 }
+y.pred.t1.exceed <- apply((y.pred.t1>75), c(2, 3), mean)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=y.pred.t1.exceed[, 1], nx=30, ny=30)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=y.pred.t1.exceed[, 2], nx=30, ny=30)
+lines(l)
 
 # skew t-1 (T=0.90)
 cor <- alpha[3] * matern(d, rho[3], nu[3])
 diag(cor) <- 1
-y.pred.st1 <- array(NA, dim=c(1000, np, nt))
-for (t in 1:nt) {
+y.pred.st1 <- array(NA, dim=c(1000, np, 2))
+for (t in days) {
   mean.t <- X.preds[, t, ] %*% beta[, 3] + z.alpha * z[t]
   cov.t <- cor / tau[t, 3]
   chol.t <- chol(cov.t)
+  if (t == 5) {
+    t.idx <- 1
+  } else {
+    t.idx <- 2
+  }
   for(i in 1:1000) {
-    y.pred.t1T[i, , t] <- mean.t + chol.t %*% rnorm(np, 0, 1)
+    y.pred.st1[i, , t.idx] <- mean.t + chol.t %*% rnorm(np, 0, 1)
   }
 }
+y.pred.st1.exceed <- apply((y.pred.st1>75), c(2, 3), mean)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=y.pred.st1.exceed[, 1], nx=30, ny=30)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=y.pred.st1.exceed[, 2], nx=30, ny=30)
+lines(l)
 
-save(y.pred.gau, y.pred.t1, y.pred.t1T, filename="map.RData")
+save(y.pred.gau, y.pred.t1, y.pred.st1, filename="map.RData")
