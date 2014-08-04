@@ -3,8 +3,8 @@ library(fields)
 library(geoR)
 
 # necessary functions
-source('../../R/mcmc.R')
-source('../../R/auxfunctions.R')
+source('../../code/R/mcmc.R')
+source('../../code/R/auxfunctions.R')
 
 # data settings
 beta.t <- c(10, 2, -3)
@@ -75,11 +75,11 @@ diag(dist) <- 0
 bins <- seq(0, 1, length=10)
 bins <- c(bins, 1.5)
 
-y.set <- y[, , 1, 2]
+y.set <- y[, , 1, 1]
 
 probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
-exceed <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+exceed.1 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
   exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
   for (t in 1:nt) {
@@ -98,7 +98,33 @@ for (thresh in 1:length(threshs)){
       }
     }
   }
-  exceed[, thresh] <- exceed.thresh
+  exceed.1[, thresh] <- exceed.thresh
+}
+
+y.set <- y[, , 1, 2]
+
+probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
+threshs <- quantile(y.set, probs=probs, na.rm=T)
+exceed.2 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+for (thresh in 1:length(threshs)){
+  exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
+  for (t in 1:nt) {
+    these <- which(y.set[, t] > threshs[thresh])
+    n.na <- sum(is.na(y.set[, t]))
+    for (b in 1:(length(bins) - 1)) {
+      for (site in these){
+        inbin <- (dist[site, ] > bins[b]) & (dist[site, ] < bins[b+1])
+        att[b] <- att[b] + sum(inbin) - sum(is.na(y.set[inbin, t]))
+        acc[b] <- acc[b] + sum(y.set[inbin, t] > threshs[thresh], na.rm=T)
+      }
+      if (att[b] == 0) {
+        exceed.thresh[b] <- 0
+      } else {
+        exceed.thresh[b] <- acc[b] / att[b]
+      }
+    }
+  }
+  exceed.2[, thresh] <- exceed.thresh
 }
 
 par(mfrow=c(1, 2))
@@ -115,7 +141,7 @@ y.set <- y[, , 1, 3]
 
 probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
-exceed <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+exceed.3 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
   exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
   for (t in 1:nt) {
@@ -134,7 +160,7 @@ for (thresh in 1:length(threshs)){
       }
     }
   }
-  exceed[, thresh] <- exceed.thresh
+  exceed.3[, thresh] <- exceed.thresh
 }
 
 xplot <- bins[-11]
@@ -163,7 +189,7 @@ y.set <- y[, , 1, 4]
 
 probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
-exceed <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+exceed.4 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
   exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
   for (t in 1:nt) {
@@ -182,7 +208,7 @@ for (thresh in 1:length(threshs)){
       }
     }
   }
-  exceed[, thresh] <- exceed.thresh
+  exceed.4[, thresh] <- exceed.thresh
 }
 
 par(mfrow=c(1, 2))
@@ -199,7 +225,7 @@ y.set <- y[, , 1, 5]
 
 probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
-exceed <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+exceed.5 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
   exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
   for (t in 1:nt) {
@@ -218,7 +244,7 @@ for (thresh in 1:length(threshs)){
       }
     }
   }
-  exceed[, thresh] <- exceed.thresh
+  exceed.5[, thresh] <- exceed.thresh
 }
 
 xplot <- bins[-11]
@@ -229,3 +255,55 @@ for (line in 2:9) {
 }
 legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quants")
 
+# lty: non-skew vs skew
+# pch: gaussian vs t
+# color: 1 partition vs 5 partitions
+methods <- c("Gaussian", "t, K=1", "t, K=5", "skew-t, K=1", "skew-t, K=5")
+bg <- c("firebrick1", "firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
+col <- c("firebrick4", "firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
+pch <- c(24, 22, 22, 22, 22)
+lty <- c(1, 1, 1, 3, 3)
+quartz()
+par(mfrow=c(2, 2))
+# chi-plot sample quantile 0.90
+xplot <- bins[-11]
+plot(xplot, exceed.1[, 3], type="o", ylim=c(0, 1), ylab="exceed", xlab="bin distance", pch=pch[1], lty=lty[1], col=col[1], bg=bg[1], main="sample quantile 0.90")
+lines(xplot, exceed.2[, 3], type="o", lty=lty[2], pch=pch[2], col=col[2], bg=bg[2])
+lines(xplot, exceed.3[, 3], type="o", lty=lty[3], pch=pch[3], col=col[3], bg=bg[3])
+lines(xplot, exceed.4[, 3], type="o", lty=lty[4], pch=pch[4], col=col[4], bg=bg[4])
+lines(xplot, exceed.5[, 3], type="o", lty=lty[5], pch=pch[5], col=col[5], bg=bg[5])
+abline(h=0.10, lty=2)
+# legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
+
+# chi-plot sample quantile 0.95
+xplot <- bins[-11]
+plot(xplot, exceed.1[, 4], type="o", ylim=c(0, 1), ylab="exceed", xlab="bin distance", pch=pch[1], lty=lty[1], col=col[1], bg=bg[1], main="sample quantile 0.95")
+lines(xplot, exceed.2[, 4], type="o", lty=lty[2], pch=pch[2], col=col[2], bg=bg[2])
+lines(xplot, exceed.3[, 4], type="o", lty=lty[3], pch=pch[3], col=col[3], bg=bg[3])
+lines(xplot, exceed.4[, 4], type="o", lty=lty[4], pch=pch[4], col=col[4], bg=bg[4])
+lines(xplot, exceed.5[, 4], type="o", lty=lty[5], pch=pch[5], col=col[5], bg=bg[5])
+abline(h=0.05, lty=2)
+# legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
+
+# chi-plot sample quantile 0.99
+xplot <- bins[-11]
+plot(xplot, exceed.1[, 8], type="o", ylim=c(0, 0.7), ylab="exceed", xlab="bin distance", pch=pch[1], lty=lty[1], col=col[1], bg=bg[1], main="sample quantile 0.99")
+lines(xplot, exceed.2[, 8], type="o", lty=lty[2], pch=pch[2], col=col[2], bg=bg[2])
+lines(xplot, exceed.3[, 8], type="o", lty=lty[3], pch=pch[3], col=col[3], bg=bg[3])
+lines(xplot, exceed.4[, 8], type="o", lty=lty[4], pch=pch[4], col=col[4], bg=bg[4])
+lines(xplot, exceed.5[, 8], type="o", lty=lty[5], pch=pch[5], col=col[5], bg=bg[5])
+abline(h=0.01, lty=2)
+# legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
+
+# chi-plot sample quantile 0.995
+xplot <- bins[-11]
+plot(xplot, exceed.1[, 9], type="o", ylim=c(0, 0.7), ylab="exceed", xlab="bin distance", pch=pch[1], lty=lty[1], col=col[1], bg=bg[1], main="sample quantile 0.995")
+lines(xplot, exceed.2[, 9], type="o", lty=lty[2], pch=pch[2], col=col[2], bg=bg[2])
+lines(xplot, exceed.3[, 9], type="o", lty=lty[3], pch=pch[3], col=col[3], bg=bg[3])
+lines(xplot, exceed.4[, 9], type="o", lty=lty[4], pch=pch[4], col=col[4], bg=bg[4])
+lines(xplot, exceed.5[, 9], type="o", lty=lty[5], pch=pch[5], col=col[5], bg=bg[5])
+abline(h=0.005, lty=2)
+# legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
+
+plot(xplot, exceed.1[, 9], type="n", axes=F, xlab="", ylab="")
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=4, bty="n")

@@ -198,8 +198,15 @@
     \item Predictions can be made through kriging.
     \item \alert{Marginalizing} over $z_t$ and $\sigma^2_t$ (via MCMC),
     \begin{align*}
-      Y_t(\bs) \sim \text{skew-t}(\mu, \alpha, \text{df}=2a)
+      Y_t(\bs) \sim \text{skew-t}(\mu, \Sigma^*, \alpha, \text{df}=2a)
     \end{align*}
+    where
+    \begin{itemize}
+    	\item $\mu$ is the location
+	\item $a$, $b$ are the IG parameters for $\sigma^2_t$
+	\item $\Sigma^* = \frac{ b }{ a } \Sigma$ is a scale matrix, and $\Sigma$ is a \Matern covariance matrix
+	\item $\alpha \in \calR$ controls the skewness
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -209,9 +216,15 @@
     \begin{align*}
       \chi(\bh) = \Pr(Y_t(\bs) > c \mid Y_t(\bs + \bh) > c)
     \end{align*}
-    \item This value shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$.
+    \item This value shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$ (Padoan, 2011)
     \item Deal with this through a daily random partition.
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Simulated $\chi$ plots}
+  \centering
+  \includegraphics[width=1\linewidth]{./plots/chi-plots.pdf}\\[-0.25in]
+  \includegraphics[width=0.2\linewidth]{./plots/chi-legend.pdf}
 \end{frame}
 
 \begin{frame}{Random daily partition}
@@ -266,12 +279,41 @@
       \end{itemize}
     \end{itemize}
     \item All methods use a \Matern or exponential covariance ($\nu = 0.5$)
-    \item Compare quantile and Brier scores using 5-fold cross validation
+    \item Compare quantile and Brier scores using 5-fold cross validation (Gneiting and Raftery, 2007)
     \item Mean function modeled using a first-order spatial trend
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Cross-validation results}
+\begin{frame}{Quantile score}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
+    \item The quantile score for the $\tau$th quantile is
+    \begin{align*}
+      2 \{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q} - y)
+    \end{align*}
+    where:
+    \begin{itemize}
+      \item $y$ is a test set value
+      \item $\widehat{q}(\tau)$ is the estimated $\tau$th quantile
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Brier score}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
+	\item Brier score for predicting exceedance of threshold $c$
+	\begin{align*}
+	  [e(c) - P(c)]^2
+	\end{align*}
+	where 
+	\begin{itemize}
+		\item $y$ is a test set value
+		\item $e(c) = I[y > c]$
+		\item $P(c)$ is the predicted probability of exceeding $c$
+	\end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Five-fold cross-validation results}
   \begin{table}[htbp]
     \small
     \centering
@@ -292,6 +334,9 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
 \hline
     \end{tabular}
   \end{table}
+  \begin{itemize}
+  	\item Brier score results are similar.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Simulation study settings}
@@ -328,9 +373,12 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Simulation results}
-  Still rerunning a few of the MCMC runs because quantile scores for 4. and 5. are
-  unusually high for method 5
+\begin{frame}{Simulation study results}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
+    \item Results are similar to the results from the data analysis
+    \item Biggest gains come from thresholding.
+    \item Using skew models give additional gain, but small relative to gain for thresholding.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Future work}
@@ -352,9 +400,9 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
 
 \begin{frame}{References}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Cooley, D., Cisewski, J., Erhardt, R. J., Mannshardt, E., Omolo, B. O. and Sun, Y. (2012) A survey of spatial extremes: Measuring spatial dependence and modeling spatial effects. {\it REVSTAT}, {\bf 10}, 135--165.
-    \item Huser, R. and Davison, A. C. (2014) Space-time modelling of extreme events. {\it Journal of the Royal Statistical Society: Series B (Statistical Methodology)}, {\bf 76}, 439--461
-    \item Zhang, H. and El-Shaarawi, A. (2010) On spatial skew-Gaussian processes and applications. {\it Environmetrics}, {\bf 21} 33--47.
+    \item Huser, R. and Davison, A. C. (2014) Space-time modelling of extreme events. {\it Journal of the Royal Statistical Society: Series B (Statistical Methodology)}, {\bf 76}, 439--461.
+    \item Padoan, S. A. (2011) Multivariate extreme models based on underlying skew-$t$ and skew-normal distributions. {\it Journal of Multivariate Analysis}, {\bf 102}, 977--991.
+    \item Zhang, H. and El-Shaarawi, A. (2010) On spatial skew-Gaussian processes and applications. {\it Environmetrics}, {\bf 21}, 33--47.
   \end{itemize}
 \end{frame}
 
