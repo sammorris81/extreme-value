@@ -98,6 +98,7 @@
     \begin{align*}
       \Pr(Y_j < y) = G_j(y) = \exp \left\{ -\left[ \left(1 + \xi_j \frac{y - \mu_j}{\sigma_j}\right)_+^{-1/\xi_j} \right] \right\}
     \end{align*}
+    \item For a spatial analysis, max-stable processes give an appropriate limiting distribution.
   \end{itemize}
 \end{frame}
 
@@ -175,6 +176,38 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}{$\chi$ coefficient}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
+   \item The $\chi$ coefficient is a measure of extremal correlation
+   \item Specifically, we focus on $\chi(c, \bh)$ for the upper tail given by
+    \begin{align*}
+      \chi(c, \bh) = \Pr(Y(\bs) > c \mid Y(\bs + \bh) > c)
+    \end{align*}
+    \item If $\lim_{c \rightarrow \infty} \chi(c) = 0$, then high extreme values are not correlated.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gaussian spatial model}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
+    \item In geostatistical models, observations, $Y(\bs)$ are often modeled using a Gaussian spatial model with a likelihood of
+      \begin{align*}
+    	\hspace{-2em}
+    	f(y(\bs)) = \frac{ 1 }{ (2 \pi)^{n/2} } | \Sigma |^{-1/2} \exp \left[ -\frac{ 1 }{ 2 } (Y(\bs) - \mu(\bs) )^T \Sigma^{-1} (Y(\bs) - \mu(\bs)) \right]
+    \end{align*}
+    where
+    \begin{itemize}
+    	\item $\mu(\bs)$ is a mean vector
+	\item $\Sigma$ is a covariance matrix
+    \end{itemize}
+    \item Model properties:
+    \begin{itemize}
+      \item Nice computing properties
+    \item For a Gaussian spatial model $\lim_{c \rightarrow \infty} \chi(c) = 0$ regardless of the strength of the correlation in the bulk of the distribution.
+    \item Tail is not flexible
+    \end{itemize}
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Spatial skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Assume observed data $Y_t(\bs)$ come from a skew-$t$ (Zhang and El-Shaarawi, 2012)
@@ -193,7 +226,7 @@
 
 \begin{frame}{Spatial skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item \alert{Conditioned} on $z_t$ and $\sigma^2_t$, $Y_t(\bs)$ is Gaussian
+   \item \alert{Conditioned} on $z_t$ and $\sigma^2_t$, $Y_t(\bs)$ is a Gaussian spatial model
     \item Can use standard geostatistical methods to fit this model.
     \item Predictions can be made through kriging.
     \item \alert{Marginalizing} over $z_t$ and $\sigma^2_t$ (via MCMC),
@@ -207,27 +240,24 @@
 	\item $\Sigma^* = \frac{ b }{ a } \Sigma$ is a scale matrix, and $\Sigma$ is a \Matern covariance matrix
 	\item $\alpha \in \calR$ controls the skewness
     \end{itemize}
+
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Long-range dependence}
+\begin{frame}{Spatial skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item The $\chi$ coefficient is a measure of extremal spatial correlation
-    \begin{align*}
-      \chi(\bh) = \Pr(Y_t(\bs) > c \mid Y_t(\bs + \bh) > c)
-    \end{align*}
-    \item This value shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$ (Padoan, 2011)
+      \item Model properties
+    \begin{itemize}
+    	\item Has flexible tail controlled by $\alpha$ and degrees of freedom
+    	\item For a skew-$t$ distribution $\lim_{c \rightarrow \infty} \chi(c) > 0$ Padoan, 2011)
+    	\item Computation that is on the order of Gaussian computation
+    \end{itemize}
+    \item For this distribution, $\chi(c, \bh)$ shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$ 
     \item Deal with this through a daily random partition.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Simulated $\chi$ plots}
-  \centering
-  \includegraphics[width=1\linewidth]{./plots/chi-plots.pdf}\\[-0.25in]
-  \includegraphics[width=0.2\linewidth]{./plots/chi-legend.pdf}
-\end{frame}
-
-\begin{frame}{Random daily partition}
+\begin{frame}{Daily random partition}
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Daily random partition allows $z_t$ and $\sigma^2_t$ to vary by site.
     \begin{align*}
@@ -245,6 +275,12 @@
     \end{align*}
     \item Within each partition $Y_t(\bs)$ has the same MVT distribution as before.
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Simulated $\chi$ plots}
+  \centering
+  \includegraphics[width=1\linewidth]{./plots/chi-plots.pdf}\\[-0.25in]
+  \includegraphics[width=0.2\linewidth]{./plots/chi-legend.pdf}
 \end{frame}
 
 \begin{frame}{Example daily partition}
@@ -374,6 +410,8 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
 \begin{frame}{Future work}
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Comparison with extreme value analysis methods
+    \item Reporting of compliance with EPA ozone standards
+    \item Spatial mapping of high quantiles
     \item Including time in the model
     \begin{itemize}
       \item AR(1): $Y_t(\bs) = X_t(\bs) \beta + \phi Y_{t-1}(\bs) + \alpha z_t(\bs) + v_t(\bs)$
@@ -390,6 +428,7 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
 
 \begin{frame}{References}
   \begin{itemize} \setlength{\itemsep}{0.5em}
+    \item Demarta, S. and McNeil, A. J. (2007) The $t$ copula and related copulas. {\it International Statistical Review}, {\bf 73}, 111--129.
     \item Huser, R. and Davison, A. C. (2014) Space-time modelling of extreme events. {\it Journal of the Royal Statistical Society: Series B (Statistical Methodology)}, {\bf 76}, 439--461.
     \item Padoan, S. A. (2011) Multivariate extreme models based on underlying skew-$t$ and skew-normal distributions. {\it Journal of Multivariate Analysis}, {\bf 102}, 977--991.
     \item Zhang, H. and El-Shaarawi, A. (2010) On spatial skew-Gaussian processes and applications. {\it Environmetrics}, {\bf 21}, 33--47.
