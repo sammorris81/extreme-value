@@ -129,11 +129,11 @@ for (i in 1:439) {
 exceedance.1.1 <- exceedance.1.2 <- exceedance.1.3 <- exceedance.1.4 <- exceedance.1.5 <- rep(0, 439)
 for(i in 1:439) {
   for (t in 1:92) {
-    exceedance.1.1[i] <- exceedance.1.1 + p.exceed.75[i, t, 1] * prod(1 - p.exceed.75[i, -t, 1])
-    exceedance.1.2[i] <- exceedance.1.2 + p.exceed.75[i, t, 2] * prod(1 - p.exceed.75[i, -t, 2])
-    exceedance.1.3[i] <- exceedance.1.3 + p.exceed.75[i, t, 3] * prod(1 - p.exceed.75[i, -t, 3])
-    exceedance.1.4[i] <- exceedance.1.4 + p.exceed.75[i, t, 4] * prod(1 - p.exceed.75[i, -t, 4])
-    exceedance.1.5[i] <- exceedance.1.5 + p.exceed.75[i, t, 5] * prod(1 - p.exceed.75[i, -t, 5])
+    exceedance.1.1[i] <- exceedance.1.1[i] + p.exceed.75[i, t, 1] * prod(1 - p.exceed.75[i, -t, 1])
+    exceedance.1.2[i] <- exceedance.1.2[i] + p.exceed.75[i, t, 2] * prod(1 - p.exceed.75[i, -t, 2])
+    exceedance.1.3[i] <- exceedance.1.3[i] + p.exceed.75[i, t, 3] * prod(1 - p.exceed.75[i, -t, 3])
+    exceedance.1.4[i] <- exceedance.1.4[i] + p.exceed.75[i, t, 4] * prod(1 - p.exceed.75[i, -t, 4])
+    exceedance.1.5[i] <- exceedance.1.5[i] + p.exceed.75[i, t, 5] * prod(1 - p.exceed.75[i, -t, 5])
   }
 }
 
@@ -141,11 +141,11 @@ for(i in 1:439) {
 exceedance.2.1 <- exceedance.2.2 <- exceedance.2.3 <- exceedance.2.4 <- exceedance.2.5 <- rep(0, 439)
 for(i in 1:439) {
   for (t1 in 1:91) { for (t2 in (t1+1):92) {
-    exceedance.2.1[i] <- exceedance.2.1 + prod(p.exceed.75[i, c(t1, t2), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2), 1])
-    exceedance.2.2[i] <- exceedance.2.2 + proc(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
-    exceedance.2.3[i] <- exceedance.2.3 + prod(p.exceed.75[i, c(t1, t2), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2), 3])
-    exceedance.2.4[i] <- exceedance.2.4 + prod(p.exceed.75[i, c(t1, t2), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2), 4])
-    exceedance.2.5[i] <- exceedance.2.5 + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
+    exceedance.2.1[i] <- exceedance.2.1[i] + prod(p.exceed.75[i, c(t1, t2), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2), 1])
+    exceedance.2.2[i] <- exceedance.2.2[i] + proc(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
+    exceedance.2.3[i] <- exceedance.2.3[i] + prod(p.exceed.75[i, c(t1, t2), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2), 3])
+    exceedance.2.4[i] <- exceedance.2.4[i] + prod(p.exceed.75[i, c(t1, t2), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2), 4])
+    exceedance.2.5[i] <- exceedance.2.5[i] + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
   } }
 }
 
@@ -153,11 +153,11 @@ for(i in 1:439) {
 exceedance.3.1 <- exceedance.3.2 <- exceedance.3.3 <- exceedance.3.4 <- exceedance.3.5 <- rep(0, 439)
 for(i in 1:439) {
   for (t1 in 1:90) { for (t2 in (t1+1):91) { for (t3 in (t2+1):92) {
-    exceedance.3.1[i] <- exceedance.2.1 + prod(p.exceed.75[i, c(t1, t2, t3), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 1])
-    exceedance.3.2[i] <- exceedance.2.2 + proc(p.exceed.75[i, c(t1, t2, t3), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 2])
-    exceedance.3.3[i] <- exceedance.2.3 + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
-    exceedance.3.4[i] <- exceedance.2.4 + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
-    exceedance.3.5[i] <- exceedance.2.5 + prod(p.exceed.75[i, c(t1, t2, t3), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 5])
+    exceedance.3.1[i] <- exceedance.3.1[i] + prod(p.exceed.75[i, c(t1, t2, t3), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 1])
+    exceedance.3.2[i] <- exceedance.3.2[i] + proc(p.exceed.75[i, c(t1, t2, t3), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 2])
+    exceedance.3.3[i] <- exceedance.3.3[i] + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
+    exceedance.3.4[i] <- exceedance.3.4[i] + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
+    exceedance.3.5[i] <- exceedance.3.5[i] + prod(p.exceed.75[i, c(t1, t2, t3), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 5])
   } } }
 }
 
