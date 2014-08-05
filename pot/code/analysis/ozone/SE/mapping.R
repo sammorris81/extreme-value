@@ -142,7 +142,7 @@ exceedance.2.1 <- exceedance.2.2 <- exceedance.2.3 <- exceedance.2.4 <- exceedan
 for(i in 1:439) {
   for (t1 in 1:91) { for (t2 in (t1+1):92) {
     exceedance.2.1[i] <- exceedance.2.1[i] + prod(p.exceed.75[i, c(t1, t2), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2), 1])
-    exceedance.2.2[i] <- exceedance.2.2[i] + proc(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
+    exceedance.2.2[i] <- exceedance.2.2[i] + prod(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
     exceedance.2.3[i] <- exceedance.2.3[i] + prod(p.exceed.75[i, c(t1, t2), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2), 3])
     exceedance.2.4[i] <- exceedance.2.4[i] + prod(p.exceed.75[i, c(t1, t2), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2), 4])
     exceedance.2.5[i] <- exceedance.2.5[i] + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
