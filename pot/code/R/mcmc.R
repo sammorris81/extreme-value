@@ -771,7 +771,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     diag(s.11) <- 1
     s.12.22.inv <- s.12 %*% prec.cor
     corp <- s.11 - s.12.22.inv %*% t(s.12)
-    # corp <- diag(corp)
+    corp.chol <- chol(corp)
     
     yp <- matrix(NA, np, nt)
 
@@ -791,7 +791,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # siggp is (np) s.12.22.inv %*% (taug.t * res[, t]) is (np x ns, ns x 1) = (np)
       mup <- xp.beta + z.alpha * zgp + siggp * s.12.22.inv %*% (taug.t * res[, t])
       
-      yp[, t] <- mup + t(chol(cov.t)) %*% rnorm(np, 0, 1)
+      yp[, t] <- mup + siggp * t(corp.chol) %*% rnorm(np, 0, 1)
     }
    
   }
