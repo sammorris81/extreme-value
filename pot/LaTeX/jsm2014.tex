@@ -32,7 +32,7 @@
 \setbeamercolor{structure}{fg=wp-red}
 \setbeamercolor{title}{bg=white, fg=wp-red}  % changes color on title page
 \setbeamerfont{title}{series=\bfseries, size=\huge}
-\setbeamerfont{author}{series=\bfseries, size=\Large}
+\setbeamerfont{author}{series=\bfseries, size=\large}
 \setbeamerfont{institute}{series=\mdseries, size=\large}
 
 \setbeamercolor{frametitle}{bg=wp-red, fg=white}  % changes color at top of frame
@@ -47,9 +47,9 @@
 {
   Spatiotemporal Modeling of Extreme Events
 }
-\author[S. Morris and B. Reich]{Samuel Morris and Brian Reich}
-\institute[NCSU]{North Carolina State University}
-\date{}
+\author[S. Morris, B. Reich, and D. Cooley]{Samuel Morris (NC State), Brian Reich (NC State), and Dan Cooley (Colorado State)}
+\institute[NCSU, CSU]{}
+\date{JSM 2014, Boston}
 
 \begin{document}
 
@@ -65,8 +65,9 @@
     \begin{itemize}
       \item e.g. When constructing river levees, engineers need to be able to estimate a 100-year or 1000-year flood levels.
     \end{itemize}
-    \item In geostatistical analysis, kriging uses spatial correlation to help inform prediction at unknown locations.
-    \item Want to explore computationally easy methods that are available in higher dimensions
+    \item Spatial extreme borrows strength across space to estimate return levels and make predictions at unknown locations..
+    \item In geostatistical analysis, kriging uses spatial correlation for prediction.
+    \item Want to explore similar methods for extremes.
   \end{itemize}
 \end{frame}
 
@@ -86,34 +87,21 @@
 %   \end{itemize}
 % \end{frame}
 
-\begin{frame}{Standard non-spatial analysis}
+\begin{frame}{Standard analysis - Block maxima}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Block maxima:
-    \begin{itemize}
       \item Uses yearly maxima
       \item Discards many observations
       \item Models are fit using the generalized extreme value distribution
-    \end{itemize}
-    \item Generalized extreme value distribution (GEV):
-    \begin{align*}
-      \Pr(Y_j < y) = G_j(y) = \exp \left\{ -\left[ \left(1 + \xi_j \frac{y - \mu_j}{\sigma_j}\right)_+^{-1/\xi_j} \right] \right\}
-    \end{align*}
-    \item For a spatial analysis, max-stable processes give an appropriate limiting distribution.
+    \item For a spatial analysis, max-stable processes give an appropriate limiting distribution
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Standard non-spatial analysis}
+\begin{frame}{Standard analysis - Peaks over threshold}
   \begin{itemize}
-    \item Peaks-over-threshold:
-    \begin{itemize}
       \item Incorporates more data than block maxima
       \item Select a threshold, $T$, and fit data above the threshold using the generalized Pareto distribution
-      \item Autocorrelation may be an issue between observations (e.g. flood levels don't dissipate overnight)
-    \end{itemize}
-    \item Generalized Pareto distribution (GPD):
-    \begin{align*}
-      \Pr(Y_j > y | Y_j > T) = F_j(y) = \left( 1 + \xi_j \frac{y - T}{\sigma_j} \right)_+^{-1/\xi_j}
-    \end{align*}
+      \item Temporal dependence may be an issue between observations (e.g. flood levels don't dissipate overnight)
+    \item Generalized Pareto distribution (GPD) is used for the exceedances.
   \end{itemize}
 \end{frame}
 
@@ -144,7 +132,7 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Multivariate max-stable and GPD models have nice features, but they are
     \begin{itemize}
-      \item computationally hard to work with
+      \item computationally challenging to work with
       \item joint distribution only available in low dimension
     \end{itemize}
     \item Pairwise likelihood approach (Huser and Davison, 2014)
@@ -155,9 +143,9 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Our objective is to build a model that
     \begin{itemize}
-      \item has a flexible tail
+      \item has marginal distribution with a flexible tail
       \item has asymptotic spatial dependence
-      \item computation on the order of Gaussian models for large space-time datasets
+      \item has computation on the order of Gaussian models for large space-time datasets
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -178,32 +166,25 @@
 
 \begin{frame}{$\chi$ coefficient}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-   \item The $\chi$ coefficient is a measure of extremal correlation
-   \item Specifically, we focus on $\chi(c, \bh)$ for the upper tail given by
+   \item The $\chi$ coefficient is a measure of extremal dependence
+   \item Specifically, we focus on $\chi(\bh)$ for the upper tail given by
     \begin{align*}
-      \chi(c, \bh) = \Pr(Y(\bs) > c \mid Y(\bs + \bh) > c)
+      \chi(\bh) = \lim_{c \rightarrow \infty}\Pr(Y(\bs) > c \mid Y(\bs + \bh) > c)
     \end{align*}
-    \item If $\lim_{c \rightarrow \infty} \chi(c) = 0$, then high extreme values are not correlated.
+    \item If $ \chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
+    \item We expect $\lim_{\bh \rightarrow \infty}\chi(h)=0$.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Gaussian spatial model}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item In geostatistical models, observations, $Y(\bs)$ are often modeled using a Gaussian spatial model with a likelihood of
-      \begin{align*}
-    	\hspace{-2em}
-    	f(y(\bs)) = \frac{ 1 }{ (2 \pi)^{n/2} } | \Sigma |^{-1/2} \exp \left[ -\frac{ 1 }{ 2 } (Y(\bs) - \mu(\bs) )^T \Sigma^{-1} (Y(\bs) - \mu(\bs)) \right]
-    \end{align*}
-    where
-    \begin{itemize}
-    	\item $\mu(\bs)$ is a mean vector
-	\item $\Sigma$ is a covariance matrix
-    \end{itemize}
+    \item In geostatistics $Y(\bs)$ are often modeled using a Gaussian process with mean function $\mu(\bs)$ and covariance function
+$\rho(\bh)$.
     \item Model properties:
     \begin{itemize}
-      \item Nice computing properties
+      \item Nice computing properties (closed-form likelihood)
     \item For a Gaussian spatial model $\lim_{c \rightarrow \infty} \chi(c) = 0$ regardless of the strength of the correlation in the bulk of the distribution.
-    \item Tail is not flexible
+    \item Tail is not flexible (Gaussian is light tailed)
     \end{itemize}
     \end{itemize}
 \end{frame}
@@ -228,7 +209,7 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
    \item \alert{Conditioned} on $z_t$ and $\sigma^2_t$, $Y_t(\bs)$ is a Gaussian spatial model
     \item Can use standard geostatistical methods to fit this model.
-    \item Predictions can be made through kriging.
+    \item Predictions can be made through Kriging.
     \item \alert{Marginalizing} over $z_t$ and $\sigma^2_t$ (via MCMC),
     \begin{align*}
       Y_t(\bs) \sim \text{skew-t}(\mu, \Sigma^*, \alpha, \text{df}=2a)
@@ -247,12 +228,13 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Model properties
     \begin{itemize}
-    	\item Has flexible tail controlled by $\alpha$ and degrees of freedom
+    	\item Has flexible tail controlled by skewness $\alpha$ and degrees of freedom $2a$
     	\item For a skew-$t$ distribution $\lim_{c \rightarrow \infty} \chi(c) > 0$ Padoan, 2011)
     	\item Computation that is on the order of Gaussian computation
     \end{itemize}
-    \item For this distribution, $\chi(c, \bh)$ shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$ 
-    \item Deal with this through a daily random partition.
+    \item For this distribution, $\chi(\bh)$ shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$ 
+   \item This occurs because all observations (near and far) share the same $z_t$ and $\sigma_t^2$.
+    \item We deal with this through a daily random partition (similar to Huser and Davison).
   \end{itemize}
 \end{frame}
 
@@ -262,7 +244,7 @@
     \begin{align*}
       Y_t(\bs) = X_t(\bs) \beta + \alpha z_t(\bs) + \sigma(\bs) v_t(\bs)
     \end{align*}
-    \item Consider a set of daily knots $\{w_{t1}, \ldots, w_{tK}\}$ that define a daily partition
+    \item Consider a set of daily knots $w_{tk} \sim$ Uniform that define a random daily partition
     $P_{t1}, \ldots, P_{tK}$ such that
     \begin{align*}
       P_{tk} = \{s : k = \argmin_\ell|| \bs - w_{t\ell}|| \}
@@ -272,9 +254,17 @@
       z_t(\bs) &= z_{tk}\\
       \sigma^2_t(\bs) &= \sigma^2_{tk}
     \end{align*}
-    \item Within each partition $Y_t(\bs)$ has the same MVT distribution as before.
+    \item Within each partition $Y_t(\bs)$ has the same MV skew-t distribution as before.
   \end{itemize}
 \end{frame}
+
+\begin{frame}{Example daily partition}
+	Two sample partitions (number is at partition center)
+    \centering
+    \includegraphics[width=0.54\linewidth]{./plots/example-partition-1.pdf}
+    \includegraphics[width=0.54\linewidth]{./plots/example-partition-2.pdf}
+\end{frame}
+
 
 \begin{frame}{Simulated $\chi$ plots}
   \centering
@@ -282,12 +272,6 @@
   \includegraphics[width=0.2\linewidth]{./plots/chi-legend.pdf}
 \end{frame}
 
-\begin{frame}{Example daily partition}
-	Two possible partitions
-    \centering
-    \includegraphics[width=0.54\linewidth]{./plots/example-partition-1.pdf}
-    \includegraphics[width=0.54\linewidth]{./plots/example-partition-2.pdf}
-\end{frame}
 
 \begin{frame}{Sample simulated datasets}
   \centering
@@ -308,7 +292,7 @@
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Three main steps:
     \begin{enumerate}[1.]
-      \item Impute missing observations and data below $T$
+      \item Impute missing observations and censored data below $T$
       \item Update parameters with standard random walk Metropolis Hastings or Gibbs sampling
       \item Make spatial predictions
     \end{enumerate}
@@ -342,10 +326,7 @@
     \begin{itemize}
       \item Gaussian vs $t$ vs skew-$t$ marginal distribution
       \item $K=1$ partition vs $K=5$ partitions
-      \item No thresholding vs thresholded
-      \begin{itemize}
-        \item Thresholded data at $T=0.90$ sample quantile
-      \end{itemize}
+      \item No thresholding vs thresholding at $T=0.90$ sample quantile
     \end{itemize}
     \item All methods use a \Matern or exponential covariance ($\nu = 0.5$)
     \item Compare quantile and Brier scores using 5-fold cross validation (Gneiting and Raftery, 2007)
@@ -353,7 +334,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Quantile score}
+\begin{frame}{Quantile score for cross-validation}
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item The quantile score for the $\tau$th quantile is
     \begin{align*}
@@ -369,7 +350,7 @@
 
 \begin{frame}{Brier score}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-	\item Brier score for predicting exceedance of threshold $c$
+	\item The Brier score for predicting exceedance of threshold $c$ is
 	\begin{align*}
 	  [e(c) - P(c)]^2
 	\end{align*}
@@ -425,14 +406,15 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Comparison with extreme value analysis methods
     \item Reporting of compliance with EPA ozone standards
-    \item Spatial mapping of high quantiles
+    \item Including time in the model via standard spatiotemporal Gaussian models.  
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Questions}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Any questions?
+    \item Questions?
     \item Thank you for your attention.
+    \item Acknowledgment: This work was funded by EPA STAR award R835228.
   \end{itemize}
 \end{frame}
 

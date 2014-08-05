@@ -3,16 +3,16 @@ library(geoR)
 library(mvtnorm)
 
 # rm(list=ls())
-# load('cv-setup-se.RData')
-# source('../../../R/mcmc.R')
-# source('../../../R/auxfunctions.R')
+load('cv-setup-se.RData')
+source('../../../R/mcmc.R')
+source('../../../R/auxfunctions.R')
 
-# # s1.preds <- seq(1050, 1800, length=25)
-# # s2.preds <- seq(-860, -250, length=25)
-# # s.preds <- expand.grid(s1.preds, s2.preds)
-# # s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
-# # s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
-# # s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
+s1.preds <- seq(1050, 1800, length=25)
+s2.preds <- seq(-860, -250, length=25)
+s.preds <- expand.grid(s1.preds, s2.preds)
+s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
+s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
+s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
 
 # # s.scale.preds <- matrix(NA, nrow=nrow(s.preds), ncol=ncol(s.preds))
 # # s.scale.preds[,1] <- (s.preds[,1] - range(s[,1])[1])/(range(s[,1])[2] - range(s[,1])[1])
@@ -160,10 +160,8 @@ for(i in 1:439) {
     exceedance.3.3[i] <- exceedance.3.3[i] + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
     exceedance.3.4[i] <- exceedance.3.4[i] + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
     exceedance.3.5[i] <- exceedance.3.5[i] + prod(p.exceed.75[i, c(t1, t2, t3), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 5])
-  } 
-  print(t2) } 
-  print(t1) }
-  print(i)
+  } } }
+  cat("i:", i, "\n")
 }
 
 exceedance.4.1 <- 1 - (exceedance.0.1 + exceedance.1.1 + exceedance.2.1 + exceedance.3.1)
@@ -172,7 +170,28 @@ exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3 + exceed
 exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4 + exceedance.3.4)
 exceedance.4.5 <- 1 - (exceedance.0.5 + exceedance.1.5 + exceedance.2.5 + exceedance.3.5)
 
+exceedance.4.1 <- 1 - (exceedance.0.1 + exceedance.1.1 + exceedance.2.1)
+exceedance.4.2 <- 1 - (exceedance.0.2 + exceedance.1.2 + exceedance.2.2)
+exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3)
+exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4)
+exceedance.4.5 <- 1 - (exceedance.0.5 + exceedance.1.5 + exceedance.2.5)
+
+atleast1.1 <- 1 - exceedance.0.1
+atleast1.2 <- 1 - exceedance.0.2
+atleast1.3 <- 1 - exceedance.0.3
+atleast1.4 <- 1 - exceedance.0.4
+atleast1.5 <- 1 - exceedance.0.5
+
 save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions.RData")
+
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.1.3, nx=25, ny=25)
+lines(l)
+
+exceedance.y <- rowSums(y>75, na.rm=T)
+points(s[(exceedance.y >= 4), ], col="firebrick4", pch=16)
+points(s[(exceedance.y < 4), ], col="white", pch=16)
+phat.exceed.y <- mean(exceedance.y > 4)
+
 
 # # plot monitoring station ozone locations
 # plot(s, type="p", xlab="", ylab="")

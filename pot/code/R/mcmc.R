@@ -771,7 +771,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     diag(s.11) <- 1
     s.12.22.inv <- s.12 %*% prec.cor
     corp <- s.11 - s.12.22.inv %*% t(s.12)
-    corp <- diag(corp)
+    # corp <- diag(corp)
     
     yp <- matrix(NA, np, nt)
 
@@ -780,16 +780,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (nknots == 1) {
         gp <- 1
       } else {
-        gp       <- mem(s.pred, knots[, , t])  # find the right partition
+        gp <- mem(s.pred, knots[, , t])  # find the right partition
       }
       zgp    <- z[gp, t]
-      siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's variance
+      siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
       taug.t <- sqrt(taug[, t])
+      cov.t <- quad.form(corp, diag(sqrt(siggp)))
 
-      mup <- xp.beta + z.alpha * zgp - sqrt(siggp) * s.12.22.inv %*% (taug.t * res[, t])
-      sdp <- sqrt(siggp * corp)
+      # siggp is (np) s.12.22.inv %*% (taug.t * res[, t]) is (np x ns, ns x 1) = (np)
+      mup <- xp.beta + z.alpha * zgp + siggp * s.12.22.inv %*% (taug.t * res[, t])
       
-      yp[, t] <- mup + sdp * rnorm(np, 0, 1)
+      yp[, t] <- mup + t(chol(cov.t)) %*% rnorm(np, 0, 1)
     }
    
   }
