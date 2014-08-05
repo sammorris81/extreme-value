@@ -86,6 +86,51 @@ for (setting in 1:nsettings) {
   knots.t[[setting]] <- knots.t.setting
 }
 
+# plot the data
+s1 <- s2 <- seq(0, 1, length=50)
+s <- expand.grid(s1, s2)
+X <- array(1, dim=c(nrow(s), 2, 3))
+X.temp <- cbind(rep(1, nrow(s)), s[, 1], s[, 2])
+X[, 1, ] <- X.temp
+X[, 2, ] <- X.temp
+y.gau <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
+                  gau.rho=0.1, t.rho=0.1, mixprob=0, z.alpha=0, tau.alpha=tau.alpha.t,
+                  tau.beta=tau.beta.t, nknots=1)
+par(mfrow=c(1, 2))
+quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
+hist(y.gau$y[, 1], main="Histogram", xlab="")
+
+y.t1 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
+                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
+                  tau.beta=tau.beta.t, nknots=1)
+par(mfrow=c(1, 2))
+quilt.plot(s[, 1], s[, 2], z=y.t1$y[, 1], nx=50, ny=50, main="t, K=1")
+hist(y.t1$y[, 1], main="Histogram", xlab="")
+
+y.t3 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
+                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
+                  tau.beta=tau.beta.t, nknots=3)
+par(mfrow=c(1, 2))
+quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
+hist(y.t3$y[, 1], main="Histogram", xlab="")
+
+y.st1 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
+                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=3, tau.alpha=tau.alpha.t,
+                  tau.beta=tau.beta.t, nknots=1)
+par(mfrow=c(1, 2))
+quilt.plot(s[, 1], s[, 2], z=y.st1$y[, 1], nx=50, ny=50, main="skew-t, K=1, alpha=3")
+hist(y.st1$y[, 1], main="Histogram", xlab="")
+
+y.st5 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
+                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=3, tau.alpha=tau.alpha.t,
+                  tau.beta=tau.beta.t, nknots=5)
+par(mfrow=c(1, 2))
+quilt.plot(s[, 1], s[, 2], z=y.st5$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=5")
+hist(y.st5$y[, 1], main="Histogram", xlab="")
+
+quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
+quilt.plot(s[, 1], s[, 2], z=y.st5$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=5")
+
 # remove simstudy "truth" settings to help diagnose errors.
 save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, 
      x, ntest,  # covariate data that should be the same for all datasets

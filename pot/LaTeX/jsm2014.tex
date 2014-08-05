@@ -240,7 +240,6 @@
 	\item $\Sigma^* = \frac{ b }{ a } \Sigma$ is a scale matrix, and $\Sigma$ is a \Matern covariance matrix
 	\item $\alpha \in \calR$ controls the skewness
     \end{itemize}
-
   \end{itemize}
 \end{frame}
 
@@ -284,18 +283,23 @@
 \end{frame}
 
 \begin{frame}{Example daily partition}
-	Two sample partitions
+	Two possible partitions
     \centering
     \includegraphics[width=0.54\linewidth]{./plots/example-partition-1.pdf}
     \includegraphics[width=0.54\linewidth]{./plots/example-partition-2.pdf}
 \end{frame}
 
+\begin{frame}{Sample simulated datasets}
+  \centering
+  \includegraphics[width=1\linewidth]{./plots/gauss-vs-skew-t3.pdf}
+\end{frame}
+
 \begin{frame}{Spatiotemporal Model}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Time can be incorporated in 
+    \item We can account for time in one of two ways
     \begin{itemize}
     	\item The mean: e.g. AR(1)
-	\item Three dimensional covariance model (Huser and Davison, 2014) 
+	\item Three dimensional covariance model (e.g. Huser and Davison, 2014) 
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -422,10 +426,6 @@ skew $t$ & 3 & 0.9 & 5.58 & 3.78 & 1.93& 1.58& 1.11\\
     \item Comparison with extreme value analysis methods
     \item Reporting of compliance with EPA ozone standards
     \item Spatial mapping of high quantiles
-    \item Including time in the model
-    \begin{itemize}
-      \item AR(1): $Y_t(\bs) = X_t(\bs) \beta + \phi Y_{t-1}(\bs) + \alpha z_t(\bs) + v_t(\bs)$
-    \end{itemize}
   \end{itemize}
 \end{frame}
 
