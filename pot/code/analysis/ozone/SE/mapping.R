@@ -30,19 +30,19 @@ quantiles.90 <- quantiles.95 <- quantiles.99 <- matrix(NA, nrow=439, ncol=5)
 p.exceed.75 <- array(NA, dim=c(439, 92, 5))
 post.med <- array(NA, dim=c(439, 92, 5))
 
-tau <- matrix(NA, 92, 3)
-beta <- matrix(NA, 3, 3)
-rho <- rep(NA, 3)
-nu <- rep(NA, 3)
-alpha <- rep(NA, 3)
+# tau <- matrix(NA, 92, 3)
+# beta <- matrix(NA, 3, 3)
+# rho <- rep(NA, 3)
+# nu <- rep(NA, 3)
+# alpha <- rep(NA, 3)
 
 
 load('./OzoneFull1.RData')
-tau[, 1] <- apply(fit.1$tau, 2, mean)
-beta[, 1] <- apply(fit.1$beta, 2, mean)
-rho[1] <- mean(fit.1$rho)
-nu[1] <- mean(fit.1$nu)
-alpha[1] <- mean(fit.1$alpha)
+# tau[, 1] <- apply(fit.1$tau, 2, mean)
+# beta[, 1] <- apply(fit.1$beta, 2, mean)
+# rho[1] <- mean(fit.1$rho)
+# nu[1] <- mean(fit.1$nu)
+# alpha[1] <- mean(fit.1$alpha)
 yp <- fit.1$yp
 post.med[, , 1] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 1] <- apply(yp, 2, quantile, probs=0.90)
@@ -56,11 +56,11 @@ for (i in 1:439) {
 
 
 load('./OzoneFull2.RData')
-tau[, 2] <- apply(fit.2$tau, 2, mean)
-beta[, 2] <- apply(fit.2$beta, 2, mean)
-rho[2] <- mean(fit.2$rho)
-nu[2] <- mean(fit.2$nu)
-alpha[2] <- mean(fit.2$alpha)
+# tau[, 2] <- apply(fit.2$tau, 2, mean)
+# beta[, 2] <- apply(fit.2$beta, 2, mean)
+# rho[2] <- mean(fit.2$rho)
+# nu[2] <- mean(fit.2$nu)
+# alpha[2] <- mean(fit.2$alpha)
 yp <- fit.2$yp
 post.med[, , 2] <- apply(yp, 2, quantile, probs=0.50)
 quantiles.90[, 2] <- apply(yp, 2, quantile, probs=0.90)
@@ -73,13 +73,13 @@ for (i in 1:439) {
 }
 
 load('./OzoneFull3.RData')
-tau[, 3] <- apply(fit.3$tau, 2, mean)
-beta[, 3] <- apply(fit.3$beta, 2, mean)
-rho[3] <- mean(fit.3$rho)
-nu[3] <- mean(fit.3$nu)
-alpha[3] <- mean(fit.3$alpha)
-z.alpha <- mean(fit.3$z.alpha)
-z <- apply(fit.3$z, 2, mean)
+# tau[, 3] <- apply(fit.3$tau, 2, mean)
+# beta[, 3] <- apply(fit.3$beta, 2, mean)
+# rho[3] <- mean(fit.3$rho)
+# nu[3] <- mean(fit.3$nu)
+# alpha[3] <- mean(fit.3$alpha)
+# z.alpha <- mean(fit.3$z.alpha)
+# z <- apply(fit.3$z, 2, mean)
 yp <- fit.3$yp
 post.med[, , 3] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 3] <- apply(yp, 2, quantile, probs=0.90)
@@ -170,7 +170,7 @@ exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3 + exceed
 exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4 + exceedance.3.4)
 exceedance.4.5 <- 1 - (exceedance.0.5 + exceedance.1.5 + exceedance.2.5 + exceedance.3.5)
 
-save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, tau, beta, rho, nu, alpha, z.alpha, z, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions2.RData")
+save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions2.RData")
 
 # # plot monitoring station ozone locations
 # plot(s, type="p", xlab="", ylab="")

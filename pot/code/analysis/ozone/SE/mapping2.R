@@ -172,7 +172,7 @@ exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3 + exceed
 exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4 + exceedance.3.4)
 exceedance.4.5 <- 1 - (exceedance.0.5 + exceedance.1.5 + exceedance.2.5 + exceedance.3.5)
 
-save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, tau, beta, rho, nu, alpha, z.alpha, z, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions.RData")
+save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions.RData")
 
 # # plot monitoring station ozone locations
 # plot(s, type="p", xlab="", ylab="")
