@@ -154,11 +154,14 @@ exceedance.3.1 <- exceedance.3.2 <- exceedance.3.3 <- exceedance.3.4 <- exceedan
 for(i in 1:439) {
   for (t1 in 1:90) { for (t2 in (t1+1):91) { for (t3 in (t2+1):92) {
     exceedance.3.1[i] <- exceedance.3.1[i] + prod(p.exceed.75[i, c(t1, t2, t3), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 1])
-    exceedance.3.2[i] <- exceedance.3.2[i] + proc(p.exceed.75[i, c(t1, t2, t3), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 2])
+    exceedance.3.2[i] <- exceedance.3.2[i] + prod(p.exceed.75[i, c(t1, t2, t3), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 2])
     exceedance.3.3[i] <- exceedance.3.3[i] + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
     exceedance.3.4[i] <- exceedance.3.4[i] + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
     exceedance.3.5[i] <- exceedance.3.5[i] + prod(p.exceed.75[i, c(t1, t2, t3), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 5])
-  } } }
+  } 
+  print(t2) } 
+  print(t1) }
+  print(i)
 }
 
 exceedance.4.1 <- 1 - (exceedance.0.1 + exceedance.1.1 + exceedance.2.1 + exceedance.3.1)
