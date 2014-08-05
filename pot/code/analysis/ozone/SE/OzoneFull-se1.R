@@ -42,7 +42,7 @@ for (t in 1:nt) {
 time.set <- rep(0, 5)
 iters <- 30000
 burn <- 25000
-update <- 1000
+update <- 500
 
 method <- "gaussian"
 nknots <- 1
