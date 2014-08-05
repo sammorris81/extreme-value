@@ -778,14 +778,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     for (t in 1:nt) {
       xp.beta  <- x.pred[, t, ] %*% beta
       if (nknots == 1) {
-        gp <- 1
+        gp <- rep(1, np)
       } else {
         gp <- mem(s.pred, knots[, , t])  # find the right partition
       }
       zgp    <- z[gp, t]
       siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
       taug.t <- sqrt(taug[, t])
-      cov.t <- quad.form(corp, diag(sqrt(siggp)))
+      # cat("dim corp", dim(corp), "length siggp", length(siggp))
+      cov.t <- quad.form(corp, diag(siggp))
 
       # siggp is (np) s.12.22.inv %*% (taug.t * res[, t]) is (np x ns, ns x 1) = (np)
       mup <- xp.beta + z.alpha * zgp + siggp * s.12.22.inv %*% (taug.t * res[, t])
