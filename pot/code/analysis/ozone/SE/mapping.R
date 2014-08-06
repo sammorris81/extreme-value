@@ -44,6 +44,7 @@ load('./OzoneFull1.RData')
 # nu[1] <- mean(fit.1$nu)
 # alpha[1] <- mean(fit.1$alpha)
 yp <- fit.1$yp
+cat("dim yp are", dim(yp), "\n")
 post.med[, , 1] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 1] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 1] <- apply(yp, 2, quantile, probs=0.95)
