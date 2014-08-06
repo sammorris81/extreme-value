@@ -259,23 +259,31 @@ $\rho(\bh)$.
 \end{frame}
 
 \begin{frame}{Example daily partition}
-	Two sample partitions (number is at partition center)
     \centering
+    \begin{figure}
     \includegraphics[width=0.54\linewidth]{./plots/example-partition-1.pdf}
     \includegraphics[width=0.54\linewidth]{./plots/example-partition-2.pdf}
+    \caption{Two sample partitions (number is at partition center)}
+    \end{figure}
 \end{frame}
 
 
 \begin{frame}{Simulated $\chi$ plots}
   \centering
+  \begin{figure}
   \includegraphics[width=1\linewidth]{./plots/chi-plots.pdf}\\[-0.25in]
   \includegraphics[width=0.2\linewidth]{./plots/chi-legend.pdf}
+  \caption{$\chi$ plots from simulated datasets}
+  \end{figure}
 \end{frame}
 
 
 \begin{frame}{Sample simulated datasets}
   \centering
+  \begin{figure}
   \includegraphics[width=1\linewidth]{./plots/gauss-vs-skew-t3.pdf}
+  \caption{Gaussian and skew-$t$ with 3 partitions}
+  \end{figure}
 \end{frame}
 
 \begin{frame}{Spatiotemporal Model}
@@ -302,15 +310,19 @@ $\rho(\bh)$.
 
 \begin{frame}{Data analysis}
 	\centering
-	Ozone monitoring station locations
+	\begin{figure}
     \includegraphics[width=0.8\linewidth]{./plots/ozone_station.pdf}
+    \caption{Ozone monitoring station locations}
+    \end{figure}
 
 \end{frame}
 
 \begin{frame}{Data analysis}
   \centering
-  Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for days 5 and 34.
+  \begin{figure}
     \includegraphics[width=1\linewidth]{./plots/ozone-day.pdf}
+    \caption{Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for days 5 and 34.}
+   \end{figure}
 
 \end{frame}
 
@@ -318,7 +330,7 @@ $\rho(\bh)$.
 	\centering
   \begin{figure}
     \includegraphics[width=1\linewidth]{./plots/chi-plot-ozone-res.pdf}
-    \caption{$\chi$-plot for residuals selected ozone sample quantiles}
+    \caption{$\chi$-plot for residuals of ozone sample quantiles}
   \end{figure}
 \end{frame}
 
@@ -327,7 +339,7 @@ $\rho(\bh)$.
     \item 9 different analysis methods incorporating
     \begin{itemize}
       \item Gaussian vs $t$ vs skew-$t$ marginal distribution
-      \item $K=1$ partition vs $K=5$ partitions
+      \item $K=1$ partition vs $K=3$ partitions
       \item No thresholding vs thresholding at $T=0.90$ sample quantile
     \end{itemize}
     \item All methods use a \Matern or exponential covariance ($\nu = 0.5$)
@@ -382,8 +394,10 @@ $t$ & 1 & 0.9 & 4.514 & 2.422 & 0.577 & 0.318 & 0.086 \\
 skew-$t$ & 1 & 0.9 & 4.396 & 2.388 & 0.573 & 0.311 & 0.079 \\
 \hline
     \end{tabular}
+    \caption{Selected five-fold cross-validation results}
   \end{table}
   \begin{itemize}
+  	\item Results for 
   	\item Brier score results are similar.
   \end{itemize}
 \end{frame}
