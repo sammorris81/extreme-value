@@ -172,7 +172,7 @@
       \chi(\bh) = \lim_{c \rightarrow \infty}\Pr(Y(\bs) > c \mid Y(\bs + \bh) > c)
     \end{align*}
     \item If $ \chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
-    \item We expect $\lim_{\bh \rightarrow \infty}\chi(h)=0$.
+    \item We expect $\lim_{\bh \rightarrow \infty}\chi(\bh)=0$.
   \end{itemize}
 \end{frame}
 
@@ -232,7 +232,7 @@ $\rho(\bh)$.
     	\item For a skew-$t$ distribution $\lim_{c \rightarrow \infty} \chi(c) > 0$ Padoan, 2011)
     	\item Computation that is on the order of Gaussian computation
     \end{itemize}
-    \item For this distribution, $\chi(\bh)$ shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$ 
+    \item For this distribution, $\chi(\bh)$ shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$
    \item This occurs because all observations (near and far) share the same $z_t$ and $\sigma_t^2$.
     \item We deal with this through a daily random partition (similar to Huser and Davison).
   \end{itemize}
@@ -291,7 +291,7 @@ $\rho(\bh)$.
     \item We can account for time in one of two ways
     \begin{itemize}
     	\item The mean: e.g. AR(1)
-	\item Three dimensional covariance model (e.g. Huser and Davison, 2014) 
+	\item Three dimensional covariance model (e.g. Huser and Davison, 2014)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -368,7 +368,7 @@ $\rho(\bh)$.
 	\begin{align*}
 	  [e(c) - P(c)]^2
 	\end{align*}
-	where 
+	where
 	\begin{itemize}
 		\item $y$ is a test set value
 		\item $e(c) = I[y > c]$
@@ -384,21 +384,23 @@ $\rho(\bh)$.
     \begin{tabular}{l|c|r|rrrrr}
           \multicolumn{3}{c}{\ } & \multicolumn{5}{c}{Quantile}\\
            \hline
-  Marginal & $K$ & $T$  & 0.900 & 0.950 & 0.990 & 0.995 & 0.999\\
+  Marginal & $K$ & $T$  & 0.950 & 0.980 & 0.990 & 0.995 & 0.999\\
   \hline
-Gaussian & 1 & 0 & 3.807 & 2.981 & 1.797 & 1.493 & 1.044\\
-$t$ & 1 & 0 & 2.622 & 1.584 & 0.436 & 0.244 & 0.063 \\
-$t$ & 3 & 0 & 2.643 & 1.601 & 0.455 & 0.265 & 0.085 \\
-skew-$t$ & 1 & 0 & 2.766 & 1.683 & 0.467 & 0.257 & 0.063 \\
-$t$ & 1 & 0.9 & 4.514 & 2.422 & 0.577 & 0.318 & 0.086 \\
-skew-$t$ & 1 & 0.9 & 4.396 & 2.388 & 0.573 & 0.311 & 0.079 \\
+Gaussian 	& 1 & 0 	& 39.820 & 17.539 & 9.167 & 4.720 & 1.057\\
+$t$		& 1 & 0 	& {\bf 31.008} & {\bf 13.898} & 7.229 & {\bf 3.405} & 0.879\\
+$t$		& 3 & 0	& 31.213 & 13.920 & {\bf 7.218} & 3.498 & 0.918\\
+$t$		& 1 & 0.9	& 32.221 & 14.519 & 7.549 & 3.604 & 0.896\\
+$t$		& 3 & 0.9 	& 38.842 & 16.781 & 8.434 & 4.180 & 1.020\\
+skew-$t$	& 1 & 0	& 31.845 & 14.542 & 7.533 & 3.645 & {\bf 0.844}\\
+skew-$t$	& 1 & 0.9	& 32.132 & 14.296 & 7.484 & 3.497 & 0.890\\
+skew-$t$	& 3 & 0	& 33.653 & 15.453 & 8.119 & 4.338 & 1.188\\
+skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
 \hline
     \end{tabular}
-    \caption{Selected five-fold cross-validation results}
+    \caption{Selected Brier score results from five-fold cross-validation ($\times 1000$)}
   \end{table}
   \begin{itemize}
-  	\item Results for 
-  	\item Brier score results are similar.
+  	\item Quantile score results are similar.
   \end{itemize}
 \end{frame}
 
@@ -419,7 +421,7 @@ skew-$t$ & 1 & 0.9 & 4.396 & 2.388 & 0.573 & 0.311 & 0.079 \\
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Comparison with extreme value analysis methods
     \item Reporting of compliance with EPA ozone standards
-    \item Including time in the model via standard spatiotemporal Gaussian models.  
+    \item Including time in the model via standard spatiotemporal Gaussian models.
   \end{itemize}
 \end{frame}
 

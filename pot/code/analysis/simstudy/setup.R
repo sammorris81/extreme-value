@@ -121,15 +121,16 @@ par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.st1$y[, 1], nx=50, ny=50, main="skew-t, K=1, alpha=3")
 hist(y.st1$y[, 1], main="Histogram", xlab="")
 
-y.st5 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
-                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=3, tau.alpha=tau.alpha.t,
-                  tau.beta=tau.beta.t, nknots=5)
+y.st3 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
+                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=1, tau.alpha=tau.alpha.t,
+                  tau.beta=tau.beta.t, nknots=3)
 par(mfrow=c(1, 2))
-quilt.plot(s[, 1], s[, 2], z=y.st5$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=5")
+quilt.plot(s[, 1], s[, 2], z=y.s35$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=1")
 hist(y.st5$y[, 1], main="Histogram", xlab="")
 
+par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
-quilt.plot(s[, 1], s[, 2], z=y.st5$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=5")
+quilt.plot(s[, 1], s[, 2], z=y.st3$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=1")
 
 # remove simstudy "truth" settings to help diagnose errors.
 save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, 
