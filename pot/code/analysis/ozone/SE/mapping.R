@@ -140,7 +140,7 @@ for(i in 1:439) {
   # print(i)
 # }
 
-exceedance.4 <- 1 - (exceedance.1 + exceedance.2 + exceedance.3)
+exceedance.4 <- 1 - (exceedance.0 + exceedance.1 + exceedance.2 + exceedance.3)
 
 save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.0, exceedance.1, exceedance.2, exceedance.3, exceedance.4, file="predictions3.RData")
 
@@ -375,24 +375,7 @@ load('cv-setup-se.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 load("predictions3.RData")
-#### Create places for prediciton maps - Gaussian has different s than t
-
-exceedance.4.1 <- 1 - (exceedance.0.1 + exceedance.1.1 + exceedance.2.1)
-
-s1.preds <- seq(1050, 1800, length=20)
-s2.preds <- seq(-860, -250, length=20)
-s.preds <- expand.grid(s1.preds, s2.preds)
-s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
-s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
-s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
-
-quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95.1, nx=20, ny=20)
-lines(l)
-
-exceedance.4.2 <- 1 - (exceedance.0.2 + exceedance.1.2 + exceedance.2.2)
-exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3)
-exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4)
-exceedance.4.5 <- 1 - (exceedance.0.5 + exceedance.1.5 + exceedance.2.5)
+#### Create places for prediciton maps
 
 s1.preds <- seq(1050, 1800, length=25)
 s2.preds <- seq(-860, -250, length=25)
@@ -401,14 +384,28 @@ s.preds <- s.preds[(s.preds[, 2] >= (1.33 * s.preds[, 1] - 2815)), ]  # atlantic
 s.preds <- s.preds[(s.preds[, 2] < (0.75 * s.preds[, 1] - 1285)), ]  # tennessee
 s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennessee
 
-quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 2], nx=25, ny=25)
+z.range <- range(quantiles.95[, c(1, 2, 3)])
+par(mfrow=c(2, 2))
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 1], nx=25, ny=25, zlim=z.range, main="Gaussian")
 lines(l)
 
-quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 3], nx=25, ny=25)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 2], nx=25, ny=25, zlim=z.range)
 lines(l)
 
-quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 4], nx=25, ny=25)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 3], nx=25, ny=25, zlim=z.range)
 lines(l)
 
-quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 5], nx=25, ny=25)
+# quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 4], nx=25, ny=25)
+# lines(l)
+
+# quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 5], nx=25, ny=25)
+# lines(l)
+
+z.range <- range(exceedance.4[, c(1, 2, 3)])
+
+par(mfrow=c(1, 2))
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.4[, 2], nx=25, ny=25, zlim=z.range)
+lines(l)
+
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.4[, 3], nx=25, ny=25, zlim=z.range)
 lines(l)
