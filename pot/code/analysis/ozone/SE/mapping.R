@@ -48,11 +48,12 @@ post.med.1 <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90.1 <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95.1 <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99.1 <- apply(yp, 2, quantile, probs=0.99)
-for (i in 1:277) {
-  for (t in 1:92) {
-    p.exceed.75.1[i, t] <- mean(yp[, i, t] > 75)
-  }
-}
+# for (i in 1:277) {
+  # for (t in 1:92) {
+    # p.exceed.75[i, t] <- mean(yp[, i, t] > 75)
+  # }
+# }
+p.exceed.75.1 <- apply((yp > 75), c(2, 3), mean)
 
 
 load('./OzoneFull2.RData')
@@ -118,7 +119,7 @@ for (i in 1:439) {
 # probability of no exceedance
 exceedance.0.1 <- rep(NA, 277)
 for (i in 1:277) {
-  exceedance.0.1[i] <- prod(1 - p.exceed.75[i, , 1])
+  exceedance.0.1[i] <- prod(1 - p.exceed.75.1[i, ])
 }
 
 exceedance.0.2 <- exceedance.0.3 <- exceedance.0.4 <- exceedance.0.5 <- rep(NA, 439)
@@ -134,7 +135,7 @@ for (i in 1:439) {
 exceedance.1.1 <- rep(0, 439)
 for (i in 1:277) {
   for (t in 1:92) {
-    exceedance.1.1[i] <- exceedance.1.1[i] + p.exceed.75[i, t, 1] * prod(1 - p.exceed.75[i, -t, 1])
+    exceedance.1.1[i] <- exceedance.1.1[i] + p.exceed.75.1[i, t] * prod(1 - p.exceed.75.1[i, -t])
   }
 }
 
@@ -153,7 +154,7 @@ for(i in 1:439) {
 exceedance.2.1 <- rep(0, 277)
 for (i in 1:277) {
   for (t1 in 1:92) { for (t2 in (t1+1):92) {
-    exceedance.2.1[i] <- exceedance.2.1[i] + prod(p.exceed.75[i, c(t1, t2), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2), 1])
+    exceedance.2.1[i] <- exceedance.2.1[i] + prod(p.exceed.75.1[i, c(t1, t2)]) * prod(1 - p.exceed.75.1[i, -c(t1, t2)])
   }}
 }
 exceedance.2.2 <- exceedance.2.3 <- exceedance.2.4 <- exceedance.2.5 <- rep(0, 439)
@@ -188,7 +189,7 @@ for(i in 1:439) {
 
 # save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions2.RData")
 
-save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.0.1, exceedance.0.2, exceedance.0.3, exceedance.0.4, exceedance.0.5, exceedance.1.1, exceedance.1.2, exceedance.1.3, exceedance.1.4, exceedance.1.5, exceedance.2.1, exceedance.2.2, exceedance.2.3, exceedance.2.4, exceedance.2.5, file="predictions3.RData")
+save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, post.med.1, quantiles.90.1, quantiles.95.1, quantiles.99.1, p.exceed.75.1, exceedance.0.1, exceedance.0.2, exceedance.0.3, exceedance.0.4, exceedance.0.5, exceedance.1.1, exceedance.1.2, exceedance.1.3, exceedance.1.4, exceedance.1.5, exceedance.2.1, exceedance.2.2, exceedance.2.3, exceedance.2.4, exceedance.2.5, file="predictions3.RData")
 
 # # plot monitoring station ozone locations
 # plot(s, type="p", xlab="", ylab="")
