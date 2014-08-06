@@ -153,7 +153,7 @@ for(i in 1:439) {
 # probability of exactly two exceedances
 exceedance.2.1 <- rep(0, 277)
 for (i in 1:277) {
-  for (t1 in 1:92) { for (t2 in (t1+1):92) {
+  for (t1 in 1:91) { for (t2 in (t1+1):92) {
     exceedance.2.1[i] <- exceedance.2.1[i] + prod(p.exceed.75.1[i, c(t1, t2)]) * prod(1 - p.exceed.75.1[i, -c(t1, t2)])
   }}
 }
