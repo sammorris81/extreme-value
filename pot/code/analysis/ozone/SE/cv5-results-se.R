@@ -31,6 +31,7 @@ beta.3 <- array(NA, dim=c(5000, nsets, 9))
 
 for (i in 10:18) {
   file <- paste("cv5-", i, "SE.RData", sep="")
+  cat("start file", file, "\n")
   load(file)
   for (d in 1:nsets) {
     fit.d <- fit[[d]]
@@ -46,6 +47,7 @@ for (i in 10:18) {
       beta.3[, d, i] <- fit.d$beta[, 4]
     }
   }
+  cat("finish file", file, "\n")
 }
 
 savelist <- list(quant.score, brier.score,
