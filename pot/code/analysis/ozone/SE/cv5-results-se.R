@@ -29,7 +29,7 @@ beta.3 <- array(NA, dim=c(5000, nsets, 9))
 
 # usable <- (25000+1):30000
 
-for (i in 10:18) {
+for (i in 10:16) {
   file <- paste("cv5-", i, "SE.RData", sep="")
   cat("start file", file, "\n")
   load(file)
