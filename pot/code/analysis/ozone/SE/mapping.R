@@ -103,17 +103,17 @@ for (i in 1:439) {
   }
 }
 
-# load('./OzoneFull5.RData')
-# yp <- fit.5$yp
-# post.med[, , 5] <- apply(yp, c(2, 3), quantile, probs=0.50)
-# quantiles.90[, 5] <- apply(yp, 2, quantile, probs=0.90)
-# quantiles.95[, 5] <- apply(yp, 2, quantile, probs=0.95)
-# quantiles.99[, 5] <- apply(yp, 2, quantile, probs=0.99)
-# for (i in 1:439) {
-  # for (t in 1:92) {
-    # p.exceed.75[i, t, 5] <- mean(yp[, i, t] > 75)
-  # }
-# }
+load('./OzoneFull5.RData')
+yp <- fit.5$yp
+post.med[, , 5] <- apply(yp, c(2, 3), quantile, probs=0.50)
+quantiles.90[, 5] <- apply(yp, 2, quantile, probs=0.90)
+quantiles.95[, 5] <- apply(yp, 2, quantile, probs=0.95)
+quantiles.99[, 5] <- apply(yp, 2, quantile, probs=0.99)
+for (i in 1:439) {
+  for (t in 1:92) {
+    p.exceed.75[i, t, 5] <- mean(yp[, i, t] > 75)
+  }
+}
 
 # probability of no exceedance
 exceedance.0.1 <- exceedance.0.2 <- exceedance.0.3 <- exceedance.0.4 <- exceedance.0.5 <- rep(NA, 439)
@@ -122,7 +122,7 @@ for (i in 1:439) {
   exceedance.0.2[i] <- prod(1 - p.exceed.75[i, , 2])
   exceedance.0.3[i] <- prod(1 - p.exceed.75[i, , 3])
   exceedance.0.4[i] <- prod(1 - p.exceed.75[i, , 4])
-  # exceedance.0.5[i] <- prod(1 - p.exceed.75[i, , 5])
+  exceedance.0.5[i] <- prod(1 - p.exceed.75[i, , 5])
 }
 
 # probability of exactly one exceedance
@@ -133,7 +133,7 @@ for(i in 1:439) {
     exceedance.1.2[i] <- exceedance.1.2[i] + p.exceed.75[i, t, 2] * prod(1 - p.exceed.75[i, -t, 2])
     exceedance.1.3[i] <- exceedance.1.3[i] + p.exceed.75[i, t, 3] * prod(1 - p.exceed.75[i, -t, 3])
     exceedance.1.4[i] <- exceedance.1.4[i] + p.exceed.75[i, t, 4] * prod(1 - p.exceed.75[i, -t, 4])
-    # exceedance.1.5[i] <- exceedance.1.5[i] + p.exceed.75[i, t, 5] * prod(1 - p.exceed.75[i, -t, 5])
+    exceedance.1.5[i] <- exceedance.1.5[i] + p.exceed.75[i, t, 5] * prod(1 - p.exceed.75[i, -t, 5])
   }
 }
 
@@ -145,30 +145,32 @@ for(i in 1:439) {
     exceedance.2.2[i] <- exceedance.2.2[i] + prod(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
     exceedance.2.3[i] <- exceedance.2.3[i] + prod(p.exceed.75[i, c(t1, t2), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2), 3])
     exceedance.2.4[i] <- exceedance.2.4[i] + prod(p.exceed.75[i, c(t1, t2), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2), 4])
-    # exceedance.2.5[i] <- exceedance.2.5[i] + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
+    exceedance.2.5[i] <- exceedance.2.5[i] + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
   } }
 }
 
-# probability of exactly 3 exceedances
-exceedance.3.1 <- exceedance.3.2 <- exceedance.3.3 <- exceedance.3.4 <- exceedance.3.5 <- rep(0, 439)
-for(i in 1:439) {
-  for (t1 in 1:90) { for (t2 in (t1+1):91) { for (t3 in (t2+1):92) {
-    exceedance.3.1[i] <- exceedance.3.1[i] + prod(p.exceed.75[i, c(t1, t2, t3), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 1])
-    exceedance.3.2[i] <- exceedance.3.2[i] + prod(p.exceed.75[i, c(t1, t2, t3), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 2])
-    exceedance.3.3[i] <- exceedance.3.3[i] + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
-    exceedance.3.4[i] <- exceedance.3.4[i] + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
+# # probability of exactly 3 exceedances
+# exceedance.3.1 <- exceedance.3.2 <- exceedance.3.3 <- exceedance.3.4 <- exceedance.3.5 <- rep(0, 439)
+# for(i in 1:439) {
+  # for (t1 in 1:90) { for (t2 in (t1+1):91) { for (t3 in (t2+1):92) {
+    # exceedance.3.1[i] <- exceedance.3.1[i] + prod(p.exceed.75[i, c(t1, t2, t3), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 1])
+    # exceedance.3.2[i] <- exceedance.3.2[i] + prod(p.exceed.75[i, c(t1, t2, t3), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 2])
+    # exceedance.3.3[i] <- exceedance.3.3[i] + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
+    # exceedance.3.4[i] <- exceedance.3.4[i] + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
     # exceedance.3.5[i] <- exceedance.3.5[i] + prod(p.exceed.75[i, c(t1, t2, t3), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 5])
-  } } }
-  print(i)
-}
+  # } } }
+  # print(i)
+# }
 
-exceedance.4.1 <- 1 - (exceedance.0.1 + exceedance.1.1 + exceedance.2.1 + exceedance.3.1)
-exceedance.4.2 <- 1 - (exceedance.0.2 + exceedance.1.2 + exceedance.2.2 + exceedance.3.2)
-exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3 + exceedance.3.3)
-exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4 + exceedance.3.4)
+# exceedance.4.1 <- 1 - (exceedance.0.1 + exceedance.1.1 + exceedance.2.1 + exceedance.3.1)
+# exceedance.4.2 <- 1 - (exceedance.0.2 + exceedance.1.2 + exceedance.2.2 + exceedance.3.2)
+# exceedance.4.3 <- 1 - (exceedance.0.3 + exceedance.1.3 + exceedance.2.3 + exceedance.3.3)
+# exceedance.4.4 <- 1 - (exceedance.0.4 + exceedance.1.4 + exceedance.2.4 + exceedance.3.4)
 # exceedance.4.5 <- 1 - (exceedance.0.5 + exceedance.1.5 + exceedance.2.5 + exceedance.3.5)
 
-save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, file="predictions2.RData")
+# save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.4.1, exceedance.4.2, exceedance.4.3, exceedance.4.4, exceedance.4.5, file="predictions2.RData")
+
+save(post.med, quantiles.90, quantiles.95, quantiles.99, p.exceed.75, exceedance.0.1, exceedance.0.2, exceedance.0.3, exceedance.0.4, exceedance.0.5, exceedance.1.1, exceedance.1.2, exceedance.1.3, exceedance.1.4, exceedance.1.5, exceedance.2.1, exceedance.2.2, exceedance.2.3, exceedance.2.4, exceedance.2.5, file="predictions3.RData")
 
 # # plot monitoring station ozone locations
 # plot(s, type="p", xlab="", ylab="")
