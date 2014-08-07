@@ -134,7 +134,7 @@ rm(list=ls())
 load('cv-setup-se.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
-load("predictions3.RData")
+load("predictions.RData")
 #### Create places for prediciton maps
 
 s1.preds <- seq(1050, 1800, length=25)
@@ -146,7 +146,7 @@ s.preds <- s.preds[(s.preds[, 2] >= (-6.2 * s.preds[, 1] + 5960)), ]  # tennesse
 
 # quantile-95
 par(mfrow=c(2, 2))
-z.range <- range(quantiles.95[, c(1, 2, 3)])
+z.range <- range(quantiles.95[, c(1, 2, 3, 6)])
 quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 1], nx=25, ny=25, zlim=z.range, main="Gaussian")
 lines(l)
 
@@ -161,7 +161,7 @@ lines(l)
 
 # quantile-99
 par(mfrow=c(2, 2))
-z.range <- range(quantiles.99[, c(1, 2, 3)])
+z.range <- range(quantiles.99[, c(1, 2, 3, 6)])
 quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.99[, 1], nx=25, ny=25, zlim=z.range, main="Gaussian")
 lines(l)
 
@@ -176,7 +176,7 @@ lines(l)
 
 # probability of exceeding standard
 par(mfrow=c(2, 2))
-z.range <- range(exceedance.4[, c(1, 2, 3)])
+z.range <- range(exceedance.4[, c(1, 2, 3, 6)])
 quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.4[, 1], nx=25, ny=25, zlim=z.range, main="Gaussian")
 lines(l)
 

@@ -418,8 +418,17 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
 \centering
 \begin{figure}
     \includegraphics[width=.5\linewidth]{./plots/quantile-95-gau.pdf}
+    \includegraphics[width=.5\linewidth]{./plots/quantile-95-t10.pdf}
+    \caption{Predicted 95th quantile using Gaussian and $t$}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Predicted 95th quantile}
+\centering
+\begin{figure}
+    \includegraphics[width=.5\linewidth]{./plots/quantile-95-t10.pdf}
     \includegraphics[width=.5\linewidth]{./plots/quantile-95-t19.pdf}
-    \caption{Predicted 95th quantile using Gaussian and $t$ thresholded at $T=0.9$}
+    \caption{Predicted 95th quantile using $t$ and $t$ thresholded at $T=0.9$}
 \end{figure}
 \end{frame}
 
@@ -427,8 +436,17 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
 \centering
 \begin{figure}
     \includegraphics[width=.5\linewidth]{./plots/quantile-99-gau.pdf}
+    \includegraphics[width=.5\linewidth]{./plots/quantile-99-t10.pdf}
+    \caption{Predicted 99th quantile using Gaussian and $t$}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Predicted 99th quantile}
+\centering
+\begin{figure}
+    \includegraphics[width=.5\linewidth]{./plots/quantile-99-t10.pdf}
     \includegraphics[width=.5\linewidth]{./plots/quantile-99-t19.pdf}
-    \caption{Predicted 95th quantile using Gaussian and $t$ thresholded at $T=0.9$}
+    \caption{Predicted 99th quantile using $t$ and $t$ thresholded at $T=0.9$}
 \end{figure}
 \end{frame}
 
@@ -436,8 +454,17 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
 \centering
 \begin{figure}
     \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-gau.pdf}
+    \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t10.pdf}
+    \caption{Probability of exceeding the 75 ppb ozone standard using Gaussian and $t$}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Probability of exceedance}
+\centering
+\begin{figure}
+    \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t10.pdf}
     \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t19.pdf}
-    \caption{Probability of exceeding the 75 ppb ozone standard using Gaussian and $t$ thresholded at $T=0.9$}
+    \caption{Probability of exceeding the 75 ppb ozone standard using $t$ and $t$ thresholded at $T=0.9$}
 \end{figure}
 \end{frame}
 
@@ -448,7 +475,7 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
     	\item Gaussian vs $t$ vs skew-$t$ marginal distribution
         \item $K=1$ partition vs $K=5$ partitions
     \end{itemize}
-    \item Preliminary results suggest that there may be a modest improvement in quantile scores from thresholding when the data come from a $t$ distribution with $K=5$ partitions.
+    \item Preliminary results are inconclusive.
   \end{itemize}
 \end{frame}
 
@@ -472,7 +499,7 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
   \begin{itemize} \setlength{\itemsep}{0.5em}
     \item Questions?
     \item Thank you for your attention.
-    \item Acknowledgment: This work was funded by EPA STAR award R835228.
+    \item Acknowledgment: This work was funded by EPA STAR award R835228
   \end{itemize}
 \end{frame}
 
