@@ -7,7 +7,7 @@ load('cv-setup-se.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 
-quantiles.90 <- quantiles.95 <- quantiles.99 <- matrix(NA, nrow=439, ncol=6)
+quantiles.90 <- quantiles.95 <- quantiles.99 <- quantiles.999 <- matrix(NA, nrow=439, ncol=6)
 p.exceed.75 <- array(NA, dim=c(439, 92, 6))
 post.med <- array(NA, dim=c(439, 92, 6))
 
@@ -18,6 +18,7 @@ post.med[, , 1] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 1] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 1] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 1] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 1] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 1] <- apply((yp >= 75), c(2, 3), mean)
 
 # t-1 T-0.9
@@ -27,6 +28,7 @@ post.med[, , 2] <- apply(yp, 2, quantile, probs=0.50)
 quantiles.90[, 2] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 2] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 2] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 2] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 2] <- apply((yp >= 75), c(2, 3), mean)
 
 # skew t-1 T=0.9
@@ -36,6 +38,7 @@ post.med[, , 3] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 3] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 3] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 3] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 3] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 3] <- apply((yp >= 75), c(2, 3), mean)
 
 # t-3 T=0.9
@@ -45,6 +48,7 @@ post.med[, , 4] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 4] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 4] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 4] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 4] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 4] <- apply((yp >= 75), c(2, 3), mean)
 
 # skew t-3 T=0.9
@@ -54,6 +58,7 @@ post.med[, , 5] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 5] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 5] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 5] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 5] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 5] <- apply((yp >= 75), c(2, 3), mean)
 
 # t-1 T=0
@@ -63,6 +68,7 @@ post.med[, , 6] <- apply(yp, c(2, 3), quantile, probs=0.50)
 quantiles.90[, 6] <- apply(yp, 2, quantile, probs=0.90)
 quantiles.95[, 6] <- apply(yp, 2, quantile, probs=0.95)
 quantiles.99[, 6] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 6] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 6] <- apply((yp >= 75), c(2, 3), mean)
 
 # probability of no exceedance
@@ -128,7 +134,7 @@ rm(list=ls())
 load('cv-setup-se.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
-load("predictions.RData")
+load("predictions3.RData")
 #### Create places for prediciton maps
 
 s1.preds <- seq(1050, 1800, length=25)

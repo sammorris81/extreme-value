@@ -24,7 +24,7 @@ rm(list=ls())
 load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
-nsets <- 5
+nsets <- 2
 ngroups <- 10
 nsettings <- dim(y)[4]
 nmethods <- 5

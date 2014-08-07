@@ -132,6 +132,10 @@ par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
 quilt.plot(s[, 1], s[, 2], z=y.st3$y[, 1], nx=50, ny=50, main="skew-t, K=3, alpha=1")
 
+par(mfrow=c(1, 2))
+quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
+quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
+
 # remove simstudy "truth" settings to help diagnose errors.
 save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, 
      x, ntest,  # covariate data that should be the same for all datasets
