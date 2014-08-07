@@ -18,7 +18,6 @@ z.alpha.t <- c(0, 0, 0, 3, 3, 0)
 tau.alpha.t <- 2
 tau.beta.t  <- 8
 
-
 # covariate data
 s         <- cbind(runif(500), runif(500))
 ns        <- nrow(s)  
@@ -61,7 +60,7 @@ for (setting in 1:nsettings) {
   knots.t[[setting]] <- knots.t.setting
 }
 
-# chi plot
+# chi plots
 # bin information
 d <- as.vector(dist(s))
 j <- 1:(nrow(s) - 1)
@@ -75,9 +74,9 @@ diag(dist) <- 0
 bins <- seq(0, 1, length=10)
 bins <- c(bins, 1.5)
 
-y.set <- y[, , 1, 1]
-
 probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
+
+y.set <- y[, , 1, 1]
 threshs <- quantile(y.set, probs=probs, na.rm=T)
 exceed.1 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
@@ -102,8 +101,6 @@ for (thresh in 1:length(threshs)){
 }
 
 y.set <- y[, , 1, 2]
-
-probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
 exceed.2 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
@@ -138,8 +135,6 @@ legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quants")
 
 
 y.set <- y[, , 1, 3]
-
-probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
 exceed.3 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
@@ -171,23 +166,8 @@ for (line in 2:9) {
 }
 legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quants")
 
-# chi plot
-# bin information
-d <- as.vector(dist(s))
-j <- 1:(nrow(s) - 1)
-i <- 2:nrow(s)
-ij <- expand.grid(i, j)
-ij <- ij[(ij[1] > ij[2]), ]
-sites <- cbind(d, ij)
-dist <- rdist(s)
-diag(dist) <- 0
-
-bins <- seq(0, 1, length=10)
-bins <- c(bins, 1.5)
 
 y.set <- y[, , 1, 4]
-
-probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
 exceed.4 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
@@ -222,8 +202,6 @@ legend("topright", lty=1:9, pch=1:9, legend=probs, title="sample quants")
 
 
 y.set <- y[, , 1, 5]
-
-probs <- c(0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 threshs <- quantile(y.set, probs=probs, na.rm=T)
 exceed.5 <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
@@ -307,3 +285,32 @@ abline(h=0.005, lty=2)
 
 plot(xplot, exceed.1[, 9], type="n", axes=F, xlab="", ylab="")
 legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=4, bty="n")
+
+# example of a partition
+s1.preds <- seq(1050, 1800, length=30)
+s2.preds <- seq(-860, -250, length=30)
+s.preds <- expand.grid(s1.preds, s2.preds)
+knots <- cbind(runif(5, 1050, 1800), runif(5, -860, -250))
+g <- mem(s.preds, knots)
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=g, nx=30, ny=30, add.legend=F)
+text(knots[1, 1], knots[1, 2], "1", cex=4)
+text(knots[2, 1], knots[2, 2], "2", cex=4)
+text(knots[3, 1], knots[3, 2], "3", cex=4)
+text(knots[4, 1], knots[4, 2], "4", cex=4)
+text(knots[5, 1], knots[5, 2], "5", cex=4)
+lines(l)
+
+# plot monitoring station ozone locations
+load('../../code/analysis/ozone/SE/cv-setup-se.RData')
+source('../../code/R/mcmc.R')
+source('../../code/R/auxfunctions.R')
+plot(s, type="p", xlab="", ylab="")
+lines(l)
+
+# plot ozone for days 5 and 34
+par(mfrow=c(1, 2))
+zlim=range(y[, c(5, 34)], na.rm=T)
+quilt.plot(x=s[, 1], y=s[, 2], z=y[, 5], nx=40, ny=40, zlim=zlim, main="Day 5", xlab="", ylab="")
+lines(l)
+quilt.plot(x=s[, 1], y=s[, 2], z=y[, 34], nx=40, ny=40, zlim=zlim, main="Day 34", xlab="", ylab="")
+lines(l)
