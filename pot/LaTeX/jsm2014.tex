@@ -61,13 +61,13 @@
 
 \begin{frame}{Motivation}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Average behavior is important to understand, but it does not paint the whole picture.
+    \item Average behavior is important to understand, but it does not paint the whole picture
     \begin{itemize}
-      \item e.g. When constructing river levees, engineers need to be able to estimate a 100-year or 1000-year flood levels.
+      \item e.g. When constructing river levees, engineers need to be able to estimate a 100-year or 1000-year flood levels
       \item e.g. Probability of exceeding a certain threshold level
     \end{itemize}
-    \item Spatial methods borrow information across space to estimate spatial correlation and make predictions by Kriging at unknown locations.
-    \item Want to explore similar methods for extremes.
+    \item Spatial methods borrow information across space to estimate spatial correlation and make predictions by Kriging at unknown locations
+    \item Want to explore similar methods for extremes
   \end{itemize}
 \end{frame}
 
@@ -99,7 +99,7 @@
 \begin{frame}{Standard analysis - Peaks over threshold}
   \begin{itemize}  \setlength{\itemsep}{0.5em}
       \item Incorporates more data than block maxima
-      \item Select a threshold, $T$, and use the Generalized Pareto distribution (GPD) to model the exceedances.
+      \item Select a threshold, $T$, and use the Generalized Pareto distribution (GPD) to model the exceedances
       \item Temporal dependence may be an issue between observations (e.g. flood levels don't dissipate overnight)
   \end{itemize}
 \end{frame}
@@ -182,7 +182,7 @@ $\rho(\bh)$.
     \item Model properties:
     \begin{itemize}
       \item Nice computing properties (closed-form likelihood)
-    \item For a Gaussian spatial model $\lim_{c \rightarrow \infty} \chi(\bh) = 0$ regardless of the strength of the correlation in the bulk of the distribution.
+    \item For a Gaussian spatial model $\lim_{c \rightarrow \infty} \chi(\bh) = 0$ regardless of the strength of the correlation in the bulk of the distribution
     \item Tail is not flexible (Gaussian is light tailed)
     \end{itemize}
     \end{itemize}
@@ -207,8 +207,8 @@ $\rho(\bh)$.
 \begin{frame}{Spatial skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{0.5em}
    \item \alert{Conditioned} on $z_t$ and $\sigma^2_t$, $Y_t(\bs)$ is a Gaussian spatial model
-    \item Can use standard geostatistical methods to fit this model.
-    \item Predictions can be made through Kriging.
+    \item Can use standard geostatistical methods to fit this model
+    \item Predictions can be made through Kriging
     \item \alert{Marginalizing} over $z_t$ and $\sigma^2_t$ (via MCMC),
     \begin{align*}
       Y_t(\bs) \sim \text{skew-t}(\mu, \Sigma^*, \alpha, \text{df}=2a)
@@ -232,14 +232,14 @@ $\rho(\bh)$.
     	\item Computation that is on the order of Gaussian computation
     \end{itemize}
     \item For this distribution, $\chi(\bh)$ shows asymptotic dependence that does not approach 0 as $\bh \rightarrow \infty$
-   \item This occurs because all observations (near and far) share the same $z_t$ and $\sigma_t^2$.
-    \item We deal with this through a daily random partition (similar to Huser and Davison).
+   \item This occurs because all observations (near and far) share the same $z_t$ and $\sigma_t^2$
+    \item We deal with this through a daily random partition (similar to Huser and Davison)
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Daily random partition}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item Daily random partition allows $z_t$ and $\sigma^2_t$ to vary by site.
+    \item Daily random partition allows $z_t$ and $\sigma^2_t$ to vary by site
     \begin{align*}
       Y_t(\bs) = X_t(\bs) \beta + \alpha z_t(\bs) + \sigma(\bs) v_t(\bs)
     \end{align*}
@@ -253,7 +253,7 @@ $\rho(\bh)$.
       z_t(\bs) &= z_{tk}\\
       \sigma^2_t(\bs) &= \sigma^2_{tk}
     \end{align*}
-    \item Within each partition $Y_t(\bs)$ has the same MV skew-t distribution as before.
+    \item Within each partition $Y_t(\bs)$ has the same MV skew-t distribution as before
   \end{itemize}
 \end{frame}
 
@@ -300,7 +300,7 @@ $\rho(\bh)$.
       \item Update parameters with standard random walk Metropolis Hastings or Gibbs sampling
       \item Make spatial predictions
     \end{enumerate}
-    \item Priors are selected to be conjugate when possible.
+    \item Priors are selected to be conjugate when possible
   \end{itemize}
 \end{frame}
 
@@ -328,7 +328,7 @@ $\rho(\bh)$.
   \centering
   \begin{figure}
     \includegraphics[width=1\linewidth]{./plots/ozone-day.pdf}
-    \caption{Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for days 5 and 34.}
+    \caption{Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for days 5 and 34}
    \end{figure}
 
 \end{frame}
@@ -410,7 +410,7 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
     \caption{Brier score for predicting exceedance of $c = \hat{q}(\tau)$ from five-fold cross-validation ($\times 1000$)}
   \end{table} \vspace{-1.5em}
   \begin{itemize}
-  	\item Quantile score results are similar.
+  	\item Quantile score results are similar
   \end{itemize}
 \end{frame}
 
@@ -475,7 +475,7 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
     	\item Gaussian vs $t$ vs skew-$t$ marginal distribution
         \item $K=1$ partition vs $K=5$ partitions
     \end{itemize}
-    \item Preliminary results are inconclusive.
+    \item Preliminary results are inconclusive
   \end{itemize}
 \end{frame}
 
