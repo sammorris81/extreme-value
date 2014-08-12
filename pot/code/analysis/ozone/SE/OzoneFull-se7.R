@@ -47,7 +47,7 @@ update <- 500
 
 method <- "t"
 nknots <- 1
-threshold <- 0
+threshold <- 0.9
 skew <- F
 start <- proc.time()
 
