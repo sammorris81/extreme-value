@@ -7,7 +7,7 @@
 #########################################################################
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
-                 thresh=0, thresh.quant=T, nknots=1, 
+                 thresh.all=0, thresh.quant=T, nknots=1, 
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
                  # initial values
@@ -31,7 +31,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # skew inits
                  z.init=1, z.alpha.init=0,
                  # skew priors
-                 z.alpha.m=0, z.alpha.s=2, skew=T
+                 z.alpha.m=0, z.alpha.s=2, skew=T,
+                 thresh.site.specific=F, thresh.site=NULL
         ){
     
   library(geoR)
@@ -62,12 +63,33 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     
     
   # store the loc/day for observed values below thresh.
-  if (thresh.quant & thresh > 0) {  # threshold based on sample quantiles
-    thresh.data <- quantile(y, thresh, na.rm=T)
+  if (thresh.quant & thresh.all > 0) {  # threshold based on sample quantiles
+    thresh.all.q <- quantile(y, thresh.all, na.rm=T)
   } else {
-    thresh.data <- thresh
+    thresh.all.q <- thresh.all
   }
-  thresh.mtx  <- matrix(thresh.data, ns, nt)  # want as a matrix for easy replacement
+  thresh.all.mtx <- matrix(thresh.all.q, ns, nt)  # want as a matrix for easy replacement
+  
+  if (thresh.site.specific) { 
+  	if (is.null(thresh.site)) {
+  	  warning("Warning: setting site-specific time series threshold to thresh.")
+  	  thresh.site <- thresh.all
+  	}
+  	if ((thresh.site < 0) | (thresh.site > 1)) {
+  	  stop("Error: thresh.site should be the desired site-specific quantile between 0 and 1")
+  	}
+    # if it's site specific, then we want to keep everything over the 95th quantile for the data
+    # set and the max for each site in a matrix that's ns x nt
+    thresh.site <- apply(y, 1, quantile, probs=thresh.site, na.rm=T)
+    thresh.site.mtx <- matrix(thresh.site, ns, nt)
+    thresh.mtx <- ifelse(
+      thresh.site < thresh.all.mtx,
+      thresh.site,
+      thresh.all.mtx
+    )
+  } else {  # if the mean doesn't have a site component, use the same threshold for all
+    thresh.mtx  <- thresh.all.mtx  
+  }
   thresh.obs  <- !is.na(y) & (y < thresh.mtx)
   
   missing.obs <- is.na(y)
@@ -206,12 +228,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   for (iter in 1:iters) { for (ttt in 1:thin) {
     
     # impute data below threshold
-    if (thresh != 0) {
+    if (thresh.all != 0) {
       mu <- x.beta + z.alpha * zg
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
       y.imputed <- matrix(y, ns, nt)
       
-      cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
+      if (nu == 0.5) {  # quicker than matern function
+        cor <- alpha * exp(-(d / rho))
+      } else {
+        cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
+      }
       for (t in 1:nt) {
         these.thresh.obs <- thresh.obs[, t]
         these.missing.obs <- missing.obs[, t]

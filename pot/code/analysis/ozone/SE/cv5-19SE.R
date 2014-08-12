@@ -8,10 +8,10 @@ load('cv-setup-se.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 
-setting <- 11
+setting <- 19
 method <- "t"
 nknots <- 1
-threshold <- 0
+threshold <- 0.90
 outputfile <- paste("cv5-", setting, "SE.RData", sep="")
 X <- array(1, dim=c(ns, nt, 6))
 for (t in 1:nt) {

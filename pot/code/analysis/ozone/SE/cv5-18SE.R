@@ -47,7 +47,8 @@ for(val in 1:5){
 	                thresh=threshold, nknots=nknots, 
                     iters=30000, burn=25000, update=1000, iterplot=F,
                     beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
-                    nu.init=0.5, alpha.init=0.5, cov.model="exponential", rho.prior="cont"),
+                    nu.init=0.5, alpha.init=0.5, cov.model="exponential", rho.prior="cont",
+                    thresh.site.specific=T, thresh.site=0.95),
                     error = function(e) {
                       tryCatch(
                         mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
@@ -55,7 +56,8 @@ for(val in 1:5){
 	                    thresh=threshold, nknots=nknots, 
                         iters=30000, burn=25000, update=1000, iterplot=F,
                         beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
-                        nu.init=0.5, alpha.init=0.5, cov.model="exponential", rho.prior="cont"),
+                        nu.init=0.5, alpha.init=0.5, cov.model="exponential", rho.prior="cont",
+                        thresh.site.specific=T, thresh.site=0.95),
                         error = function(e) {
                           cat("dataset", d, "not working \n")
                               "no results"

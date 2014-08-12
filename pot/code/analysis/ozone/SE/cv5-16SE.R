@@ -42,11 +42,12 @@ for(val in 1:5){
 	
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-	                   method=method, skew=T,
-	                   thresh=threshold, nknots=nknots, 
+	                   method=method, skew=F,
+	                   thresh.all=threshold, nknots=nknots, 
                        iters=30000, burn=25000, update=1000, iterplot=F,
                        beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
-                       nu.init=0.5, alpha.init=0.5)
+                       nu.init=0.5, alpha.init=0.5,
+                       thresh.site.specific=T, thresh.site=0.95)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 	
