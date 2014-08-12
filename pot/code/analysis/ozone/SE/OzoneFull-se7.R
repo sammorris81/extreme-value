@@ -39,7 +39,7 @@ for (t in 1:nt) {
 }
 
 
-time.set <- rep(0, 6)
+time.set <- rep(0, 7)
 iters <- 30000
 burn <- 25000
 update <- 500
@@ -51,19 +51,19 @@ threshold <- 0.9
 skew <- F
 start <- proc.time()
 
-set.seed(6)
+set.seed(7)
 
 tic.set <- proc.time()
 fit.7 <- mcmc(y=y, s=s.scale, x=X, x.pred=X.preds, s.pred=s.scale.preds,
-            thresh=threshold, nknots=nknots, method=method, skew=skew,
+            thresh.all=threshold, nknots=nknots, method=method, skew=skew,
             iters=iters, burn=burn, update=update, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
             nu.init=0.5, alpha.init=0.5,
             thresh.site.specific=T, thresh.site=0.95)
 toc.set <- proc.time()
-time.set[6] <- (toc.set - tic.set)[3]
+time.set[7] <- (toc.set - tic.set)[3]
 
 
-save(fit.6, file="OzoneFull6.RData")
+save(fit.7, file="OzoneFull7.RData")
 
 
