@@ -7,9 +7,9 @@ load('cv-setup-se.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 
-quantiles.90 <- quantiles.95 <- quantiles.99 <- quantiles.999 <- matrix(NA, nrow=439, ncol=6)
-p.exceed.75 <- array(NA, dim=c(439, 92, 6))
-post.med <- array(NA, dim=c(439, 92, 6))
+quantiles.90 <- quantiles.95 <- quantiles.99 <- quantiles.999 <- matrix(NA, nrow=439, ncol=7)
+p.exceed.75 <- array(NA, dim=c(439, 92, 7))
+post.med <- array(NA, dim=c(439, 92, 7))
 
 # Gaussian
 load('./OzoneFull1.RData')
@@ -71,39 +71,52 @@ quantiles.99[, 6] <- apply(yp, 2, quantile, probs=0.99)
 quantiles.999[, 6] <- apply(yp, 2, quantile, probs=0.999)
 p.exceed.75[, , 6] <- apply((yp >= 75), c(2, 3), mean)
 
+# t-1 T=0, site-specific
+load('./OzoneFull7.RData')
+yp <- fit.7$yp
+post.med[, , 7] <- apply(yp, c(2, 3), quantile, probs=0.50)
+quantiles.90[, 7] <- apply(yp, 2, quantile, probs=0.90)
+quantiles.95[, 7] <- apply(yp, 2, quantile, probs=0.95)
+quantiles.99[, 7] <- apply(yp, 2, quantile, probs=0.99)
+quantiles.999[, 7] <- apply(yp, 2, quantile, probs=0.999)
+p.exceed.75[, , 7] <- apply((yp >= 75), c(2, 3), mean)
+
 # probability of no exceedance
-exceedance.0 <- exceedance.1 <- exceedance.2 <- exceedance.3 <- matrix(0, 439, 6)
+exceedance.0 <- exceedance.1 <- exceedance.2 <- exceedance.3 <- matrix(0, 439, 7)
 
 for (i in 1:439) {
-  exceedance.0[i, 1] <- prod(1 - p.exceed.75[i, , 1])
-  exceedance.0[i, 2] <- prod(1 - p.exceed.75[i, , 2])
-  exceedance.0[i, 3] <- prod(1 - p.exceed.75[i, , 3])
-  exceedance.0[i, 4] <- prod(1 - p.exceed.75[i, , 4])
-  exceedance.0[i, 5] <- prod(1 - p.exceed.75[i, , 5])
+  # exceedance.0[i, 1] <- prod(1 - p.exceed.75[i, , 1])
+  # exceedance.0[i, 2] <- prod(1 - p.exceed.75[i, , 2])
+  # exceedance.0[i, 3] <- prod(1 - p.exceed.75[i, , 3])
+  # exceedance.0[i, 4] <- prod(1 - p.exceed.75[i, , 4])
+  # exceedance.0[i, 5] <- prod(1 - p.exceed.75[i, , 5])
   exceedance.0[i, 6] <- prod(1 - p.exceed.75[i, , 6])
+  # exceedance.0[i, 7] <- prod(1 - p.exceed.75[i, , 7])
 }
 
 # probability of exactly one exceedance
 for(i in 1:439) {
   for (t in 1:92) {
-    exceedance.1[i, 1] <- exceedance.1[i, 1] + p.exceed.75[i, t, 1] * prod(1 - p.exceed.75[i, -t, 1])
-    exceedance.1[i, 2] <- exceedance.1[i, 2] + p.exceed.75[i, t, 2] * prod(1 - p.exceed.75[i, -t, 2])
-    exceedance.1[i, 3] <- exceedance.1[i, 3] + p.exceed.75[i, t, 3] * prod(1 - p.exceed.75[i, -t, 3])
-    exceedance.1[i, 4] <- exceedance.1[i, 4] + p.exceed.75[i, t, 4] * prod(1 - p.exceed.75[i, -t, 4])
-    exceedance.1[i, 5] <- exceedance.1[i, 5] + p.exceed.75[i, t, 5] * prod(1 - p.exceed.75[i, -t, 5])
+    # exceedance.1[i, 1] <- exceedance.1[i, 1] + p.exceed.75[i, t, 1] * prod(1 - p.exceed.75[i, -t, 1])
+    # exceedance.1[i, 2] <- exceedance.1[i, 2] + p.exceed.75[i, t, 2] * prod(1 - p.exceed.75[i, -t, 2])
+    # exceedance.1[i, 3] <- exceedance.1[i, 3] + p.exceed.75[i, t, 3] * prod(1 - p.exceed.75[i, -t, 3])
+    # exceedance.1[i, 4] <- exceedance.1[i, 4] + p.exceed.75[i, t, 4] * prod(1 - p.exceed.75[i, -t, 4])
+    # exceedance.1[i, 5] <- exceedance.1[i, 5] + p.exceed.75[i, t, 5] * prod(1 - p.exceed.75[i, -t, 5])
     exceedance.1[i, 6] <- exceedance.1[i, 6] + p.exceed.75[i, t, 6] * prod(1 - p.exceed.75[i, -t, 6])
+    # exceedance.1[i, 7] <- exceedance.1[i, 7] + p.exceed.75[i, t, 7] * prod(1 - p.exceed.75[i, -t, 7])
   }
 }
 
 # probability of exactly two exceedances
 for(i in 1:439) {
   for (t1 in 1:91) { for (t2 in (t1+1):92) {
-    exceedance.2[i, 1] <- exceedance.2[i, 1] + prod(p.exceed.75[i, c(t1, t2), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2), 1])
-    exceedance.2[i, 2] <- exceedance.2[i, 2] + prod(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
-    exceedance.2[i, 3] <- exceedance.2[i, 3] + prod(p.exceed.75[i, c(t1, t2), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2), 3])
-    exceedance.2[i, 4] <- exceedance.2[i, 4] + prod(p.exceed.75[i, c(t1, t2), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2), 4])
-    exceedance.2[i, 5] <- exceedance.2[i, 5] + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
+    # exceedance.2[i, 1] <- exceedance.2[i, 1] + prod(p.exceed.75[i, c(t1, t2), 1]) * prod(1 - p.exceed.75[i, -c(t1, t2), 1])
+    # exceedance.2[i, 2] <- exceedance.2[i, 2] + prod(p.exceed.75[i, c(t1, t2), 2]) * prod(1 - p.exceed.75[i, -c(t1, t2), 2])
+    # exceedance.2[i, 3] <- exceedance.2[i, 3] + prod(p.exceed.75[i, c(t1, t2), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2), 3])
+    # exceedance.2[i, 4] <- exceedance.2[i, 4] + prod(p.exceed.75[i, c(t1, t2), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2), 4])
+    # exceedance.2[i, 5] <- exceedance.2[i, 5] + prod(p.exceed.75[i, c(t1, t2), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2), 5])
     exceedance.2[i, 6] <- exceedance.2[i, 6] + prod(p.exceed.75[i, c(t1, t2), 6]) * prod(1 - p.exceed.75[i, -c(t1, t2), 6])
+    # exceedance.2[i, 7] <- exceedance.2[i, 7] + prod(p.exceed.75[i, c(t1, t2), 7]) * prod(1 - p.exceed.75[i, -c(t1, t2), 7])
   } }
 }
 
@@ -116,7 +129,8 @@ for(i in 1:439) {
     # exceedance.3[i, 3] <- exceedance.3[i, 3] + prod(p.exceed.75[i, c(t1, t2, t3), 3]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 3])
     # exceedance.3[i, 4] <- exceedance.3[i, 4] + prod(p.exceed.75[i, c(t1, t2, t3), 4]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 4])
     # exceedance.3[i, 5] <- exceedance.3[i, 5] + prod(p.exceed.75[i, c(t1, t2, t3), 5]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 5])
-    # exceedance.3[i, 6] <- exceedance.3[i, 6] + prod(p.exceed.75[i, c(t1, t2, t3), 6]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 6])
+    exceedance.3[i, 6] <- exceedance.3[i, 6] + prod(p.exceed.75[i, c(t1, t2, t3), 6]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 6])
+    # exceedance.3[i, 7] <- exceedance.3[i, 7] + prod(p.exceed.75[i, c(t1, t2, t3), 7]) * prod(1 - p.exceed.75[i, -c(t1, t2, t3), 7])
   } } }
   print(i)
 }

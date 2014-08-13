@@ -19,17 +19,17 @@ thresholds <- quantile(y, probs=probs, na.rm=T)
 nsets <- 5 # Number of cv sets
 nbetas <- 4 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 18))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 18))
+quant.score <- array(NA, dim=c(length(probs), nsets, 19))
+brier.score <- array(NA, dim=c(length(thresholds), nsets, 19))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 18))
-beta.1 <- array(NA, dim=c(5000, nsets, 18))
-beta.2 <- array(NA, dim=c(5000, nsets, 18))
+beta.0 <- array(NA, dim=c(5000, nsets, 19))
+beta.1 <- array(NA, dim=c(5000, nsets, 19))
+beta.2 <- array(NA, dim=c(5000, nsets, 19))
 beta.3 <- array(NA, dim=c(5000, nsets, 9)) 
 
 # usable <- (25000+1):30000
 
-for (i in 10:16) {
+for (i in 10:19) {
   file <- paste("cv5-", i, "SE.RData", sep="")
   cat("start file", file, "\n")
   load(file)
