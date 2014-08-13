@@ -70,23 +70,23 @@ beta.3 <- savelist[[6]]
 probs <- savelist[[7]]
 thresholds <- savelist[[8]]
 
-quant.score.mean <- matrix(NA, 18, length(probs))
-brier.score.mean <- matrix(NA, 18, length(thresholds))
+quant.score.mean <- matrix(NA, 19, length(probs))
+brier.score.mean <- matrix(NA, 19, length(thresholds))
 
-quant.score.se <- matrix(NA, 18, length(probs))
-brier.score.se <- matrix(NA, 18, length(thresholds))
+quant.score.se <- matrix(NA, 19, length(probs))
+brier.score.se <- matrix(NA, 19, length(thresholds))
 
-for (i in 10:18) {
+for (i in 10:19) {
   quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
   quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(5)
   brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
   brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(5)
 }
 
-round(quant.score.mean[c(10:13,15:18),c(6, 9:12)], 4)
-round(quant.score.se[c(10:13,15:18),c(6, 9:12)], 4)
-round(brier.score.mean[c(10:18),c(6, 9:12)]*1000, 3)
-round(quant.score.se[c(10,11,12,13,15,16),c(1, 6, 9:12)], 3)
+round(quant.score.mean[c(10:13,15:19),c(6, 9:12)], 4)
+round(quant.score.se[c(10:13,15:19),c(6, 9:12)], 4)
+round(brier.score.mean[c(10:19),c(6, 9:12)]*1000, 3)
+round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
 
 quant.score.mean[c(14), c(6, 9:12)]
 

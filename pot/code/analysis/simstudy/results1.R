@@ -24,7 +24,7 @@ rm(list=ls())
 load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
-nsets <- 2
+nsets <- 5
 ngroups <- 10
 nsettings <- dim(y)[4]
 nmethods <- 5
@@ -62,8 +62,8 @@ z.alpha <- array(NA, dim=c(length(intervals), (nsets * ngroups), 4, nsettings))
 avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
 
 iters <- 20000; burn <- 10000
-group <- 1
-for (group in 1) {
+
+for (group in 1:2) {
   # for(setting in 1:nsettings){
     dataset <- paste(setting,"-c-",group,".RData", sep="")
     load(dataset)

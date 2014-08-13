@@ -159,6 +159,9 @@ lines(l)
 quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 6], nx=25, ny=25, zlim=z.range, main="t, K=1, T=0.0")
 lines(l)
 
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.95[, 7], nx=25, ny=25, zlim=z.range, main="t, K=1, T=0.9 Site-specific")
+lines(l)
+
 # quantile-99
 par(mfrow=c(2, 2))
 z.range <- range(quantiles.99[, c(1, 2, 3, 6)])
@@ -174,6 +177,9 @@ lines(l)
 quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.99[, 6], nx=25, ny=25, zlim=z.range, main="t, K=1, T=0.0")
 lines(l)
 
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=quantiles.99[, 7], nx=25, ny=25, zlim=z.range, main="t, K=1, T=0.9 Site-specific")
+lines(l)
+
 # probability of exceeding standard
 par(mfrow=c(2, 2))
 z.range <- range(exceedance.4[, c(1, 2, 3, 6)])
@@ -187,4 +193,7 @@ quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.4[, 3], nx=25, ny=25, zl
 lines(l)
 
 quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.4[, 6], nx=25, ny=25, zlim=z.range, main="t, K=1, T=0.0")
+lines(l)
+
+quilt.plot(x=s.preds[, 1], y=s.preds[, 2], z=exceedance.4[, 7], nx=25, ny=25, zlim=z.range, main="skew-t, K=1, T=0.9 Site-specific")
 lines(l)
