@@ -7,7 +7,7 @@
 #########################################################################
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
-                 thresh.all=0, thresh.quant=T, nknots=1, 
+                 thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
                  # initial values
@@ -88,6 +88,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       thresh.all.mtx
     )
   } else {  # if the mean doesn't have a site component, use the same threshold for all
+  	cat("\t no site-specific threshold set \n")
     thresh.mtx  <- thresh.all.mtx  
   }
   thresh.obs  <- !is.na(y) & (y < thresh.mtx)
@@ -221,7 +222,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.z         <- array(NA, dim=c(iters, nknots, nt))
   keepers.z.alpha   <- rep(NA, iters)
   keepers.avgparts  <- matrix(NA, nrow=iters, ncol=nt)  # avg partitions per day
-  # keepers.knots     <- array(NA, dim=c(iters, nknots, 2))
+  if (keep.knots & (nknots > 1)) {
+    keepers.knots     <- array(NA, dim=c(iters, nknots, 2, nt))
+  }
   return.iters      <- (burn + 1):iters
   
   tic <- proc.time()
@@ -845,7 +848,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.rho[iter]       <- rho
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
-  # keepers.knots[iter, , ] <- knots
+  keepers.knots[iter, , , ] <- knots
   
   if (predictions) {
     y.pred[iter, , ] <- yp
@@ -899,6 +902,12 @@ if (nknots == 1) {
   keepers.avgparts <- keepers.avgparts[return.iters, ]
 }
 
+if (keep.knots & nknots > 1) {
+  keepers.knots <- keepers.knots[return.iters, , , ]
+} else {
+  keepers.knots <- NULL
+}
+
 if (!predictions) {
   y.pred <- NULL
 } else {
@@ -923,7 +932,7 @@ results <- list(tau=keepers.tau[return.iters, , ],
                 yp=y.pred,
                 z.alpha=keepers.z.alpha,
                 z=keepers.z,
-                # knots=keepers.knots,
+                knots=keepers.knots,
                 avgparts=keepers.avgparts)
 
 return(results)
