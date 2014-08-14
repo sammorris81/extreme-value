@@ -848,7 +848,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.rho[iter]       <- rho
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
-  if (keep.knots & knots > 1) {
+  if (keep.knots & (nknots > 1)) {
     keepers.knots[iter, , , ] <- knots
   }
   
@@ -904,7 +904,7 @@ if (nknots == 1) {
   keepers.avgparts <- keepers.avgparts[return.iters, ]
 }
 
-if (keep.knots & nknots > 1) {
+if (keep.knots & (nknots > 1)) {
   keepers.knots <- keepers.knots[return.iters, , , ]
 } else {
   keepers.knots <- NULL
