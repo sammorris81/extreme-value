@@ -285,8 +285,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mmm <- rep(beta.m, p)  
     for (t in 1:nt) {
        x.t    <- x[, t, ]
-       g12    <- sqrt(taug[,t])
-       prec.t <- quad.form(prec.cor, diag(g12))  # faster with sweeps!
+       taug.t <- sqrt(taug[,t])
+       prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+       # print(length(g12))
+       # print(dim(prec.cor))
+       # print(prec.t[c(1:5), c(1:5)])
+       # prec.t <- quad.form(prec.cor, diag(g12))  # faster with sweeps! currently very slow
+       # print(prec.t[c(1:5), c(1:5)])
        ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
        mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
@@ -748,8 +753,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mmm <- z.alpha.m
     
       for (t in 1:nt) {
-        prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
-        ttt <- zg[, t] %*% prec.cov
+      	taug.t <- sqrt(taug[, t])
+      	prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t 
+        # prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
+        ttt <- zg[, t] %*% prec.t
         vvv <- vvv + ttt %*% zg[, t]
         mmm <- mmm + ttt %*% (y[, t] - x.beta[, t])
       }
@@ -763,13 +770,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mu <- y - x.beta - z.alpha * zg
       
       for (t in 1:nt) {
-        prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
+      	taug.t <- sqrt(taug[,t])
+      	prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+        # prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
         for (k in 1:nknots) {
           these <- which(g[, t] == k)
           r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
           r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
-          prec.11 <- prec.cov[these, these, drop=F]  # with cov
-          prec.21 <- prec.cov[-these, these, drop=F]
+          prec.11 <- prec.t[these, these, drop=F]  # with cov
+          prec.21 <- prec.t[-these, these, drop=F]
           lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
           
           mu.l <- z.alpha * sum(t(r.1) %*% prec.11 + t(r.2) %*% prec.21)
