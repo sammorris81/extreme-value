@@ -848,7 +848,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.rho[iter]       <- rho
   keepers.nu[iter]        <- nu
   keepers.alpha[iter]     <- alpha
-  keepers.knots[iter, , , ] <- knots
+  if (keep.knots & knots > 1) {
+    keepers.knots[iter, , , ] <- knots
+  }
   
   if (predictions) {
     y.pred[iter, , ] <- yp
