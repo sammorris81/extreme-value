@@ -252,6 +252,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                    cat("rho = ", rho, "\n")
                    cat("nu = ", nu, "\n")
                    cat("alpha = ", alpha, "\n")
+                 },
+                 error = function(e) {
+                   cat("rho = ", rho, "\n")
+                   cat("nu = ", nu, "\n")
+                   cat("alpha = ", alpha, "\n")
                  })
         theta.t <- sig.t * t(chol(cor)) %*% rnorm(ns, 0, 1)  # generate for all sites
         
