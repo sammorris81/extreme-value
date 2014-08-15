@@ -894,11 +894,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (skew) {
         plot(keepers.z.alpha[1:iter], type="l")
         plot(keepers.z[1:iter, 1, 1], type="l")
-        plot(keepers.z[1:iter, 1, 48], type="l")
+        plot(keepers.z[1:iter, 1, 21], type="l")
       }
       plot(keepers.tau[1:iter, 1, 1], type="l")
       plot(keepers.tau[1:iter, 1, 10], type="l")
-      plot(keepers.tau[1:iter, 1, 48], type="l")
+      plot(keepers.tau[1:iter, 1, 21], type="l")
     }
     
     toc <- proc.time()
