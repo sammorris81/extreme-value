@@ -247,6 +247,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
         # spatial error
         sig.t <- 1 / sqrt(taug[, t])
+        tryCatch(chol(cor),
+                 warning = function(e) {
+                   cat("rho = ", rho, "\n")
+                   cat("nu = ", nu, "\n")
+                   cat("alpha = ", alpha, "\n")
+                 })
         theta.t <- sig.t * t(chol(cor)) %*% rnorm(ns, 0, 1)  # generate for all sites
         
         # nugget error
