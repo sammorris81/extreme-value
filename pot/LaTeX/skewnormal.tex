@@ -25,30 +25,47 @@
 \end{center}
 
 \section{Introduction}\label{s:intro}
-In most climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, ranfall).
+In most climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
 However, averages do not help regulators prepare for the unusual events that only happen once every 100 years.
 For example, it is important to have an idea of how much rain will come in a 100-year floor in order to construct strong enough river levees to protect lands from flooding.
-Unlike multivariate normal distributions, it is challenging to model multivariate extreme value distributions (e.g. generalized extreme value and generalized Pareto distribution) because few closed-form expressions exist for the density in more than two-dimensions \citep{Coles1991}.
 
-In a bivariate setting, the extremal coefficient describes the pairwise dependence between two spatial locations \citep{Smith1990}.
+The extremal coefficient describes the pairwise dependence between spatial locations \citep{Smith1990}.
 Consider a spatial process $Y(\bs) \in \calR^n$ observed at locations $s \in \calD \subset \calR^2$.
-Then the extremal coefficient, $\theta(\bs_i, \bs_j) \in [1, 2]$, is defined as
+Then the bivariate extremal coefficient, $\theta(\bs_i, \bs_j) \in [1, 2]$, is defined as
 \begin{align}
   \Pr(Y(\bs_i) < c, Y(\bs_j) < c) = \Pr(Y(\bs_i) < c)^{\theta(\bs_i, \bs_j) }. \label{eq:extremalcoef}
 \end{align}
 One way to characterize the dependence over the entire set of spatial locations is to calculate all of the pairwise extremal coefficients.
 Although this method provides information regarding the spatial structure of the observations, it does not fully characterize the joint spatial dependence.
-One way to account for this limitation is the use of pairwise composite likelihoods \citep{Padoan2010,Blanchet2011,Huser2013}.
 
-Recently, skew eliptical distributions have become a popular alternative to model correlated extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
-Specifically, the skew-normal and skew-t distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate t-distributions.
-In this paper, we present a modified version of the multivariate skew-t distribution that incorporates thresholding and random spatial partitions.
+Alternatively, one can use the $\chi$ coefficient as a measure of extremal dependence.
+The $\chi$ coefficient for the upper tail is given by
+\begin{align*}
+	\chi = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c)
+\end{align*}
+In a stationary spatial process, we can write the $\chi$ coefficient as
+\begin{align*}
+	\chi(\bh) = \lim_{c \rightarrow \infty} \Pr(Y(0) > c | Y(\bh) > c)
+\end{align*}
+where $\bh = ||\bs_1 - \bs_2||$.
+If $\chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
+For Gaussian processes, $\chi(\bh) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
+
+Unlike multivariate normal distributions, it is challenging to model multivariate extreme value distributions (e.g. generalized extreme value and generalized Pareto distribution) because few closed-form expressions exist for the density in more than two-dimensions \citep{Coles1991}.
+Given this limitation, pairwise composite likelihoods have been used when modeling dependent extremes \citep{Padoan2010,Blanchet2011,Huser2013}.
+One way around the multi-dimensional limitation of multivariate extreme value distributions is to use skew elliptical distributions to model dependent extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
+Due to their flexibility, the skew-normal and skew-$t$ distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate t-distributions.
+As with the spatial Gaussian process, the skew-normal distribution is also asymptotically independent; however, the skew-$t$ does demonstrate asymptotic dependence \citep{Padoan2011}.
+
+In this paper, we present a model that has marginal distributions with flexible tails, demonstrates asymptotic dependence for $\bh$ small, and has computation on the order of Gaussian models for large space-time datasets.
+Specifically, we use a multivariate skew-$t$ distribution that incorporates thresholding and random spatial partitions.
 The advantage of using a thresholded model as opposed to a non-thresholded model is that is allows for the tails of the distribution to inform the predictions in the tails \citep{DuMouchel1983}.
 The random spatial partitions increase the flexibility of the model by giving us a way to account for observations in spatial regions that may have higher variability due to certain regional climate variables (e.g. forest fires).
 
 \section{Statistical model}\label{s:model}
 
-Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ on day $t$.  To avoid bias in estimating tail parameters, we model the thresholded data
+Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ on day $t$.
+To avoid bias in estimating tail parameters, we model thresholded data
 \beq\label{Yt}
   \Yt_t(\bs) = \left\{
           \begin{array}{ll}
@@ -58,47 +75,61 @@ Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ on day $t$.  To 
         \right.
 \eeq
 where $T$ is a pre-specified threshold.
-
-We first specify a model for the complete data, $Y_t(\bs)$, and then study the induced model for thresholded data, $\Yt_t(\bs)$.
-The full data model is given in Section \ref{s:data} assuming a skew normal distribution with a different variance each day.
-Computationally, the values below the threshold are updated using standard Bayesian missing data methods as described in Section \ref{s:comp}.
-The skew normal representation is from \citep{Zhang2010}.
-\subsection{Half-normal distribution}\label{s:hn}
-Let $u = |z|$ where $Z \sim N(\mu, \sigma^2)$.
-Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-normal distribution which we denote as $U \sim HN(0, 1)$, and the density is given by
-\begin{align}
-  f_U(u) = \frac{ \sqrt{2} }{ \sqrt{\pi \sigma^2} } \exp \left( - \frac{ u^2 }{ 2 \sigma^2 } \right) I(u > 0)
-\end{align}
-When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
+Then, assuming the full data follow a skew-$t$ distribution, we update values below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
 
 \subsection{Complete data}\label{s:data}
-Consider a skew Gaussian spatial process
+We assume the data can be modeled as skew-$t$ \citep{Zhang2010}
 \begin{align} \label{eq:fullmodel}
-  Y_t(\bs) &= X_t(\bs) \beta + \sigma_1 z_t(\bs) + v_t(\bs)
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t + \sigma_t v_t(\bs)
 \end{align}
-where $z_t(\bs) = z_{tl}$ if $s \in P_{tl}$ where $P_{t1}, \ldots, P_{tL}$ form a partition, and $z_{tl} \iid N_{(0, \infty)}(0, 1)$, $\sigma_1 \in \calR$, and $v_t(\bs)$ is a spatial Gaussian process with mean zero and variance $\sigma_{tl}^2$.
-It can be shown \citep{Zhang2010} that $Y_t(\bs)$ follows a skew normal distribution with skewness parameter $\alpha = \frac{ \sigma_1 }{ \sigma_{tl} }$.
-We can then reexpress the model in (\ref{eq:fullmodel}) as
-\begin{align}
-  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs)
-\end{align}
-where $z_t(\bs) = z_{tl}$, $z_{tl} \iid N_{(0, \infty)}(0, \sigma_{tl}^2)$, and $v_t(\bs)$ is defined as before.
-
-We model this with a Bayesian hierarchical model as follows.
-Let $w_{t1}, \ldots, w_{tL}$ be partition centers so that
+where $\alpha \in \calR$ controls the skewness, $z_{t} \ind N_{(0, \infty)}(0, \sigma^2_t)$ are a random effect from a half-normal distribution (see appendix A.3), $v_t(\bs)$ is a Gaussian process with mean zero, variance one, and \Matern correlation, and $\sigma^2_t \iid \text{IG}(a, b)$.
+When marginalizing over the $z_t$ and $\sigma^2_t$ terms,
 \begin{align*}
-  P_{tl} = \{\bs_t : l = \argmin_k || \bs_t - w_{tk} ||\}.
+  Y_t(\bs) \sim \text{skew-}t (\mu, \Sigma^*, \alpha, \text{df} = 2a)
+\end{align*}
+where $\mu$ is the location, $\Sigma^* = \frac{ b }{ a } \Sigma$, $\Sigma$ is a \Matern covariance matrix, $a, b$ are the parameters from the inverse gamma distribution for $\sigma^2_t$, and $\alpha \in \calR$ controls the skewness.
+The skew-$t$ process is desirable because it has a flexible tail that is controlled by both the skewness parameter $\alpha$ and the degrees of freedom.
+This process also has the desirable characteristic that $\chi(\bh) > 0$ \citep{Padoan2011}.
+
+\subsection{Random daily partition}\label{s:part}
+One problem with the skew-$t$ distribution is that $\chi(\bh)$ does not suggest asymptotic independence as the distance increases.
+This occurs because all observations, both near and far, share the same $z_t$ and $\sigma^2_t$ terms.
+We handle this problem with a daily random partition similar to \citet{Huser2014} that allows $z_t$ and $\sigma^2_t$ to vary by site.
+The model then becomes
+\begin{align}
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma_t(\bs) v_t(\bs)
+\end{align}
+where $\alpha$ controls the skewness, $z_t(\bs) \ind \text{N}_{(0, \infty)}(0, \sigma^2_t(\bs))$, $v_t(\bs)$ is defined as before, and $\sigma^2_t(\bs) \iid \text{IG}(a, b)$.
+Consider a set of daily knots $\bw_{tk} \sim \text{Uniform}$ that define a random daily partition $P_{t1}, \ldots, P_{tK}$ such that
+\begin{align*}
+  P_{tk} = \{ \bs : k = \argmin_\ell || \bs - \bw_{t\ell} \}.
+\end{align*}
+So, for $\bs \in P_{tk}$, let
+\begin{align}
+  z_t(\bs) &= z_{tk} \label{eq:sitez}\\
+  \sigma^2_t(\bs) &= \sigma^2_{tk} \label{eq:sitesig}.
+\end{align}
+Then within each partition, $Y_t(\bs)$ follows the distribution given in (\ref{eq:fullmodel}).
+
+\subsection{Hierarchical model}\label{s:hier}
+Conditioned on $z_t(\bs)$ and $\sigma^2_t(\bs)$, $Y_t(\bs)$ is a Gaussian spatial model.
+Thus, standard geostatistical methods can be used to fit the model, and predictions can be made by Kriging at unobserved locations.
+We model this with a Bayesian hierarchical model as follows.
+Let $w_{t1}, \ldots, w_{tK}$ be partition centers so that
+\begin{align*}
+ P_{tk} = \{\bs : k = \argmin_\ell || \bs_t - w_{t\ell} ||\}.
 \end{align*}
 Then
 \begin{align}
-    Y_t(\bs) \mid \Theta, z_{t1}, \ldots, z_{tL} &= X_t(\bs) \beta + \alpha z_t(\bs) + v_t(\bs) \label{eq:hier}\\
-    z_{tl}(\bs) \mid \Theta &\sim N_{(0, \infty)}(0, \sigma^2_{tl})\\
-    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma_t(\lambda))\\
-    \sigma^2_{tl} &\iid IG(\alpha, \beta)\\
-    \alpha &\sim N(0, 10)\\
-    w_{tk} &\sim Unif(\calD)
+   Y_t(\bs) \mid \Theta, z_{t}(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma
+   _t(\bs) v_t(\bs) \label{eq:hier}\\
+   z_{tk} \mid \sigma^2_{tk} &\sim N_{(0, \infty)}(0, \sigma^2_{tk})\\
+   \sigma^2_{tk} &\iid IG(\alpha, \beta)\\
+   v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
+   \alpha &\sim N(0, 10)\\
+   w_{tk} &\sim Unif(\calR^2)
 \end{align}
-where $\Theta = \{w_{t1}, \ldots, w_{tL}, \beta, \sigma_t, \alpha, \lambda, \rho, \nu \}$; $l = \argmin_k ||\bs - w_k ||$; $\Sigma_t(\lambda)$ is a \Matern covariance matrix with variance $\sigma_{tl}^2$, spatial range $\rho$, smoothness $\nu$, and $\lambda$ is the percentage of variation that can be attributed to the partial sill; and $\calD$ is the spatial domain of interest.
+where $\Theta = \{w_{t1}, \ldots, w_{tK}, \beta, \sigma_t, \alpha, \lambda, \rho, \nu \}$; $z_t(\bs)$ and $\sigma^2_t(\bs)$ are defined as in (\ref{eq:sitez}) and (\ref{eq:sitesig}); \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix with variance one, spatial range $\rho$, smoothness $\nu$.
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
@@ -108,7 +139,7 @@ Finally, we make spatial precictions using conditional multivariate normal resul
 
 \subsection{Imputation}\label{s:impute}
 We can use Gibbs sampling to update $Y_t(\bs)$ for observations that are below $T$, the thresholded value. Given $\Theta$, $Y_t(\bs)$ has truncated normal full conditional with these parameter values.
-So we sample $Y_t(\bs) \sim N_{(-\infty, T)}$
+So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\mu(\bs), \Sigma)$
 
 \subsection{Parameter updates}\label{s:params}
 To update $\Theta$ given the current value of the complete data $\bY_1, \ldots, \bY_T$, we use a standard Gibbs updates for all parameters except for the knot locations which are done using a Metropolis update.
@@ -117,9 +148,7 @@ See Appendix A.1 for details regarding Gibbs sampling.
 \subsection{Spatial prediction}\label{s:pred}
 Given $\bY_t$ the usual Kriging equations give the predictive distribution for $Y_t(\bs^*)$ at prediction location $(\bs^*)$
 
-
 \section{Data analysis}\label{s:analysis}
-
 
 \section{Conclusions}\label{s:con}
 
@@ -131,11 +160,16 @@ Given $\bY_t$ the usual Kriging equations give the predictive distribution for $
 \input{sigpost.tex}
 \input{alphapost.tex}
 
-\section*{Appendix A.2: MCMC Details}
-
-\subsection*{Priors}
+\section*{Appendix A.2: MCMC details}
 
 
+\section*{Appendix A.3: Half-normal distribution}
+Let $u = |z|$ where $Z \sim N(\mu, \sigma^2)$.
+Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-normal distribution which we denote as $U \sim HN(0, 1)$, and the density is given by
+\begin{align}
+  f_U(u) = \frac{ \sqrt{2} }{ \sqrt{\pi \sigma^2} } \exp \left( - \frac{ u^2 }{ 2 \sigma^2 } \right) I(u > 0)
+\end{align}
+When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
 
 \bibliographystyle{rss}
 \bibliography{skewnormal}
