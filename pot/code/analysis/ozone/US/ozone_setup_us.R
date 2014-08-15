@@ -9,77 +9,38 @@ source('../../../R/auxfunctions.R')
 # Setup from Brian
 load("ozone_data.RData")
 cmaq.s   <- expand.grid(x, y)  # expands the grid of x, y locs where we have CMAQ 
-s        <- cmaq.s[index, ]    # extracts only those locations where AQS is taken
-aqs.cmaq <- CMAQ[index, ]  
 
 # Exclude if site is missing more than 50% of its days
 excl     <- which(rowMeans(is.na(Y)) > 0.50)
-s        <- s[-excl, ]
+index    <- index[-excl]
 aqs      <- Y[-excl, ]
-aqs.cmaq <- aqs.cmaq[-excl, ]
 
 image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - no thin AQS sites")
 points(s)       # Locations of monitoring stations
 lines(borders)  # Add state lines
 
-# # Statified sample of 25% to make covariance calculations easier
-# # stratified by region (NW, SW, NE, SE) and whether exceed 75
+# Statified sample of 50% to make covariance calculations easier
+# stratified by whether exceed 75
+# which sites have at no days that exceed 75, gives the row number of the index
+gthan.75.these <- which(rowMeans(aqs >= 75, na.rm=T) > 0)
+lthan.75.these <- which(rowMeans(aqs >= 75, na.rm=T) ==0)
+n.gthan.75 <- round(length(gthan.75.these) * 0.5)
+n.lthan.75 <- round(length(lthan.75.these) * 0.5)
 
-# # which sites have at no days that exceed 75
-# exceed.75.these <- which(rowMeans(aqs >= 75, na.rm=T) > 0)
+set.seed(2087)
+keep.gthan.these <- sample(gthan.75.these, n.gthan.75, replace=F)
+keep.lthan.these <- sample(lthan.75.these, n.lthan.75, replace=F)
+keep.these <- c(keep.gthan.these, keep.lthan.these)
 
-# set.seed(2087)
-# # nw: no obs > 75
-# nw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] >= 0))
-# n.nw.these.l <- length(nw.these.l) * 0.25
-# nw.thin.l <- sample(nw.these.l, n.nw.these.l, replace=F)
+index    <- index[keep.these]
+aqs      <- aqs[keep.these, ]
+s        <- cmaq.s[index, ]
+aqs.cmaq <- CMAQ[index, ]
 
-# # nw: at least one obs > 75
-# nw.these.h <- which((s[exceed.75.these, 1] < 0) & (s[exceed.75.these, 2] >= 0))
-# n.nw.these.h <- length(nw.these.h) * 0.25
-# nw.thin.h <- sample(nw.these.h, n.nw.these.h, replace=F)
-
-# # sw: no obs > 75
-# sw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] < 0))
-# n.sw.these.l <- length(sw.these.l) * 0.25
-# sw.thin.l <- sample(sw.these.l, n.sw.these.l, replace=F)
-
-# # sw: at least one obs > 75
-# sw.these.h <- which((s[exceed.75.these, 1] < 0) & (s[exceed.75.these, 2] < 0))
-# n.sw.these.h <- length(sw.these.h) * 0.25
-# sw.thin.h <- sample(sw.these.h, n.sw.these.h, replace=F)
-
-# # ne: no obs > 75
-# ne.these.l <- which((s[-exceed.75.these, 1] >= 0) & (s[-exceed.75.these, 2] >= 0))
-# n.ne.these.l <- length(ne.these.l) * 0.25
-# ne.thin.l <- sample(ne.these.l, n.ne.these.l, replace=F)
-
-# # ne: at least one obs > 75
-# ne.these.h <- which((s[exceed.75.these, 1] >= 0) & (s[exceed.75.these, 2] >= 0))
-# n.ne.these.h <- length(ne.these.h) * 0.25
-# ne.thin.h <- sample(ne.these.h, n.ne.these.h, replace=F)
-
-# # se: no obs > 75
-# se.these.l <- which((s[-exceed.75.these, 1] >= 0) & (s[-exceed.75.these, 2] < 0))
-# n.se.these.l <- length(se.these.l) * 0.25
-# se.thin.l <- sample(se.these.l, n.se.these.l, replace=F)
-
-# # se: at least one obs > 75
-# se.these.h <- which((s[exceed.75.these, 1] >= 0) & (s[exceed.75.these, 2] < 0))
-# n.se.these.h <- length(se.these.h) * 0.25
-# se.thin.h <- sample(se.these.h, n.se.these.h, replace=F)
-
-# thin     <- c(nw.thin.l, nw.thin.h, sw.thin.l, sw.thin.h, ne.thin.l, ne.thin.h, se.thin.l, se.thin.h)
-
-# index    <- index[thin]
-# s        <- cmaq.s[index, ]  # only include the stratified sample of sites
-# aqs.cmaq <- CMAQ[thin, ]  # CMAQ measurements at the AQS sites
-# aqs      <- Y[thin, ]     # AQS measurements at the AQS sites
-
-# # Plot CMAQ
-# image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - 25% AQS sites stratified by reg/ext")
-# points(s)       # Locations of monitoring stations
-# lines(borders)  # Add state lines
+# Plot CMAQ
+image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - 50% AQS sites stratified by >75")
+points(s)       # Locations of monitoring stations
+lines(borders)  # Add state lines
 
 # Rescale s so each dimension is in (0, 1)
 s.scale      <- matrix(NA, nrow=nrow(s), ncol=ncol(s))
@@ -102,11 +63,11 @@ for(t in 1:nt){
 #### 5-fold cross validation
 cv.idx <- sample(nrow(s.scale), nrow(s.scale), replace=F)
 
-cv.1 <- cv.idx[1:218]
-cv.2 <- cv.idx[219:436]
-cv.3 <- cv.idx[437:654]
-cv.4 <- cv.idx[655:872]
-cv.5 <- cv.idx[873:1089]
+cv.1 <- cv.idx[1:108]
+cv.2 <- cv.idx[108:216]
+cv.3 <- cv.idx[217:324]
+cv.4 <- cv.idx[325:432]
+cv.5 <- cv.idx[433:544]
 
 cv.lst <- list(cv.1=cv.1, cv.2=cv.2, cv.3=cv.3, cv.4=cv.4, cv.5=cv.5)
 
@@ -248,3 +209,51 @@ for (line in 2:9) {
 	lines(xplot, exceed.res[, line], lty=line, pch=line, type="o")
 }
 legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quants")
+
+# set.seed(2087)
+# # nw: no obs > 75
+# nw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] >= 0))
+# n.nw.these.l <- length(nw.these.l) * 0.25
+# nw.thin.l <- sample(nw.these.l, n.nw.these.l, replace=F)
+
+# # nw: at least one obs > 75
+# nw.these.h <- which((s[exceed.75.these, 1] < 0) & (s[exceed.75.these, 2] >= 0))
+# n.nw.these.h <- length(nw.these.h) * 0.25
+# nw.thin.h <- sample(nw.these.h, n.nw.these.h, replace=F)
+
+# # sw: no obs > 75
+# sw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] < 0))
+# n.sw.these.l <- length(sw.these.l) * 0.25
+# sw.thin.l <- sample(sw.these.l, n.sw.these.l, replace=F)
+
+# # sw: at least one obs > 75
+# sw.these.h <- which((s[exceed.75.these, 1] < 0) & (s[exceed.75.these, 2] < 0))
+# n.sw.these.h <- length(sw.these.h) * 0.25
+# sw.thin.h <- sample(sw.these.h, n.sw.these.h, replace=F)
+
+# # ne: no obs > 75
+# ne.these.l <- which((s[-exceed.75.these, 1] >= 0) & (s[-exceed.75.these, 2] >= 0))
+# n.ne.these.l <- length(ne.these.l) * 0.25
+# ne.thin.l <- sample(ne.these.l, n.ne.these.l, replace=F)
+
+# # ne: at least one obs > 75
+# ne.these.h <- which((s[exceed.75.these, 1] >= 0) & (s[exceed.75.these, 2] >= 0))
+# n.ne.these.h <- length(ne.these.h) * 0.25
+# ne.thin.h <- sample(ne.these.h, n.ne.these.h, replace=F)
+
+# # se: no obs > 75
+# se.these.l <- which((s[-exceed.75.these, 1] >= 0) & (s[-exceed.75.these, 2] < 0))
+# n.se.these.l <- length(se.these.l) * 0.25
+# se.thin.l <- sample(se.these.l, n.se.these.l, replace=F)
+
+# # se: at least one obs > 75
+# se.these.h <- which((s[exceed.75.these, 1] >= 0) & (s[exceed.75.these, 2] < 0))
+# n.se.these.h <- length(se.these.h) * 0.25
+# se.thin.h <- sample(se.these.h, n.se.these.h, replace=F)
+
+# thin     <- c(nw.thin.l, nw.thin.h, sw.thin.l, sw.thin.h, ne.thin.l, ne.thin.h, se.thin.l, se.thin.h)
+
+# index    <- index[thin]
+# s        <- cmaq.s[index, ]  # only include the stratified sample of sites
+# aqs.cmaq <- CMAQ[thin, ]  # CMAQ measurements at the AQS sites
+# aqs      <- Y[thin, ]     # AQS measurements at the AQS sites
