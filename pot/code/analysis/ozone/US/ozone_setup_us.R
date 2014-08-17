@@ -14,6 +14,7 @@ cmaq.s   <- expand.grid(x, y)  # expands the grid of x, y locs where we have CMA
 excl     <- which(rowMeans(is.na(Y)) > 0.50)
 index    <- index[-excl]
 aqs      <- Y[-excl, ]
+s        <- cmaq.s[index, ]
 
 image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - no thin AQS sites")
 points(s)       # Locations of monitoring stations
@@ -51,6 +52,16 @@ s.scale[, 2] <- (s[, 2] - range(s[, 2])[1]) / (range(s[, 2])[2] - range(s[, 2])[
 ns <- nrow(aqs)
 nt <- ncol(aqs)
 X <- array(1, dim=c(ns, nt, 7))
+for(t in 1:nt){
+  X[, t, 2] <- s[, 1]    # Long
+  X[, t, 3] <- s[, 2]    # Lat
+  X[, t, 4] <- s[, 1]^2  # Long^2
+  X[, t, 5] <- s[, 2]^2  # Lat^2
+  X[, t, 6] <- s[, 1] * s[, 2]  # Interaction
+  X[, t, 7] <- aqs.cmaq[, t]   # CMAQ
+}
+
+X.scale <- array(1, dim=c(ns, nt, 7))
 for(t in 1:nt){
   X[, t, 2] <- s.scale[, 1]    # Long
   X[, t, 3] <- s.scale[, 2]    # Lat

@@ -22,7 +22,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  beta.m=0, beta.s=10, 
                  tau.alpha.m=0, tau.alpha.s=1, 
                  tau.beta.a=0.1, tau.beta.b=0.1,
-                 logrho.m=-2, logrho.s=1,
+                 logrho.m=0, logrho.s=10,
                  lognu.m=-1.2, lognu.s=1,
                  alpha.m=0, alpha.s=1,
                  # covariance model
@@ -183,6 +183,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else if (rho.prior == "disc"){  # precompute eigenvectors and eigenvalues
   	if (cov.model != "exponential") {
   	  stop('to use a discrete prior on rho, you must set cov.model = "exponential"')
+  	}
+  	if (max(s) > 1) {
+  		stop('to use a discrete prior on rho, you need to scale your data to a unit square')
   	}
   	
     rhos <- seq(0.01, 1.2, 0.01)  # restricting spatial domain to [0, 1] x [0, 1]
