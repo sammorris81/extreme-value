@@ -43,7 +43,7 @@ eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
   logdet.prec <- NULL
   cor.sqrt <- NULL
   
-  eig <- eigen(Q, symmetric=T)
+  eig <- eigen(Q)
   V <- eig$vectors
   D <- ifelse(eig$values < thresh, thresh, eig$values)
   D.inv <- 1 / D
