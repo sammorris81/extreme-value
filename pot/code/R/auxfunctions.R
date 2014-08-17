@@ -38,36 +38,34 @@ CorFx <- function(d, alpha, rho, nu) {
   return(cor)
 }
 
-inv <- function(d, alpha, range=NULL, nu=0.5, thresh=0.0000001){
-  library(geoR)
-  Q <- CorFx(d, alpha, range, nu)
-  eig <- eigen(Q)
+eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
+  cor.inv <- NULL
+  logdet.prec <- NULL
+  cor.sqrt <- NULL
+  
+  eig <- eigen(Q, symmetric=T)
   V <- eig$vectors
-  D <- 1 / ifelse(eig$values < thresh, thresh, eig$values)
-  cor.inv <- sweep(V, 2, D, "*") %*% t(V)
-  results <- list(prec=cor.inv, log.det=sum(log(D)))
+  D <- ifelse(eig$values < thresh, thresh, eig$values)
+  D.inv <- 1 / D
+  
+  if (logdet) { logdet.prec <- -0.5 * sum(log(D)) }
+  if (inv) { cor.inv <- sweep(V, 2, D.inv, "*") %*% t(V) }
+  if (mtx.sqrt) { sd.mtx <- sweep(V, 2, sqrt(D), "*") %*% t(V) }
+  
+  results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=cor.sqrt)
   
   return(results)
 }
 
-chol.inv <- function(Q) {
+chol.inv <- function(Q, inv=T, logdet=T) {
+  cor.inv <- NULL
+  logdet.prec <- NULL
   chol.Q <- chol(Q)
-  cor.inv <- chol2inv(chol.Q)
-  log.det <- sum(log(diag(chol.Q)))
   
-  results <- list(prec=cor.inv, log.det=log.det, cor.sqrt=chol.Q)
-}
-
-eig.inv <- function(Q) {
-  eig <- eigen(Q, symmetric=T)
-  V <- eig$vectors
-  D <- ifelse(eig$values < 0.0000001, 0.0000001, eig$values)
-  log.det <- sum(log(D))
-  D.inv <- 1 / D
-  cor.inv <- sweep(V, 2, D.inv, "*") %*% t(V)
-  cor.sqrt <- sweep(V, 2, sqrt(D), "*") %*% t(V)
-  results <- list(prec=cor.inv, log.det=log.det, cor.sqrt=cor.sqrt)
+  if (inv) { cor.inv <- chol2inv(chol.Q) }
+  if (logdet) { logdet.prec <- -sum(log(diag(chol.Q))) }
   
+  results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=chol.Q)
   return(results)
 }
 

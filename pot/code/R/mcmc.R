@@ -173,9 +173,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   
   if (rho.prior == "cont") {
     C <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
-    chol.C <- chol(C)
-    prec.cor <- chol2inv(chol.C)
-    logdet.prec <- -sum(log(diag(chol.C)))  # already includes 0.5
+    CC <- tryCatch(chol.inv(C, inv=T, logdet=T),
+                   error = function(e) {
+                     eig.inv(C, inv=T, logdet=T, mtx.sqrt=T)
+                   })
+    chol.C <- CC$sd.mtx
+    prec.cor <- CC$prec
+    logdet.prec <- CC$logdet.prec  # already includes 0.5
   } else if (rho.prior == "disc"){  # precompute eigenvectors and eigenvalues
   	if (cov.model != "exponential") {
   	  stop('to use a discrete prior on rho, you must set cov.model = "exponential"')
@@ -247,18 +251,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
         # spatial error
         sig.t <- 1 / sqrt(taug[, t])
-        tryCatch(chol(cor),
-                 warning = function(e) {
-                   cat("rho = ", rho, "\n")
-                   cat("nu = ", nu, "\n")
-                   cat("alpha = ", alpha, "\n")
-                 },
-                 error = function(e) {
-                   cat("rho = ", rho, "\n")
-                   cat("nu = ", nu, "\n")
-                   cat("alpha = ", alpha, "\n")
-                 })
-        theta.t <- sig.t * t(chol(cor)) %*% rnorm(ns, 0, 1)  # generate for all sites
+        sd.mtx <- tryCatch(chol(cor),  # only want the cholesky factor
+                           error = function(e) {
+                             eig.inv(cor, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
+                           })
+        theta.t <- sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)  # generate for all sites
         
         # nugget error
         # new expected value and standard deviation
@@ -503,9 +500,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.alpha <- pnorm(can.norm.alpha)
     
       can.C <- CorFx(d=d, alpha=can.alpha, rho=rho, nu=nu)
-      can.chol.C <- chol(can.C)
-      can.prec.cor <- chol2inv(can.chol.C)
-      can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
+      can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
+                         error = function(e) {
+                           eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T)
+                         })
+      can.sd.mtx <- can.CC$sd.mtx
+      can.prec.cor <- can.CC$prec
+      can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
     
       can.rss <- rep(NA, nt)
       for (t in 1:nt) {
@@ -521,7 +522,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (!is.na(R)) { if (log(runif(1)) < R) {
         alpha <- can.alpha
         C <- can.C
-        chol.C <- can.chol.C
+        sd.mtx <- can.sd.mtx
         prec.cor <- can.prec.cor
         logdet.prec <- can.logdet.prec
         cur.rss <- can.rss
@@ -556,9 +557,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.alpha <- pnorm(can.norm.alpha)
     
       can.C <- CorFx(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
-      can.chol.C <- chol(can.C)
-      can.prec.cor <- chol2inv(can.chol.C)
-      can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
+      can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
+                         error = function(e) {
+                           eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T)
+                         })
+      can.sd.mtx <- can.CC$sd.mtx
+      can.prec.cor <- can.CC$prec
+      can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
     
       can.rss <- rep(NA, nt)
       cur.rss <- rep(NA, nt)
@@ -582,7 +587,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           nu <- can.nu
           alpha <- can.alpha
           C <- can.C
-          chol.C <- can.chol.C
+          sd.mtx <- can.sd.mtx
           prec.cor <- can.prec.cor
           logdet.prec <- can.logdet.prec
           cur.rss <- can.rss
@@ -820,7 +825,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     diag(s.11) <- 1
     s.12.22.inv <- s.12 %*% prec.cor
     corp <- s.11 - s.12.22.inv %*% t(s.12)
-    corp.chol <- chol(corp)
+    corp.sd.mtx <- tryCatch(chol(corp),  # only want the cholesky factor
+                            error = function(e) {
+                              eig.inv(corp, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
+                            })
     
     yp <- matrix(NA, np, nt)
 
@@ -834,12 +842,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       zgp    <- z[gp, t]
       siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
       taug.t <- sqrt(taug[, t])
-      # cat("dim corp", dim(corp), "length siggp", length(siggp))
-
-      # siggp is (np) s.12.22.inv %*% (taug.t * res[, t]) is (np x ns, ns x 1) = (np)
       mup <- xp.beta + z.alpha * zgp + siggp * s.12.22.inv %*% (taug.t * res[, t])
       
-      yp[, t] <- mup + siggp * t(corp.chol) %*% rnorm(np, 0, 1)
+      yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
     }
    
   }
