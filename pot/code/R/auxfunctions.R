@@ -50,7 +50,7 @@ eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
   
   if (logdet) { logdet.prec <- -0.5 * sum(log(D)) }
   if (inv) { cor.inv <- sweep(V, 2, D.inv, "*") %*% t(V) }
-  if (mtx.sqrt) { sd.mtx <- sweep(V, 2, sqrt(D), "*") %*% t(V) }
+  if (mtx.sqrt) { cor.sqrt <- sweep(V, 2, sqrt(D), "*") %*% t(V) }
   
   results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=cor.sqrt)
   
