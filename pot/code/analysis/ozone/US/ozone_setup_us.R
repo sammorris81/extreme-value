@@ -43,6 +43,7 @@ y <- y / 1000
 cv.idx <- sample(nrow(S), nrow(S), replace=F)
 cv.1 <- cv.idx[1:367]
 cv.2 <- cv.idx[368:735]
+cv.lst <- list(cv.1=cv.1, cv.2=cv.2)
 
 beta.init <- 0
 tau.init <- 1
