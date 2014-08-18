@@ -45,7 +45,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   ##############################################
   ns <- nrow(y)    # number of sites
   nt <- ncol(y)    # number of days
-  p  <- dim(x)[3]  # number of covariates
+  p  <- 1          # number of covariates
 
   predictions <- !is.null(s.pred) & !is.null(x.pred)
   np <- 0
@@ -295,7 +295,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     vvv <- diag(p) / beta.s^2
     mmm <- rep(beta.m, p)  
     for (t in 1:nt) {
-       x.t    <- x[, t, ]
+       x.t    <- x[, t]
        taug.t <- sqrt(taug[,t])
        prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
        # print(length(g12))
@@ -312,7 +312,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     beta <- vvv %*% mmm + t(chol(vvv)) %*% rnorm(p)
       
     for (t in 1:nt) {
-      x.beta[, t] <- x[, t, ] %*% beta
+      x.beta[, t] <- x[, t] %*% beta
     }
     mu  <- x.beta + z.alpha * zg
     

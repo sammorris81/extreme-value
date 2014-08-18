@@ -8,81 +8,43 @@ source('../../../R/auxfunctions.R')
 
 # Setup from Brian
 load("ozone_data.RData")
-cmaq.s   <- expand.grid(x, y)  # expands the grid of x, y locs where we have CMAQ 
+S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ 
 
 # Exclude if site is missing more than 50% of its days
-excl     <- which(rowMeans(is.na(Y)) > 0.50)
-index    <- index[-excl]
-aqs      <- Y[-excl, ]
-s        <- cmaq.s[index, ]
+excl   <- which(rowMeans(is.na(Y)) > 0.50)
+index  <- index[-excl]
+Y      <- Y[-excl, ]
+S      <- S[-excl, ]
 
 image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - no thin AQS sites")
-points(s)       # Locations of monitoring stations
+points(S)       # Locations of monitoring stations
 lines(borders)  # Add state lines
 
-# Statified sample of 50% to make covariance calculations easier
-# stratified by whether exceed 75
-# which sites have at no days that exceed 75, gives the row number of the index
-gthan.75.these <- which(rowMeans(aqs >= 75, na.rm=T) > 0)
-lthan.75.these <- which(rowMeans(aqs >= 75, na.rm=T) ==0)
-n.gthan.75 <- round(length(gthan.75.these) * 0.5)
-n.lthan.75 <- round(length(lthan.75.these) * 0.5)
+# only include sites from the eastern US
+keep.these <- which(S[, 1] > 0)
+index      <- index[keep.these]
+Y          <- Y[keep.these, ]
+S          <- S[keep.these, ]
+X          <- CMAQ[index, ]
 
-set.seed(2087)
-keep.gthan.these <- sample(gthan.75.these, n.gthan.75, replace=F)
-keep.lthan.these <- sample(lthan.75.these, n.lthan.75, replace=F)
-keep.these <- c(keep.gthan.these, keep.lthan.these)
-
-index    <- index[keep.these]
-aqs      <- aqs[keep.these, ]
-s        <- cmaq.s[index, ]
-aqs.cmaq <- CMAQ[index, ]
+# center and scale CMAQ data
+X <- (X - mean(X)) / sd(X)
 
 # Plot CMAQ
-image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - 50% AQS sites stratified by >75")
-points(s)       # Locations of monitoring stations
-lines(borders)  # Add state lines
+image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - eastern US")
+points(S)       # Locations of monitoring stations
+lines(borders/1000)  # Add state lines
 
-# Rescale s so each dimension is in (0, 1)
-s.scale      <- matrix(NA, nrow=nrow(s), ncol=ncol(s))
-s.scale[, 1] <- (s[, 1] - range(s[, 1])[1]) / (range(s[, 1])[2] - range(s[, 1])[1])
-s.scale[, 2] <- (s[, 2] - range(s[, 2])[1]) / (range(s[, 2])[2] - range(s[, 2])[1])
+S <- S / 1000
+x <- x / 1000
+y <- y / 1000
 
-# Covariates including lat, long, and CMAQ
-ns <- nrow(aqs)
-nt <- ncol(aqs)
-X <- array(1, dim=c(ns, nt, 7))
-for(t in 1:nt){
-  X[, t, 2] <- s[, 1]    # Long
-  X[, t, 3] <- s[, 2]    # Lat
-  X[, t, 4] <- s[, 1]^2  # Long^2
-  X[, t, 5] <- s[, 2]^2  # Lat^2
-  X[, t, 6] <- s[, 1] * s[, 2]  # Interaction
-  X[, t, 7] <- aqs.cmaq[, t]   # CMAQ
-}
+#### 2-fold cross validation
+cv.idx <- sample(nrow(S), nrow(S), replace=F)
+cv.1 <- cv.idx[1:367]
+cv.2 <- cv.idx[368:735]
 
-X.scale <- array(1, dim=c(ns, nt, 7))
-for(t in 1:nt){
-  X[, t, 2] <- s.scale[, 1]    # Long
-  X[, t, 3] <- s.scale[, 2]    # Lat
-  X[, t, 4] <- s.scale[, 1]^2  # Long^2
-  X[, t, 5] <- s.scale[, 2]^2  # Lat^2
-  X[, t, 6] <- s.scale[, 1] * s.scale[, 2]  # Interaction
-  X[, t, 7] <- aqs.cmaq[, t]   # CMAQ
-}
-
-#### 5-fold cross validation
-cv.idx <- sample(nrow(s.scale), nrow(s.scale), replace=F)
-
-cv.1 <- cv.idx[1:108]
-cv.2 <- cv.idx[108:216]
-cv.3 <- cv.idx[217:324]
-cv.4 <- cv.idx[325:432]
-cv.5 <- cv.idx[433:544]
-
-cv.lst <- list(cv.1=cv.1, cv.2=cv.2, cv.3=cv.3, cv.4=cv.4, cv.5=cv.5)
-
-beta.init <- rep(0, dim(X)[3])
+beta.init <- 0
 tau.init <- 1
 
 save.image(file="cv-setup-us.RData")
@@ -268,3 +230,57 @@ legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quants")
 # s        <- cmaq.s[index, ]  # only include the stratified sample of sites
 # aqs.cmaq <- CMAQ[thin, ]  # CMAQ measurements at the AQS sites
 # aqs      <- Y[thin, ]     # AQS measurements at the AQS sites
+
+
+# Covariates including lat, long, and CMAQ
+# ns <- nrow(aqs)
+# nt <- ncol(aqs)
+# X <- array(1, dim=c(ns, nt, 7))
+# for(t in 1:nt){
+  # X[, t, 2] <- s[, 1]    # Long
+  # X[, t, 3] <- s[, 2]    # Lat
+  # X[, t, 4] <- s[, 1]^2  # Long^2
+  # X[, t, 5] <- s[, 2]^2  # Lat^2
+  # X[, t, 6] <- s[, 1] * s[, 2]  # Interaction
+  # X[, t, 7] <- aqs.cmaq[, t]   # CMAQ
+# }
+
+# X.scale <- array(1, dim=c(ns, nt, 7))
+# for(t in 1:nt){
+  # X[, t, 2] <- s.scale[, 1]    # Long
+  # X[, t, 3] <- s.scale[, 2]    # Lat
+  # X[, t, 4] <- s.scale[, 1]^2  # Long^2
+  # X[, t, 5] <- s.scale[, 2]^2  # Lat^2
+  # X[, t, 6] <- s.scale[, 1] * s.scale[, 2]  # Interaction
+  # X[, t, 7] <- aqs.cmaq[, t]   # CMAQ
+# }
+
+
+#### 5-fold cross validation
+# cv.idx <- sample(nrow(s.scale), nrow(s.scale), replace=F)
+
+# cv.1 <- cv.idx[1:108]
+# cv.2 <- cv.idx[108:216]
+# cv.3 <- cv.idx[217:324]
+# cv.4 <- cv.idx[325:432]
+# cv.5 <- cv.idx[433:544]
+
+# cv.lst <- list(cv.1=cv.1, cv.2=cv.2, cv.3=cv.3, cv.4=cv.4, cv.5=cv.5)
+
+# Rescale s so each dimension is in (0, 1)
+# S.scale      <- matrix(NA, nrow=nrow(S), ncol=ncol(S))
+# S.scale[, 1] <- (S[, 1] - range(S[, 1])[1]) / (range(S[, 1])[2] - range(S[, 1])[1])
+# S.scale[, 2] <- (S[, 2] - range(S[, 2])[1]) / (range(S[, 2])[2] - range(S[, 2])[1])
+
+# # Statified sample of 50% to make covariance calculations easier
+# # stratified by whether exceed 75
+# # which sites have at no days that exceed 75, gives the row number of the index
+# gthan.75.these <- which(rowMeans(aqs >= 75, na.rm=T) > 0)
+# lthan.75.these <- which(rowMeans(aqs >= 75, na.rm=T) ==0)
+# n.gthan.75 <- round(length(gthan.75.these) * 0.5)
+# n.lthan.75 <- round(length(lthan.75.these) * 0.5)
+
+# set.seed(2087)
+# keep.gthan.these <- sample(gthan.75.these, n.gthan.75, replace=F)
+# keep.lthan.these <- sample(lthan.75.these, n.lthan.75, replace=F)
+# keep.these <- c(keep.gthan.these, keep.lthan.these)

@@ -19,28 +19,28 @@ outputfile <- paste("cv5-", setting, "US.RData", sep="")
 
 start <- proc.time()
 
-fit <- vector(mode="list", length=5)
+fit <- vector(mode="list", length=2)
 
-for(val in 1:5){
+for(val in 1:2){
 	
 	set.seed(setting*100 + val)
 	
 	cat("CV", val, "started \n")
 	val.idx <- cv.lst[[val]]
-	y.o <- aqs[-val.idx,]
-	X.o <- X[-val.idx,,]
-	S.o <- s[-val.idx,]
+	y.o <- Y[-val.idx,]
+	X.o <- X[-val.idx,]
+	S.o <- S[-val.idx,]
 	
-	y.p <- aqs[val.idx,]
-	X.p <- X[val.idx,,]
-	S.p <- s[val.idx,]
+	y.p <- Y[val.idx,]
+	X.p <- X[val.idx,]
+	S.p <- S[val.idx,]
 	
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
 	                   method=method, skew=skew, keep.knots=keep.knots,
 	                   thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots, 
-                       iters=30000, burn=25000, update=500, iterplot=T,
-                       beta.init=beta.init, tau.init=tau.init, rho.init=1000,
+                       iters=30000, burn=25000, update=500, iterplot=F,
+                       beta.init=beta.init, tau.init=tau.init, rho.init=1,
                        nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
