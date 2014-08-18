@@ -836,7 +836,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     yp <- matrix(NA, np, nt)
 
     for (t in 1:nt) {
-      xp.beta  <- x.pred[, t, ] %*% beta
+      xp.beta  <- x.pred[, t] %*% beta
       if (nknots == 1) {
         gp <- rep(1, np)
       } else {
