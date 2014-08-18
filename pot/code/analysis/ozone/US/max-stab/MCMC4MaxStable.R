@@ -1,4 +1,3 @@
-
 #############################################################:
 ###       THE MAIN MCMC FUNCTION TO FIT THE PS MODEL      ###:
 #############################################################:
@@ -409,7 +408,8 @@ loglike <- function(y, A, B, thresh) {
     lll[toohigh] <- -Inf
   }
   lll <- ifelse(junk, 0, lll)          
-  results(lll)
+  
+  return(lll)
 }
 
 a2A <- function(FAC, a, alpha) {
