@@ -47,7 +47,7 @@ maxstable<-function(y, x, s, thresh, knots,
     #INITIAL VALUES:
     nb <- 2
     if (is.null(initB)) {
-      beta<-matrix(0, nb, 5)
+      beta <- matrix(0, nb, 5)
       beta[1, 1] <- 2
       beta[1, 2] <- 1
       beta[1, 3] <- 0.01

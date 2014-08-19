@@ -25,10 +25,17 @@ keep.these <- which(S[, 1] > 0)
 index      <- index[keep.these]
 Y          <- Y[keep.these, ]
 S          <- S[keep.these, ]
-X          <- CMAQ[index, ]
+cmaq       <- CMAQ[index, ]
 
 # center and scale CMAQ data
-X <- (X - mean(X)) / sd(X)
+cmaq <- (cmaq - mean(cmaq)) / sd(cmaq)
+
+# add in intercept
+nt <- ncol(Y)
+X <- array(1, dim=c(nrow(cmaq), nt, 2))
+for (t in 1:nt) {
+  X[, t, 2] <- cmaq[, t]
+}
 
 # Plot CMAQ
 image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - eastern US")
@@ -72,31 +79,31 @@ remove <- east | west | north | south
 
 # chi plot
 # bin information
-d <- as.vector(dist(s))
-j <- 1:85
-i <- 2:86
-ij <- expand.grid(i, j)
-ij <- ij[(ij[1] > ij[2]), ]
-sites <- cbind(d, ij)
-dist <- rdist(s)
+# d <- as.vector(dist(S))
+# j <- 1:734
+# i <- 2:735
+# ij <- expand.grid(i, j)
+# ij <- ij[(ij[1] > ij[2]), ]
+# sites <- cbind(d, ij)
+
+dist <- rdist(S)
 diag(dist) <- 0
 
-bins <- seq(0, 600, 50)
-bins <- c(bins, 900)
+bins <- seq(0, 4, 0.5)
 
 probs <- c(0.9, 0.95, 0.99)
-threshs <- quantile(y, probs=probs, na.rm=T)
+threshs <- quantile(Y, probs=probs, na.rm=T)
 exceed <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
 for (thresh in 1:length(threshs)){
   exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
   for (t in 1:nt) {
-    these <- which(y[, t] > threshs[thresh])
-    n.na <- sum(is.na(y[, t]))
+    these <- which(Y[, t] > threshs[thresh])
+    n.na <- sum(is.na(Y[, t]))
     for (b in 1:(length(bins) - 1)) {
       for (site in these){
         inbin <- (dist[site, ] > bins[b]) & (dist[site, ] < bins[b+1])
-        att[b] <- att[b] + sum(inbin) - sum(is.na(y[inbin, t]))
-        acc[b] <- acc[b] + sum(y[inbin, t] > threshs[thresh], na.rm=T)
+        att[b] <- att[b] + sum(inbin) - sum(is.na(Y[inbin, t]))
+        acc[b] <- acc[b] + sum(Y[inbin, t] > threshs[thresh], na.rm=T)
       }
       if (att[b] == 0) {
         exceed.thresh[b] <- 0
@@ -109,9 +116,9 @@ for (thresh in 1:length(threshs)){
 }
 
 # par(mfrow=c(1, 2))
-xplot <- (0:12) + 0.5
-plot(xplot, exceed[, 1], type="o", ylim=c(0, 0.75), ylab="exceed", xaxt="n", xlab="bin distance", pch=1, lty=3, main="chi-plot ozone")
-axis(1, at=0:12, labels=bins[-14])
+xplot <- (1:(length(bins)-1)) - 0.5
+plot(xplot, exceed[, 1], type="o", ylim=c(0, 0.5), ylab="exceed", xaxt="n", xlab="bin distance / 1000", pch=1, lty=3, main="chi-plot ozone")
+axis(1, at=0:(length(bins)-2), labels=bins[-length(bins)])
 for (line in 2:3) { 
 	lines(xplot, exceed[, line], lty=line)
 	points(xplot, exceed[, line], pch=line)
@@ -120,8 +127,8 @@ legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quants")
 
 # Making the chi plot
 # Residuals after lm
-y.lm <- y[, 1]
-x.lm <- X[, 1, c(1, 2, 3)]
+y.lm <- Y[, 1]
+x.lm <- X[, 1]
 for (t in 2:nt) {
   y.lm <- c(y.lm, y[, t])
   x.lm <- rbind(x.lm, X[, t, c(1, 2, 3)]) 
@@ -129,9 +136,7 @@ for (t in 2:nt) {
 ozone.lm <- lm(y.lm ~ x.lm)
 ozone.res <- residuals(ozone.lm)
 ozone.int <- ozone.lm$coefficients[1]
-ozone.beta1 <- ozone.lm$coefficients[3]
-ozone.beta2 <- ozone.lm$coefficients[4]
-# ozone.cmaq <- ozone.lm$coefficients[5]
+ozone.cmaq <- ozone.lm$coefficients[5]
 # ozone.beta <- c(ozone.int, ozone.beta1, ozone.beta2, ozone.cmaq)
 ozone.beta <- c(ozone.int, ozone.beta1, ozone.beta2)
 res <- matrix(NA, ns, nt)

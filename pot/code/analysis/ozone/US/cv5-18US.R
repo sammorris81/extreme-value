@@ -24,12 +24,12 @@ for(val in 1:2){
 	cat("CV", val, "started \n")
 	val.idx <- cv.lst[[val]]
 	y.o <- t(Y[-val.idx,])
-	X.o <- t(X[-val.idx,])
+	X.o <- t(X[-val.idx, ,2])
 	S.o <- S[-val.idx,]
 	knots <- S.o
 	
 	y.p <- t(Y[val.idx,])
-	X.p <- t(X[val.idx,])
+	X.p <- t(X[val.idx, , 2])
 	S.p <- S[val.idx,]
 	
 	tic.set <- proc.time()

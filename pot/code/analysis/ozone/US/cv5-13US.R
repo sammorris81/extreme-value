@@ -28,11 +28,11 @@ for(val in 1:2){
 	cat("CV", val, "started \n")
 	val.idx <- cv.lst[[val]]
 	y.o <- Y[-val.idx,]
-	X.o <- X[-val.idx,]
+	X.o <- X[-val.idx, , ]
 	S.o <- S[-val.idx,]
 	
 	y.p <- Y[val.idx,]
-	X.p <- X[val.idx,]
+	X.p <- X[val.idx, , ]
 	S.p <- S[val.idx,]
 	
 	tic.set <- proc.time()

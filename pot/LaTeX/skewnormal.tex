@@ -29,7 +29,36 @@ In most climatological applications, researchers are interested in learning abou
 However, averages do not help regulators prepare for the unusual events that only happen once every 100 years.
 For example, it is important to have an idea of how much rain will come in a 100-year floor in order to construct strong enough river levees to protect lands from flooding.
 
-The extremal coefficient describes the pairwise dependence between spatial locations \citep{Smith1990}.
+Unlike multivariate normal distributions, it is challenging to model multivariate extreme value distributions (e.g. generalized extreme value and generalized Pareto distribution) because few closed-form expressions exist for the density in more than two-dimensions \citep{Coles1991}.
+Given this limitation, pairwise composite likelihoods have been used when modeling dependent extremes \citep{Padoan2010,Blanchet2011,Huser2013}.
+One way around the multi-dimensional limitation of multivariate extreme value distributions is to use skew elliptical distributions to model dependent extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
+Due to their flexibility, the skew-normal and skew-$t$ distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate t-distributions.
+As with the spatial Gaussian process, the skew-normal distribution is also asymptotically independent; however, the skew-$t$ does demonstrate asymptotic dependence \citep{Padoan2011}.
+
+In this paper, we present a model that has marginal distributions with flexible tails, demonstrates asymptotic dependence for small $\bh$, and has computation on the order of Gaussian models for large space-time datasets.
+Specifically, our contribution is to incorporate thresholding and random spatial partitions using a multivariate skew-$t$ distribution.
+The advantage of using a thresholded model as opposed to a non-thresholded model is that is allows for the tails of the distribution to inform the predictions in the tails \citep{DuMouchel1983}.
+The random spatial partitions increase the flexibility of the model by giving us a way to account for observations in spatial regions that may have higher variability due to certain regional climate variables (e.g. forest fires).
+
+\section{Extreme distributions}
+Maybe some information about max-stable processes and standard analyses?
+
+\subsection{Extremal dependence}
+A popular measure of extremal dependence is the $\chi$.
+The $\chi$ coefficient for the upper tail is given by
+\begin{align*}
+  \chi = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c)
+\end{align*}
+In a stationary spatial process, we can write the $\chi$ coefficient as
+\begin{align*}
+  \chi(\bh) = \lim_{c \rightarrow \infty} \Pr(Y(0) > c | Y(\bh) > c)
+\end{align*}
+where $\bh = ||\bs_1 - \bs_2||$.
+If $\chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
+For Gaussian processes, $\chi(\bh) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
+However, for the process described in Section \ref{s:data}, $\chi(\bh) > 0$ \citep{Padoan2011}.
+
+Another common measure of extremal spatial dependence is the extremal coefficient which describes the pairwise dependence between spatial locations \citep{Smith1990}.
 Consider a spatial process $Y(\bs) \in \calR^n$ observed at locations $s \in \calD \subset \calR^2$.
 Then the bivariate extremal coefficient, $\theta(\bs_i, \bs_j) \in [1, 2]$, is defined as
 \begin{align}
@@ -38,34 +67,9 @@ Then the bivariate extremal coefficient, $\theta(\bs_i, \bs_j) \in [1, 2]$, is d
 One way to characterize the dependence over the entire set of spatial locations is to calculate all of the pairwise extremal coefficients.
 Although this method provides information regarding the spatial structure of the observations, it does not fully characterize the joint spatial dependence.
 
-Alternatively, one can use the $\chi$ coefficient as a measure of extremal dependence.
-The $\chi$ coefficient for the upper tail is given by
-\begin{align*}
-	\chi = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c)
-\end{align*}
-In a stationary spatial process, we can write the $\chi$ coefficient as
-\begin{align*}
-	\chi(\bh) = \lim_{c \rightarrow \infty} \Pr(Y(0) > c | Y(\bh) > c)
-\end{align*}
-where $\bh = ||\bs_1 - \bs_2||$.
-If $\chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
-For Gaussian processes, $\chi(\bh) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
-
-Unlike multivariate normal distributions, it is challenging to model multivariate extreme value distributions (e.g. generalized extreme value and generalized Pareto distribution) because few closed-form expressions exist for the density in more than two-dimensions \citep{Coles1991}.
-Given this limitation, pairwise composite likelihoods have been used when modeling dependent extremes \citep{Padoan2010,Blanchet2011,Huser2013}.
-One way around the multi-dimensional limitation of multivariate extreme value distributions is to use skew elliptical distributions to model dependent extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
-Due to their flexibility, the skew-normal and skew-$t$ distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate t-distributions.
-As with the spatial Gaussian process, the skew-normal distribution is also asymptotically independent; however, the skew-$t$ does demonstrate asymptotic dependence \citep{Padoan2011}.
-
-In this paper, we present a model that has marginal distributions with flexible tails, demonstrates asymptotic dependence for $\bh$ small, and has computation on the order of Gaussian models for large space-time datasets.
-Specifically, we use a multivariate skew-$t$ distribution that incorporates thresholding and random spatial partitions.
-The advantage of using a thresholded model as opposed to a non-thresholded model is that is allows for the tails of the distribution to inform the predictions in the tails \citep{DuMouchel1983}.
-The random spatial partitions increase the flexibility of the model by giving us a way to account for observations in spatial regions that may have higher variability due to certain regional climate variables (e.g. forest fires).
-
 \section{Statistical model}\label{s:model}
-
 Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ on day $t$.
-To avoid bias in estimating tail parameters, we model thresholded data
+To avoid bias in estimating tail parameters, we model censored data
 \beq\label{Yt}
   \Yt_t(\bs) = \left\{
           \begin{array}{ll}
@@ -87,9 +91,8 @@ When marginalizing over the $z_t$ and $\sigma^2_t$ terms,
 \begin{align*}
   Y_t(\bs) \sim \text{skew-}t (\mu, \Sigma^*, \alpha, \text{df} = 2a)
 \end{align*}
-where $\mu$ is the location, $\Sigma^* = \frac{ b }{ a } \Sigma$, $\Sigma$ is a \Matern covariance matrix, $a, b$ are the parameters from the inverse gamma distribution for $\sigma^2_t$, and $\alpha \in \calR$ controls the skewness.
-The skew-$t$ process is desirable because it has a flexible tail that is controlled by both the skewness parameter $\alpha$ and the degrees of freedom.
-This process also has the desirable characteristic that $\chi(\bh) > 0$ \citep{Padoan2011}.
+where $\mu$ is the location, $\Sigma^* = \frac{ b }{ a } \Sigma$, $\Sigma$ is a \Matern covariance matrix, and $\alpha \in \calR$ controls the skewness.
+The skew-$t$ process is desirable because it has a flexible tail that is controlled by both the skewness parameter $\alpha$ and the degrees of freedom $2a$.
 
 \subsection{Random daily partition}\label{s:part}
 One problem with the skew-$t$ distribution is that $\chi(\bh)$ does not suggest asymptotic independence as the distance increases.
@@ -100,7 +103,7 @@ The model then becomes
   Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma_t(\bs) v_t(\bs)
 \end{align}
 where $\alpha$ controls the skewness, $z_t(\bs) \ind \text{N}_{(0, \infty)}(0, \sigma^2_t(\bs))$, $v_t(\bs)$ is defined as before, and $\sigma^2_t(\bs) \iid \text{IG}(a, b)$.
-Consider a set of daily knots $\bw_{tk} \sim \text{Uniform}$ that define a random daily partition $P_{t1}, \ldots, P_{tK}$ such that
+Consider a set of daily spatial knots $\bw_{tk} \sim \text{Uniform}(\calD)$ that define a random daily partition $P_{t1}, \ldots, P_{tK}$ of the spatial domain of interest $\calD \subset \calR^2$ such that
 \begin{align*}
   P_{tk} = \{ \bs : k = \argmin_\ell || \bs - \bw_{t\ell} \}.
 \end{align*}
@@ -115,7 +118,7 @@ Then within each partition, $Y_t(\bs)$ follows the distribution given in (\ref{e
 Conditioned on $z_t(\bs)$ and $\sigma^2_t(\bs)$, $Y_t(\bs)$ is a Gaussian spatial model.
 Thus, standard geostatistical methods can be used to fit the model, and predictions can be made by Kriging at unobserved locations.
 We model this with a Bayesian hierarchical model as follows.
-Let $w_{t1}, \ldots, w_{tK}$ be partition centers so that
+Let $w_{t1}, \ldots, w_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, so that
 \begin{align*}
  P_{tk} = \{\bs : k = \argmin_\ell || \bs_t - w_{t\ell} ||\}.
 \end{align*}
@@ -127,7 +130,7 @@ Then
    \sigma^2_{tk} &\iid IG(\alpha, \beta)\\
    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
    \alpha &\sim N(0, 10)\\
-   w_{tk} &\sim Unif(\calR^2)
+   w_{tk} &\sim Unif(\calD)
 \end{align}
 where $\Theta = \{w_{t1}, \ldots, w_{tK}, \beta, \sigma_t, \alpha, \lambda, \rho, \nu \}$; $z_t(\bs)$ and $\sigma^2_t(\bs)$ are defined as in (\ref{eq:sitez}) and (\ref{eq:sitesig}); \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix with variance one, spatial range $\rho$, smoothness $\nu$.
 
@@ -148,7 +151,66 @@ See Appendix A.1 for details regarding Gibbs sampling.
 \subsection{Spatial prediction}\label{s:pred}
 Given $\bY_t$ the usual Kriging equations give the predictive distribution for $Y_t(\bs^*)$ at prediction location $(\bs^*)$
 
+\section{Simulation study}\label{s:simstudy}
+In this section, we conduct a simulation study to investigate how the number of partitions and the level of thresholding impact the accuracy of predictions made by the model.
+For all simulation designs, we generate data from the model presented in Section \ref{s:part} using $n=130$ sites and $T=50$ independent days.
+The sites are generated Uniform$([0, 1] \times [0, 1])$.
+We generate data from 6 different simulation designs:
+\begin{enumerate} \setlength{\itemsep}{-0.5em}
+  \item Gaussian marginal, $K=1$ knots
+  \item $t$ marginal, $K=1$ knots
+  \item $t$ marginal, $K=5$ knots
+  \item skew-$t$ marginal, $K=1$ knots
+  \item skew-$t$ marginal, $K=5$ knots
+  \item Mixture of Gaussian marginal and $t$ marginal, $K=1$ knots.
+\end{enumerate}
+In the first five designs, the $v_t(\bs)$ terms are generated using a \Matern covariance with parameters smoothness ($\nu = 0.5$), spatial range ($\rho = 0.1$), and variance $\sigma^2_t$ where $\sigma^2_t \iid \text{IG}(2, 8)$.
+In each covariance matrix, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
+In the first design, the same $\sigma^2$ is used for all days.
+For skew marginals, $\alpha = 3$ was used, and the $z_t$ are generated as described in (\ref{eq:sitez}).
+In the sixth design, each day has either a Gaussian or a $t$ marginal with probability of 0.5.
+All days in the sixth design with Gaussian marginal distributions use the same $\sigma^2$ with $v_t(\bs)$ generated as described for the other five designs.
+For days in the sixth design with $t$ marginal distributions, the spatial range is four times as large ($\rho = 0.4$) as the days with Gaussian marginals.
+In all six designs, the mean ($\mu(\bs)$) is assumed to be constant across space.
+
+$M = 50$ data sets are generated for each design.
+For each data set we fit the data using
+\begin{enumerate} \setlength{\itemsep}{-0.5em}
+  \item Gaussian marginal, $K=1$ knots
+  \item skew-$t$ marginal, $K=1$ knots, $T=0.0$
+  \item skew-$t$ marginal, $K=1$ knots, $T=0.9$
+  \item skew-$t$ marginal, $K=5$ knots, $T=0.0$
+  \item skew-$t$ marginal, $K=5$ knots, $T=0.9$
+\end{enumerate}
+where $T=0.9$ indicates that data are thresholded at the 90th sample quantile of the data.
+The design matrix $\bX$ includes on the intercept with a prior of $\beta \sim \text{N}(0, 10)$.
+The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{U}(0, 1)$, $\log(\rho) \sim \text{N}(-2, 1)$.
+The skewness parameter has prior $\alpha \sim \text{N}(0, 2)$.
+The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1)$.
+
+\subsection{Cross validation}\label{s:modelselect}
+Models were compared using two-fold cross validation where data were split with 50\% being used as a training set and 50\% as a testing set.
+The model was fit using the training set, and predictions were generated at the testing site locations.
+Because one of the primary goals of this model is to predict extreme events, we quantify use Brier scores and quantile scores to select the model that best fits the data \citep{Gneiting2007}.
+The Brier score for predicting exceedance of a threshold $c$ is given by $[e(c) - P(c)]^2$ where $e(c) = I[y>c]$ is an indicator function indicating that a test set value, $y$, has exceeded the threshold, and $P(c)$ is the predicted probability of exceeding $c$.
+The quantile score for the $\tau$th quantile is $2\{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q} - y)$ where $y$ is an AQS test set value and $\widehat{q}(\tau)$ is the estimated $\tau$th quantile.
+For both the Brier score and the quantile score, a lower score indicates a better fit.
+These scores were averaged over all sites and days to obtain a single quantile score for each dataset.
+
 \section{Data analysis}\label{s:analysis}
+To illustrate this method, we consider the daily maximum 8-hour ozone measurements for July 2005 at 735 Air Quality System (AQS) monitoring sites in the eastern United States as the response.
+For each site, we also have covariate information containing the estimated ozone from the Community Multi-scale Air Quality (CMAQ) modeling system.
+We fit the model using Gaussian and skew-$t$ marginal distributions, $K=1, 5, 10, 15$ partitions, with $Y(\bs)$ censored at $T = 0, 50, 75, 90$ ppb as described in Section \ref{s:data}.
+We also include a max-stable analysis using the method by ????
+All methods assume the location can be expressed as
+\begin{align}
+  \mu_t(\bs) = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs).
+\end{align}
+To explore the extremal dependence both over space and time, we plot $\chi(\bs)$ and $\chi(t)$.
+For each model, Brier scores and quantile scores were were averaged over all sites and days to obtain a single quantile score for each dataset.
+At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
+
+\subsection{Results}\label{s:results}
 
 \section{Conclusions}\label{s:con}
 
