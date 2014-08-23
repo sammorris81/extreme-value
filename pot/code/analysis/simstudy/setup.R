@@ -32,7 +32,7 @@ source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
 # data settings
-beta.t <- c(10, 2, -3)
+beta.t <- c(10, 0, 0)
 nu.t <- 0.5
 alpha.t <- 0.9
 mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t

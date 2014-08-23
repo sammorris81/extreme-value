@@ -20,6 +20,7 @@ image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-0
 points(S)       # Locations of monitoring stations
 lines(borders)  # Add state lines
 
+#### start data preprocessing
 # only include sites from the eastern US
 keep.these <- which(S[, 1] > 0)
 index      <- index[keep.these]
@@ -32,19 +33,29 @@ cmaq <- (cmaq - mean(cmaq)) / sd(cmaq)
 
 # add in intercept
 nt <- ncol(Y)
+ns <- nrow(Y)
 X <- array(1, dim=c(nrow(cmaq), nt, 2))
 for (t in 1:nt) {
   X[, t, 2] <- cmaq[, t]
 }
+
+S <- S / 1000
+x <- x / 1000
+y <- y / 1000
+
+#### end data preprocessing
 
 # Plot CMAQ
 image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - eastern US")
 points(S)       # Locations of monitoring stations
 lines(borders/1000)  # Add state lines
 
-S <- S / 1000
-x <- x / 1000
-y <- y / 1000
+# Plot a day's data
+quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100, 
+           xaxt="n", xlim=c(-20, 2400),
+           yaxt="n", ylim=c(-1600, 1200),
+           main="Ozone values on 10 July 2005")
+lines(borders)
 
 #### 2-fold cross validation
 cv.idx <- sample(nrow(S), nrow(S), replace=F)
@@ -126,48 +137,42 @@ for (line in 2:3) {
 legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quants")
 
 # Making the chi plot
+# run preprocessing first
 # Residuals after lm
 y.lm <- Y[, 1]
-x.lm <- X[, 1]
+x.lm <- X[, 1, ]
 for (t in 2:nt) {
-  y.lm <- c(y.lm, y[, t])
-  x.lm <- rbind(x.lm, X[, t, c(1, 2, 3)]) 
+  y.lm <- c(y.lm, Y[, t])
+  x.lm <- rbind(x.lm, X[, t, c(1, 2)]) 
 }
 ozone.lm <- lm(y.lm ~ x.lm)
 ozone.res <- residuals(ozone.lm)
 ozone.int <- ozone.lm$coefficients[1]
-ozone.cmaq <- ozone.lm$coefficients[5]
-# ozone.beta <- c(ozone.int, ozone.beta1, ozone.beta2, ozone.cmaq)
-ozone.beta <- c(ozone.int, ozone.beta1, ozone.beta2)
+ozone.cmaq <- ozone.lm$coefficients[3]
+ozone.beta <- c(ozone.int, ozone.cmaq)
 res <- matrix(NA, ns, nt)
 for (t in 1:nt) {
-  res[, t] <- y[, t] - X[, t, c(1, 2, 3)] %*% ozone.beta
+  res[, t] <- Y[, t] - X[, t, c(1, 2)] %*% ozone.beta
 }
 
-d <- as.vector(dist(s))
-j <- 1:85
-i <- 2:86
-ij <- expand.grid(i, j)
-ij <- ij[(ij[1] > ij[2]), ]
-sites <- cbind(d, ij)
-dist <- rdist(s)
+dist <- rdist(S)
 diag(dist) <- 0
 
-bins <- seq(0, 600, 50)
-bins <- c(bins, 900)
+# chi(h) plot
+bins.h <- seq(0, 3.5, 0.25)
 
 probs <- c(0.9, 0.95, 0.99)
 threshs <- quantile(res, probs=probs, na.rm=T)
-exceed.res <- matrix(NA, nrow=(length(bins) - 1), ncol=length(threshs))
+exceed.h.res <- matrix(NA, nrow=(length(bins.h) - 1), ncol=length(threshs))
 
 for (thresh in 1:length(threshs)){
-  exceed.thresh <- att <- acc <- rep(0, (length(bins) - 1))
+  exceed.thresh <- att <- acc <- rep(0, (length(bins.h) - 1))
   for (t in 1:nt) {
-    these <- which(res[, t] > threshs[thresh])
+    these <- which(res[, t] > threshs[thresh])  # for a given day which sites exceed
     n.na <- sum(is.na(res[, t]))
-    for (b in 1:(length(bins) - 1)) {
+    for (b in 1:(length(bins.h) - 1)) {
       for (site in these){
-        inbin <- (dist[site, ] > bins[b]) & (dist[site, ] < bins[b+1])
+        inbin <- (dist[site, ] > bins.h[b]) & (dist[site, ] < bins.h[b+1])
         att[b] <- att[b] + sum(inbin) - sum(is.na(res[inbin, t]))
         acc[b] <- acc[b] + sum(res[inbin, t] > threshs[thresh], na.rm=T)
       }
@@ -178,16 +183,53 @@ for (thresh in 1:length(threshs)){
       }
     }
   }
-  exceed.res[, thresh] <- exceed.thresh
+  exceed.h.res[, thresh] <- exceed.thresh
 }
 
-xplot <- (0:12) + 0.5
-plot(xplot, exceed.res[, 1], type="o", ylim=c(0, 0.75), ylab="exceed", xaxt="n", xlab="bin distance", pch=1, lty=1)
-axis(1, at=0:12, labels=bins[-14])
-for (line in 2:9) { 
-	lines(xplot, exceed.res[, line], lty=line, pch=line, type="o")
+xplot <- bins.h[-length(bins)] + 0.125
+plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, 
+     xlim=c(0, 3.5), xaxt="n", xlab="bin distance / 1000", 
+     ylim=c(0, 0.35), ylab="exceed", 
+     main=bquote(paste(chi, "(h) for ozone residuals"))
+     )
+axis(1, at=bins)
+for (line in 2:3) { 
+	lines(xplot, exceed.h.res[, line], lty=1, pch=line, type="b")
 }
-legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quants")
+abline(v=1, lty=3)
+legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quants")
+
+# chi(t) plot
+max.lag <- 5
+exceed.t.res <- matrix(NA, nrow=max.lag, ncol=length(threshs))
+
+for (thresh in 1:length(threshs)){
+  exceed.thresh <- att <- acc <- rep(0, max.lag)
+  for (site in 1:ns) {
+    these <- which(res[site, ] > threshs[thresh])  # for a site which days exceed
+    n.na <- sum(is.na(res[site, ]))
+    for (t in these){
+      for (lag in 1:max.lag) {
+        att[lag] <- att[lag] + 1
+        acc[lag] <- acc[lag] + sum(these == (t + lag)) 
+      }
+    }
+    exceed.thresh <- acc / att
+  }
+  exceed.t.res[, thresh] <- exceed.thresh
+}
+
+xplot <- seq(1, 5, 1)
+plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, 
+     xlim=c(0.5, 5.5), xaxt="n", xlab="lag", 
+     ylim=c(0, 0.35), ylab="exceed",  
+     main=bquote(paste(chi, "(t) for ozone residuals"))
+)
+axis(1, at=xplot)
+for (line in 2:3) { 
+	lines(xplot, exceed.t.res[, line], lty=1, pch=line, type="b")
+}
+legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quants", pt.bg="white")
 
 # set.seed(2087)
 # # nw: no obs > 75
