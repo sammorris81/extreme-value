@@ -45,7 +45,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   ##############################################
   ns <- nrow(y)    # number of sites
   nt <- ncol(y)    # number of days
-  p  <- 2          # number of covariates
+  p  <- dim(x)[3]  # number of covariates
 
   predictions <- !is.null(s.pred) & !is.null(x.pred)
   np <- 0
@@ -296,13 +296,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mmm <- rep(beta.m, p)  
     for (t in 1:nt) {
        x.t    <- x[, t, ]
-       taug.t <- sqrt(taug[,t])
+       taug.t <- sqrt(taug[, t])
        prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
-       # print(length(g12))
-       # print(dim(prec.cor))
-       # print(prec.t[c(1:5), c(1:5)])
-       # prec.t <- quad.form(prec.cor, diag(g12))  # faster with sweeps! currently very slow
-       # print(prec.t[c(1:5), c(1:5)])
        ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
        mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])

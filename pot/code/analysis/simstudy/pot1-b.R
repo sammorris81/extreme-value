@@ -58,8 +58,8 @@ for (g in 1:10) {
     cat("  start: skew t-3 - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh=0, nknots=3,
-                       iterplot=F, iters=iters, burn=burn,
+                       method="t", skew=T, thresh.all=0, thresh.quant=T, 
+                       nknots=3, iterplot=F, iters=iters, burn=burn,
                        update=update, thin=thin)
     toc <- proc.time()
     cat("  skew t-3 took:", (toc - tic)[3], "\n")
