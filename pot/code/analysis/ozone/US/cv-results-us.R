@@ -27,7 +27,7 @@ beta.1 <- array(NA, dim=c(5000, nsets, 19))
 
 # usable <- (25000+1):30000
 
-for (i in 1:17) {
+for (i in 1:18) {
   file <- paste("cv5-", i, "US.RData", sep="")
   cat("start file", file, "\n")
   load(file)
@@ -50,34 +50,32 @@ savelist <- list(quant.score, brier.score,
 
 save(savelist, file="cv-scores-us.RData")
 
-# rm(list=ls())
-# load("cv-setup-se.RData")
+# # rm(list=ls())
+# load("cv-setup-us.RData")
 # source("../../../R/auxfunctions.R")
-# load("cv-scores-se.RData")
+# load("cv-scores-us.RData")
 
 # quant.score <- savelist[[1]]
 # brier.score <- savelist[[2]]
 # beta.0 <- savelist[[3]]
 # beta.1 <- savelist[[4]]
-# beta.2 <- savelist[[5]]
-# beta.3 <- savelist[[6]]
-# probs <- savelist[[7]]
-# thresholds <- savelist[[8]]
+# probs <- savelist[[5]]
+# thresholds <- savelist[[6]]
 
-# quant.score.mean <- matrix(NA, 19, length(probs))
-# brier.score.mean <- matrix(NA, 19, length(thresholds))
+# quant.score.mean <- matrix(NA, 18, length(probs))
+# brier.score.mean <- matrix(NA, 18, length(thresholds))
 
-# quant.score.se <- matrix(NA, 19, length(probs))
-# brier.score.se <- matrix(NA, 19, length(thresholds))
+# quant.score.se <- matrix(NA, 18, length(probs))
+# brier.score.se <- matrix(NA, 18, length(thresholds))
 
-# for (i in 10:19) {
+# for (i in 1:18) {
   # quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
   # quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(5)
   # brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
   # brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(5)
 # }
 
-# round(quant.score.mean[c(10:13,15:19),c(6, 9:12)], 4)
+# round(quant.score.mean[c(2,6,10,14),c(6, 9:12)], 4)
 # round(quant.score.se[c(10:13,15:19),c(6, 9:12)], 4)
 # round(brier.score.mean[c(10:19),c(6, 9:12)]*1000, 3)
 # round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
