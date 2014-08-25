@@ -22,10 +22,8 @@ nbetas <- 2 # number of betas
 quant.score <- array(NA, dim=c(length(probs), nsets, 18))
 brier.score <- array(NA, dim=c(length(thresholds), nsets, 18))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 19))
-beta.1 <- array(NA, dim=c(5000, nsets, 19)) 
-
-# usable <- (25000+1):30000
+beta.0 <- array(NA, dim=c(5000, nsets, 18))
+beta.1 <- array(NA, dim=c(5000, nsets, 18)) 
 
 for (i in 1:18) {
   file <- paste("cv5-", i, "US.RData", sep="")
@@ -35,6 +33,9 @@ for (i in 1:18) {
     fit.d <- fit[[d]]
     val.idx <- cv.lst[[d]]
     validate <- Y[val.idx, ]
+    if (i == 18) {
+      validate <- t(validate)
+    }
     pred.d <- fit.d$yp[, , ]
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
