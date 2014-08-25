@@ -34,7 +34,7 @@ for (i in 1:17) {
   for (d in 1:nsets) {
     fit.d <- fit[[d]]
     val.idx <- cv.lst[[d]]
-    validate <- y[val.idx, ]
+    validate <- Y[val.idx, ]
     pred.d <- fit.d$yp[, , ]
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
