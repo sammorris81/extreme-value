@@ -48,7 +48,7 @@ savelist <- list(quant.score, brier.score,
                  beta.0, beta.1,
                  probs, thresholds)
 
-save(savelist, file="cv-scores-se.RData")
+save(savelist, file="cv-scores-us.RData")
 
 # rm(list=ls())
 # load("cv-setup-se.RData")
