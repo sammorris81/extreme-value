@@ -39,8 +39,10 @@ for (i in 1:18) {
     pred.d <- fit.d$yp[, , ]
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
-    beta.0[, d, i] <- fit.d$beta[, 1]
-    beta.1[, d, i] <- fit.d$beta[, 2]
+    if (i <= 17) {
+      beta.0[, d, i] <- fit.d$beta[, 1]
+      beta.1[, d, i] <- fit.d$beta[, 2]
+    }
   }
   cat("finish file", file, "\n")
 }
