@@ -63,7 +63,7 @@ avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
 
 iters <- 20000; burn <- 10000
 
-for (group in 1:2) {
+for (group in 1:ngroups) {
   # for(setting in 1:nsettings){
     dataset <- paste(setting,"-c-",group,".RData", sep="")
     load(dataset)
