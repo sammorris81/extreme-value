@@ -231,6 +231,25 @@ for (line in 2:3) {
 }
 legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quants", pt.bg="white")
 
+# qq plot of residuals
+library(sn)
+res.qq <- sort(as.vector(res))  # sorted residuals
+theory.qq <- rep(NA, length(res.qq))
+for (i in 1:length(theory.qq)) {
+	theory.qq[i] <- i / (length(theory.qq) + 1)
+}
+res.qq <- (res.qq - mean(res.qq, na.rm=T)) / sd(res.qq)
+
+xplot <- qt(theory.qq, 10)
+plot(xplot, res.qq)
+abline(0, 1)
+
+xplot <- qst(theory.qq, nu=8, alpha=1)
+xplot <- (xplot - mean(xplot))
+plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 8 d.f. and alpha = 1")
+abline(0, 1)
+
+
 # set.seed(2087)
 # # nw: no obs > 75
 # nw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] >= 0))
