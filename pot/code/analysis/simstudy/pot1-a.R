@@ -60,13 +60,13 @@ for (g in 1:10) {
     fit.1[[d]] <- tryCatch(
                        mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh.all=0.90, thresh.quant=T, 
-                       nknots=3, iterplot=F, iters=iters, burn=burn, 
+                       nknots=5, iterplot=F, iters=iters, burn=burn, 
                        update=update, thin=thin,
                        nu.init=0.5, cov.model="exponential", rho.prior="cont"),
                        error = function(e) {
                          tryCatch(mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                          method="t", skew=T, thresh.all=0.90, thresh.quant=T, 
-                         nknots=3, iterplot=F, iters=iters, burn=burn, 
+                         nknots=5, iterplot=F, iters=iters, burn=burn, 
                          update=update, thin=thin,
                          nu.init=0.5, cov.model="exponential", rho.prior="disc"),
                          error = function(e) {

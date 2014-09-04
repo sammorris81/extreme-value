@@ -106,19 +106,21 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
    
   d <- as.matrix(dist(s))
   # gau is used if mixprob = 0
-  gau.C   <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
-  gau.tau <- matrix(rgamma(1, tau.alpha, tau.beta), nknots, nt)
-  gau.sd  <- 1 / sqrt(gau.tau)
-  gau.z   <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  gau.C      <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
+  gau.C.chol <- chol(gau.C)
+  gau.tau    <- matrix(0.25, nrow=nknots, ncol=nt)
+  gau.sd     <- 1 / sqrt(gau.tau)
+  gau.z      <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
   
   # t is used if mixprob = 1
-  t.C   <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
-  t.tau <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
-  t.sd  <- 1 / sqrt(t.tau)
-  t.z   <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  t.C      <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
+  t.C.chol <- chol(t.C)
+  t.tau    <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
+  t.sd     <- 1 / sqrt(t.tau)
+  t.z      <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
   
   knots <- array(NA, dim=c(nknots, nt, 2))
-  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 2])
+  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 1])
   min.s2 <- min(s[, 2]); max.s2 <- max(s[, 2])
 
   for (t in 1:nt) {
@@ -129,13 +131,13 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
 
     dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
     if (dist) {
-      taug <- t.tau[g, t]
-      zg   <- t.z[g, t]
-      C    <- t.C
+      taug   <- t.tau[g, t]
+      zg     <- t.z[g, t]
+      chol.C <- gau.C.chol
     } else {
-      taug <- gau.tau[g, t]
-      zg   <- gau.z[g, t]
-      C    <- gau.C
+      taug   <- gau.tau[g, t]
+      zg     <- gau.z[g, t]
+      chol.C <- t.C.chol
     }  
         
     if (p == 1) {
@@ -146,7 +148,7 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
     mu <- x.beta + z.alpha * zg
     
     sdg  <- 1 / sqrt(taug)
-    y.t <- t(chol(C)) %*% matrix(rnorm(ns), ns, 1)
+    y.t <- t(chol.C) %*% matrix(rnorm(ns), ns, 1)
     y.t <- mu + sdg * y.t
     y[, t] <- y.t
   }

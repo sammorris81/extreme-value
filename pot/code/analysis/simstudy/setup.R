@@ -9,7 +9,7 @@
 #   3 - t-5
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
-#   6 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
+#   6 - max-stable with mu=1, sig=1, xi=0.1
 #
 # analysis methods:
 #  1 - Gaussian
@@ -30,6 +30,7 @@ library(geoR)
 # necessary functions
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
+source('./max-stab/Bayes_GEV.R')
 
 # data settings
 beta.t <- c(10, 0, 0)
@@ -37,19 +38,21 @@ nu.t <- 0.5
 alpha.t <- 0.9
 mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t
 nknots.t <- c(1, 1, 5, 1, 5, 1)
-gau.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.10)
-t.rho.t <- c(0.10, 0.10, 0.10, 0.10, 0.10, 0.40)
+gau.rho.t <- c(1, 1, 1, 1, 1, 1)
+t.rho.t <- c(1, 1, 1, 1, 1, 4)
 z.alpha.t <- c(0, 0, 0, 3, 3, 0)
-tau.alpha.t <- 2
+tau.alpha.t <- 3
 tau.beta.t  <- 8
 
 
 # covariate data
-s         <- cbind(runif(130), runif(130))
+s         <- cbind(runif(144, 0, 10), runif(144, 0, 10))
+knots.x   <- seq(1, 9, length=12)
+knots.gev <- expand.grid(knots.x, knots.x)
 ns        <- nrow(s)  
 nt        <- 50
 nsets     <- 50
-nsettings <- length(mixprob.t) 
+nsettings <- 6
 ntest     <- 30
 
 x <- array(1, c(ns, nt, 3))
@@ -63,28 +66,42 @@ y <- array(NA, dim=c(ns, nt, nsets, nsettings))
 tau.t <- z.t <- knots.t <- vector("list", length=nsettings)
 
 for (setting in 1:nsettings) {
-  nknots <- nknots.t[setting]
-  tau.t.setting <- array(NA, dim=c(nknots, nt, nsets))
-  z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
-  knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
-  for (set in 1:nsets) {
-    set.seed(setting*100 + set)
-    data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, alpha=alpha.t, nu=nu.t,
-                     gau.rho=gau.rho.t[setting], t.rho=t.rho.t[setting],
-                     mixprob=mixprob.t[setting], z.alpha=z.alpha.t[setting],
-                     tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                     nknots=nknots.t[setting])
+  if (setting < 6) {
+    nknots <- nknots.t[setting]
+    tau.t.setting <- array(NA, dim=c(nknots, nt, nsets))
+    z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
+    knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
+    for (set in 1:nsets) {
+      set.seed(setting*100 + set)
+      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, alpha=alpha.t, nu=nu.t,
+                       gau.rho=gau.rho.t[setting], t.rho=t.rho.t[setting],
+                       mixprob=mixprob.t[setting], z.alpha=z.alpha.t[setting],
+                       tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                       nknots=nknots.t[setting])
     
-    y[, , set, setting]        <- data$y
-    tau.t.setting[, , set]     <- data$tau
-    z.t.setting[, , set]       <- data$z
-    knots.t.setting[, , , set] <- data$knots
+      y[, , set, setting]        <- data$y
+      tau.t.setting[, , set]     <- data$tau
+      z.t.setting[, , set]       <- data$z
+      knots.t.setting[, , , set] <- data$knots
+    }
+    
+    tau.t[[setting]]   <- tau.t.setting
+    z.t[[setting]]     <- z.t.setting
+    knots.t[[setting]] <- knots.t.setting
+  } else {
+  	for (set in 1:nsets) {
+  	  y[, , set, setting] <- rgevspatial(nreps=nt, S=s, knots=knots.gev, xi=0.2)
+  	}
   }
-    
-  tau.t[[setting]]   <- tau.t.setting
-  z.t[[setting]]     <- z.t.setting
-  knots.t[[setting]] <- knots.t.setting
 }
+
+# par(mfrow=c(2, 3))
+# quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 1], nx=20, ny=20)
+# quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 2], nx=20, ny=20)
+# quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 3], nx=20, ny=20)
+# quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 4], nx=20, ny=20)
+# quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 5], nx=20, ny=20)
+# quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 6], nx=20, ny=20)
 
 # plot the data
 s1 <- s2 <- seq(0, 1, length=50)
