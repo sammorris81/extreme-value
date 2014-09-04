@@ -15,8 +15,8 @@
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - skew t-1 (T = 0.90)
-#  4 - skew t-5
-#  5 - skew t-5 (T = 0.90)
+#  4 - skew t-3
+#  5 - skew t-3 (T = 0.90)
 #	
 #########################################################################
 
@@ -24,7 +24,7 @@ rm(list=ls())
 load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
-nsets <- 2
+nsets <- 5
 ngroups <- 10
 nsettings <- dim(y)[4]
 nmethods <- 5
@@ -104,33 +104,41 @@ nmethods <- 5
 quant.score.mean <- apply(quant.score, c(1, 3, 4), mean, na.rm=T)
 brier.score.mean <- apply(brier.score, c(1, 3, 4), mean, na.rm=T)
 
-# setting.title <- c("Gaussian", "t-1", "t-5", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "1/2 Gaussian (range = 0.10), 1/2 t-1 (range = 0.4)")
-# methods <- c("Gaussian", "skew t-1 (T = 0.0)", "skew t-5 (T = 0.0)", "skew t-1 (T = 0.9)", "skew t-5 (T = 0.9)")
-# bg <- c("firebrick1", "firebrick1", "firebrick1", "dodgerblue1", "dodgerblue1")
-# col <- c("firebrick4", "firebrick4", "firebrick4", "dodgerblue4", "dodgerblue4")
-# pch <- c(24, 22, 22, 22, 22)
-# lty <- c(2, 1, 3, 1, 3)
+# paired t-tests
+paired.results <- array(NA, dim=c(length(intervals), (nmethods-1), nsettings))
+compare <- c(1, 2, 4, 5)
+for (i in 1:length(intervals)) { for (j in (nmethods-1)) { for (k in 1:nsettings) {
+  method <- compare[j]
+  paired.results[i, j, k] <- t.test(quant.score[i, , 3, k], quant.score[i, , method, k], paired=T)$p.value
+}  }  }
 
-# quartz(width=15, height=12)
-# par(mfrow=c(3, 2))
-# for (setting in 1:nsettings) {  
-  # ymax <- max(quant.score.mean[, , setting])
-  # ymin <- min(quant.score.mean[, , setting])
-  # plot(probs, quant.score.mean[, 1, setting], type='o', 
-       # lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
-       # ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="quantile scores")
+setting.title <- c("Gaussian", "t-1", "t-5", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "1/2 Gaussian (range = 0.10), 1/2 t-1 (range = 0.4)")
+methods <- c("Gaussian", "skew t-1 (T = 0.0)", "skew t-5 (T = 0.0)", "skew t-1 (T = 0.9)", "skew t-5 (T = 0.9)")
+bg <- c("firebrick1", "firebrick1", "firebrick1", "dodgerblue1", "dodgerblue1")
+col <- c("firebrick4", "firebrick4", "firebrick4", "dodgerblue4", "dodgerblue4")
+pch <- c(24, 22, 22, 22, 22)
+lty <- c(2, 1, 3, 1, 3)
+
+quartz(width=15, height=12)
+par(mfrow=c(3, 2))
+for (setting in 1:nsettings) {  
+  ymax <- max(quant.score.mean[, , setting])
+  ymin <- min(quant.score.mean[, , setting])
+  plot(probs, quant.score.mean[, 1, setting], type='o', 
+       lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
+       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="quantile scores")
   
-  # for (i in 2:nmethods) {
-    # lines(probs, quant.score.mean[, i, setting], lty=lty[i], col=col[i])
-    # points(probs, quant.score.mean[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
-  # }
+  for (i in 2:nmethods) {
+    lines(probs, quant.score.mean[, i, setting], lty=lty[i], col=col[i])
+    points(probs, quant.score.mean[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+  }
 
-# }
+}
 
-# plot(1, 1, type="n", axes=F, main="legend", ylab="", xlab="")
-# legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, bty="n", cex=2)
-# dev.print(file="plots/quantileplots.pdf", device=pdf)
-# dev.off()
+plot(1, 1, type="n", axes=F, main="legend", ylab="", xlab="")
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, bty="n", cex=2)
+dev.print(file="plots/quantileplots.pdf", device=pdf)
+dev.off()
 
 
 # # thresholded models wrt to gaussian
