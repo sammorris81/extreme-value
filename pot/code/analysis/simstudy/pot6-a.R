@@ -37,8 +37,6 @@ setting <- 6
 analysis <- "a"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
-knots <- seq(1, 9, length=12)
-knots <- expand.grid(knots, knots)
 
 for (g in 1:10) {
   fit.1 <- vector(mode="list", length=nsets)
@@ -51,13 +49,15 @@ for (g in 1:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
+    thresh <- quantile(y.d, probs=(0.90))
     obs <- c(rep(T, 100), rep(F, 30))
-    y.o <- y.d[obs, ]
-    x.o <- x[obs, , ]
+    y.o <- t(y.d[obs, ])
+    x.o <- t(x[obs, , 2])
     s.o <- s[obs, ]
+    knots <- s.o
 
-    y.validate[, , d] <- y.d[!obs, ]
-    x.p <- x[!obs, , ]
+    y.validate[, , d] <- t(y.d[!obs, ])
+    x.p <- t(x[!obs, , 2])
     s.p <- s[!obs, ]
 
     cat("  start: max-stab - Set", dataset, "\n")

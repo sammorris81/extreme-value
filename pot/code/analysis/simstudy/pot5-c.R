@@ -9,7 +9,7 @@
 #   3 - t-5
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
-#   6 - 1/2 Gaussian (range = 0.10), 1/2 t (range = 0.40)
+#   6 - max-stable with mu=1, sig=1, xi=0.1
 #
 # analysis methods:
 #  1 - Gaussian
@@ -17,6 +17,7 @@
 #  3 - skew t-1 (T = 0.90)
 #  4 - skew t-3
 #  5 - skew t-3 (T = 0.90)
+#  6 - max-stable
 #	
 #########################################################################
 
@@ -35,7 +36,7 @@ analysis <- "c"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 10:10) {
+for (g in 1:10) {
   fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
@@ -58,7 +59,7 @@ for (g in 10:10) {
     cat("  start: gaussian - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="gaussian", skew=F, thresh.all=0, thresh.quant=T,
+                       method="gaussian", skew=F, thresh.all=0, thresh.quant=T, 
                        nknots=1, iterplot=F, iters=iters, burn=burn,
                        update=update, thin=thin)
     toc <- proc.time()
@@ -80,7 +81,7 @@ for (g in 10:10) {
     cat("start: skew t-1 (T=0.90) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=0.90, thresh.quant=T, 
+                       method="t", skew=T, thresh.all=0.90, thresh.quant=T,
                        nknots=1, iterplot=F, iters=iters, burn=burn,
                        update=update, thin=thin)
     toc <- proc.time()
