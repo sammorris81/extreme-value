@@ -219,30 +219,33 @@ maxstable<-function(y, x, s, thresh, knots,
 
 
      #DISPLAY CURRENT VALUE:
-     if (iterplot) { if((i %% update) == 0) {
-       par(mfrow=c(5, 2), mar=c(2, 2, 2, 2))
-       plot(samples[1:i, 1, 1], main="Prob0 Int", type="l")
-       abline(h=0) 
-       plot(samples[1:i, 2, 1], main="Prob0 Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 2], main="Scale Int", type="l")   
-       abline(h=0) 
-       plot(samples[1:i, 2, 2], main="Scale Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 3], main="Shape Int", type="l")   
-       abline(h=0) 
-       plot(samples[1:i, 2, 3], main="Shape Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 4], main="Alpha Int", type="l")   
-       abline(h=0) 
-       plot(samples[1:i, 2, 4], main="Alpha Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 5], main="BW Int", type="l")      
-       abline(h=0) 
-       plot(samples[1:i, 2, 5], main="BW Slope", type="l")    
-       abline(h=0) 
-     } }
+      if (iterplot) { if((i %% update) == 0) {
+        par(mfrow=c(5, 2), mar=c(2, 2, 2, 2))
+        plot(samples[1:i, 1, 1], main="Prob0 Int", type="l")
+        abline(h=0) 
+        plot(samples[1:i, 2, 1], main="Prob0 Slope", type="l") 
+        abline(h=0) 
+        plot(samples[1:i, 1, 2], main="Scale Int", type="l")   
+        abline(h=0) 
+        plot(samples[1:i, 2, 2], main="Scale Slope", type="l") 
+        abline(h=0) 
+        plot(samples[1:i, 1, 3], main="Shape Int", type="l")   
+        abline(h=0) 
+        plot(samples[1:i, 2, 3], main="Shape Slope", type="l") 
+        abline(h=0) 
+        plot(samples[1:i, 1, 4], main="Alpha Int", type="l")   
+        abline(h=0) 
+        plot(samples[1:i, 2, 4], main="Alpha Slope", type="l") 
+        abline(h=0) 
+        plot(samples[1:i, 1, 5], main="BW Int", type="l")      
+        abline(h=0) 
+        plot(samples[1:i, 2, 5], main="BW Slope", type="l")    
+        abline(h=0) 
+      } }
 
+      if ((i %% update) == 0) {
+        cat("\t iter", iter, "\n")
+      }
     }
 
   results <- list(samples=samples, yp=yp)
