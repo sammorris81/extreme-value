@@ -244,7 +244,7 @@ maxstable<-function(y, x, s, thresh, knots,
       } }
 
       if ((i %% update) == 0) {
-        cat("\t iter", iter, "\n")
+        cat("\t iter", i, "\n")
       }
     }
 
