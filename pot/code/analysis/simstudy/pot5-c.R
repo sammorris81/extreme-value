@@ -14,9 +14,9 @@
 # analysis methods:
 #  1 - Gaussian
 #  2 - skew t-1
-#  3 - skew t-1 (T = 0.90)
+#  3 - skew t-1 (T = 0.80)
 #  4 - skew t-3
-#  5 - skew t-3 (T = 0.90)
+#  5 - skew t-3 (T = 0.80)
 #  6 - max-stable
 #	
 #########################################################################
@@ -85,15 +85,15 @@ for (g in 1:10) {
       cat("------------------\n")
     }
 
-    cat("start: skew t-1 (T=0.50) - Set", dataset, "\n")
+    cat("start: skew t-1 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=0.50, thresh.quant=T,
+                       method="t", skew=T, thresh.all=0.80, thresh.quant=T,
                        nknots=1, iterplot=F, iters=iters, burn=burn,
                        update=update, thin=thin)
     toc <- proc.time()
-    cat("  skew t-1 (T=0.90) took:", (toc - tic)[3], "\n")
-    cat("  end: skew t-1 (T=0.90) \n")
+    cat("  skew t-1 (T=0.80) took:", (toc - tic)[3], "\n")
+    cat("  end: skew t-1 (T=0.80) \n")
     cat("------------------\n")
 
     save(fit.1, fit.2, fit.3, file=outputfile)
