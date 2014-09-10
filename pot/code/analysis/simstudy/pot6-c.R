@@ -37,11 +37,15 @@ iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
 for (g in 1:10) {
-  # fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets) commented out for redo
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-  load(outputfile)  # included for redo
-
+  
+  if (g > 5) {
+    fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets) commented out for redo
+  } else {
+  	load(outputfile)  # included for redo
+  }
+  
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
