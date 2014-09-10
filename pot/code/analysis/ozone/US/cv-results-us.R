@@ -33,10 +33,11 @@ for (i in 1:18) {
     fit.d <- fit[[d]]
     val.idx <- cv.lst[[d]]
     validate <- Y[val.idx, ]
+    pred.d <- fit.d$yp[, , ]
     if (i == 18) {
       validate <- t(validate)
+      pred.d <- fit.d$yp[(25001:30000), , ]
     }
-    pred.d <- fit.d$yp[, , ]
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
     if (i <= 17) {
