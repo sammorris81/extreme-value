@@ -1,1 +1,7 @@
-Consider two points $\bs_1, \bs_2 \in \calD \subset \calR^2$. Let $\calD = B_{2h}(\bm)$ which is a ball of radius $h > 0$ centered at $\bm$, the midpoint between $\bs_1$ and $\bs_2$, and $h = ||\bs_1 - \bs_2||$. Let $w_1, \ldots, w_K \sim \text{Unif}(\calD)$ be a set of random knots uniformly distributed over $\calD$. Define $g(\bs_i) = \argmin_j || \bs_i - w_j ||$ to be the partition in which $\bs_i$ resides. Let $\pi(h) = \Pr[ g(\bs_1) = g(\bs_2)]$ be the probability that both sites are in the same partition. Then $\pi(h)$ is the probability that $w_j$ is the only knot in $(B_a(\bs_1) \cup B_b(\bs_2) \cap \calD)$ where $a = ||\bs_1 - w_j||$ and $b = ||\bs_2 - w_j||$.
+Consider two spatial locations, $\bs_1, \bs_2 \in \calR^2$, and any two knots, $w_1, w_2 \in \calR^2$.
+Let $\overline{S}$ be the line segment connecting $\bs_1$ and $\bs_2$.
+Let $h = ||\bs_1 - \bs_2||$ be the distance between sites $\bs_1$ and $\bs_2$.
+Let $\overline{W}$ be the perpendicular bisector of the line connecting $w_1$ and $w_2$.
+Then $\overline{W}$ defines a partition dividing $\calR^2$ into two half-planes.
+Let $\lim_{h \rightarrow \infty}$ be a limit in the sense that both $\bs_1$ and $\bs_2$ are moving at some rate away from their midpoint.
+Provided that $\overline{W}$ and $\overline{S}$ are not parallel to one another, we are guaranteed that as $h \rightarrow \infty$, $\bs_1$ and $\bs_2$ will be in different partitions.
