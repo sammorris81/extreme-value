@@ -25,7 +25,7 @@ load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 10
+ngroups <- 5
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 30))
@@ -121,6 +121,10 @@ for (group in 1:ngroups) {
     dataset <- paste(setting,"-b-",group,".RData", sep="")
     load(dataset)
     for(d in 1:nsets){ 
+      set.idx <- (group - 1) * 5 + d
+      thresholds <- quantile(y[, , set.idx, setting], probs=probs, na.rm=T)
+      validate <- y[!obs, , set.idx, setting]
+      
       fit <- fit.1[[d]]  # skew t-5
       pred <- fit$yp
       quant.score[, set.idx, 4, setting] <- QuantScore(pred, probs, validate)
@@ -135,19 +139,8 @@ for (group in 1:ngroups) {
       alpha[, set.idx, 4, setting] <- quantile(fit$alpha, probs=intervals)
       z.alpha[, set.idx, 3, setting] <- quantile(fit$z.alpha, probs=intervals)
       avgparts[, set.idx, 1, setting] <- mean(fit$avgparts)
-    }
-    
-    cat("dataset", dataset, "\n")
-    rm(fit, fit.1)
-    
-    dataset <- paste(setting,"-a-",group,".RData", sep="")
-    load(dataset)
-    for(d in 1:nsets){  
-      set.idx <- (group - 1) * 5 + d
-      thresholds <- quantile(y[, , set.idx, setting], probs=probs, na.rm=T)
-      validate <- y[!obs, , set.idx, setting]
       
-      fit <- fit.1[[d]]  # skew t-5 (T = 0.90)
+      fit <- fit.2[[d]]  # skew t-5 (T = 0.90)
       pred <- fit$yp
       quant.score[, set.idx, 5, setting] <- QuantScore(pred, probs, validate) 
       brier.score[, set.idx, 5, setting] <- BrierScore(pred, thresholds, validate)
@@ -164,7 +157,7 @@ for (group in 1:ngroups) {
     }
     
     cat("dataset", dataset, "\n")
-    rm(fit, fit.1)
+    rm(fit, fit.1, fit.2)
     gc()
   # }
   save(
@@ -174,7 +167,6 @@ for (group in 1:ngroups) {
 	file=filename
   )
 }
-
 
 # rm(list=ls())
 # load("simdata.RData")
