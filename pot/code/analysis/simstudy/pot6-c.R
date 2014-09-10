@@ -41,7 +41,7 @@ for (g in 1:10) {
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
   
   if (g > 5) {
-    fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets) commented out for redo
+    fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets) 
   } else {
   	load(outputfile)  # included for redo
   }
