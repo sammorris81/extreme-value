@@ -79,6 +79,7 @@ for (i in 1:18) {
   brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
 }
 
+<<<<<<< HEAD
 library(fields)
 xplot <- c(1:4)
 yplot <- c(1:4)
@@ -99,6 +100,8 @@ for (i in 2:3) {
 }
 legend("topright", pch=c(21, 24, 23), lty=1, legend=c("Gaussian", "skew-t, K=10, T=q(0)", "Max-stable"), pt.bg="white")
 
+=======
+>>>>>>> FETCH_HEAD
 round(quant.score.mean[c(2,6,10,14),c(6, 9:12)], 4)
 round(quant.score.se[c(10:13,15:19),c(6, 9:12)], 4)
 round(brier.score.mean[c(10:19),c(6, 9:12)]*1000, 3)
@@ -107,6 +110,7 @@ round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
 round(quant.score.mean, 4)
 round(brier.score.mean*1000, 4)
 
+<<<<<<< HEAD
 # par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
 
 # plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="With CMAQ", xlab="quantile", ylab="score")
@@ -131,3 +135,29 @@ round(brier.score.mean*1000, 4)
 # plot(probs, quant.score.mean[1, ], type="n", axes=F)
 
 # legend("center", lty=1:9, pch=1:9, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5", "skew-t5 (T=0.9)"))
+=======
+par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
+
+plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="With CMAQ", xlab="quantile", ylab="score")
+for (i in 2:9) {
+  lines(probs, quant.score.mean[i, ], lty=i)
+  points(probs, quant.score.mean[i, ], pch=i)
+}
+title(main="Quantile Scores - Ozone: NC, SC, GA", outer=T)
+
+plot(probs, quant.score.mean[10, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
+for (i in 11:18) {
+  lines(probs, quant.score.mean[i, ], lty=(i-9))
+  points(probs, quant.score.mean[i, ], pch=(i-9))
+}
+
+plot(probs, (quant.score.mean[10, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
+for (i in 2:9) {
+  lines(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), lty=i)
+  points(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), pch=i)
+}
+
+plot(probs, quant.score.mean[1, ], type="n", axes=F)
+
+legend("center", lty=1:9, pch=1:9, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5", "skew-t5 (T=0.9)"))
+>>>>>>> FETCH_HEAD
