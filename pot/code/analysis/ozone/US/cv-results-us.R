@@ -54,38 +54,58 @@ savelist <- list(quant.score, brier.score,
 
 save(savelist, file="cv-scores-us.RData")
 
-# rm(list=ls())
-# load("cv-setup-us.RData")
-# source("../../../R/auxfunctions.R")
-# load("cv-scores-us.RData")
+rm(list=ls())
+load("cv-setup-us.RData")
+source("../../../R/auxfunctions.R")
+load("cv-scores-us.RData")
 
-# quant.score <- savelist[[1]]
-# brier.score <- savelist[[2]]
-# beta.0 <- savelist[[3]]
-# beta.1 <- savelist[[4]]
-# probs <- savelist[[5]]
-# thresholds <- savelist[[6]]
+quant.score <- savelist[[1]]
+brier.score <- savelist[[2]]
+beta.0 <- savelist[[3]]
+beta.1 <- savelist[[4]]
+probs <- savelist[[5]]
+thresholds <- savelist[[6]]
 
-# quant.score.mean <- matrix(NA, 18, length(probs))
-# brier.score.mean <- matrix(NA, 18, length(thresholds))
+quant.score.mean <- matrix(NA, 18, length(probs))
+brier.score.mean <- matrix(NA, 18, length(thresholds))
 
-# quant.score.se <- matrix(NA, 18, length(probs))
-# brier.score.se <- matrix(NA, 18, length(thresholds))
+quant.score.se <- matrix(NA, 18, length(probs))
+brier.score.se <- matrix(NA, 18, length(thresholds))
 
-# for (i in 1:18) {
-  # quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
-  # quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
-  # brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
-  # brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
-# }
+for (i in 1:18) {
+  quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
+  quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
+  brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
+  brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
+}
 
-# round(quant.score.mean[c(2,6,10,14),c(6, 9:12)], 4)
-# round(quant.score.se[c(10:13,15:19),c(6, 9:12)], 4)
-# round(brier.score.mean[c(10:19),c(6, 9:12)]*1000, 3)
-# round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
+library(fields)
+xplot <- c(1:4)
+yplot <- c(1:4)
+z <- matrix(quant.score.mean[c(2:17),6], nrow=4, ncol=4, byrow=F)
+zlim=range(z)
+image.plot(x=c(1:4), y=c(1:4), z=z, axes=F, xlab="", ylab="", main="Quantile score for q(0.95)", zlim=zlim)
+text(c(row(z)), c(col(z)), "")  # not sure why we need this, but without it the labels don't turn on...
+axis(side=1, at=c(1:4), labels=c("T=0", "T=50", "T=75", "T=90"), line=0.3, lwd=0)
+axis(side=2, at=c(1:4), labels=c("K=1", "K=5", "K=10", "K=15"), line=0.3, las=2, lwd=0)
+abline(h=c(1.5, 2.5, 3.5))
+abline(v=c(1.5, 2.5, 3.5))
 
-# round(quant.score.mean, 4)
-# round(brier.score.mean*1000, 4)
+include.qscore <- c(1, 10, 18)
+pch <- c(1, 2, 5)
+plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean[c(1, 10, 18), ]), max(quant.score.mean[c(1, 10, 18)])), main="Quantile Scores", xlab="quantile", ylab="score")
+for (i in 2:3) {
+  lines(probs, quant.score.mean[include.qscore[i], ], lty=1, type="b", pch=pch[i])
+}
+legend("topright", pch=c(21, 24, 23), lty=1, legend=c("Gaussian", "skew-t, K=10, T=q(0)", "Max-stable"), pt.bg="white")
+
+round(quant.score.mean[c(2,6,10,14),c(6, 9:12)], 4)
+round(quant.score.se[c(10:13,15:19),c(6, 9:12)], 4)
+round(brier.score.mean[c(10:19),c(6, 9:12)]*1000, 3)
+round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
+
+round(quant.score.mean, 4)
+round(brier.score.mean*1000, 4)
 
 # par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
 
