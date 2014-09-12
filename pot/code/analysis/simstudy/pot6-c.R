@@ -41,11 +41,11 @@ for (g in 1:10) {
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
   
   if (g > 5) {
-    fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets) 
+    fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   } else {
   	load(outputfile)  # included for redo
   }
-  
+
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
