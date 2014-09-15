@@ -135,7 +135,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
   
   zg <- matrix(0, ns, nt)
-  if (length(z.init) == 1) {
+  if (length(z.init) == 1 && skew) {
     cat("\t initializing all z terms to", z.init, "\n")
   }
   z <- matrix(z.init, nknots, nt)
