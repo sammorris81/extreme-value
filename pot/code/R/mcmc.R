@@ -98,8 +98,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     
   # initialize partition
-  knots_con <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
-  knots     <- pnorm(knots_con)
+  x.range <- max(s[, 1]) - min(s[, 1])  # gives span of x
+  y.range <- max(s[, 2]) - min(s[, 2])  # gives span of y
+  range <- max(x.range, y.range)        # want to scale by the same amount in both directions
+  knots_con    <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
+  knots        <- pnorm(knots_con)  # in [0, 1] x [0, 1]
+  knots[, 1, ] <- knots[, 1, ] * range + min(s[, 1])  # rescaled back to size of s
+  knots[, 2, ] <- knots[, 2, ] * range + min(s[, 2])  # rescaled back to size of s
     
   # initialize parameters
   beta    <- rep(0, p)
@@ -316,13 +321,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (nknots > 1) {
       avgparts <- rep(0, nt)
       for (t in 1:nt) {
-        att.w[1]      <- att.w[1] + 1
-        can_knots_con <- knots_con[, , t] + mh.w[1] * rnorm(2 * nknots)
-        can_knots     <- pnorm(can_knots_con)
-        cang          <- mem(s, can_knots)
-        cantaug       <- tau[cang, t]
-        canzg         <- z[cang, t]
-        canres        <- y - x.beta - z.alpha * canzg   
+        att.w[1]       <- att.w[1] + 1
+        can_knots_con  <- knots_con[, , t] + mh.w[1] * rnorm(2 * nknots)
+        can_knots      <- pnorm(can_knots_con)
+        can_knots[, 1] <- can_knots[, 1] * range + min(s[, 1])
+        can_knots[, 2] <- can_knots[, 2] * range + min(s[, 2])
+        cang           <- mem(s, can_knots)
+        cantaug        <- tau[cang, t]
+        canzg          <- z[cang, t]
+        canres         <- y - x.beta - z.alpha * canzg   
 
         R <- -0.5 * quad.form(prec.cor, sqrt(cantaug) * canres[, t]) +
               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res[, t]) +
