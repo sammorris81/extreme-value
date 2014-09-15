@@ -10,9 +10,9 @@ source('../../../R/auxfunctions.R')
 
 setting <- 20
 method <- "t"
-nknots <- 1
+nknots <- 5
 keep.knots <- F
-threshold <- 90
+threshold <- 75
 thresh.quant <- F
 skew <- F
 outputfile <- paste("cv5-", setting, "US.RData", sep="")

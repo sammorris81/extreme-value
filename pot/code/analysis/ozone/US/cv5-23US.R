@@ -12,7 +12,7 @@ setting <- 23
 method <- "t"
 nknots <- 10
 keep.knots <- F
-threshold <- 75
+threshold <- 90
 thresh.quant <- F
 skew <- F
 outputfile <- paste("cv5-", setting, "US.RData", sep="")
