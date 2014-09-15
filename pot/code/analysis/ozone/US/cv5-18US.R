@@ -16,9 +16,6 @@ outputfile <- paste("cv5-", setting, "US.RData", sep="")
 start <- proc.time()
 thresh <- 75
 fit <- vector(mode="list", length=2)
-knots.x <- seq(min(S[, 1]), max(S[, 1]), length=27)
-knots.y <- seq(min(S[, 2]), max(S[, 2]), length=27)
-knots <- expand.grid(knots.x, knots.y)
 
 for(val in 1:2){
 	
