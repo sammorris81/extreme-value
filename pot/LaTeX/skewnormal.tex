@@ -137,7 +137,7 @@ Asymptotic dependence is eliminated as $h$ increases, because
 A proof of this can be found in Appendix A.3.
 
 \subsection{Hierarchical model}\label{s:hier}
-Conditioned on $z_{tk}(\bs) \iid $ $N(0, \sigma^2_{tk})$, $\sigma^2_{tk}(\bs) \sim IG(a, b)$, and $P_tk$, the marginal distributions are skew-$t$ and the joint distribution within a partition is multivariate skew-$t$.
+Conditioned on $z_{tk}(\bs) \iid $ $N(0, \sigma^2_{tk})$, $\sigma^2_{tk}(\bs) \sim IG(a, b)$, and $P_{tk}$, the marginal distributions are skew-$t$ and the joint distribution within a partition is multivariate skew-$t$.
 However, we do not fix the partitions, they are treated as unknown and updated in the MCMC.
 We model this with a Bayesian hierarchical model as follows.
 Let $w_{t1}, \ldots, w_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, so that
@@ -146,17 +146,16 @@ Let $w_{t1}, \ldots, w_{tK}$ be a set of daily spatial knots in a spatial domain
 \end{align*}
 Then
 \begin{align}
-   Y_t(\bs) \mid \Theta, z_{t}(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma
-   _t(\bs) v_t(\bs) \label{eq:hier}\\
+   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
    z_t(\bs) &= z_{tk} \text{ if } \bs \in P_{tk}\\
    \sigma^2_{t}(\bs) &= \sigma^2_{tk} \text{ if } \bs \in P_{tk}\\
-   z_{tk} \mid \sigma^2_{tk} &\sim N_{(0, \infty)}(0, \sigma^2_{tk})\\
-   \sigma^2_{tk} &\iid IG(\alpha, \beta)\\
-   v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
    \alpha &\sim N(0, 10)\\
+   v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
+   z_{tk} \mid \sigma^2_{tk} &\sim N_{(0, \infty)}(0, \sigma^2_{tk})\\
+   \sigma^2_{tk} &\iid IG(\alpha, \beta)\\   
    w_{tk} &\sim Unif(\calD)
 \end{align}
-where $\Theta = \{w_{t1}, \ldots, w_{tK}, \beta, \sigma_t, \alpha, \lambda, \rho, \nu \}$; \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix with variance one, spatial range $\rho$, smoothness $\nu$.
+where $\Theta = \{\rho, \nu, \gamma\}$; \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix with variance one, spatial range $\rho$, smoothness $\nu$, and the proportion of variance accounted for by the spatial variation is $\gamma$.
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
