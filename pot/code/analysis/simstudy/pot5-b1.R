@@ -31,7 +31,7 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 3
+setting <- 5
 analysis <- "b"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
