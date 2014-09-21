@@ -19,31 +19,35 @@ thresholds <- quantile(Y, probs=probs, na.rm=T)
 nsets <- 2 # Number of cv sets
 nbetas <- 2 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 18))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 18))
+quant.score <- array(NA, dim=c(length(probs), nsets, 26))
+brier.score <- array(NA, dim=c(length(thresholds), nsets, 26))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 18))
-beta.1 <- array(NA, dim=c(5000, nsets, 18)) 
+beta.0 <- array(NA, dim=c(5000, nsets, 26))
+beta.1 <- array(NA, dim=c(5000, nsets, 26)) 
 
-for (i in 1:18) {
+done <- c(1:25)
+
+for (i in 1:26) {
   file <- paste("cv5-", i, "US.RData", sep="")
   cat("start file", file, "\n")
+  if (i %in% done) {
   load(file)
   for (d in 1:nsets) {
     fit.d <- fit[[d]]
     val.idx <- cv.lst[[d]]
     validate <- Y[val.idx, ]
     pred.d <- fit.d$yp[, , ]
-    if (i == 18) {
+    if (i == 26) {
       validate <- t(validate)
       pred.d <- fit.d$yp[(25001:30000), , ]
     }
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
-    if (i <= 17) {
+    if (i <= 25) {
       beta.0[, d, i] <- fit.d$beta[, 1]
       beta.1[, d, i] <- fit.d$beta[, 2]
     }
+  }
   }
   cat("finish file", file, "\n")
 }
@@ -72,11 +76,14 @@ brier.score.mean <- matrix(NA, 18, length(thresholds))
 quant.score.se <- matrix(NA, 18, length(probs))
 brier.score.se <- matrix(NA, 18, length(thresholds))
 
-for (i in 1:18) {
-  quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
-  quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
-  brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
-  brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
+done <- c(1:25)
+for (i in 1:26) {
+  if (i %in% done) {
+    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
+    quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
+    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
+    brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
+  }
 }
 
 library(fields)
