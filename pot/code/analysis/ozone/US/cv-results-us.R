@@ -70,11 +70,11 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 18, length(probs))
-brier.score.mean <- matrix(NA, 18, length(thresholds))
+quant.score.mean <- matrix(NA, 26, length(probs))
+brier.score.mean <- matrix(NA, 26, length(thresholds))
 
-quant.score.se <- matrix(NA, 18, length(probs))
-brier.score.se <- matrix(NA, 18, length(thresholds))
+quant.score.se <- matrix(NA, 26, length(probs))
+brier.score.se <- matrix(NA, 26, length(thresholds))
 
 done <- c(1:25)
 for (i in 1:26) {
@@ -84,6 +84,12 @@ for (i in 1:26) {
     brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
     brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
   }
+}
+
+quant.score.mean[c(1:10, 13, 14, 17:19, 21, 23, 25), ]
+for (i in 1:12) {
+ print(which(quant.score.mean[c(1:25), i] == min(quant.score.mean[c(1:25), i])))
+ print(which(brier.score.mean[c(1:25), i] == min(brier.score.mean[c(1:25), i])))
 }
 
 library(fields)
