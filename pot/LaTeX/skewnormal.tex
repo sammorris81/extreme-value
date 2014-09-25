@@ -136,26 +136,39 @@ Asymptotic dependence is eliminated as $h$ increases, because
 \end{align}
 A proof of this can be found in Appendix A.3.
 
+\subsection{Accounting for temporal dependence}
+We account for temporal dependence through a AR(1) time series on the spatial knots and $z_t(\bs)$ terms.
+These are modeled as
+\begin{align}
+  \bw_{t, k} | \bw_{t-1, k} &\sim N_2(\phi_w \bw_{t-1, k}, (1 - \phi_w^2) ) \\
+  z_{t, k} | z_{t-1, k} &\sim N(\phi_z z_{t-1, k}, (1 - \phi_z^2))
+\end{align}
+where $|\phi_w|, |\phi_z| < 1$.
+
 \subsection{Hierarchical model}\label{s:hier}
 Conditioned on $z_{tk}(\bs) \iid $ $N(0, \sigma^2_{tk})$, $\sigma^2_{tk}(\bs) \sim IG(a, b)$, and $P_{tk}$, the marginal distributions are skew-$t$ and the joint distribution within a partition is multivariate skew-$t$.
 However, we do not fix the partitions, they are treated as unknown and updated in the MCMC.
 We model this with a Bayesian hierarchical model as follows.
-Let $w_{t1}, \ldots, w_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, so that
+Let $\bw_{t1}, \ldots, \bw_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, so that
 \begin{align*}
- P_{tk} = \{\bs : k = \argmin_\ell || \bs_t - w_{t\ell} ||\}.
+ P_{tk} = \{\bs : k = \argmin_\ell || \bs_t - \bw_{t\ell} ||\}.
 \end{align*}
+Because the spatial domain is bounded, we do a transformation on the knot locations to $\calR^2$.
+Let $\Phi_2$ represent a bivariate standard normal density function, and let $\bw_k = \min(\bs) + \text{range}(\bs) * \Phi_2^{-1}(\bw^*_k)$.
+Then $\bw^*_k \in \calR^2$.
 Then
 \begin{align}
-   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
+   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= X_t(\bs) \beta + \alpha |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
    z_t(\bs) &= z_{tk} \text{ if } \bs \in P_{tk}\\
    \sigma^2_{t}(\bs) &= \sigma^2_{tk} \text{ if } \bs \in P_{tk}\\
    \alpha &\sim N(0, 10)\\
    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
-   z_{tk} \mid \sigma^2_{tk} &\sim N_{(0, \infty)}(0, \sigma^2_{tk})\\
-   \sigma^2_{tk} &\iid IG(\alpha, \beta)\\   
-   w_{tk} &\sim Unif(\calD)
+   z_{tk} \mid z_{t-1, k}, \sigma^2_{tk} &\sim N(\phi_z z_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2))\\
+   \sigma^2_{tk} &\iid IG(\alpha, \beta)\\
+   \bw^*_{tk} \mid \bw^*_{t-1, k} &\sim N_2(\phi_w \bw^*_{t-1, k}, (1 - \phi_z^2))
 \end{align}
 where $\Theta = \{\rho, \nu, \gamma\}$; \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix with variance one, spatial range $\rho$, smoothness $\nu$, and the proportion of variance accounted for by the spatial variation is $\gamma$.
+
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
@@ -222,6 +235,17 @@ For both the Brier score and the quantile score, a lower score indicates a bette
 These scores were averaged over all sites and days to obtain a single quantile score for each dataset.
 
 \subsection{Results}\label{s:simresults}
+When comparing quantile scores, in almost all of the data settings, the biggest gains are seen when using thresholded methods.
+In all data settings except for the max-stable setting, method 3 performs the best.
+However, in most of the data settings, method 5 also performs reasonably well.
+In fact, for setting 5, paired $t$-tests suggest that the difference in performance is not significant for any quantile score.
+Furthermore, paired $t$-tests results indicate that the difference in quantile scores between methods 3 and 5 is only statistically significant after q(0.97) for setting 4 and after q(0.93) for setting 1.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{plots/quantileplots.pdf}
+  \caption{Quantile score plots for simulation study results}
+  \label{fig:simquantscores}
+\end{figure}
 
 \section{Data analysis}\label{s:analysis}
 To illustrate this method, we consider the daily maximum 8-hour ozone measurements for July 2005 at 735 Air Quality System (AQS) monitoring sites in the eastern United States as the response.
@@ -277,8 +301,7 @@ In each Metropolis Hastings update, we tune the algorithm to give acceptance rat
 
 \subsection*{Spatial knot locations}
 For each day, we update the spatial knot locations, $\bw_1, \ldots, \bw_K$, using a Metropolis Hastings block update.
-Let $\Phi_2$ represent a bivariate normal density function, and let $\bw^*_k = h[\Phi_2^{-1}(\bs_k)]$ where $h(\cdot)$ is a transformation to shift and scale the transformed knots so that $\bs^*_k \in \calD$.
-Because the spatial domain is bounded, we generate candidate knots using $\bw^*_1, \ldots, \bw^*_K$ and a random walk bivariate Gaussian candidate distribution
+Because the spatial domain is bounded, we generate candidate knots using the transformed knots $\bw^*_1, \ldots, \bw^*_K$ (see section \ref{s:hier}) and a random walk bivariate Gaussian candidate distribution
 \begin{align*}
 	{\bw^*_k}^{(c)} \sim \text{N}({\bw^*_k}^{(r - 1)}, s^2 I_2)
 \end{align*}
@@ -290,6 +313,19 @@ After candidates have been generated for all $K$ knots, the acceptance ratio is
 where $l$ is the likelihood given in (\ref{eq:hier}).
 The candidate knots are accepted with probability $\min\{R, 1\}$.
 
+\subsection*{Spatial random effects}
+If there is temporal dependence amongst the observations, then we update $z_tk$, using a Metropolis Hastings update.
+First, we generate a candidate using a random walk Gaussian candidate distribution
+\begin{align*}
+  z_{tk}^{(c)} \sim \text{N}(z_{tk}^{(r - 1)}, s^2)
+\end{align*}
+where $z_{tk}^{(r-1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a tuning parameter.
+The acceptance ratio is
+\begin{align*}
+  R = \left\{ \frac{ l[Y_t(\bs) | z_{tk}^{(c)}, \ldots] }{ l[Y_t(\bs) | z_{tk}^{(r - 1)}]} \right\} \times \left\{ \frac{ p[ z_{tk}^{(c)} ] }{ p[ z_{tk}^{(r - 1)}]}\right\}.
+\end{align*}
+The candidate is accepted with probability $\min\{R, 1\}$
+
 \subsection*{Spatial covariance parameters}
 We update the three spatial covariance parameters, $\log(\rho)$, $\log(\nu)$, $\gamma$, using a Metropolis Hastings block update step.
 First, we generate a candidate using a random walk Gaussian candidate distribution
@@ -300,7 +336,7 @@ where $\log(\rho)^{(r-1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a 
 Candidates are generated for $\log(\nu)$ and $\gamma$ in a similar fashion.
 The acceptance ratio is
 \begin{align*}
-	R = \left\{ \frac{ \prod_{t = 1}^{T} l[Y_t(\bs | \rho^{(c)}, \nu^{(c)}, \gamma^{(c)}, \ldots] }{\prod_{t = 1}^{T} l[Y_t(\bs | \rho^{(r-1)}, \nu^{(r-1)}, \gamma^{(r-1)}, \ldots] } \right\} \times \left\{ \frac{ p[\rho^{(c)}] }{ p[\rho^{(r - 1)] } } \right\} \times \left\{ \frac{ p[\nu^{(c)}] }{ p[\nu^{(r - 1)}] } \right\} \times \left\{ \frac{ p[ \gamma^{(c)} ] }{ p[\gamma^{(r - 1)} ] } \right\}.
+	R = \left\{ \frac{ \prod_{t = 1}^{T} l[Y_t(\bs) | \rho^{(c)}, \nu^{(c)}, \gamma^{(c)}, \ldots] }{\prod_{t = 1}^{T} l[Y_t(\bs) | \rho^{(r-1)}, \nu^{(r-1)}, \gamma^{(r-1)}, \ldots] } \right\} \times \left\{ \frac{ p[\rho^{(c)}] }{ p[\rho^{(r - 1)] } } \right\} \times \left\{ \frac{ p[\nu^{(c)}] }{ p[\nu^{(r - 1)}] } \right\} \times \left\{ \frac{ p[ \gamma^{(c)} ] }{ p[\gamma^{(r - 1)} ] } \right\}.
 \end{align*}
 All three candidates are accepted with probability $\min\{R, 1\}$.
 

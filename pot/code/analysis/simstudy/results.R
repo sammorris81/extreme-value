@@ -15,9 +15,8 @@
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - t-1 (T = 0.80)
-#  4 - skew t-3
-#  5 - t-3 (T = 0.80)
-#  6 - max-stable
+#  4 - skew t-5
+#  5 - t-5 (T = 0.80)
 #	
 #########################################################################
 
@@ -43,7 +42,7 @@ source("../../R/auxfunctions.R")	# Included for easy access if we need to change
 # results do not have burnin
 # fit.1[[2]] are the results for method: Gaussian on the second dataset
 
-probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
+probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 
 quant.score.all <- array(NA, dim=c(length(probs), (nsets * ngroups), nmethods, nsettings))
 brier.score.all <- array(NA, dim=c(length(probs), (nsets * ngroups), nmethods, nsettings))
@@ -105,20 +104,49 @@ nmethods <- 5
 quant.score.mean <- apply(quant.score, c(1, 3, 4), mean, na.rm=T)
 brier.score.mean <- apply(brier.score, c(1, 3, 4), mean, na.rm=T)
 
+quant.score.mean
+brier.score.mean
+
+# find the best performing for each data setting
+best.quant <- matrix(NA, nrow=11, ncol=6)
+best.brier <- matrix(NA, nrow=11, ncol=6)
+for (i in 1:11) {
+  for (j in 1:6) {
+    best.quant[i, j] <- which(quant.score.mean[i, , j] == min(quant.score.mean[i, , j]))
+    best.brier[i, j] <- which(brier.score.mean[i, , j] == min(brier.score.mean[i, , j]))
+  }
+}
+
 # paired t-tests
-paired.results <- array(NA, dim=c(length(intervals), (nmethods-1), nsettings))
+paired.results <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
 compare <- c(1, 2, 4, 5)
-for (i in 1:length(intervals)) { for (j in (nmethods-1)) { for (k in 1:nsettings) {
-  method <- compare[j]
-  paired.results[i, j, k] <- t.test(quant.score[i, , 3, k], quant.score[i, , method, k], paired=T)$p.value
+for (i in 1:length(probs)) { for (j in 1:(nmethods-1)) { for (k in 1:nsettings) {
+  if (k != 6) {
+  	compare.j <- compare[j]  # want to store in the jth row of results array
+  	diff <- quant.score[i, , 3, k] - quant.score[i, , compare.j, k]
+  	s <- sd(diff)
+  	df <- length(diff) - 1
+  	t <- mean(diff) / (s / sqrt(length(diff)))
+    paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
+  } else {
+  	compare.j <- j + 1
+  	diff <- quant.score[i, , 1, k] - quant.score[i, , compare.j, k]
+  	s <- sd(diff)
+  	df <- length(diff) - 1
+  	t <- mean(diff) / (s / sqrt(length(diff)))
+    paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
+  }
 }  }  }
 
-setting.title <- c("Gaussian", "t-1", "t-5", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "1/2 Gaussian (range = 0.10), 1/2 t-1 (range = 0.4)")
-methods <- c("Gaussian", "skew t-1 (T = 0.0)", "skew t-5 (T = 0.0)", "skew t-1 (T = 0.9)", "skew t-5 (T = 0.9)")
-bg <- c("firebrick1", "firebrick1", "firebrick1", "dodgerblue1", "dodgerblue1")
-col <- c("firebrick4", "firebrick4", "firebrick4", "dodgerblue4", "dodgerblue4")
+round(paired.results, 4)
+
+
+setting.title <- c("Gaussian", "t-1", "t-5", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "max-stable")
+methods <- c("Gaussian", "skew-t, K = 1, T = q(0.0)", "t, K = 1, T = q(0.8)", "skew-t, K = 5, T = q(0.0)", "t, K = 5, T = q(0.8)")
+bg <- c("firebrick1", "firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
+col <- c("firebrick4", "firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
 pch <- c(24, 22, 22, 22, 22)
-lty <- c(2, 1, 3, 1, 3)
+lty <- c(1, 1, 1, 3, 3)
 
 quartz(width=15, height=12)
 par(mfrow=c(3, 2))
@@ -133,11 +161,9 @@ for (setting in 1:nsettings) {
     lines(probs, quant.score.mean[, i, setting], lty=lty[i], col=col[i])
     points(probs, quant.score.mean[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   }
-
+  legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
 }
 
-plot(1, 1, type="n", axes=F, main="legend", ylab="", xlab="")
-legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, bty="n", cex=2)
 dev.print(file="plots/quantileplots.pdf", device=pdf)
 dev.off()
 

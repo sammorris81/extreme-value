@@ -26,7 +26,7 @@ load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 2
+ngroups <- 10
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 30))
@@ -43,7 +43,7 @@ source("../../R/auxfunctions.R")	# Included for easy access if we need to change
 # results do not have burnin
 # fit.1[[2]] are the results for method: Gaussian on the second dataset
 
-probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
+probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 
 quant.score <- array(NA, dim=c(length(probs), (nsets * ngroups), nmethods, nsettings))
 brier.score <- array(NA, dim=c(length(probs), (nsets * ngroups), nmethods, nsettings))

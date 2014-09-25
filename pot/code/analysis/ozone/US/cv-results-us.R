@@ -14,7 +14,7 @@ source("../../../R/auxfunctions.R")
 # # abline(0,1)
 # # print(mean(y.full.p>lo & y.full.p<hi))
 
-probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999)
+probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 thresholds <- quantile(Y, probs=probs, na.rm=T)
 nsets <- 2 # Number of cv sets
 nbetas <- 2 # number of betas
@@ -25,7 +25,7 @@ brier.score <- array(NA, dim=c(length(thresholds), nsets, 26))
 beta.0 <- array(NA, dim=c(5000, nsets, 26))
 beta.1 <- array(NA, dim=c(5000, nsets, 26)) 
 
-done <- c(1:25)
+done <- c(1:26)
 
 for (i in 1:26) {
   file <- paste("cv5-", i, "US.RData", sep="")
@@ -86,10 +86,10 @@ for (i in 1:26) {
   }
 }
 
-quant.score.mean[c(1:10, 13, 14, 17:19, 21, 23, 25), ]
+quant.score.mean[c(1:10, 13, 14, 17:19, 21, 23, 25, 26), ]
 for (i in 1:12) {
- print(which(quant.score.mean[c(1:25), i] == min(quant.score.mean[c(1:25), i])))
- print(which(brier.score.mean[c(1:25), i] == min(brier.score.mean[c(1:25), i])))
+ print(which(quant.score.mean[c(1:26), i] == min(quant.score.mean[c(1:26), i])))
+ print(which(brier.score.mean[c(1:26), i] == min(brier.score.mean[c(1:26), i])))
 }
 
 library(fields)
