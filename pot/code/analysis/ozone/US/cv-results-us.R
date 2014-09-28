@@ -76,7 +76,7 @@ brier.score.mean <- matrix(NA, 26, length(thresholds))
 quant.score.se <- matrix(NA, 26, length(probs))
 brier.score.se <- matrix(NA, 26, length(thresholds))
 
-done <- c(1:25)
+done <- c(1:26)
 for (i in 1:26) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
