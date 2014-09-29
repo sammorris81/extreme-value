@@ -343,13 +343,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         cantaug        <- tau[cang, t]
         canzg          <- z[cang, t]
         canres         <- y - x.beta - z.alpha * canzg   
+        
+        if (temporal & (t > 1)) {  # first day has mean 0: added for ts
+          mean <- phi.w * knots_con[, , (t-1)]
+          sd   <- sqrt(1 - phi.w^2)
+        } else {
+          mean <- 0
+          sd   <- 1
+        }
 
         R <- -0.5 * quad.form(prec.cor, sqrt(cantaug) * canres[, t]) +
               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res[, t]) +
               0.5 * sum(log(cantaug)) -
               0.5 * sum(log(taug[, t])) +
-              sum(dnorm(can_knots_con, log=TRUE)) -
-              sum(dnorm(knots_con[, , t], log=TRUE))
+              sum(dnorm(can_knots_con, mean=mean, sd=sd, log=TRUE)) -  # edited for ts
+              sum(dnorm(knots_con[, , t], mean=mean, sd=sd, log=TRUE))  # edited for ts
           
         if (!is.na(R)) { if (log(runif(1)) < R) {
           knots_con[, , t] <- can_knots_con
@@ -366,8 +374,39 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             avgparts[t] <- avgparts[t] + 1
           } 
         }
-      }
-    }
+      }  # end t in 1:nt
+      
+      if (temporal) {
+        att.phi.w <- att.phi.w + 1
+        phi.con.w <- qnorm((phi.w + 1) / 2)  # transform to R
+        can.phi.con.w <- rnorm(1, phi.con.w, mh.phi.w)  # draw candidate
+        can.phi.w <- 2 * pnorm(can.phi.con.w) - 1  # transform back to (-1, 1)
+        
+        can.ll <- cur.ll <- 0
+        for (t in 1:nt) {
+          if (t == 1) {
+            cur.mean <- matrix(0, nknots, 2)
+            can.mean <- matrix(0, nknots, 2)
+          } else {
+          	cur.mean <- phi.w * knots_con[, , (t - 1)]
+          	can.mean <- can.phi.w * knots_con[, , (t - 1)]
+          }
+          cur.sd <- sqrt(1 - phi.w^2)
+          can.sd <- sqrt(1 - can.phi.w^2)
+          can.ll <- can.ll + sum(dnorm(knots_con[, , t], can.mean, can.sd, log=T))
+          cur.ll <- cur.ll + sum(dnorm(knots_con[, , t], cur.mean, cur.sd, log=T))
+        }
+        
+        R <- can.ll - cur.ll +
+             dnorm(can.phi.con.w, log=T) - dnorm(phi.con.w, log=T)
+             
+        if (!is.na(R)) { if (log(runif(1)) < R) {
+          acc.phi.w <- acc.phi.w + 1
+          phi.w <- can.phi.w
+        } }
+        
+      }  # fi temporal
+    }  # fi nknots > 1
     
     #### Spatial correlation
     mu <- x.beta + z.alpha * zg

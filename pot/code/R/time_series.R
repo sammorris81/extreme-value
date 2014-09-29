@@ -39,20 +39,19 @@ ts.sample.z <- function(zstar, acc.z, att.z, mh.z,
   z.lag1 <- cbind(rep(0, nknots), zstar[, -(nt + 1), drop=F])
   cur.mean <- phi * z.lag1
   
-  phi_con <- qnorm((phi + 1) / 2)  # transform to R
-  can_phi_con <- rnorm(1, phi_con, mh.phi)  # draw candidate
-  can.phi <- 2 * pnorm(can_phi_con) - 1  # transform back to (-1, 1)
+  phi.con <- qnorm((phi + 1) / 2)  # transform to R
+  can.phi.con <- rnorm(1, phi.con, mh.phi)  # draw candidate
+  can.phi <- 2 * pnorm(can.phi.con) - 1  # transform back to (-1, 1)
   can.mean <- can.phi * z.lag1  # will be nknots x nt
   R <- sum(dnorm(zstar, can.mean, sqrt(1 - can.phi^2)/tau, log=T)) - 
        sum(dnorm(zstar, cur.mean, sqrt(1 - phi^2)/tau, log=T)) +
-       dnorm(phi_con, log=T) - dnorm(phi, log=T)
+       dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
   
   if (!is.nar(R)) { if (log(runif(1)) < R) {
     acc.phi <- acc.phi + 1
     phi <- can.phi
   } }
   
-  results <- list(zstar=zstar, phi=phi)
+  results <- list(zstar=zstar, phi=phi, att.phi=att.phi, acc.phi=acc.phi)
   return(results)
 }
-
