@@ -9,7 +9,7 @@
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
-                 iterplot=F, plotname=NULL, method="t",
+                 iterplot=F, plotname=NULL, method="t", temporal=F,
                  # initial values
                  beta.init=NULL, 
                  tau.init=1,
@@ -157,6 +157,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     z.alpha <- 0
   }
   
+  if (temporal) {
+    zstar <- matrix(z.init, nknots, nt)
+    phi.z <- 0
+    phi.w <- 0
+    acc.z <- att.z <- mh.z <- matrix(1, nknots, nt)
+    acc.phi.z <- att.phi.z <- mh.phi.z <- 1
+    acc.phi.w <- att.phi.w <- mh.phi.w <- 1
+  }
+  
   # easier to keep calculations in the precision scale for MCMC
   sigma2    <- 1 / tau
   sigma2g   <- 1 / taug
@@ -219,7 +228,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   acc.rho   <- att.rho   <- mh.rho   <- 0.1
   acc.nu    <- att.nu    <- mh.nu    <- 0.1
   acc.alpha <- att.alpha <- mh.alpha <- 0.5
-  att.tau   <- acc.tau   <- mh.tau   <- rep(1,ns)    
+  acc.tau   <- att.tau   <- mh.tau   <- rep(1, ns)    
   
   # storage
   keepers.tau       <- array(NA, dim=c(iters, nknots, nt))
@@ -236,6 +245,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.avgparts  <- matrix(NA, nrow=iters, ncol=nt)  # avg partitions per day
   if (keep.knots & (nknots > 1)) {
     keepers.knots     <- array(NA, dim=c(iters, nknots, 2, nt))
+  }
+  if (temporal) {
+  	keepers.phi.z <- rep(NA, iters)
+  	keepers.phi.w <- rep(NA, iters)
   }
   return.iters      <- (burn + 1):iters
   
@@ -790,31 +803,45 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # z random effect
       mu <- y - x.beta - z.alpha * zg
       
-      for (t in 1:nt) {
-      	taug.t <- sqrt(taug[,t])
-      	prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
-        # prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
-        for (k in 1:nknots) {
-          these <- which(g[, t] == k)
-          r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
-          r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
-          prec.11 <- prec.t[these, these, drop=F]  # with cov
-          prec.21 <- prec.t[-these, these, drop=F]
-          lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
-          
-          mu.l <- z.alpha * sum(t(r.1) %*% prec.11 + t(r.2) %*% prec.21)
-          
-          e.z <- mu.l / lambda.l
-          sd.z <- 1 / sqrt(lambda.l)
-          z.new <- rTNorm(mn=e.z, sd=sd.z, lower=0, upper=Inf)
-          if (z.new == Inf) {  # if z.new comes back Inf, then P(z > 0) = 0
-            z.new = 0.00001
-          }
-        
-          z[k, t] <- z.new
-          zg[these, t] <- z.new
+      if (temporal) {  # need to use MH sampling if there is a time series on the z terms
+      	ts.z.update <- ts.sample.z(zstar=zstar, acc.z=acc.z, att.z=att.z, mh.z=mh.z,
+      	                           phi=phi.z, att.phi=att.phi.z, acc.phi=acc.phi.z, mh.phi=mh.phi.z,
+      	                           y=y, z.alpha=z.alpha, x.beta=x.beta, tau=tau, taug=taug, 
+      	                           g=g, prec.cor=prec.cor)
+      	
+      	zstar <- ts.z.update$zstar
+      	phi.z <- ts.z.update$phi
+      	z     <- abs(zstar)
+      	for (t in 1:nt) {
+          zg[, t] <- z[g[, t], t]
         }
-      }
+      } else { 
+        for (t in 1:nt) {
+          taug.t <- sqrt(taug[,t])
+          prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+          # prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
+          for (k in 1:nknots) {
+            these <- which(g[, t] == k)
+            r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
+            r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
+            prec.11 <- prec.t[these, these, drop=F]  # with cov
+            prec.21 <- prec.t[-these, these, drop=F]
+            lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
+          
+            mu.l <- z.alpha * sum(t(r.1) %*% prec.11 + t(r.2) %*% prec.21)
+          
+            e.z <- mu.l / lambda.l
+            sd.z <- 1 / sqrt(lambda.l)
+            z.new <- rTNorm(mn=e.z, sd=sd.z, lower=0, upper=Inf)
+            if (z.new == Inf) {  # if z.new comes back Inf, then P(z > 0) = 0
+              z.new = 0.00001
+            }
+        
+            z[k, t] <- z.new
+            zg[these, t] <- z.new
+          }
+        }
+      } # fi temporal
     }    
   }  # end nthin
   
