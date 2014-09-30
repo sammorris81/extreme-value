@@ -156,6 +156,69 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
   results <- list(y=y, tau=tau, z=z, knots=knots)
 }
 
+rpotspatTS <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho, phi.z, phi.w,
+                       mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
+
+  p <- dim(x)[3]
+  ns <- nrow(s)
+  
+  y <- matrix(NA, ns, nt)
+  tau <- matrix(NA, nknots, nt)
+  z <- matrix(NA, nknots, nt)
+  g <- matrix(NA, ns, nt)
+   
+  d <- as.matrix(dist(s))
+  # gau is used if mixprob = 0
+  gau.C      <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
+  gau.C.chol <- chol(gau.C)
+  gau.tau    <- matrix(0.25, nrow=nknots, ncol=nt)
+  gau.sd     <- 1 / sqrt(gau.tau)
+  gau.z      <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  
+  # t is used if mixprob = 1
+  t.C      <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
+  t.C.chol <- chol(t.C)
+  t.tau    <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
+  t.sd     <- 1 / sqrt(t.tau)
+  t.z      <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  
+  knots <- array(NA, dim=c(nknots, nt, 2))
+  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 1])
+  min.s2 <- min(s[, 2]); max.s2 <- max(s[, 2])
+
+  for (t in 1:nt) {
+    knots[, t, 1] <- runif(nknots, min.s1, max.s1)
+    knots[, t, 2] <- runif(nknots, min.s2, max.s2)
+    knots.t <- matrix(knots[, t, ], nknots, 2)
+    g <- mem(s, knots.t)
+
+    dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
+    if (dist) {
+      taug   <- t.tau[g, t]
+      zg     <- t.z[g, t]
+      chol.C <- gau.C.chol
+    } else {
+      taug   <- gau.tau[g, t]
+      zg     <- gau.z[g, t]
+      chol.C <- t.C.chol
+    }  
+        
+    if (p == 1) {
+      x.beta <- matrix(x[, t, ], ns, 1) * beta 
+    } else {
+      x.beta <- x[, t, ] %*% beta
+    }
+    mu <- x.beta + z.alpha * zg
+    
+    sdg  <- 1 / sqrt(taug)
+    y.t <- t(chol.C) %*% matrix(rnorm(ns), ns, 1)
+    y.t <- mu + sdg * y.t
+    y[, t] <- y.t
+  }
+  
+  results <- list(y=y, tau=tau, z=z, knots=knots)
+}
+
 ################################################################
 # Arguments:
 #   preds(iters, yp, nt): mcmc predictions at validation
