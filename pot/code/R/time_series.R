@@ -58,9 +58,9 @@ ts.sample.z <- function(zstar, acc.z, att.z, mh.z,
 }
 
 ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
-                          phi, att.phi, acc.tau, mh.phi,
+                          phi, att.phi, acc.phi, mh.phi,
                           s, s.a, s.b, 
-                          res, prec.cor, g)
+                          res, prec.cor, g) {
   
   nt <- ncol(tau)
   nknots <- nrow(tau)
@@ -129,12 +129,12 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
   
   # s: prior is IG(a, b)
   a.star <- s.a + nt * nknots / 2
-  b.star <- b
+  b.star <- s.b
   for (t in 1:nt) {
     if (t == 1) {
       b.star <- b.star + sum(log(tau[, t])^2 / 2)
     } else {
-      b.star <- b.star + sum((log(tau[, t]) - phi * log(tau[, (t - 1)])^2) / (2 * (1 - phi^2)))
+      b.star <- b.star + sum((log(tau[, t]) - phi * log(tau[, (t - 1)]))^2 / (2 * (1 - phi^2)))
     }
   }
   s <- 1 / rgamma(1, a.star, b.star)

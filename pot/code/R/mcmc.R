@@ -10,7 +10,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t", 
-                 temporalw=F, temporaltau=F, temporalz=F,  # just to debug
+                 # just to debug temporal parts.
+                 temporalw=F, temporaltau=F, temporalz=F,  # eventually change to temporal=F
                  # initial values
                  beta.init=NULL, 
                  tau.init=1,
@@ -221,9 +222,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     acc.tau   <- att.tau   <- mh.tau   <- matrix(1, nrow=nknots, ncol=nt)
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- mh.phi.tau <- 1
-    s <- 1
-    s.a <- 2
-    s.b <- 8
+    tau.s <- 1
+    tau.s.a <- 2
+    tau.s.b <- 8
   } else {
     acc.tau   <- att.tau   <- mh.tau   <- rep(1, ns) 
   }
@@ -257,9 +258,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (keep.knots & (nknots > 1)) {
     keepers.knots     <- array(NA, dim=c(iters, nknots, 2, nt))
   }
-  if (temporal) {
-  	keepers.phi.z <- rep(NA, iters)
-  	keepers.phi.w <- rep(NA, iters)
+  if (temporalz) {
+    keepers.phi.z <- rep(NA, iters)
+  }
+  if (temporalw) {
+    keepers.phi.w <- rep(NA, iters)
+  }
+  if (temporaltau) {
+    keepers.phi.tau <- rep(NA, iters)
   }
   return.iters      <- (burn + 1):iters
   
@@ -355,7 +361,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         canzg          <- z[cang, t]
         canres         <- y - x.beta - z.alpha * canzg   
         
-        if (temporal & (t > 1)) {  # first day has mean 0: added for ts
+        if (temporalw & (t > 1)) {  # first day has mean 0: added for ts
           mean <- phi.w * knots_con[, , (t-1)]
           sd   <- sqrt(1 - phi.w^2)
         } else {
@@ -447,16 +453,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
     } else if (method == "t"){
       if (temporaltau) {
-        ts.sample.tau <- function(tau=tau, acc.tau=acc.tau, att.tau=att.tau, mh.tau=mh.tau, taug=taug,
+        ts.tau <- ts.sample.tau(tau=tau, acc.tau=acc.tau, att.tau=att.tau, mh.tau=mh.tau, taug=taug,
                                   phi=phi.tau, att.phi=att.phi.tau, acc.phi=acc.phi.tau, mh.phi=mh.phi.tau,
-                                  s=s.tau, s.a=s.tau.a, s.b=s.tau.b, res=res, prec.cor=prec.cor, g=g)
-        tau <- ts.sample.tau$tau
-        att.tau <- ts.sample.tau$att.tau
-        acc.tau <- ts.sample.tau$acc.tau
-        phi.tau <- ts.sample.tau$phi
-        att.phi.tau <- ts.sample.tau$att.phi
-        acc.phi.tau <- ts.sample.tau$acc.phi
-        s.tau <- s
+                                  s=tau.s, s.a=tau.s.a, s.b=tau.s.b, res=res, prec.cor=prec.cor, g=g)
+        
+        tau <- ts.tau$tau
+        att.tau <- ts.tau$att.tau
+        acc.tau <- ts.tau$acc.tau
+        phi.tau <- ts.tau$phi
+        att.phi.tau <- ts.tau$att.phi
+        acc.phi.tau <- ts.tau$acc.phi
+        s.tau <- ts.tau$s
       } else {
         if (nknots == 1) {
           for (t in 1:nt) {
@@ -728,15 +735,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	phi.z <- ts.z.update$phi
       	att.z <- ts.z.update$att.z
       	acc.z <- ts.z.update$acc.z
-      	att.phi.z <- ts.z.update$att.phi.z
-      	acc.phi.z <- ts.z.update$acc.phi.z
+      	att.phi.z <- ts.z.update$att.phi
+      	acc.phi.z <- ts.z.update$acc.phi
       	z     <- abs(zstar)
       	for (t in 1:nt) {
           zg[, t] <- z[g[, t], t]
           if (att.z[1, t] > 50) {  # block accepting all knots for a day
             if (acc.z[1, t] / att.z[1, t] < 0.25) { mh.z[1, t] <- mh.z[1, t] * 0.8 }
             if (acc.z[1, t] / att.z[1, t] > 0.50) { mh.z[1, t] <- mh.z[1, t] * 1.2 }
-            acc.z <- att.z <- 1
+            acc.z[1, t] <- att.z[1, t] <- 1
           }
         }
         
@@ -849,13 +856,31 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (nknots > 1) {
     keepers.avgparts[iter, ] <- avgparts
   }
+  if (temporalw) {
+  	keepers.phi.w[iter] <- phi.w
+  }
+  if (temporalz) {
+  	keepers.phi.z[iter] <- phi.z
+  }
+  if (temporaltau) {
+  	keepers.phi.tau[iter] <- phi.tau
+  }
   
   if (iter %% update == 0) {
     if (iterplot) {
       if (skew) {
-        par(mfrow=c(4, 3))
+        par(mfrow=c(3, 5))
       } else {
-        par(mfrow=c(3, 3))
+        par(mfrow=c(3, 4))
+      }
+      if (temporalw) {
+        plot(keepers.phi.w[1:iter], type="l")
+      }
+      if (temporalz) {
+      	plot(keepers.phi.z[1:iter], type="l")
+      }
+      if (temporaltau) {
+      	plot(keepers.phi.tau[1:iter], type="l")
       }
       plot(keepers.beta[1:iter, 1], type="l")
       plot(keepers.tau.alpha[1:iter], type="l")
@@ -911,6 +936,22 @@ if (!skew) {
   keepers.z.alpha <- keepers.z.alpha[return.iters]
 }
 
+if (!temporalz) {  # ts
+  keepers.phi.z <- NULL
+} else {
+  keepers.phi.z <- keepers.phi.z[return.iters]
+}
+if (!temporalw) {  # ts
+  keepers.phi.w <- NULL
+} else {
+  keepers.phi.w <- keepers.phi.w[return.iters]
+}
+if (!temporaltau) {  # ts
+  keepers.phi.tau <- NULL
+} else {
+  keepers.phi.tau <- keepers.phi.tau[return.iters]
+}
+
 results <- list(tau=keepers.tau[return.iters, , ], 
                 beta=keepers.beta[return.iters, ],
                 tau.alpha=keepers.tau.alpha[return.iters],
@@ -922,7 +963,11 @@ results <- list(tau=keepers.tau[return.iters, , ],
                 z.alpha=keepers.z.alpha,
                 z=keepers.z,
                 knots=keepers.knots,
-                avgparts=keepers.avgparts)
+                avgparts=keepers.avgparts,
+                phi.z=keepers.phi.z,  # ts
+                phi.w=keepers.phi.w,  # ts
+                phi.tau=keepers.phi.tau  # ts
+                )
 
 return(results)
 }#end mcmc()
