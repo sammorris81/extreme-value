@@ -229,7 +229,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     acc.tau   <- att.tau   <- mh.tau   <- rep(1, ns) 
   }
   if (temporalz) {
-    zstar <- matrix(z.init, nknots, nt)
     phi.z <- 0
     acc.z <- att.z <- mh.z <- matrix(1, nknots, nt)
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
@@ -726,18 +725,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mu <- y - x.beta - z.alpha * zg
       
       if (temporalz) {  # need to use MH sampling if there is a time series on the z terms
-      	ts.z.update <- ts.sample.z(zstar=zstar, acc.z=acc.z, att.z=att.z, mh.z=mh.z,
+      	ts.z.update <- ts.sample.z(z=z, acc.z=acc.z, att.z=att.z, mh.z=mh.z, zg=zg,
       	                           phi=phi.z, att.phi=att.phi.z, acc.phi=acc.phi.z, mh.phi=mh.phi.z,
       	                           y=y, z.alpha=z.alpha, x.beta=x.beta, tau=tau, taug=taug, 
       	                           g=g, prec.cor=prec.cor)
       	
-      	zstar <- ts.z.update$zstar
+      	z     <- ts.z.update$z
+      	zg    <- ts.z.update$zg
       	phi.z <- ts.z.update$phi
       	att.z <- ts.z.update$att.z
       	acc.z <- ts.z.update$acc.z
       	att.phi.z <- ts.z.update$att.phi
       	acc.phi.z <- ts.z.update$acc.phi
-      	z     <- abs(zstar)
       	for (t in 1:nt) {
           zg[, t] <- z[g[, t], t]
           if (att.z[1, t] > 50) {  # block accepting all knots for a day

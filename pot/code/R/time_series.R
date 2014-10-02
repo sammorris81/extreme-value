@@ -1,16 +1,15 @@
-# zstar is nknots x nt - actual values for time series
-ts.sample.z <- function(zstar, acc.z, att.z, mh.z, 
+ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
                         phi, acc.phi, att.phi, mh.phi,
                         y, z.alpha, x.beta, tau, taug, g, prec.cor) {
   nt <- ncol(y)
-  
+  logz <- log(z)
   for (t in 1:nt) {
   	att.z[, t] <- att.z[, t] + 1
-    can.zstar <- rnorm(nknots, zstar[, t], mh.z[, t])  # will be nknots long
-    can.z <- abs(can.zstar)
+    can.logz <- rnorm(nknots, logz[, t], mh.z[, t])  # will be nknots long
+    can.z <- exp(can.logz)
     can.zg <- can.z[g[, t]]  # will be ns long
     can.res <- y - x.beta[, t] + z.alpha * can.zg
-    cur.res <- y - x.beta[, t] + z.alpha * abs(zstar[g[, t], t])
+    cur.res <- y - x.beta[, t] + z.alpha * zg[, t]
     can.rss <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
     cur.rss <- quad.form(prec.cor, sqrt(taug[, t]) * cur.res)
     
@@ -19,32 +18,33 @@ ts.sample.z <- function(zstar, acc.z, att.z, mh.z,
       mean <- 0
       sd <- sqrt(1 / tau[, t])
     } else {
-      mean <- phi * zstar[, (t - 1)]
+      mean <- phi * z[, (t - 1)]
       sd <- sqrt((1 - phi^2) / tau[, t])
     }
     
     R <- -0.5 * sum(can.rss - cur.rss) + 
-          sum(dnorm(can.zstar, mean, sd, log=TRUE)) -
-          sum(dnorm(zstar[, t], mean, sd, log=TRUE))
+          sum(log(dfoldnorm(can.z, mean, sd))) -
+          sum(log(dfoldnorm(z[, t], mean, sd)))
     
     if (!is.na(R)) { if (log(runif(1)) < R) {
       acc.z[, t] <- acc.z[, t] + 1
-      zstar[, t] <- can.zstar
+      z[, t]  <- can.z
+      zg[, t] <- can.zg
     } }
     
   }
   
   # phi.z
   att.phi <- att.phi + 1
-  z.lag1 <- cbind(rep(0, nknots), zstar[, -nt, drop=F])
+  z.lag1 <- cbind(rep(0, nknots), z[, -nt, drop=F])
   cur.mean <- phi * z.lag1
   
-  phi.con <- qnorm((phi + 1) / 2)  # transform to R
+  phi.con     <- qnorm(phi)  # transform to R
   can.phi.con <- rnorm(1, phi.con, mh.phi)  # draw candidate
-  can.phi <- 2 * pnorm(can.phi.con) - 1  # transform back to (-1, 1)
-  can.mean <- can.phi * z.lag1  # will be nknots x nt
-  R <- sum(dnorm(zstar, can.mean, sqrt(1 - can.phi^2)/tau, log=T)) - 
-       sum(dnorm(zstar, cur.mean, sqrt(1 - phi^2)/tau, log=T)) +
+  can.phi     <- pnorm(can.phi.con)  # transform back to (0, 1)
+  can.mean    <- can.phi * z.lag1  # will be nknots x nt
+  R <- sum(log(dfoldnorm(z, can.mean, sqrt((1 - can.phi^2)/tau)))) -  # tau is inv var
+       sum(log(dfoldnorm(z, cur.mean, sqrt((1 - phi^2)/tau)))) +
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
   
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -52,7 +52,7 @@ ts.sample.z <- function(zstar, acc.z, att.z, mh.z,
     phi <- can.phi
   } }
   
-  results <- list(zstar=zstar, acc.z=acc.z, att.z=att.z,
+  results <- list(z=z, acc.z=acc.z, att.z=att.z, zg=zg,
                   phi=phi, att.phi=att.phi, acc.phi=acc.phi)
   return(results)
 }

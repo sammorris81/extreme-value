@@ -38,6 +38,11 @@ CorFx <- function(d, alpha, rho, nu) {
   return(cor)
 }
 
+dfoldnorm <- function(x, mu, sig) {
+  d <- dnorm(x, mu, sig) + dnorm(x, -mu, sig)
+  return(d)
+}
+
 eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
   cor.inv <- NULL
   logdet.prec <- NULL
