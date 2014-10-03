@@ -229,7 +229,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     acc.tau   <- att.tau   <- mh.tau   <- rep(1, ns) 
   }
   if (temporalz) {
-    phi.z <- 0
+    phi.z <- 0.5
     acc.z <- att.z <- mh.z <- matrix(1, nknots, nt)
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
   }

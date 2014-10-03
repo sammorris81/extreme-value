@@ -2,6 +2,7 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
                         phi, acc.phi, att.phi, mh.phi,
                         y, z.alpha, x.beta, tau, taug, g, prec.cor) {
   nt <- ncol(y)
+  nknots <- nrow(z)
   logz <- log(z)
   for (t in 1:nt) {
   	att.z[, t] <- att.z[, t] + 1
@@ -12,7 +13,7 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
     cur.res <- y - x.beta[, t] + z.alpha * zg[, t]
     can.rss <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
     cur.rss <- quad.form(prec.cor, sqrt(taug[, t]) * cur.res)
-    
+
     # prior 
     if (t == 1) {
       mean <- 0
@@ -25,7 +26,7 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
     R <- -0.5 * sum(can.rss - cur.rss) + 
           sum(log(dfoldnorm(can.z, mean, sd))) -
           sum(log(dfoldnorm(z[, t], mean, sd)))
-    
+
     if (!is.na(R)) { if (log(runif(1)) < R) {
       acc.z[, t] <- acc.z[, t] + 1
       z[, t]  <- can.z
@@ -42,11 +43,16 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
   phi.con     <- qnorm(phi)  # transform to R
   can.phi.con <- rnorm(1, phi.con, mh.phi)  # draw candidate
   can.phi     <- pnorm(can.phi.con)  # transform back to (0, 1)
+  if (can.phi == 0) {  # numerical stability
+  	can.phi = 0.000001
+  } else if (can.phi == 1) {
+  	can.phi = 0.999999
+  }
   can.mean    <- can.phi * z.lag1  # will be nknots x nt
   R <- sum(log(dfoldnorm(z, can.mean, sqrt((1 - can.phi^2)/tau)))) -  # tau is inv var
        sum(log(dfoldnorm(z, cur.mean, sqrt((1 - phi^2)/tau)))) +
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
-  
+
   if (!is.na(R)) { if (log(runif(1)) < R) {
     acc.phi <- acc.phi + 1
     phi <- can.phi
