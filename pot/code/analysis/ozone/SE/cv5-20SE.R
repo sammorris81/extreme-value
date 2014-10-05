@@ -63,8 +63,8 @@ source('../../../R/time_series.R')
 source('../../../R/auxfunctions.R')
 fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
 	               method=method, skew=T,
-	               temporalw=T, temporalz=T,
-	               thresh.all=threshold, nknots=3, 
+	               temporalw=T, temporalz=T, temporaltau=F,
+	               thresh.all=threshold, nknots=2, 
                    iters=5000, burn=1000, update=100, iterplot=T,
                    beta.init=beta.init, tau.init=tau.init, rho.init=0.5,
                    nu.init=0.5, alpha.init=0.5)

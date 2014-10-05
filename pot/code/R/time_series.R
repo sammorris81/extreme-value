@@ -1,35 +1,36 @@
-ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
+ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
                         phi, acc.phi, att.phi, mh.phi,
                         y, z.alpha, x.beta, tau, taug, g, prec.cor) {
   nt <- ncol(y)
-  nknots <- nrow(z)
-  logz <- log(z)
+  nknots <- nrow(z.star)
   for (t in 1:nt) {
   	att.z[, t] <- att.z[, t] + 1
-    can.logz <- rnorm(nknots, logz[, t], mh.z[, t])  # will be nknots long
-    can.z <- exp(can.logz)
-    can.zg <- can.z[g[, t]]  # will be ns long
-    can.res <- y - x.beta[, t] + z.alpha * can.zg
-    cur.res <- y - x.beta[, t] + z.alpha * zg[, t]
-    can.rss <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
-    cur.rss <- quad.form(prec.cor, sqrt(taug[, t]) * cur.res)
+    can.z.star <- rnorm(nknots, z.star[, t], mh.z[, t])  # will be nknots long
+    can.z      <- abs(can.z.star)
+    can.zg     <- can.z[g[, t]]  # will be ns long
+    
+    can.res   <- y - x.beta[, t] + z.alpha * can.zg
+    can.rss   <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
+    
+    cur.res   <- y - x.beta[, t] + z.alpha * zg[, t]
+    cur.rss   <- quad.form(prec.cor, sqrt(taug[, t]) * cur.res)
 
     # prior 
     if (t == 1) {
       mean <- 0
       sd <- sqrt(1 / tau[, t])
     } else {
-      mean <- phi * z[, (t - 1)]
+      mean <- phi * z.star[, (t - 1)]
       sd <- sqrt((1 - phi^2) / tau[, t])
     }
     
     R <- -0.5 * sum(can.rss - cur.rss) + 
-          sum(log(dfoldnorm(can.z, mean, sd))) -
-          sum(log(dfoldnorm(z[, t], mean, sd)))
+          sum(dnorm(can.z.star, mean, sd, log=T)) -
+          sum(dnorm(z.star[, t], mean, sd, log=T))
 
     if (!is.na(R)) { if (log(runif(1)) < R) {
       acc.z[, t] <- acc.z[, t] + 1
-      z[, t]  <- can.z
+      z.star[, t] <- can.z.star
       zg[, t] <- can.zg
     } }
     
@@ -37,7 +38,7 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
   
   # phi.z
   att.phi <- att.phi + 1
-  z.lag1 <- cbind(rep(0, nknots), z[, -nt, drop=F])
+  z.lag1 <- cbind(rep(0, nknots), z.star[, -nt, drop=F])
   cur.mean <- phi * z.lag1
   
   phi.con     <- qnorm(phi)  # transform to R
@@ -48,9 +49,9 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
   } else if (can.phi == 1) {
   	can.phi = 0.999999
   }
-  can.mean    <- can.phi * z.lag1  # will be nknots x nt
-  R <- sum(log(dfoldnorm(z, can.mean, sqrt((1 - can.phi^2)/tau)))) -  # tau is inv var
-       sum(log(dfoldnorm(z, cur.mean, sqrt((1 - phi^2)/tau)))) +
+  can.mean <- can.phi * z.lag1  # will be nknots x nt
+  R <- sum(dnorm(z.star, can.mean, sqrt((1 - can.phi^2)/tau), log=T)) -  # tau is inv var
+       sum(dnorm(z.star, cur.mean, sqrt((1 - phi^2)/tau), log=T)) +
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -58,7 +59,7 @@ ts.sample.z <- function(z, acc.z, att.z, mh.z, zg,
     phi <- can.phi
   } }
   
-  results <- list(z=z, acc.z=acc.z, att.z=att.z, zg=zg,
+  results <- list(z.star=z.star, acc.z=acc.z, att.z=att.z, zg=zg,
                   phi=phi, att.phi=att.phi, acc.phi=acc.phi)
   return(results)
 }
@@ -82,10 +83,10 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
       
       if (t == 1) {
       	mean <- 0
-      	sd <- s
+      	sd <- sqrt(s)
       } else {
       	mean <- phi * log(tau[k, (t - 1)])
-      	sd <- s * sqrt(1 - phi^2)
+      	sd <- sqrt(s * (1 - phi^2))
       }
       
       if (nparts == 0) {  # we just draw from the prior because no likelihood
@@ -124,8 +125,8 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
   can.phi <- 2 * pnorm(can.phi.con) - 1  # transform back to (-1, 1)
   can.mean <- can.phi * logtau.lag1
   
-  R <- sum(dnorm(log(tau), can.mean, sqrt(1 - can.phi^2) * s, log=T)) - 
-       sum(dnorm(log(tau), cur.mean, sqrt(1 - can.phi^2) * s, log=T)) + 
+  R <- sum(dnorm(log(tau), can.mean, sqrt(s * (1 - can.phi^2)), log=T)) - 
+       sum(dnorm(log(tau), cur.mean, sqrt(s * (1 - can.phi^2)), log=T)) + 
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
        
   if (!is.na(R)) { if (log(runif(1)) < R) {
