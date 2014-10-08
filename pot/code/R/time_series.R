@@ -93,7 +93,8 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
         logtau <- rnorm(1, mean, sd)
         tau[k, t] <- exp(logtau)
       } else {  # do a MH update
-      	att.tau[k, t] <- att.tau[k, t] + 1
+        # att.tau[k, t] <- att.tau[k, t] + 1
+        att.tau[nparts] <- att.tau[nparts] + 1
         canlogtau <- log(tau[, t])  # pull out all taus for a day
         canlogtau[k] <- rnorm(1, log(tau[k, t]), mh.tau)  # get candidate for knot k
         canlogtaug <- canlogtau[g[, t]]  # transform to length ns
@@ -106,7 +107,8 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
              dnorm(log(tau[k, t]), mean, sd, log=TRUE)
              
         if (!is.na(R)) { if (log(runif(1)) < R) {
-          acc.tau[k, t] <- acc.tau[k, t] + 1
+          # acc.tau[k, t] <- acc.tau[k, t] + 1
+          acc.tau[nparts] <- acc.tau[nparts] + 1
           tau[, t] <- exp(canlogtau)
           taug[, t] <- exp(canlogtaug)
           curll.t <- canll
