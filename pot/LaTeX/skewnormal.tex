@@ -70,9 +70,9 @@ One member of this family, is the skew-$t$ distribution \citep{Azzalini2003}.
 We assume the data can be modeled using a skew-$t$ distribution.
 \citet{Zhang2010} show that the skew-$t$ can be expressed as a hierarchical model
 \begin{align} \label{eq:fullmodel}
-  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t + \sigma_t v_t(\bs)
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha \sigma_t z_t + \sigma_t v_t(\bs)
 \end{align}
-where $\alpha \in \calR$ controls the skewness, $z_{t} \ind N_{(0, \infty)}(0, \sigma^2_t)$ are a random effect from a half-normal distribution (see appendix A.4), $v_t(\bs)$ is a Gaussian process with mean zero, variance one, \Matern correlation, and $\sigma^2_t \iid \text{IG}(a, b)$.
+where $\alpha \in \calR$ controls the skewness, $z_{t} \ind N_{(0, \infty)}(0, 1)$ are a random effect from a half-normal distribution (see appendix A.4), $v_t(\bs)$ is a Gaussian process with mean zero, variance one, \Matern correlation, and $\sigma^2_t \iid \text{IG}(a, b)$.
 When marginalizing over the $z_t$ and $\sigma^2_t$ terms,
 \begin{align*}
   Y_t(\bs) \sim \text{skew-}t (\mu, \Sigma^*, \alpha, \text{df} = 2a)
@@ -356,6 +356,9 @@ Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-norm
   f_U(u) = \frac{ \sqrt{2} }{ \sqrt{\pi \sigma^2} } \exp \left( - \frac{ u^2 }{ 2 \sigma^2 } \right) I(u > 0)
 \end{align}
 When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
+
+\section*{Appendix A.5: Multivariate skew-$t$ distribution}
+\input{mvskewt.tex}
 
 \bibliographystyle{rss}
 \bibliography{skewnormal}
