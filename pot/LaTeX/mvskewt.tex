@@ -1,0 +1,15 @@
+Let $Z_{0t} \sim \text{SN}_d(0, \bar{\Omega}, \alpha)$ be a $d$-dimensional skew-normal random variable.
+Note, the relationship between $\bar{\Omega}$ and the \Matern covariance matrix given for (\ref{eq:fullmodel}) is given as follows
+\begin{align*}
+  \alpha &= \frac{ \delta }{ \sqrt{1 - \delta^2} } \\
+  D_\delta &= (diag(1 - \delta))^{1/2}\\
+  \bar{\Omega} &= D_\delta (\Sigma + \lambda \lambda^T) D_\delta \\
+  \lambda &= D_\delta^{-1} \delta\\
+\end{align*}
+Let $\sigma_{tk}^2 \sim \chi^2_\nu / \nu$ where $\nu$ is the degrees of freedom.
+Let $Z_{tk} = \sigma_{tk}^{-1} Z_{0, tk}$.
+After marginalizing out the $\sigma_{tk}^2$ terms, $Z$ follows a multivariate skew-$t$ distribution, and the density is given by
+\begin{align*}
+  f_z(z) = 2 t_d(z; \bar{\Omega}, \nu) T \left( \alpha^T z \sqrt{ \frac{\nu + d}{\nu + Q(z)} }; \nu + d\right)
+\end{align*}
+where $Q(z) = z^T \bar{\Omega}^{-1}z$ and $T(\cdot; \rho)$ denotes the univariate Student's $t$ distribution function on $\rho$ degrees of freedom \citep{Azzalini2013}.

@@ -98,6 +98,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
         tau.star[k, t] <- rnorm(1, mean, sd)
         tau <- cop.IG(tau.star, phi, tau.alpha, tau.beta)
       } else {  # do a MH update
+<<<<<<< HEAD
       	att.tau[k, t] <- att.tau[k, t] + 1
         cantau.star <- tau.star[, t]  # pull out all taus for a day
         cantau.star[k] <- rnorm(1, cantau.star[k], mh.tau)  # get candidate for knot k
@@ -106,6 +107,13 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
         res.std <- (cantau.star[k] - mean)/sd
       	cantau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
       	cantaug <- cantau[g[, t]]
+=======
+        # att.tau[k, t] <- att.tau[k, t] + 1
+        att.tau[nparts] <- att.tau[nparts] + 1
+        canlogtau <- log(tau[, t])  # pull out all taus for a day
+        canlogtau[k] <- rnorm(1, log(tau[k, t]), mh.tau)  # get candidate for knot k
+        canlogtaug <- canlogtau[g[, t]]  # transform to length ns
+>>>>>>> FETCH_HEAD
       	
         canll <- 0.5 * sum(log(cantau)) - 
                  0.5 * quad.form(prec.cor, sqrt(cantaug) * res.t)
@@ -115,9 +123,16 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
              dnorm(tau.star[k, t]), mean, sd, log=TRUE)
              
         if (!is.na(R)) { if (log(runif(1)) < R) {
+<<<<<<< HEAD
           acc.tau[k, t] <- acc.tau[k, t] + 1
           tau[, t] <- cantau)
           taug[, t] <- cantaug
+=======
+          # acc.tau[k, t] <- acc.tau[k, t] + 1
+          acc.tau[nparts] <- acc.tau[nparts] + 1
+          tau[, t] <- exp(canlogtau)
+          taug[, t] <- exp(canlogtaug)
+>>>>>>> FETCH_HEAD
           curll.t <- canll
         } }
       }  # fi nparts == 0
