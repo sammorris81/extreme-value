@@ -455,7 +455,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (temporaltau) {
         ts.tau <- ts.sample.tau(tau=tau, acc.tau=acc.tau, att.tau=att.tau, mh.tau=mh.tau, taug=taug,
                                   phi=phi.tau, att.phi=att.phi.tau, acc.phi=acc.phi.tau, mh.phi=mh.phi.tau,
-                                  s=tau.s, s.a=tau.s.a, s.b=tau.s.b, res=res, prec.cor=prec.cor, g=g)
+                                  s=tau.s, s.a=tau.s.a, s.b=tau.s.b, tau.alpha=tau.alpha, tau.beta=tau.beta,
+                                  res=res, prec.cor=prec.cor, g=g)
         
         tau <- ts.tau$tau
         att.tau <- ts.tau$att.tau

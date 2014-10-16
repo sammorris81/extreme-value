@@ -66,11 +66,12 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
 
 ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
                           phi, att.phi, acc.phi, mh.phi,
-                          s, s.a, s.b, 
+                          s, s.a, s.b, tau.alpha, tau.beta,
                           res, prec.cor, g) {
   
   nt <- ncol(tau)
   nknots <- nrow(tau)
+  tau.star <- cop.inv.IG(tau=tau, phi=phi, alpha=tau.alpha, beta=tau.beta)
   # update tau terms
   for (t in 1:nt) {
     res.t <- res[, t]
@@ -85,30 +86,38 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
       	mean <- 0
       	sd <- sqrt(s)
       } else {
-      	mean <- phi * log(tau[k, (t - 1)])
+      	mean <- phi * tau.star[k, (t - 1)]
       	sd <- sqrt(s * (1 - phi^2))
       }
       
+      # draw candidate tau.star from Normal 
+      # prior is on tau.stars
+      # likelihood uses tau
+      
       if (nparts == 0) {  # we just draw from the prior because no likelihood
-        logtau <- rnorm(1, mean, sd)
-        tau[k, t] <- exp(logtau)
+        tau.star[k, t] <- rnorm(1, mean, sd)
+        tau <- cop.IG(tau.star, phi, tau.alpha, tau.beta)
       } else {  # do a MH update
       	att.tau[k, t] <- att.tau[k, t] + 1
-        canlogtau <- log(tau[, t])  # pull out all taus for a day
-        canlogtau[k] <- rnorm(1, log(tau[k, t]), mh.tau)  # get candidate for knot k
-        canlogtaug <- canlogtau[g[, t]]  # transform to length ns
+        cantau.star <- tau.star[, t]  # pull out all taus for a day
+        cantau.star[k] <- rnorm(1, cantau.star[k], mh.tau)  # get candidate for knot k
+        cantaug.star <- cantau.star[g[, t]]  # transform to length ns
+        cantau <- tau[, t]
+        res.std <- (cantau.star[k] - mean)/sd
+      	cantau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
+      	cantaug <- cantau[g[, t]]
       	
-        canll <- 0.5 * sum(canlogtau) - 
-                 0.5 * quad.form(prec.cor, sqrt(exp(canlogtaug)) * res.t)
+        canll <- 0.5 * sum(log(cantau)) - 
+                 0.5 * quad.form(prec.cor, sqrt(cantaug) * res.t)
                  
         R <- canll - curll.t +
-             dnorm(canlogtau[k], mean, sd, log=TRUE) -
-             dnorm(log(tau[k, t]), mean, sd, log=TRUE)
+             dnorm(cantau.star[k], mean, sd, log=TRUE) -
+             dnorm(tau.star[k, t]), mean, sd, log=TRUE)
              
         if (!is.na(R)) { if (log(runif(1)) < R) {
           acc.tau[k, t] <- acc.tau[k, t] + 1
-          tau[, t] <- exp(canlogtau)
-          taug[, t] <- exp(canlogtaug)
+          tau[, t] <- cantau)
+          taug[, t] <- cantaug
           curll.t <- canll
         } }
       }  # fi nparts == 0

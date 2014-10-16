@@ -82,6 +82,62 @@ mem <- function(s, knots) {
   return(g)
 }
 
+#### Go from normal to Gamma(alpha, beta)
+# Arguments:
+#   tau.star(nknots, nt): copula terms for each knot / day
+#   phi(1): AR(1) coefficient
+#   alpha(1): gamma shape parameter
+#   beta(1): gamma rate parameter
+cop.IG <- function(tau.star, phi, alpha, beta) {
+  
+  if (!is.matrix(tau.star)) {
+    stop("Error cop.IG: Must have a matrix for the tau.star terms")
+  }
+  
+  nt <- ncol(tau.star)
+  nknots <- nrow(tau.star)
+  
+  mean <- matrix(0, nknots, nt)  # first day is mean 0
+  for (t in 2:nt) {
+    mean[, t] <- phi * tau.star[, (t-1)]
+  }
+  
+  sd <- sqrt(1 - phi^2)
+  res.std <- (tau.star - mean) / sd
+  tau <- qgamma(pnorm(res.std), shape=alpha, rate=beta)
+  
+  return(tau)
+}
+
+#### Go from Gamma(alpha, beta) to normal
+# Arguments:
+#   tau(nknots, nt): variance terms for each knot / day
+#   phi(1): AR(1) coefficient
+#   alpha(1): gamma shape parameter
+#   beta(1): gamma rate parameter
+cop.inv.IG <- function(tau, phi, alpha, beta) {
+  
+  if (!is.matrix(tau)) { 
+    stop("Error cop.inv.IG: Must have a matrix for the tau terms")
+  }
+  
+  nt <- ncol(tau)
+  nknots <- nrow(tau)
+  
+  tau.star <- matrix(0, nknots, nt)
+  for (t in 1:nt) {
+    if (t == 1) {
+      mean <- 0
+    } else {
+      mean <- phi * tau.star[, (t - 1)]
+    }
+    sd <- sqrt(1 - phi^2)
+    tau.star[, t] <- qnorm(pgamma(tau[, t], shape=alpha, rate=beta), mean=mean, sd=sd)
+  }
+  
+  return(tau.star)
+}
+
 #########################################################################
 # Arguments:
 #   alpha(1): percentage of variation from spatial
