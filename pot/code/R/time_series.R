@@ -67,7 +67,7 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
 ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
                           phi, att.phi, acc.phi, mh.phi,
                           s, s.a, s.b, tau.alpha, tau.beta,
-                          res, prec.cor, g) {
+                          res, prec.cor, g, z) {
   
   nt <- ncol(tau)
   nknots <- nrow(tau)
@@ -75,8 +75,11 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
   # update tau terms
   for (t in 1:nt) {
     res.t <- res[, t]
-    curll.t <- 0.5 * sum(log(taug[, t])) - 
-               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t)
+    # get the current day's likelihood
+    curll <- 0.5 * sum(log(taug[, t])) - 
+             0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t) + 
+             0.5 * sum(log(tau[, t])) - 
+             0.5 * sum(tau[, t] * (z[, t])^2)
     
     for (k in 1:nknots) {
       these <- which(g[, t] == k)
@@ -100,26 +103,31 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
       } else {  # do a MH update
 
       	att.tau[k, t] <- att.tau[k, t] + 1
+      	# candidate moves are in the AR(1) distribution
         cantau.star <- tau.star[, t]  # pull out all taus for a day
         cantau.star[k] <- rnorm(1, cantau.star[k], mh.tau)  # get candidate for knot k
         cantaug.star <- cantau.star[g[, t]]  # transform to length ns
+        
+        # transform to IG marginals
         cantau <- tau[, t]
         res.std <- (cantau.star[k] - mean)/sd
       	cantau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
       	cantaug <- cantau[g[, t]]
       	
-        canll <- 0.5 * sum(log(cantau)) - 
-                 0.5 * quad.form(prec.cor, sqrt(cantaug) * res.t)
+        canll <- 0.5 * sum(log(cantaug)) - 
+                 0.5 * quad.form(prec.cor, sqrt(cantaug) * res.t) +
+                 0.5 * sum(log(cantau)) - 
+                 0.5 * sum(tau[, t] * (z[, t])^2)
                  
-        R <- canll - curll.t +
+        R <- canll - curll +
              dnorm(cantau.star[k], mean, sd, log=TRUE) -
              dnorm(tau.star[k, t]), mean, sd, log=TRUE)
              
         if (!is.na(R)) { if (log(runif(1)) < R) {
           acc.tau[k, t] <- acc.tau[k, t] + 1
-          tau[, t] <- cantau)
+          tau[, t] <- cantau
           taug[, t] <- cantaug
-          curll.t <- canll
+          curll <- canll
         } }
       }  # fi nparts == 0
     }  # end k in 1:nknots
@@ -151,7 +159,8 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
     if (t == 1) {
       b.star <- b.star + sum(log(tau[, t])^2 / 2)
     } else {
-      b.star <- b.star + sum((log(tau[, t]) - phi * log(tau[, (t - 1)]))^2 / (2 * (1 - phi^2)))
+      b.star <- b.star + sum((log(tau[, t]) - 
+                              phi * log(tau[, (t - 1)]))^2 / (2 * (1 - phi^2)))
     }
   }
   s <- 1 / rgamma(1, a.star, b.star)
