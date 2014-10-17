@@ -14,7 +14,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  temporalw=F, temporaltau=F, temporalz=F,  # eventually change to temporal=F
                  # initial values
                  beta.init=NULL, 
-                 tau.init=1,
+                 tau.init=2,
                  tau.alpha.init=0.1, 
                  tau.beta.init=0.1,
                  rho.init=0.5, 
@@ -103,8 +103,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   x.range <- max(s[, 1]) - min(s[, 1])  # gives span of x
   y.range <- max(s[, 2]) - min(s[, 2])  # gives span of y
   range <- max(x.range, y.range)        # want to scale by the same amount in both directions
-  knots_con    <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
-  knots        <- pnorm(knots_con)  # in [0, 1] x [0, 1]
+  knots.con    <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
+  knots        <- pnorm(knots.con)  # in [0, 1] x [0, 1]
   knots[, 1, ] <- knots[, 1, ] * range + min(s[, 1])  # rescaled back to size of s
   knots[, 2, ] <- knots[, 2, ] * range + min(s[, 2])  # rescaled back to size of s
     
@@ -219,18 +219,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     acc.phi.w <- att.phi.w <- mh.phi.w <- 1
   }
   if (temporaltau) {
-    acc.tau <- att.tau <- mh.tau <- nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
-    acc.tau.ns <- att.tau.ns <- rep(1, ns)
-    mh.tau.ns  <- rep(1.5, ns)
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- mh.phi.tau <- 1
     tau.s <- 1
     tau.s.a <- 2
     tau.s.b <- 8
-  } else {
-    acc.tau <- att.tau <- mh.tau <- nparts.tau <- matrix(1, nrow=nknots, ncol=nt) 
-    acc.tau.ns <- att.tau.ns <- rep(1, ns)
-    mh.tau.ns  <- rep(1.5, ns)
   }
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
@@ -240,12 +233,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
     
   # MH tuning params
-  acc.w     <- att.w     <- mh.w     <- rep(0.1, nt)  # knot locations
-  acc.delta <- att.delta <- mh.delta <- 0.1  
-  acc.rho   <- att.rho   <- mh.rho   <- 0.1
-  acc.nu    <- att.nu    <- mh.nu    <- 0.1
-  acc.alpha <- att.alpha <- mh.alpha <- 0.5
-     
+  acc.w      <- att.w      <- mh.w     <- rep(0.1, nt)  # knot locations
+  acc.delta  <- att.delta  <- mh.delta <- 0.1  
+  acc.rho    <- att.rho    <- mh.rho   <- 0.1
+  acc.nu     <- att.nu     <- mh.nu    <- 0.1
+  acc.alpha  <- att.alpha  <- mh.alpha <- 0.5
+  acc.tau.ns <- att.tau.ns <- rep(1, ns)
+  mh.tau.ns  <- 1 / (1:ns)
+  acc.tau    <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
+  mh.tau <- matrix(1, nknots, nt)
+  nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
+       
   # storage
   keepers.tau       <- array(NA, dim=c(iters, nknots, nt))
   keepers.beta      <- matrix(NA, nrow=iters, ncol=p)
@@ -305,7 +303,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         s.y <- sqrt(1 - alpha) * sig.t
         upper.y <- thresh.mtx[, t]
         
-        # y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
         y.impute.t <- tryCatch(rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y),
                                warning = function(e) {
                                	cat("sig.t = ", sig.t, "\n")
@@ -356,36 +353,43 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       avgparts <- rep(0, nt)
       for (t in 1:nt) {
         att.w[1]       <- att.w[1] + 1
-        can_knots_con  <- knots_con[, , t] + mh.w[1] * rnorm(2 * nknots)
-        can_knots      <- pnorm(can_knots_con)
-        can_knots[, 1] <- can_knots[, 1] * range + min(s[, 1])
-        can_knots[, 2] <- can_knots[, 2] * range + min(s[, 2])
-        cang           <- mem(s, can_knots)
-        cantaug        <- tau[cang, t]
-        canzg          <- z[cang, t]
-        canres         <- y - x.beta - z.alpha * canzg   
+        can.knots.con  <- knots.con[, , t] + mh.w[1] * rnorm(2 * nknots)
+        can.knots      <- pnorm(can.knots.con)
+        can.knots[, 1] <- can.knots[, 1] * range + min(s[, 1])
+        can.knots[, 2] <- can.knots[, 2] * range + min(s[, 2])
+        can.g          <- mem(s, can.knots)
+        can.taug       <- tau[can.g, t]
+        can.zg         <- z[can.g, t]
+        can.res        <- y - x.beta - z.alpha * can.zg   
         
         if (temporalw & (t > 1)) {  # first day has mean 0: added for ts
-          mean <- phi.w * knots_con[, , (t-1)]
+          mean <- phi.w * knots.con[, , (t-1)]
           sd   <- sqrt(1 - phi.w^2)
         } else {
           mean <- 0
           sd   <- 1
         }
 
-        R <- -0.5 * quad.form(prec.cor, sqrt(cantaug) * canres[, t]) +
+        R <- -0.5 * quad.form(prec.cor, sqrt(can.taug) * can.res[, t]) +
               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res[, t]) +
-              0.5 * sum(log(cantaug)) -
+              0.5 * sum(log(can.taug)) -
               0.5 * sum(log(taug[, t])) +
-              sum(dnorm(can_knots_con, mean=mean, sd=sd, log=TRUE)) -  # edited for ts
-              sum(dnorm(knots_con[, , t], mean=mean, sd=sd, log=TRUE))  # edited for ts
+              sum(dnorm(can.knots.con, mean, sd, log=T)) -  # edited for ts
+              sum(dnorm(knots.con[, , t], mean, sd, log=T))  # edited for ts
+        
+        if (temporalw & (t < nt)) {
+          sd.next <- sqrt(1 - phi.w^2)
+          knots.next <- knots.con[, , (t + 1)]
+          R <- R + sum(dnorm(knots.next, (phi.w * can.knots.con), sd.next, log=T)) - 
+                   sum(dnorm(knots.next, (phi.w * knots.con[, , t]), sd.next, log=T))
+        }
           
         if (!is.na(R)) { if (log(runif(1)) < R) {
-          knots_con[, , t] <- can_knots_con
-          knots[, , t]     <- can_knots
-          g[, t]           <- cang
-          taug[, t]        <- cantaug
-          zg[, t]          <- canzg
+          knots.con[, , t] <- can.knots.con
+          knots[, , t]     <- can.knots
+          g[, t]           <- can.g
+          taug[, t]        <- can.taug
+          zg[, t]          <- can.zg
           acc.w[1]         <- acc.w[1] + 1
         }}
         
@@ -409,13 +413,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             cur.mean <- matrix(0, nknots, 2)
             can.mean <- matrix(0, nknots, 2)
           } else {
-          	cur.mean <- phi.w * knots_con[, , (t - 1)]
-          	can.mean <- can.phi.w * knots_con[, , (t - 1)]
+          	cur.mean <- phi.w * knots.con[, , (t - 1)]
+          	can.mean <- can.phi.w * knots.con[, , (t - 1)]
           }
           cur.sd <- sqrt(1 - phi.w^2)
           can.sd <- sqrt(1 - can.phi.w^2)
-          can.ll <- can.ll + sum(dnorm(knots_con[, , t], can.mean, can.sd, log=T))
-          cur.ll <- cur.ll + sum(dnorm(knots_con[, , t], cur.mean, cur.sd, log=T))
+          can.ll <- can.ll + sum(dnorm(knots.con[, , t], can.mean, can.sd, log=T))
+          cur.ll <- cur.ll + sum(dnorm(knots.con[, , t], cur.mean, cur.sd, log=T))
         }
         
         R <- can.ll - cur.ll +
@@ -426,7 +430,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           phi.w <- can.phi.w
         } }
         
-        if (att.phi.w > 50) {
+        if ((att.phi.w > 50) & (iter < (burn / 2))) {
           if (acc.phi.w / att.phi.w < 0.25) { mh.phi.w <- mh.phi.w * 0.8 }
           if (acc.phi.w / att.phi.w > 0.50) { mh.phi.w <- mh.phi.w * 1.2 }
           acc.phi.w <- att.phi.w <- 1
@@ -463,8 +467,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
     } else if (method == "t"){
       if (temporaltau) {
-        ts.tau <- ts.sample.tau(tau=tau, acc.tau=acc.tau, att.tau=att.tau, 
-                                mh.tau=mh.tau, taug=taug, phi=phi.tau, att.phi=att.phi.tau, 
+        ts.tau <- ts.sample.tau(tau=tau, acc.tau=acc.tau, att.tau=att.tau, mh.tau=mh.tau, 
+                                acc.tau.ns=acc.tau.ns, att.tau.ns=att.tau.ns, mh.tau.ns=mh.tau.ns, 
+                                taug=taug, phi=phi.tau, att.phi=att.phi.tau, 
                                 acc.phi=acc.phi.tau, mh.phi=mh.phi.tau, s=tau.s, 
                                 s.a=tau.s.a, s.b=tau.s.b, 
                                 tau.alpha=tau.alpha, tau.beta=tau.beta,
@@ -476,8 +481,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         phi.tau <- ts.tau$phi
         att.phi.tau <- ts.tau$att.phi
         acc.phi.tau <- ts.tau$acc.phi
-        
-        if (att.phi.tau > 50) {
+        # print(tau[1, 1])
+        # print(tau[1, 10])
+        # print(tau[1, 21])
+        if ((att.phi.tau > 50) & (iter < (burn / 2))) {
           if (acc.phi.tau / att.phi.tau < 0.25) { mh.phi.tau <- mh.phi.tau * 0.8 }
           if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 1.2 }
           acc.phi.tau <- att.phi.tau <- 1
@@ -549,7 +556,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                         dgamma(cantau[k], aaa, bbb, log=TRUE)
                 
                 if (!is.na(R)) { if (log(runif(1)) < R) {
-                  acc.tau.ns[nparts] <- acc.tau[nparts] + 1
+                  acc.tau.ns[nparts] <- acc.tau.ns[nparts] + 1
                   acc.tau[k, t] <- acc.tau[k, t] + 1
                   tau[, t]  <- cantau
                   taug[, t] <- cantaug
@@ -582,12 +589,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       # update candidate tau
       for (t in 1:nt) { for (k in 1:nknots) {
-        if (att.tau[k, t] > 50) {
+        if ((att.tau[k, t] > 50) & (iter < (burn / 2))) {
           if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
           if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
           acc.tau[k, t] <- att.tau[k, t] <- 1
         }
       } }
+      
+      for (i in 1:ns) {
+        if ((acc.tau.ns[i] > 50) & (iter < (burn / 2))) {
+          if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) { mh.tau.ns[i] <- mh.tau.ns[i] * 0.8 }
+          if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
+        }
+      }
     }  # fi method == t
     
     # update rho and nu and alpha
@@ -595,10 +609,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       mu <- x.beta + z.alpha * zg
       res <- y - mu
       lll.rho <- rep(NA, length(rhos))
-      
-      # D <- 1 - alpha + alpha * C.values[, rho.idx]  # eigenvalues with alpha
-      # prec.cor <- quad.tform(diag(1 / D), C.vectors[, , rho.idx])
-      # logdet.prec <- -0.5 * sum(log(D))
       
       # storage for possible covariance parts
       can.prec.cor <- array(NA, dim=c(ns, ns, length(rhos)))
@@ -659,7 +669,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         acc.alpha <- acc.alpha + 1
       }}
     
-      if (att.alpha > 50) {
+      if ((att.alpha > 50) & (iter < (burn / 2))) {
         if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
         if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
         acc.alpha <- att.alpha <- 1
@@ -727,19 +737,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         }}
       }
     
-      if (att.rho > 50) {
+      if ((att.rho > 50) & (iter < (burn / 2))) {
         if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
         if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
         acc.rho <- att.rho <- 1
       }
     
-      if (att.nu > 50) {
+      if ((att.nu > 50) & (iter < (burn / 2))) {
         if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
         if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
         acc.nu <- att.nu <- 1
       }
     
-      if (att.alpha > 50) {
+      if ((att.alpha > 50) & (iter < (burn / 2))) {
         if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
         if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
         acc.alpha <- att.alpha <- 1
@@ -784,16 +794,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	att.phi.z <- ts.z.update$att.phi
       	acc.phi.z <- ts.z.update$acc.phi
       	
-      	for (t in 1:nt) {
+      	for (t in 1:nt) { 
           zg[, t] <- z[g[, t], t]
-          if (att.z[1, t] > 50) {  # block accepting all knots for a day
-            if (acc.z[1, t] / att.z[1, t] < 0.25) { mh.z[, t] <- mh.z[, t] * 0.8 }
-            if (acc.z[1, t] / att.z[1, t] > 0.50) { mh.z[, t] <- mh.z[, t] * 1.2 }
-            acc.z[1, t] <- att.z[1, t] <- 1
+          for (k in 1:nknots) {
+            if (att.z[k, t] > 50) {  # block accepting all knots for a day
+              if (acc.z[k, t] / att.z[k, t] < 0.25) { mh.z[k, t] <- mh.z[k, t] * 0.8 }
+              if (acc.z[k, t] / att.z[k, t] > 0.50) { mh.z[k, t] <- mh.z[k, t] * 1.2 }
+              acc.z[k, t] <- att.z[k, t] <- 1
+            }
           }
-        }
+        } 
         
-        if (att.phi.z > 50) {
+        if ((att.phi.z > 50) & (iter < (burn / 2)) ) {
           if (acc.phi.z / att.phi.z < 0.25) { mh.phi.z <- mh.phi.z * 0.8 }
           if (acc.phi.z / att.phi.z > 0.50) { mh.phi.z <- mh.phi.z * 1.2 }
           acc.phi.z <- att.phi.z <- 1
@@ -863,8 +875,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
    
   }
-  
-  
+    
   # print(iter)
   # print("beta, tau.alpha, tau.beta")
   # print(c(beta, tau.alpha, tau.beta))
@@ -913,9 +924,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
   
   if (iter %% update == 0) {
+  	acc.rate.phi.w <- round(acc.phi.w / att.phi.w, 3)
+  	acc.rate.phi.z <- round(acc.phi.z / att.phi.z, 3)
+  	acc.rate.phi.tau <- round(acc.phi.tau / att.phi.tau, 3)
+  	acc.rate.rho <- round(acc.rho / att.rho, 3)
+  	acc.rate.nu <- round(acc.nu / att.nu, 3)
   	acc.rate.tau <- round(acc.tau / att.tau, 3)
-  	print(acc.rate.tau)
-  	begin <- max(1, (iter - 5000))
+  	acc.rate.alpha <- round(acc.alpha / att.alpha, 3)
+  	acc.rate.z <- round(acc.z / att.z, 3)
+  	begin <- max(1, (iter - 500))
+  	# print(mh.tau.ns)
     if (iterplot) {
       if (skew) {
         par(mfrow=c(3, 5))
@@ -923,28 +941,41 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         par(mfrow=c(3, 4))
       }
       if (temporalw) {
-        plot(keepers.phi.w[begin:iter], type="l")
+        title.phi.w <- paste("acc =", acc.rate.phi.w)
+        plot(keepers.phi.w[begin:iter], type="l", main=title.phi.w)
       }
       if (temporalz) {
-      	plot(keepers.phi.z[begin:iter], type="l")
+        title.phi.z <- paste("acc =", acc.rate.phi.z)
+      	plot(keepers.phi.z[begin:iter], type="l", main=title.phi.z)
       }
       if (temporaltau) {
-      	plot(keepers.phi.tau[begin:iter], type="l")
+        title.phi.tau <- paste("acc =", acc.rate.phi.tau)
+      	plot(keepers.phi.tau[begin:iter], type="l", main=title.phi.tau)
       }
       plot(keepers.beta[begin:iter, 1], type="l")
       # plot(keepers.tau.alpha[begin:iter], type="l")
       # plot(keepers.tau.beta[begin:iter], type="l")
-      plot(keepers.rho[begin:iter], type="l")
-      plot(keepers.nu[begin:iter], type="l")
-      title1 <- paste("mhtau = ", mh.tau[1, 1])
-      title2 <- paste("mhtau = ", mh.tau[1, 10])
-      title3 <- paste("mhtau = ", mh.tau[1, 21])
-      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title1)
-      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title2)
-      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title3)
-      plot(keepers.alpha[begin:iter], type="l")
+      
+      title.rho <- paste("acc =", acc.rate.rho)
+      plot(keepers.rho[begin:iter], type="l", main=title.rho)
+      title.nu <- paste("acc =", acc.rate.nu)
+      plot(keepers.nu[begin:iter], type="l", main=title.nu)
+      
+      title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
+      title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
+      title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
+      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1)
+      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2)
+      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3)
+      
+      title.alpha <- paste("acc =", acc.rate.alpha)
+      plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
       if (skew) {
         plot(keepers.z.alpha[begin:iter], type="l")
+       
+        title.z.1 <- paste("acc =", acc.rate.z[1, 1])
+        title.z.2 <- paste("acc =", acc.rate.z[1, 10])
+        title.z.3 <- paste("acc =", acc.rate.z[1, 21])
         plot(keepers.z[begin:iter, 1, 1], type="l")
         plot(keepers.z[begin:iter, 1, 10], type="l")
         plot(keepers.z[begin:iter, 1, 21], type="l")
