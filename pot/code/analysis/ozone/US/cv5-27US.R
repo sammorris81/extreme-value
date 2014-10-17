@@ -51,14 +51,17 @@ for(val in 1:2){
 	save(fit, file=outputfile)
 }
 
+Rprof(filename="Rprof.out", line.profiling=T)
 set.seed(setting*100 + val)
 source('../../../R/mcmc.R')
 source('../../../R/time_series.R')
 source('../../../R/auxfunctions.R')
 fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-                   temporalw=T, temporalz=T, temporaltau=F,
+                   temporalw=T, temporalz=T, temporaltau=T,
 	               method=method, skew=T, keep.knots=keep.knots,
 	               thresh.all=0, thresh.quant=thresh.quant, nknots=nknots, 
-                   iters=30000, burn=25000, update=100, iterplot=T,
+                   iters=20, burn=10, update=10, iterplot=T,
                    beta.init=beta.init, tau.init=tau.init, rho.init=1,
                    nu.init=0.5, alpha.init=0.5)
+Rprof(NULL)
+summaryRprof(filename="Rprof.out")

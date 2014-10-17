@@ -4,36 +4,45 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
   nt <- ncol(y)
   nknots <- nrow(z.star)
   for (t in 1:nt) {
-  	att.z[, t] <- att.z[, t] + 1
-    can.z.star <- rnorm(nknots, z.star[, t], mh.z[, t])  # will be nknots long
-    can.z      <- abs(can.z.star)
-    can.zg     <- can.z[g[, t]]  # will be ns long
-    
-    can.res   <- y - x.beta[, t] + z.alpha * can.zg
-    can.rss   <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
-    
-    cur.res   <- y - x.beta[, t] + z.alpha * zg[, t]
+  	cur.res   <- y[, t] - x.beta[, t] + z.alpha * zg[, t]
     cur.rss   <- quad.form(prec.cor, sqrt(taug[, t]) * cur.res)
+    
+    for (k in 1:nknots) {
+      # att.z[, t] <- att.z[, t] + 1
+      # can.z.star <- rnorm(nknots, z.star[, t], mh.z[, t])  # will be nknots long
+      
+      att.z[k, t] <- att.z[k, t] + 1
+      can.z.star <- z.star[, t]
+      can.z.star[k] <- rnorm(1, z.star[k, t], mh.z[k, t])  # will be nknots long
+      can.z      <- abs(can.z.star)
+      can.zg     <- can.z[g[, t]]  # will be ns long
+    
+      can.res   <- y[, t] - x.beta[, t] + z.alpha * can.zg
+      can.rss   <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
+      
+      # prior 
+      if (t == 1) {
+        mean <- 0
+        sd <- sqrt(1 / tau[k, t])
+      } else {
+        mean <- phi * z.star[k, (t - 1)]
+        sd <- sqrt((1 - phi^2) / tau[k, t])
+      }
+    
+      R <- -0.5 * sum(can.rss - cur.rss) + 
+            # sum(dnorm(can.z.star, mean, sd, log=T)) -
+            # sum(dnorm(z.star[, t], mean, sd, log=T))
+            dnorm(can.z.star[k], mean, sd, log=T) -
+            dnorm(z.star[k, t], mean, sd, log=T)
 
-    # prior 
-    if (t == 1) {
-      mean <- 0
-      sd <- sqrt(1 / tau[, t])
-    } else {
-      mean <- phi * z.star[, (t - 1)]
-      sd <- sqrt((1 - phi^2) / tau[, t])
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        acc.z[k, t] <- acc.z[k, t] + 1
+        z.star[, t] <- can.z.star
+        zg[, t] <- can.zg
+        cur.res <- can.res
+        cur.rss <- can.rss
+      } }
     }
-    
-    R <- -0.5 * sum(can.rss - cur.rss) + 
-          sum(dnorm(can.z.star, mean, sd, log=T)) -
-          sum(dnorm(z.star[, t], mean, sd, log=T))
-
-    if (!is.na(R)) { if (log(runif(1)) < R) {
-      acc.z[, t] <- acc.z[, t] + 1
-      z.star[, t] <- can.z.star
-      zg[, t] <- can.zg
-    } }
-    
   }
   
   # phi.z
@@ -58,7 +67,7 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
     acc.phi <- acc.phi + 1
     phi <- can.phi
   } }
-  
+    
   results <- list(z.star=z.star, acc.z=acc.z, att.z=att.z, zg=zg,
                   phi=phi, att.phi=att.phi, acc.phi=acc.phi)
   return(results)
@@ -90,6 +99,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
       	sd <- sqrt(s)
       } else {
       	mean <- phi * tau.star[k, (t - 1)]
+      	# mean <- phi * tau.star[, (t - 1)]
       	sd <- sqrt(s * (1 - phi^2))
       }
       
@@ -100,28 +110,40 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, taug,
       if (nparts == 0) {  # we just draw from the prior because no likelihood
         tau.star[k, t] <- rnorm(1, mean, sd)
         tau <- cop.IG(tau.star, phi, tau.alpha, tau.beta)
-      } else {  # do a MH update
-
-      	att.tau[k, t] <- att.tau[k, t] + 1
-      	# candidate moves are in the AR(1) distribution
-        cantau.star <- tau.star[, t]  # pull out all taus for a day
-        cantau.star[k] <- rnorm(1, cantau.star[k], mh.tau)  # get candidate for knot k
+      } else {  # do a MH update - First try with block by day
+        # candidate moves are in the AR(1) distribution
+        
+        # att.tau[, t] <- att.tau[, t] + 1
+        # cantau.star <- rnorm(nknots, tau.star[, t], mh.tau[, t])
+                
+        att.tau[k, t] <- att.tau[k, t] + 1
+      	cantau.star <- tau.star[, t]  # pull out all taus for a day
+        cantau.star[k] <- rnorm(1, cantau.star[k], mh.tau[k, t])  # get candidate for knot k
         cantaug.star <- cantau.star[g[, t]]  # transform to length ns
         
         # transform to IG marginals
+        # res.std <- (cantau.star - mean)/sd
+        # cantau <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
         cantau <- tau[, t]
         res.std <- (cantau.star[k] - mean)/sd
-      	cantau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
-      	cantaug <- cantau[g[, t]]
+        cantau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
+        cantaug <- cantau[g[, t]]
       	
         canll <- 0.5 * sum(log(cantaug)) - 
                  0.5 * quad.form(prec.cor, sqrt(cantaug) * res.t) +
                  0.5 * sum(log(cantau)) - 
-                 0.5 * sum(tau[, t] * (z[, t])^2)
-                 
+                 0.5 * sum(cantau * (z[, t])^2)
+        
+        # print(cantau)
+        # print(cantau.star)
+        # print(mean)
+        # print(sd)
+        # print(sum(dnorm(cantau.star, mean, sd, log=T)))         
         R <- canll - curll +
+             # sum(dnorm(cantau.star, mean, sd, log=T)) - 
+             # sum(dnorm(tau.star[, t], mean, sd, log=T))
              dnorm(cantau.star[k], mean, sd, log=TRUE) -
-             dnorm(tau.star[k, t]), mean, sd, log=TRUE)
+             dnorm(tau.star[k, t], mean, sd, log=TRUE)
              
         if (!is.na(R)) { if (log(runif(1)) < R) {
           acc.tau[k, t] <- acc.tau[k, t] + 1
