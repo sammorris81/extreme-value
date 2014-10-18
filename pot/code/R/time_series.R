@@ -157,16 +157,16 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau,
   
   # phi.tau
   att.phi     <- att.phi + 1
-  logtau.lag1 <- cbind(rep(0, nknots), log(tau[, -nt, drop=F]))  # should be nknots x nt
-  cur.mean    <- phi * logtau.lag1
+  tau.star.lag1 <- cbind(rep(0, nknots), tau.star[, -nt, drop=F])  # should be nknots x nt
+  cur.mean    <- phi * tau.star.lag1
   
   phi.con     <- qnorm((phi + 1) / 2)  # transform to R
   can.phi.con <- rnorm(1, phi.con, mh.phi)  # draw candidate
   can.phi     <- 2 * pnorm(can.phi.con) - 1  # transform back to (-1, 1)
-  can.mean    <- can.phi * logtau.lag1
+  can.mean    <- can.phi * tau.star.lag1
   
-  R <- sum(dnorm(log(tau), can.mean, sqrt(s * (1 - can.phi^2)), log=T)) - 
-       sum(dnorm(log(tau), cur.mean, sqrt(s * (1 - can.phi^2)), log=T)) + 
+  R <- sum(dnorm(tau.star, can.mean, sqrt(s * (1 - can.phi^2)), log=T)) - 
+       sum(dnorm(tau.star, cur.mean, sqrt(s * (1 - can.phi^2)), log=T)) + 
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
        
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -179,10 +179,10 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau,
   b.star <- s.b
   for (t in 1:nt) {
     if (t == 1) {
-      b.star <- b.star + sum(log(tau[, t])^2 / 2)
+      b.star <- b.star + sum(tau.star[, t]^2 / 2)
     } else {
-      b.star <- b.star + sum((log(tau[, t]) - 
-                              phi * log(tau[, (t - 1)]))^2 / (2 * (1 - phi^2)))
+      b.star <- b.star + sum(tau.star[, t] - 
+                             phi * tau.star[, (t - 1)]^2 / (2 * (1 - phi^2)))
     }
   }
   s <- 1 / rgamma(1, a.star, b.star)

@@ -490,6 +490,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           acc.phi.tau <- att.phi.tau <- 1
         }
         s.tau <- ts.tau$s
+        if (iter > 700) {
+          print(s)
+        }
       } else {
         if (nknots == 1) {
           for (t in 1:nt) {
@@ -588,20 +591,20 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }  # fi temporal
       
       # update candidate tau
-      for (t in 1:nt) { for (k in 1:nknots) {
-        if ((att.tau[k, t] > 50) & (iter < (burn / 2))) {
-          if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
-          if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
-          acc.tau[k, t] <- att.tau[k, t] <- 1
-        }
-      } }
+      # for (t in 1:nt) { for (k in 1:nknots) {
+        # if ((att.tau[k, t] > 50) & (iter < (burn / 2))) {
+          # if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
+          # if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
+          # acc.tau[k, t] <- att.tau[k, t] <- 1
+        # }
+      # } }
       
-      for (i in 1:ns) {
-        if ((acc.tau.ns[i] > 50) & (iter < (burn / 2))) {
-          if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) { mh.tau.ns[i] <- mh.tau.ns[i] * 0.8 }
-          if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
-        }
-      }
+      # for (i in 1:ns) {
+        # if ((acc.tau.ns[i] > 50) & (iter < (burn / 2))) {
+          # if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) { mh.tau.ns[i] <- mh.tau.ns[i] * 0.8 }
+          # if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
+        # }
+      # }
     }  # fi method == t
     
     # update rho and nu and alpha
