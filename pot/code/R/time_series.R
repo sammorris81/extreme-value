@@ -48,7 +48,7 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
   
   # phi.z
   att.phi  <- att.phi + 1
-  z.lag1   <- cbind(rep(0, nknots), z.star[, -nt, drop=F])
+  z.lag1   <- z.star[, -nt]  # For the mean, we don't need the last day
   cur.mean <- phi * z.lag1
   
   phi.con     <- qnorm(phi)  # transform to R
@@ -60,8 +60,8 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
   	can.phi <- 0.999999
   }
   can.mean <- can.phi * z.lag1  # will be nknots x nt
-  R <- sum(dnorm(z.star, can.mean, sqrt((1 - can.phi^2)/tau), log=T)) -  # tau is inv var
-       sum(dnorm(z.star, cur.mean, sqrt((1 - phi^2)/tau), log=T)) +
+  R <- sum(dnorm(z.star[, -1], can.mean, sqrt((1 - can.phi^2)/tau), log=T)) -  # tau is inv var
+       sum(dnorm(z.star[, -1], cur.mean, sqrt((1 - phi^2)/tau), log=T)) +
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -77,87 +77,99 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
 ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, 
                           att.tau.ns, acc.tau.ns, mh.tau.ns, taug,
                           phi, att.phi, acc.phi, mh.phi,
-                          s, s.a, s.b, tau.alpha, tau.beta,
+                          tau.alpha, tau.beta, s, s.a, s.b, 
                           res, prec.cor, g, z) {
-  
+  # s <- 1                        	
   nt       <- ncol(tau)
   nknots   <- nrow(tau)
-  tau.star <- cop.inv.IG(tau=tau, phi=phi, alpha=tau.alpha, beta=tau.beta)
+  # tau.star <- cop.inv.IG(tau=tau, phi=phi, alpha=tau.alpha, beta=tau.beta)
+  tau.star <- qnorm(pgamma(tau, tau.alpha, tau.beta))
+  # plot(tau.star[1, ] ,type="l")
   # update tau terms
   for (t in 1:nt) {
     res.t <- res[, t]
     # get the current day's likelihood
-    curll <- 0.5 * sum(log(taug[, t])) - 
-             0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t) + 
-             0.5 * sum(log(tau[, t])) - 
-             0.5 * sum(tau[, t] * (z[, t])^2)
+    cur.ll.y <- 0.5 * sum(log(taug[, t])) - 
+               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t)
     
     for (k in 1:nknots) {
       these  <- which(g[, t] == k)
-      nparts <- length(these)
+      nparts <- length(these)  # determines MH standard deviation
       
       if (t == 1) {
-      	mean <- 0
-      	sd   <- sqrt(s)
+        mean <- 0
+        sd   <- sqrt(s)
       } else {
-      	mean <- phi * tau.star[k, (t - 1)]
-      	sd   <- sqrt(s * (1 - phi^2))
+        mean <- phi * tau.star[k, (t - 1)]
+        sd   <- sqrt(s * (1 - phi^2))
       }
       
       # draw candidate tau.star from Normal 
       # prior is on tau.stars
       # likelihood uses tau
       
-      if (nparts == 0) {  # we just draw from the prior because no likelihood
-        tau.star[k, t] <- rnorm(1, mean, sd)
-        res.std        <- (tau.star[k, t] - mean) / sd
-        tau[k, t]      <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
-      } else {  # do a MH update - First try with block by day
-        # candidate moves are in the AR(1) distribution
-        att.tau.ns[nparts] <- att.tau.ns[nparts] + 1
-        att.tau[k, t]      <- att.tau[k, t] + 1
-      	can.tau.star       <- tau.star[, t]  # pull out all taus for a day
-        can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[nparts])  # get candidate for knot k
-        # can.tau.star[k] <- rnorm(1, tau.star[k, t], mh.tau[k, t])  # get candidate for knot k
-        can.taug.star      <- can.tau.star[g[, t]]  # transform to length ns
+      # candidate moves are in the AR(1) distribution
+      att.tau.ns[(nparts + 1)] <- att.tau.ns[(nparts + 1)] + 1
+      att.tau[k, t]      <- att.tau[k, t] + 1
+      can.tau.star       <- tau.star[, t]  # pull out all taus for a day
+      can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[(nparts + 1)])  # get candidate for knot k
+      # can.tau.star[k] <- rnorm(1, tau.star[k, t], mh.tau[k, t])  # get candidate for knot k
+      if (can.tau.star[k] > 8) { can.tau.star[k] = 8 }  # numerical stability
+      if (can.tau.star[k] < -8) { can.tau.star[k] = 8 }  # numerical stability
+      can.taug.star      <- can.tau.star[g[, t]]  # transform to length ns
         
-        # transform to IG marginals
-        can.tau    <- tau[, t]
-        res.std    <- (can.tau.star[k] - mean)/sd
-        can.tau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
-        can.taug   <- can.tau[g[, t]]
-      	
-        canll <- 0.5 * sum(log(can.taug)) - 
-                 0.5 * quad.form(prec.cor, sqrt(can.taug) * res.t) +
-                 0.5 * sum(log(can.tau)) - 
-                 0.5 * sum(can.tau * (z[, t])^2)
+      # transform to IG marginals
+      can.tau    <- tau[, t]
+      # res.std    <- (can.tau.star[k] - mean)/sd
+      # can.tau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
+      can.tau[k] <- qgamma(pnorm(can.tau.star[k]), tau.alpha, tau.beta)
+      can.taug   <- can.tau[g[, t]]
+      
+      
+      
+      if (nparts == 0) {
+        can.ll.y <- cur.ll.y
+      }	else {
+        can.ll.y <- 0.5 * sum(log(can.taug)) - 
+                    0.5 * quad.form(prec.cor, sqrt(can.taug) * res.t)
+      }
+      
+      cur.ll.z <- 0.5 * log(tau[k, t]) - 0.5 * tau[k, t] * z[k, t]^2      
+      can.ll.z <- 0.5 * log(can.tau[k]) - 0.5 * can.tau[k] * z[k, t]^2
                
-        R <- canll - curll +
-             dnorm(can.tau.star[k], mean, sd, log=TRUE) -
-             dnorm(tau.star[k, t], mean, sd, log=TRUE)
+      R <- can.ll.y - cur.ll.y + can.ll.z - cur.ll.z +
+           dnorm(can.tau.star[k], mean, sd, log=TRUE) -
+           dnorm(tau.star[k, t], mean, sd, log=TRUE)
         
-        if (t < nt) {
-          sd.next <- sqrt(s * (1 - phi^2))
-          R <- R + dnorm(tau.star[k, (t + 1)], (phi * can.tau.star[k]), sd.next, log=T) -
-                   dnorm(tau.star[k, (t + 1)], (phi * tau.star[k, t]), sd.next, log=T)
-        }
+      if (t < nt) {
+        sd.next <- sqrt(s * (1 - phi^2))
+        R <- R + dnorm(tau.star[k, (t + 1)], (phi * can.tau.star[k]), sd.next, log=T) -
+                 dnorm(tau.star[k, (t + 1)], (phi * tau.star[k, t]), sd.next, log=T)
+      }
              
-        if (!is.na(R)) { if (log(runif(1)) < R) {
-          acc.tau.ns[nparts] <- acc.tau.ns[nparts] + 1
-          acc.tau[k, t]      <- acc.tau[k, t] + 1
-          tau[k, t]          <- can.tau[k]
-          tau.star[k, t]     <- can.tau.star[k]
-          taug[these, t]     <- can.taug[these]
-          curll              <- canll
-        } }
-       
-      }  # fi nparts == 0
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        acc.tau.ns[(nparts + 1)] <- acc.tau.ns[(nparts + 1)] + 1
+        acc.tau[k, t]      <- acc.tau[k, t] + 1
+        tau[k, t]          <- can.tau[k]
+        tau.star[k, t]     <- can.tau.star[k]
+        taug[these, t]     <- can.taug[these]
+        cur.ll.y           <- can.ll.y
+      } }
+      
+      if (k == 2 & t == 12) { 
+        print(paste("tau.star=", tau.star[k, t], "nparts=", nparts)) 
+        print(paste("tau=", tau[k, t]))
+      }
+      if (k == 10 & t == 24) { 
+        print(paste("tau.star=", tau.star[k, t], "nparts=", nparts)) 
+        print(paste("tau=", tau[k, t]))
+      }
     }  # end k in 1:nknots
   }  # end t in 1:nt
-  
+  print(tau.star)
   # phi.tau
   att.phi     <- att.phi + 1
-  tau.star.lag1 <- cbind(rep(0, nknots), tau.star[, -nt, drop=F])  # should be nknots x nt
+  tau.star.lag1 <- tau.star[, -nt]  # For the mean, we don't need the last day
   cur.mean    <- phi * tau.star.lag1
   
   phi.con     <- qnorm((phi + 1) / 2)  # transform to R
@@ -165,8 +177,9 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau,
   can.phi     <- 2 * pnorm(can.phi.con) - 1  # transform back to (-1, 1)
   can.mean    <- can.phi * tau.star.lag1
   
-  R <- sum(dnorm(tau.star, can.mean, sqrt(s * (1 - can.phi^2)), log=T)) - 
-       sum(dnorm(tau.star, cur.mean, sqrt(s * (1 - can.phi^2)), log=T)) + 
+  # the likelihood impacted by phi.tau does not include the first day.
+  R <- sum(dnorm(tau.star[, -1], can.mean, sqrt(s * (1 - can.phi^2)), log=T)) - 
+       sum(dnorm(tau.star[, -1], cur.mean, sqrt(s * (1 - phi^2)), log=T)) + 
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
        
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -177,18 +190,22 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau,
   # s: prior is IG(a, b)
   a.star <- s.a + nt * nknots / 2
   b.star <- s.b
+  print(range(tau.star))
   for (t in 1:nt) {
     if (t == 1) {
       b.star <- b.star + sum(tau.star[, t]^2 / 2)
     } else {
-      b.star <- b.star + sum(tau.star[, t] - 
-                             phi * tau.star[, (t - 1)]^2 / (2 * (1 - phi^2)))
+      b.star <- b.star + sum((tau.star[, t] - 
+                             phi * tau.star[, (t - 1)])^2 / (2 * (1 - phi^2)))
     }
   }
-  s <- 1 / rgamma(1, a.star, b.star)
-  
+  # print(paste("a.star =", a.star))
+  # print(paste("b.star =", b.star))
+  # s <- 1 / rgamma(1, a.star, b.star)
+  s <- 1
+
   results <- list(tau=tau, att.tau=att.tau, acc.tau=acc.tau,
                   phi=phi, att.phi=att.phi, acc.phi=acc.phi,
-                  s)
+                  s=s)
   return(results)                         
 }
