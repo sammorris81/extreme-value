@@ -70,9 +70,9 @@ One member of this family, is the skew-$t$ distribution \citep{Azzalini2003}.
 We assume the data can be modeled using a skew-$t$ distribution.
 \citet{Zhang2010} show that the skew-$t$ can be expressed as a hierarchical model
 \begin{align} \label{eq:fullmodel}
-  Y_t(\bs) &= X_t(\bs) \beta + \alpha \sigma_t z_t + \sigma_t v_t(\bs)
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha |z_t| + \sigma_t v_t(\bs)
 \end{align}
-where $\alpha \in \calR$ controls the skewness, $z_{t} \ind N_{(0, \infty)}(0, 1)$ are a random effect from a half-normal distribution (see appendix A.4), $v_t(\bs)$ is a Gaussian process with mean zero, variance one, \Matern correlation, and $\sigma^2_t \iid \text{IG}(a, b)$.
+where $\alpha \in \calR$ controls the skewness, $z_{t} \ind N(0, \sigma^2_t)$ are a random effect from a half-normal distribution (see appendix A.4), $v_t(\bs)$ is a Gaussian process with mean zero, variance one, \Matern correlation, and $\sigma^2_t \iid \text{IG}(a, b)$.
 When marginalizing over the $z_t$ and $\sigma^2_t$ terms,
 \begin{align*}
   Y_t(\bs) \sim \text{skew-}t (\mu, \Sigma^*, \alpha, \text{df} = 2a)
@@ -108,10 +108,10 @@ However, for the process described in Section \ref{s:data}, $\chi(\bh) > 0$ \cit
 \subsection{Random daily partition}\label{s:part}
 One problem with the spatial skew-$t$ process is that all sites are asymptotically dependent regardless of their spatial separation.
 This occurs because all observations, both near and far, share the same $z_t$ and $\sigma^2_t$ terms.
-We handle this problem with a daily random partition similar to \citet{Huser2014} that allows $z_t$ and $\sigma^2_t$ to vary by site.
+We handle this problem with a daily random partition similar to \citet{Kim2005} that allows $z_t$ and $\sigma^2_t$ to vary by site.
 The model then becomes
 \begin{align}
-  Y_t(\bs) &= X_t(\bs) \beta + \alpha z_t(\bs) + \sigma_t(\bs) v_t(\bs).
+  Y_t(\bs) &= X_t(\bs) \beta + \alpha |z_t(\bs)| + \sigma_t(\bs) v_t(\bs).
 \end{align}
 In this extension of (\ref{eq:fullmodel}), $z_t(\bs)$ and $\sigma_t(\bs)$ are allowed to vary by site.
 Their spatial variation is determined by the random partition model defined below.
@@ -136,39 +136,52 @@ Asymptotic dependence is eliminated as $h$ increases, because
 \end{align}
 A proof of this can be found in Appendix A.3.
 
-\subsection{Accounting for temporal dependence}
-We account for temporal dependence through a AR(1) time series on the spatial knots and $z_t(\bs)$ terms.
-These are modeled as
+\subsection{Accounting for temporal dependence} \label{s:temporal}
+In a standard block-maxima approach, the temporal dependence is assumed to be negligible because blocks (e.g. yearly maxima) are taken to be large enough to assume independence.
+However, when using daily meausrements, the assumption of temporal independence is no longer appropriate.
+We account for temporal dependence through an AR(1) time series on the spatial knots, $z_t(\bs)$ terms, and $\sigma^2_t(\bs)$ terms.
+We first, transform the spatial knots from $\calD$ to $\calR^2$ as follows.
+Let
+\begin{align*}
+  \bw^*_k = \Phi^{-1}_2\left[ \frac{ (\bw_k - \min(\bs))}{ \text{range}(\bs) } \right].
+\end{align*}
+where $\Phi_2$ represents a bivariate standard normal density function.
+Then $\bw^*_k \in \calR^2$.
+We use a copula on the $\sigma^2_t(\bs)$ to ensure that the marginal distributions of $\sigma^2_t(\bs)$ are inverse gamma.
+Let
+\begin{align*}
+  \sigma^{2*}_t(\bs) =\Phi^{-1}\left\{ \text{IG}[\sigma^2_t(\bs)] \right\}
+\end{align*}
+where $\Phi$ is a univariate standard normal density function, and IG is the distribution function for an IG$(a, b)$ random variable.
+Then the time series is modeled as
 \begin{align}
-  \bw_{t, k} | \bw_{t-1, k} &\sim N_2(\phi_w \bw_{t-1, k}, (1 - \phi_w^2) ) \\
-  z_{t, k} | z_{t-1, k} &\sim N(\phi_z z_{t-1, k}, (1 - \phi_z^2))
+  \bw^*_{t, k} | \bw^*_{t-1, k} &\sim N_2\left[\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2) \right] \\
+  z_{t, k} | z_{t-1, k} &\sim N \left[\phi_z z_{t-1, k}, \sigma^2_{t,k} (1 - \phi_z^2)\right] \\
+  \sigma^{2*}_{t, k} | \sigma^{2*}_{t-1, k} &\sim N \left[\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2) \right]
 \end{align}
-where $|\phi_w|, |\phi_z| < 1$.
+where $|\phi_w| < 1$, $0 < \phi_z < 1$, and $|\phi_\sigma| < 1$.
 
 \subsection{Hierarchical model}\label{s:hier}
-Conditioned on $z_{tk}(\bs) \iid $ $N(0, \sigma^2_{tk})$, $\sigma^2_{tk}(\bs) \sim IG(a, b)$, and $P_{tk}$, the marginal distributions are skew-$t$ and the joint distribution within a partition is multivariate skew-$t$.
+Conditioned on $z_{t,k}(\bs) \iid $ $N(0, \sigma^2_{t,k})$, $\sigma^2_{t,k}(\bs) \sim IG(a, b)$, and $P_{t,k}$, the marginal distributions are skew-$t$ and the joint distribution within a partition is multivariate skew-$t$.
 However, we do not fix the partitions, they are treated as unknown and updated in the MCMC.
 We model this with a Bayesian hierarchical model as follows.
-Let $\bw_{t1}, \ldots, \bw_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, so that
+Let $\bw_{t,1}, \ldots, \bw_{t,K}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, so that
 \begin{align*}
- P_{tk} = \{\bs : k = \argmin_\ell || \bs_t - \bw_{t\ell} ||\}.
+ P_{t,k} = \{\bs : k = \argmin_\ell || \bs_t - \bw_{t\ell} ||\}.
 \end{align*}
-Because the spatial domain is bounded, we do a transformation on the knot locations to $\calR^2$.
-Let $\Phi_2$ represent a bivariate standard normal density function, and let $\bw_k = \min(\bs) + \text{range}(\bs) * \Phi_2^{-1}(\bw^*_k)$.
-Then $\bw^*_k \in \calR^2$.
+
 Then
 \begin{align}
-   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= X_t(\bs) \beta + \alpha |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
-   z_t(\bs) &= z_{tk} \text{ if } \bs \in P_{tk}\\
-   \sigma^2_{t}(\bs) &= \sigma^2_{tk} \text{ if } \bs \in P_{tk}\\
+   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{t,k}, \alpha, \beta, \Theta &= X_t(\bs) \beta + \alpha |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
+   z_t(\bs) &= z_{t,k} \text{ if } \bs \in P_{t,k}\\
+   \sigma^2_{t}(\bs) &= \sigma^2_{t,k} \text{ if } \bs \in P_{t,k}\\
    \alpha &\sim N(0, 10)\\
    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
-   z_{tk} \mid z_{t-1, k}, \sigma^2_{tk} &\sim N(\phi_z z_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2))\\
-   \sigma^2_{tk} &\iid IG(\alpha, \beta)\\
-   \bw^*_{tk} \mid \bw^*_{t-1, k} &\sim N_2(\phi_w \bw^*_{t-1, k}, (1 - \phi_z^2))
+   z_{t,k} \mid z_{t-1, k}, \sigma^2_{tk} &\sim N(\phi_z z_{t-1, k}, \sigma^2_{t,k} (1 - \phi_z^2))\\
+   \sigma^{2*}_{t,k} \mid \sigma^{2*}_{t-1, k} &\sim N(\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2))\\
+   \bw^*_{t,k} \mid \bw^*_{t-1, k} &\sim N_2(\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2))
 \end{align}
 where $\Theta = \{\rho, \nu, \gamma\}$; \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix with variance one, spatial range $\rho$, smoothness $\nu$, and the proportion of variance accounted for by the spatial variation is $\gamma$.
-
 
 \section{Computation}\label{s:comp}
 The MCMC for this model is fairly straightforward.
@@ -230,7 +243,7 @@ Models were compared using cross validation with 100 sites used as training site
 The model was fit using the training set, and predictions were generated at the testing site locations.
 Because one of the primary goals of this model is to predict extreme events, we quantify use Brier scores and quantile scores to select the model that best fits the data \citep{Gneiting2007}.
 The Brier score for predicting exceedance of a threshold $c$ is given by $[e(c) - P(c)]^2$ where $e(c) = I[y>c]$ is an indicator function indicating that a test set value, $y$, has exceeded the threshold, $c$, and $P(c)$ is the predicted probability of exceeding $c$.
-The quantile score for the $\tau$th quantile is $2\{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q}(\tau) - y)$ where $y$ is a AQS test set value and $\widehat{q}(\tau)$ is the estimated $\tau$th quantile.
+The quantile score for the $\tau$th quantile is $2\{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q}(\tau) - y)$ where $y$ is a test set value and $\widehat{q}(\tau)$ is the estimated $\tau$th quantile.
 For both the Brier score and the quantile score, a lower score indicates a better fit.
 These scores were averaged over all sites and days to obtain a single quantile score for each dataset.
 
@@ -314,7 +327,7 @@ where $l$ is the likelihood given in (\ref{eq:hier}).
 The candidate knots are accepted with probability $\min\{R, 1\}$.
 
 \subsection*{Spatial random effects}
-If there is temporal dependence amongst the observations, then we update $z_tk$, using a Metropolis Hastings update.
+If there is temporal dependence amongst the observations, then we update $z_{tk}$, using a Metropolis Hastings update.
 First, we generate a candidate using a random walk Gaussian candidate distribution
 \begin{align*}
   z_{tk}^{(c)} \sim \text{N}(z_{tk}^{(r - 1)}, s^2)

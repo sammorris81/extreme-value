@@ -109,6 +109,11 @@ cop.IG <- function(tau.star, phi, alpha, beta) {
   return(tau)
 }
 
+get.tau.mh.idx <- function(nparts, ns, mh.tau.parts) {
+  idx <- min(which((nparts / ns) >= mh.tau.parts))
+  return(idx)
+}
+
 #### Go from Gamma(alpha, beta) to normal
 # Arguments:
 #   tau(nknots, nt): variance terms for each knot / day

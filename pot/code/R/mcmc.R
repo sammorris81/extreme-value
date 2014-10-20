@@ -221,7 +221,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (temporaltau) {
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- 1
-    mh.phi.tau <- 0.0005
+    mh.phi.tau <- 1
     tau.s <- 1
     tau.s.a <- 2
     tau.s.b <- 8
@@ -239,10 +239,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   acc.rho    <- att.rho    <- mh.rho   <- 0.1
   acc.nu     <- att.nu     <- mh.nu    <- 0.1
   acc.alpha  <- att.alpha  <- mh.alpha <- 0.5
+  
+  # candidate distributions for tau depend on the percentage of sites in the 
+  # partition. 
   acc.tau.ns <- att.tau.ns <- rep(1, ns)
-  mh.tau.ns  <- 1 / (1:(ns + 1))
+  mh.tau.ns  <- rep(0.3, 10)
+  mh.tau.parts <- c(0, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80)
   acc.tau    <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
-  mh.tau <- matrix(1, nknots, nt)
+  mh.tau <- matrix(0.05, nknots, nt)
   nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
        
   # storage
@@ -464,7 +468,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     } else if (method == "t"){
       if (temporaltau) {
         ts.tau <- ts.sample.tau(tau=tau, acc.tau=acc.tau, att.tau=att.tau, mh.tau=mh.tau, 
-                                acc.tau.ns=acc.tau.ns, att.tau.ns=att.tau.ns, mh.tau.ns=mh.tau.ns, 
+                                acc.tau.ns=acc.tau.ns, att.tau.ns=att.tau.ns, 
+                                mh.tau.ns=mh.tau.ns, mh.tau.parts=mh.tau.parts,
                                 taug=taug, phi=phi.tau, att.phi=att.phi.tau, 
                                 acc.phi=acc.phi.tau, mh.phi=mh.phi.tau,  
                                 tau.alpha=tau.alpha, tau.beta=tau.beta,
@@ -488,7 +493,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           acc.phi.tau <- att.phi.tau <- 0
         }
         tau.s <- ts.tau$s
-        print(tau.s)
+        # print(tau.s)
       } else {
         if (nknots == 1) {
           for (t in 1:nt) {
@@ -566,37 +571,31 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           }#end k
         }  # end t
         
-        # for (i in 1:ns) {
-          # if (att.tau.ns[i] > 50) {
-            # if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) { mh.tau.ns[i] <- mh.tau.ns[i] * 0.8 }
-            # if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
-          # }
-        # }
         }  # fi knots == 1
      
       }  # fi temporal
       
       # update tau.alpha and tau.beta
-        a.star <- tau.beta.a + nt * nknots * tau.alpha
-        b.star <- tau.beta.b + sum(tau)
-        tau.beta <- rgamma(1, a.star, b.star)
+      a.star <- tau.beta.a + nt * nknots * tau.alpha
+      b.star <- tau.beta.b + sum(tau)
+      tau.beta <- rgamma(1, a.star, b.star)
 
-        lll <- mmm <- seq(0.5, 10, 0.1)
-        for (l in 1:length(lll)) {
-          lll[l] <- sum(dgamma(tau, mmm[l], tau.beta, log=T))
-        }
-        tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
+      lll <- mmm <- seq(0.5, 10, 0.1)
+      for (l in 1:length(lll)) {
+        lll[l] <- sum(dgamma(tau, mmm[l], tau.beta, log=T))
+      }
+      tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
       
       # update candidate tau
-      # for (t in 1:nt) { for (k in 1:nknots) {
-        # if ((att.tau[k, t] > 50) & (iter < (burn / 2))) {
-          # if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
-          # if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
-          # acc.tau[k, t] <- att.tau[k, t] <- 0
-        # }
-      # } }
+      for (t in 1:nt) { for (k in 1:nknots) {
+        if ((att.tau[k, t] > 50) & (iter < (burn / 2))) {
+          if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
+          if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
+          acc.tau[k, t] <- att.tau[k, t] <- 0
+        }
+      } }
       
-      for (i in 1:ns) {
+      for (i in 1:length(mh.tau.ns)) {
         if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
           if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) { mh.tau.ns[i] <- mh.tau.ns[i] * 0.8 }
           if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
@@ -933,7 +932,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	acc.rate.tau <- round(acc.tau / att.tau, 3)
   	acc.rate.alpha <- round(acc.alpha / att.alpha, 3)
   	acc.rate.z <- round(acc.z / att.z, 3)
-  	begin <- max(1, (iter - 500))
+  	if (iter < burn) {
+  	  begin <- max(1, (iter - 2000))
+  	} else {
+  	  begin <- burn
+  	}
   	# print(mh.tau.ns)
     if (iterplot) {
       if (skew) {
