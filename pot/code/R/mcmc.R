@@ -222,9 +222,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- 1
     mh.phi.tau <- 1
-    tau.s <- 1
-    tau.s.a <- 2
-    tau.s.b <- 8
   }
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
@@ -243,7 +240,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # candidate distributions for tau depend on the percentage of sites in the 
   # partition. 
   acc.tau.ns <- att.tau.ns <- rep(1, ns)
-  mh.tau.ns  <- rep(0.3, 10)
+  mh.tau.ns  <- rep(0.1, 10)
   mh.tau.parts <- c(0, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80)
   acc.tau    <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
   mh.tau <- matrix(0.05, nknots, nt)
@@ -473,7 +470,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                                 taug=taug, phi=phi.tau, att.phi=att.phi.tau, 
                                 acc.phi=acc.phi.tau, mh.phi=mh.phi.tau,  
                                 tau.alpha=tau.alpha, tau.beta=tau.beta,
-                                s=tau.s, s.a=tau.s.a, s.b=tau.s.b,
                                 res=res, prec.cor=prec.cor, g=g, z=z)
 
         tau <- ts.tau$tau
@@ -482,18 +478,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         phi.tau <- ts.tau$phi
         att.phi.tau <- ts.tau$att.phi
         acc.phi.tau <- ts.tau$acc.phi
-        # print(tau[1, 1])
-        # print(tau[1, 10])
-        # print(tau[1, 21])
         if ((att.phi.tau > 50) & (iter < (burn / 2))) {
           if (acc.phi.tau / att.phi.tau < 0.25) { mh.phi.tau <- mh.phi.tau * 0.8 }
           if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 1.2 }
-          # print(acc.phi.tau / att.phi.tau)
-          # print(mh.phi.tau)
           acc.phi.tau <- att.phi.tau <- 0
         }
-        tau.s <- ts.tau$s
-        # print(tau.s)
+
       } else {
         if (nknots == 1) {
           for (t in 1:nt) {

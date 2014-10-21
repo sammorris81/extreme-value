@@ -301,12 +301,12 @@ QuantScore <- function(preds, probs, validate) {
   nprobs <- length(probs)  # number of quantiles to find quantile score
   
   # we need to know the predicted quantiles for each site and day in the validation set
-  pred.quants <- apply(preds, c(2, 3), quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
+  pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
   
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
   
   for (q in 1:nprobs) {
-    diff <- pred.quants[q, , ] - validate
+    diff <- pred.quants[q, ] - validate
     i <- diff >= 0  # diff >= 0 means qhat is larger
     scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
   }

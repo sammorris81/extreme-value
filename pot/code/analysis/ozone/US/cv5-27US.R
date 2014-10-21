@@ -59,7 +59,7 @@ source('../../../R/auxfunctions.R')
 fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
                    temporalw=T, temporalz=T, temporaltau=T,
                    method=method, skew=T, keep.knots=keep.knots,
-	               thresh.all=0, thresh.quant=thresh.quant, nknots=5,
+	               thresh.all=0, thresh.quant=thresh.quant, nknots=10,
                    iters=25000, burn=20000, update=100, iterplot=T,
                    beta.init=beta.init, tau.init=0.05, rho.init=1,
                    nu.init=0.5, alpha.init=0.5)

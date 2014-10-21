@@ -77,14 +77,11 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
 ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
                           mh.tau.ns, mh.tau.parts, taug, phi, 
                           att.phi, acc.phi, mh.phi,
-                          tau.alpha, tau.beta, s, s.a, s.b, 
-                          res, prec.cor, g, z) {
-  # s <- 1                        	
+                          tau.alpha, tau.beta, res, prec.cor, g, z) {
+                      	
   nt       <- ncol(tau)
   nknots   <- nrow(tau)
-  # tau.star <- cop.inv.IG(tau=tau, phi=phi, alpha=tau.alpha, beta=tau.beta)
   tau.star <- qnorm(pgamma(tau, tau.alpha, tau.beta))
-  # plot(tau.star[1, ] ,type="l")
   # update tau terms
   for (t in 1:nt) {
     res.t <- res[, t]
@@ -99,10 +96,10 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
       
       if (t == 1) {
         mean <- 0
-        sd   <- sqrt(s)
+        sd   <- 1
       } else {
         mean <- phi * tau.star[k, (t - 1)]
-        sd   <- sqrt(s * (1 - phi^2))
+        sd   <- sqrt(1 - phi^2)
       }
       
       # draw candidate tau.star from Normal 
@@ -123,8 +120,6 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
         
       # transform to IG marginals
       can.tau    <- tau[, t]
-      # res.std    <- (can.tau.star[k] - mean)/sd
-      # can.tau[k] <- qgamma(pnorm(res.std), shape=tau.alpha, rate=tau.beta)
       can.tau[k] <- qgamma(pnorm(can.tau.star[k]), tau.alpha, tau.beta)
       can.taug   <- can.tau[g[, t]]
            
@@ -137,13 +132,13 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
       
       cur.ll.z <- 0.5 * log(tau[k, t]) - 0.5 * tau[k, t] * z[k, t]^2      
       can.ll.z <- 0.5 * log(can.tau[k]) - 0.5 * can.tau[k] * z[k, t]^2
-               
+      
       R <- can.ll.y - cur.ll.y + can.ll.z - cur.ll.z +
            dnorm(can.tau.star[k], mean, sd, log=TRUE) -
            dnorm(tau.star[k, t], mean, sd, log=TRUE)
         
       if (t < nt) {
-        sd.next <- sqrt(s * (1 - phi^2))
+        sd.next <- sqrt(1 - phi^2)
         R <- R + dnorm(tau.star[k, (t + 1)], (phi * can.tau.star[k]), sd.next, log=T) -
                  dnorm(tau.star[k, (t + 1)], (phi * tau.star[k, t]), sd.next, log=T)
       }
@@ -157,14 +152,6 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
         cur.ll.y           <- can.ll.y
       } }
       
-      # if (k == 2 & t == 12) { 
-        # print(paste("tau.star=", tau.star[k, t], "nparts=", nparts)) 
-        # print(paste("tau=", tau[k, t]))
-      # }
-      # if (k == 10 & t == 24) { 
-        # print(paste("tau.star=", tau.star[k, t], "nparts=", nparts)) 
-        # print(paste("tau=", tau[k, t]))
-      # }
     }  # end k in 1:nknots
   }  # end t in 1:nt
   # print(tau.star)
@@ -179,8 +166,8 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
   can.mean    <- can.phi * tau.star.lag1
   
   # the likelihood impacted by phi.tau does not include the first day.
-  R <- sum(dnorm(tau.star[, -1], can.mean, sqrt(s * (1 - can.phi^2)), log=T)) - 
-       sum(dnorm(tau.star[, -1], cur.mean, sqrt(s * (1 - phi^2)), log=T)) + 
+  R <- sum(dnorm(tau.star[, -1], can.mean, sqrt(1 - can.phi^2), log=T)) - 
+       sum(dnorm(tau.star[, -1], cur.mean, sqrt(1 - phi^2), log=T)) + 
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
        
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -188,25 +175,8 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
     phi     <- can.phi
   } }
   
-  # s: prior is IG(a, b)
-  a.star <- s.a + nt * nknots / 2
-  b.star <- s.b
-  # print(range(tau.star))
-  for (t in 1:nt) {
-    if (t == 1) {
-      b.star <- b.star + sum(tau.star[, t]^2 / 2)
-    } else {
-      b.star <- b.star + sum((tau.star[, t] - 
-                             phi * tau.star[, (t - 1)])^2 / (2 * (1 - phi^2)))
-    }
-  }
-  # print(paste("a.star =", a.star))
-  # print(paste("b.star =", b.star))
-  # s <- 1 / rgamma(1, a.star, b.star)
-  s <- 1
-
   results <- list(tau=tau, att.tau=att.tau, acc.tau=acc.tau,
-                  phi=phi, att.phi=att.phi, acc.phi=acc.phi,
-                  s=s)
+                  phi=phi, att.phi=att.phi, acc.phi=acc.phi)
+                  
   return(results)                         
 }

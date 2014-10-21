@@ -153,13 +153,14 @@ Let
   \sigma^{2*}_t(\bs) =\Phi^{-1}\left\{ \text{IG}[\sigma^2_t(\bs)] \right\}
 \end{align*}
 where $\Phi$ is a univariate standard normal density function, and IG is the distribution function for an IG$(a, b)$ random variable.
-Then the time series is modeled as
+Then, when $t > 1$ the time series is modeled as
 \begin{align}
   \bw^*_{t, k} | \bw^*_{t-1, k} &\sim N_2\left[\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2) \right] \\
   z_{t, k} | z_{t-1, k} &\sim N \left[\phi_z z_{t-1, k}, \sigma^2_{t,k} (1 - \phi_z^2)\right] \\
   \sigma^{2*}_{t, k} | \sigma^{2*}_{t-1, k} &\sim N \left[\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2) \right]
 \end{align}
 where $|\phi_w| < 1$, $0 < \phi_z < 1$, and $|\phi_\sigma| < 1$.
+All three of the time series are initialized using $N(0, 1)$.
 
 \subsection{Hierarchical model}\label{s:hier}
 Conditioned on $z_{t,k}(\bs) \iid $ $N(0, \sigma^2_{t,k})$, $\sigma^2_{t,k}(\bs) \sim IG(a, b)$, and $P_{t,k}$, the marginal distributions are skew-$t$ and the joint distribution within a partition is multivariate skew-$t$.
@@ -314,20 +315,20 @@ In each Metropolis Hastings update, we tune the algorithm to give acceptance rat
 
 \subsection*{Spatial knot locations}
 For each day, we update the spatial knot locations, $\bw_1, \ldots, \bw_K$, using a Metropolis Hastings block update.
-Because the spatial domain is bounded, we generate candidate knots using the transformed knots $\bw^*_1, \ldots, \bw^*_K$ (see section \ref{s:hier}) and a random walk bivariate Gaussian candidate distribution
+Because the spatial domain is bounded, we generate candidate knots using the transformed knots $\bw^*_1, \ldots, \bw^*_K$ (see section \ref{s:temporal}) and a random walk bivariate Gaussian candidate distribution
 \begin{align*}
 	{\bw^*_k}^{(c)} \sim \text{N}({\bw^*_k}^{(r - 1)}, s^2 I_2)
 \end{align*}
-where $\bw*_k^{(r - 1)}$ is the location for the transformed knot at MCMC iteration $r - 1$, $s$ is a tuning parameter, and $I_2$ is an identity matrix.
+where ${\bw^*_k}^{(r - 1)}$ is the location for the transformed knot at MCMC iteration $r - 1$, $s$ is a tuning parameter, and $I_2$ is an identity matrix.
 After candidates have been generated for all $K$ knots, the acceptance ratio is
 \begin{align*}
-  R = \left\{ \frac{ l[ Y_t(\bs | \bw_1^{(c)}, \ldots, \bw_K^{(c)}, \ldots)] }{l[ Y_t(\bs | \bw_1^{(r - 1)}, \ldots, \bw_K^{(r - 1)}, \ldots)]} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K}\phi(\bw_k^{(c)})}{ \prod_{k = 1}^{K}\phi(\bw_k^{(r - 1)})} \right\}
+  R = \left\{ \frac{ l[ Y_t(\bs | \bw_1^{(c)}, \ldots, \bw_K^{(c)}, \ldots)] }{l[ Y_t(\bs | \bw_1^{(r - 1)}, \ldots, \bw_K^{(r - 1)}, \ldots)]} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K}\phi(\bw_k^{(c)})}{ \prod_{k = 1}^{K}\phi(\bw_k^{(r - 1)})} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K} p({\bw^*_k}^{(c)})}{ \prod_{k = 1}^{K} p({\bw^*_k}^{(r - 1)})}\right\}
 \end{align*}
-where $l$ is the likelihood given in (\ref{eq:hier}).
+where $l$ is the likelihood given in (\ref{eq:hier}), and $p(\cdot)$ is the prior either taken from the time series given in (\ref{s:temporal}) or assumed to be uniform over $\calD$.
 The candidate knots are accepted with probability $\min\{R, 1\}$.
 
 \subsection*{Spatial random effects}
-If there is temporal dependence amongst the observations, then we update $z_{tk}$, using a Metropolis Hastings update.
+If there is temporal dependence amongst the observations, then we update $z_{tk}$ using a Metropolis Hastings update.
 First, we generate a candidate using a random walk Gaussian candidate distribution
 \begin{align*}
   z_{tk}^{(c)} \sim \text{N}(z_{tk}^{(r - 1)}, s^2)
@@ -337,7 +338,35 @@ The acceptance ratio is
 \begin{align*}
   R = \left\{ \frac{ l[Y_t(\bs) | z_{tk}^{(c)}, \ldots] }{ l[Y_t(\bs) | z_{tk}^{(r - 1)}]} \right\} \times \left\{ \frac{ p[ z_{tk}^{(c)} ] }{ p[ z_{tk}^{(r - 1)}]}\right\}.
 \end{align*}
-The candidate is accepted with probability $\min\{R, 1\}$
+The candidate is accepted with probability $\min\{R, 1\}$.
+
+\subsection*{Variance terms}
+When there is more than one site in a partition, then we update $\sigma^2_{tk}$ using a Metropolis Hastings update.
+First, we generate from one of two candidate distributions.
+In the case of temporal dependence, we generate a candidate for ${\sigma^*_{tk}}^2$ using a random walk Gaussian candidate distribution
+\begin{align*}
+  {\sigma^{*2}_{tk}}^{(c)} \sim \text{N}({\sigma^{*2}_{tk}}^{(r - 1)}, s^2)
+\end{align*}
+where ${{\sigma^*_{tk}}^2}^{(r - 1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a tuning parameter.
+In the case where there is no temporal dependence, we generate a candidate for $\sigma^2_{tk}$ using an IG$(a^*/s, b^*/s)$ candidate distribution where $a^* = n_{tk} / 2 + a$, $b^* = [Y_{tk}^T \Sigma^{-1}_{tk} Y_{tk}] / 2 + b$, $n_{tk}$ is the number of sites in partition $k$ on day $t$, and $Y_{tk}$ and $\Sigma^{-1}_{tk}$ are the observations and precision matrix for partition $k$ on day $t$.
+The acceptance ratio is
+\begin{align*}
+  R = \left\{
+    \frac{ l[Y_t(\bs) | {\sigma^2_{tk}}^{(c)}, \ldots] }
+         { l[Y_t(\bs) | {\sigma^2_{tk}}^{(r - 1)}]}
+    \right\} \times \left\{
+    \frac{ l[z_tk | {\sigma^2_{tk}}^{(c)}, \ldots] }
+         { l[z_tk | {\sigma^2_{tk}}^{(r - 1)}, \ldots] }
+    \right\} \times \left\{
+    \frac{ p[ {\sigma^2_{tk}}^{(c)} ] }
+         { p[ {\sigma^2_{tk}}^{(r - 1)}] }
+    \right\} \times \left\{
+    \frac{ c[ {\sigma^2_{tk}}^{(r - 1)}] }
+         { c[ {\sigma^2_{tk}}^{(c)}]}
+    \right\}
+\end{align*}
+where $p[\cdot]$ is the prior either taken from the time series given in (\ref{s:temporal}) or assumed to be IG$(a, b)$, and $c[\cdot]$ is the candidate distribution.
+The candidate is accepted with probability $\min\{R, 1\}$.
 
 \subsection*{Spatial covariance parameters}
 We update the three spatial covariance parameters, $\log(\rho)$, $\log(\nu)$, $\gamma$, using a Metropolis Hastings block update step.
