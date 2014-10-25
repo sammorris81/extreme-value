@@ -556,6 +556,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                             print(paste("bbb =", bbb))
                             print(paste("tau[k, t] =", tau[k, t]))
                             print(paste("g[, t] =", g[, t]))
+                            print(paste("mh.tau.ns[mh.idx] =", mh.tau.ns[mh.idx]))
+                            print(paste("tau.beta =", tau.beta))
                         }) -
                         dgamma(cantau[k], aaa, bbb, log=TRUE)
                 
