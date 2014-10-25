@@ -33,7 +33,7 @@ for(val in 1:2){
 	S.p <- S[val.idx,]
 	
 	tic.set <- proc.time()
-	fit[[val]] <- maxstable(y=y.o, x=X.o, s=S.o, sp=S.p, xp=X.p, thresh=thresh, 
+	fit[[val]] <- maxstable(y=y.o, x=X.o, s=S.o, sp=S.p, xp=X.p, thresh=thresh,
 	                        knots=knots, iters=30000, burn=25000, update=500, thin=1)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]

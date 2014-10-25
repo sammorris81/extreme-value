@@ -222,6 +222,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- 1
     mh.phi.tau <- 1
+    mh.tau.ns <- rep(0.1, 10)
+  } else {
+  	mh.tau.ns <- rep(1, 10)
   }
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
@@ -240,8 +243,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # candidate distributions for tau depend on the percentage of sites in the 
   # partition. 
   acc.tau.ns <- att.tau.ns <- rep(1, ns)
-  mh.tau.ns  <- rep(0.1, 10)
-  mh.tau.parts <- c(0, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80)
+  avg.sites.part <- 1 / nknots
+  mh.tau.parts <- c(0, (avg.sites.part / 4), (avg.sites.part / 2), avg.sites.part, 
+                    (2 * avg.sites.part), (3 * avg.sites.part), (4 * avg.sites.part))
   acc.tau    <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
   mh.tau <- matrix(0.05, nknots, nt)
   nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
@@ -508,20 +512,26 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                 # print(paste("nparts is", nparts))
               # }
               nparts.tau[k, t] <- nparts
-
+              
               if(nparts==0){
                 tau[k, t] <- rgamma(1, tau.alpha, tau.beta)
                 if (tau[k, t] < 1e-6) {
                   tau[k, t] <- 1e-6
                 }
               } else {      
-                att.tau.ns[nparts] <- att.tau.ns[nparts] + 1
+                mh.idx <- get.tau.mh.idx(nparts, ns, mh.tau.parts)
+                att.tau.ns[mh.idx] <- att.tau.ns[mh.idx] + 1
                 att.tau[k, t] <- att.tau[k, t] + 1
                 aaa <- nparts / 2 + tau.alpha
                 bbb <- quad.form(prec.cor[these, these], res.t[these]) / 2 + tau.beta
+                # if ((k == 1 & t == 1) | (k == 1 & t == 10) | (k == 1 & t == 21)) {
+                  # print(paste("MH.idx =", mh.idx))
+                  # print(paste("MH s =", mh.tau.ns[mh.idx]))
+                  # print(paste("nparts =", nparts))
+                # }
 
-                aaa <- aaa / mh.tau.ns[nparts]
-                bbb <- bbb / mh.tau.ns[nparts]
+                aaa <- aaa / mh.tau.ns[mh.idx]
+                bbb <- bbb / mh.tau.ns[mh.idx]
                 # aaa <- aaa / mh.tau[k, t]
                 # bbb <- bbb / mh.tau[k, t]
 
@@ -550,7 +560,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                         dgamma(cantau[k], aaa, bbb, log=TRUE)
                 
                 if (!is.na(R)) { if (log(runif(1)) < R) {
-                  acc.tau.ns[nparts] <- acc.tau.ns[nparts] + 1
+                  acc.tau.ns[mh.idx] <- acc.tau.ns[mh.idx] + 1
                   acc.tau[k, t] <- acc.tau[k, t] + 1
                   tau[, t]  <- cantau
                   taug[, t] <- cantaug
@@ -914,14 +924,22 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
   
   if (iter %% update == 0) {
-  	acc.rate.phi.w <- round(acc.phi.w / att.phi.w, 3)
-  	acc.rate.phi.z <- round(acc.phi.z / att.phi.z, 3)
-  	acc.rate.phi.tau <- round(acc.phi.tau / att.phi.tau, 3)
+  	if (temporalw) { 
+  	  acc.rate.phi.w <- round(acc.phi.w / att.phi.w, 3) 
+  	}
+  	if (temporalz) { 
+  	  acc.rate.phi.z <- round(acc.phi.z / att.phi.z, 3)
+  	  acc.rate.z <- round(acc.z / att.z, 3)
+  	}
+ 	if (temporaltau) { 
+ 	  acc.rate.phi.tau <- round(acc.phi.tau / att.phi.tau, 3)
+ 	}
+  
   	acc.rate.rho <- round(acc.rho / att.rho, 3)
   	acc.rate.nu <- round(acc.nu / att.nu, 3)
   	acc.rate.tau <- round(acc.tau / att.tau, 3)
   	acc.rate.alpha <- round(acc.alpha / att.alpha, 3)
-  	acc.rate.z <- round(acc.z / att.z, 3)
+  	
   	if (iter < burn) {
   	  begin <- max(1, (iter - 2000))
   	} else {
@@ -966,13 +984,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
       if (skew) {
         plot(keepers.z.alpha[begin:iter], type="l")
-       
-        title.z.1 <- paste("acc =", acc.rate.z[1, 1])
-        title.z.2 <- paste("acc =", acc.rate.z[1, 10])
-        title.z.3 <- paste("acc =", acc.rate.z[1, 21])
-        plot(keepers.z[begin:iter, 1, 1], type="l")
-        plot(keepers.z[begin:iter, 1, 10], type="l")
-        plot(keepers.z[begin:iter, 1, 21], type="l")
+        
+        if (temporalz) {
+          title.z.1 <- paste("acc =", acc.rate.z[1, 1])
+          title.z.2 <- paste("acc =", acc.rate.z[1, 10])
+          title.z.3 <- paste("acc =", acc.rate.z[1, 21])
+        } else {
+          title.z.1 <- ""
+          title.z.2 <- ""
+          title.z.3 <- ""
+        }
+        plot(keepers.z[begin:iter, 1, 1], type="l", main=title.z.1)
+        plot(keepers.z[begin:iter, 1, 10], type="l", main=title.z.2)
+        plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
       } 
     }
     

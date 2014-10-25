@@ -110,7 +110,7 @@ cop.IG <- function(tau.star, phi, alpha, beta) {
 }
 
 get.tau.mh.idx <- function(nparts, ns, mh.tau.parts) {
-  idx <- min(which((nparts / ns) >= mh.tau.parts))
+  idx <- max(which((nparts / ns) >= mh.tau.parts))
   return(idx)
 }
 

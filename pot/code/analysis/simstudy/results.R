@@ -140,33 +140,86 @@ for (i in 1:length(probs)) { for (j in 1:(nmethods-1)) { for (k in 1:nsettings) 
 
 round(paired.results, 4)
 
+# wilcoxon signed-rank test for Brier scores
+wilcox.results <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
+best.methods <- vector(mode="list")
+for (i in 1:length(probs)) { for (k in 1:nsettings) {
+  ref.j <- best.brier[i, k]
+  cmp.j <- (1:5)[-ref.j]
+  for (j in 1:(nmethods-1)) {
+    wilcox.results[i, j, k] <- wilcox.test(brier.score[i, , ref.j, k], brier.score[i, , cmp.j[j], k], paired=T)$p.value
+  }
+}}
 
-setting.title <- c("Gaussian", "t-1", "t-5", "skew t-1 (alpha = 3)", "skew t-5 (alpha = 3)", "max-stable")
-methods <- c("Gaussian", "skew-t, K = 1, T = q(0.0)", "t, K = 1, T = q(0.8)", "skew-t, K = 5, T = q(0.0)", "t, K = 5, T = q(0.8)")
-bg <- c("firebrick1", "firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
-col <- c("firebrick4", "firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
-pch <- c(24, 22, 22, 22, 22)
-lty <- c(1, 1, 1, 3, 3)
+# get single brier scores and quantile scores for each setting x method x quantile
+quant.score.med <- apply(quant.score, c(1, 3, 4), median, na.rm=T)
+brier.score.med <- apply(brier.score, c(1, 3, 4), median, na.rm=T)
+
+bs.med.ref.gau <- array(NA, dim=c(11, 4, 6))
+bs.mean.ref.gau <- array(NA, dim=c(11, 4, 6))
+for (j in 1:4) {
+  bs.med.ref.gau[, j, ] <- brier.score.med[, (j + 1), ] / brier.score.med[, 1, ]
+  bs.mean.ref.gau[, j, ] <- brier.score.mean[, (j + 1), ] / brier.score.mean[, 1, ]
+}
+
+
+setting.title <- c("Gaussian", "t (K = 1)", "t (K = 5)", "skew t (K = 1, alpha = 3)", "skew t (K = 5, alpha = 3)", "max-stable")
+methods <- c("skew-t, K = 1, T = q(0.0)", "t, K = 1, T = q(0.8)", "skew-t, K = 5, T = q(0.0)", "t, K = 5, T = q(0.8)")
+bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
+col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
+pch <- c(22, 22, 22, 22)
+lty <- c(1, 1, 3, 3)
 
 quartz(width=15, height=12)
 par(mfrow=c(3, 2))
 for (setting in 1:nsettings) {  
-  ymax <- max(quant.score.mean[, , setting])
-  ymin <- min(quant.score.mean[, , setting])
-  plot(probs, quant.score.mean[, 1, setting], type='o', 
+  ymax <- max(bs.med.ref.gau[, , setting])
+  ymin <- min(bs.med.ref.gau[, , setting], 1)
+  plot(probs, bs.med.ref.gau[, 1, setting], type='o', 
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
-       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="quantile scores")
+       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="relative brier score")
   
-  for (i in 2:nmethods) {
-    lines(probs, quant.score.mean[, i, setting], lty=lty[i], col=col[i])
-    points(probs, quant.score.mean[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+  for (i in 2:(nmethods - 1)) {
+    lines(probs, bs.med.ref.gau[, i, setting], lty=lty[i], col=col[i])
+    points(probs, bs.med.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+    abline(h=1, lty=3)
   }
-  legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
+  if (setting == 6) {
+  	legend("topleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
+  }
 }
 
-dev.print(file="plots/quantileplots.pdf", device=pdf)
+dev.print(file="plots/bsplots-med.pdf", device=pdf)
 dev.off()
 
+setting.title <- c("Gaussian", "t (K = 1)", "t (K = 5)", "skew t (K = 1, alpha = 3)", "skew t (K = 5, alpha = 3)", "max-stable")
+methods <- c("skew-t, K = 1, T = q(0.0)", "t, K = 1, T = q(0.8)", "skew-t, K = 5, T = q(0.0)", "t, K = 5, T = q(0.8)")
+bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
+col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
+pch <- c(22, 22, 22, 22)
+lty <- c(1, 1, 3, 3)
+
+quartz(width=15, height=12)
+par(mfrow=c(3, 2))
+for (setting in 1:nsettings) {  
+  ymax <- max(bs.mean.ref.gau[, , setting])
+  ymin <- min(bs.mean.ref.gau[, , setting], 1)
+  plot(probs, bs.mean.ref.gau[, 1, setting], type='o', 
+       lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
+       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="relative brier score", xlab="threshold quantile")
+  
+  for (i in 2:(nmethods - 1)) {
+    lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
+    points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+    abline(h=1, lty=2)
+  }
+  if (setting == 6) {
+  	legend("topleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
+  }
+}
+
+dev.print(file="plots/bsplots-mean.pdf", device=pdf)
+dev.off()
 
 # # thresholded models wrt to gaussian
 # methods <- c(1, 2, 4, 5)  # removing t-3 method.

@@ -7,14 +7,16 @@ rm(list=ls())
 load('cv-setup-us.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
+source('../../../R/time_series.R')
 
-setting <- 22
+setting <- 27
 method <- "t"
-nknots <- 10
+nknots <- 1
 keep.knots <- F
-threshold <- 75
+threshold <- 0
+tau.init <- 0.05
 thresh.quant <- F
-skew <- F
+skew <- T
 outputfile <- paste("cv5-", setting, "US.RData", sep="")
 
 start <- proc.time()
@@ -37,11 +39,12 @@ for(val in 1:2){
 
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-	                   method=method, skew=skew, keep.knots=keep.knots,
-	                   thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-                       iters=30000, burn=25000, update=500, iterplot=F,
-                       beta.init=beta.init, tau.init=tau.init, rho.init=1,
-                       nu.init=0.5, alpha.init=0.5)
+                   temporalw=T, temporalz=T, temporaltau=T,
+                   method=method, skew=skew, keep.knots=keep.knots,
+	               thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
+                   iters=30000, burn=25000, update=500, iterplot=F,
+                   beta.init=beta.init, tau.init=tau.init, rho.init=1,
+                   nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 
@@ -50,18 +53,3 @@ for(val in 1:2){
 	cat("CV", val, "finished", round(avg.time.val, 2), "per dataset \n")
 	save(fit, file=outputfile)
 }
-
-# Rprof(filename="Rprof.out", line.profiling=T)
-set.seed(setting*100 + val)
-source('../../../R/mcmc.R')
-source('../../../R/time_series.R')
-source('../../../R/auxfunctions.R')
-fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-                   temporalw=T, temporalz=T, temporaltau=T,
-                   method=method, skew=T, keep.knots=keep.knots,
-	               thresh.all=0, thresh.quant=thresh.quant, nknots=10,
-                   iters=25000, burn=20000, update=100, iterplot=T,
-                   beta.init=beta.init, tau.init=0.05, rho.init=1,
-                   nu.init=0.5, alpha.init=0.5)
-# Rprof(NULL)
-# summaryRprof(filename="Rprof.out", lines="show")

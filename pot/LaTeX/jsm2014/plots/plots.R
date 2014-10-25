@@ -3,8 +3,8 @@ library(fields)
 library(geoR)
 
 # necessary functions
-source('../../code/R/mcmc.R')
-source('../../code/R/auxfunctions.R')
+source('../../../code/R/mcmc.R')
+source('../../../code/R/auxfunctions.R')
 
 # data settings
 beta.t <- c(10, 2, -3)
@@ -241,7 +241,7 @@ bg <- c("firebrick1", "firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
 col <- c("firebrick4", "firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
 pch <- c(24, 22, 22, 22, 22)
 lty <- c(1, 1, 1, 3, 3)
-quartz()
+
 par(mfrow=c(2, 2))
 # chi-plot sample quantile 0.90
 xplot <- bins[-11]
@@ -281,7 +281,7 @@ lines(xplot, exceed.3[, 9], type="o", lty=lty[3], pch=pch[3], col=col[3], bg=bg[
 lines(xplot, exceed.4[, 9], type="o", lty=lty[4], pch=pch[4], col=col[4], bg=bg[4])
 lines(xplot, exceed.5[, 9], type="o", lty=lty[5], pch=pch[5], col=col[5], bg=bg[5])
 abline(h=0.005, lty=2)
-# legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
+legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
 
 plot(xplot, exceed.1[, 9], type="n", axes=F, xlab="", ylab="")
 legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=4, bty="n")

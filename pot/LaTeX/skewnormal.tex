@@ -45,7 +45,7 @@ The random spatial partition alleviates the long-range spatial dependence seen b
 The paper is organized as follows.
 In section \ref{s:model}, we describe the skew-$t$ process with partitioning and thresholding.
 The computing is described in section \ref{s:comp}.
-In section \ref{s:simstudy}, we present a simulation study that examines the predictive capabilities of this model compared with a na\:{i}ve Gaussian method.
+In section \ref{s:simstudy}, we present a simulation study that examines the predictive capabilities of this model compared with a na{\"i}ve Gaussian method.
 We then compare our method to Gaussian and max-stable methods with a data analysis of ozone measurements from the eastern US in section \ref{s:analysis}.
 The final section provides brief discussion and direction for future research.
 
@@ -67,7 +67,6 @@ Then, assuming the full data are observations from a skew-$t$ process, we update
 Many types of data demonstrate some level of skewness, and therefore should be modeled with distributions that allow for non-symmetry.
 The skew-elliptical family of distributions provides models that are mathematically tractable while introducing additional paremeters to account for non-symmetric data \citep{Genton2004}.
 One member of this family, is the skew-$t$ distribution \citep{Azzalini2003}.
-We assume the data can be modeled using a skew-$t$ distribution.
 \citet{Zhang2010} show that the skew-$t$ can be expressed as a hierarchical model
 \begin{align} \label{eq:fullmodel}
   Y_t(\bs) &= X_t(\bs) \beta + \alpha |z_t| + \sigma_t v_t(\bs)
@@ -130,11 +129,21 @@ When incorporating the random daily partition, the $\chi$ statistic becomes
   \chi(\bh) = \lim_{c \rightarrow \infty} \pi(\bh) \chi(\bh)
 \end{align}
 where $\pi(h)$ is the probability that two sites separated by distance $h$ are in the same partition.
+Figure \ref{fig:simchi} shows $\chi(h)$ for different sample quantiles from simulated datasets where $\bs \in [0, 1] \times [0, 1]$.
+These plots show how the partitioning allows for short range extremal dependence while reducing extremal dependence as the distance between sites increases.
+\begin{figure}
+  \includegraphics[width=\linewidth]{plots/sim-chi.pdf}
+  \caption{$\chi(h)$ for simulated datasets.}
+  \label{fig:simchi}
+\end{figure}
+
 Asymptotic dependence is eliminated as $h$ increases, because
 \begin{align}
   \lim_{h \rightarrow \infty} \chi(\bh) = \lim_{h \rightarrow \infty} \pi(\bh) \chi(\bh) = 0.
 \end{align}
 A proof of this can be found in Appendix A.3.
+
+
 
 \subsection{Accounting for temporal dependence} \label{s:temporal}
 In a standard block-maxima approach, the temporal dependence is assumed to be negligible because blocks (e.g. yearly maxima) are taken to be large enough to assume independence.
@@ -242,23 +251,30 @@ The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1
 \subsection{Cross validation}\label{s:modelselect}
 Models were compared using cross validation with 100 sites used as training sites and 30 sites witheld for testing.
 The model was fit using the training set, and predictions were generated at the testing site locations.
-Because one of the primary goals of this model is to predict extreme events, we quantify use Brier scores and quantile scores to select the model that best fits the data \citep{Gneiting2007}.
+Because one of the primary goals of this model is to predict extreme events, we quantify use Brier scores to select the model that best fits the data \citep{Gneiting2007}.
 The Brier score for predicting exceedance of a threshold $c$ is given by $[e(c) - P(c)]^2$ where $e(c) = I[y>c]$ is an indicator function indicating that a test set value, $y$, has exceeded the threshold, $c$, and $P(c)$ is the predicted probability of exceeding $c$.
-The quantile score for the $\tau$th quantile is $2\{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q}(\tau) - y)$ where $y$ is a test set value and $\widehat{q}(\tau)$ is the estimated $\tau$th quantile.
-For both the Brier score and the quantile score, a lower score indicates a better fit.
-These scores were averaged over all sites and days to obtain a single quantile score for each dataset.
+For the Brier score, a lower score indicates a better fit.
 
 \subsection{Results}\label{s:simresults}
-When comparing quantile scores, in almost all of the data settings, the biggest gains are seen when using thresholded methods.
-In all data settings except for the max-stable setting, method 3 performs the best.
-However, in most of the data settings, method 5 also performs reasonably well.
-In fact, for setting 5, paired $t$-tests suggest that the difference in performance is not significant for any quantile score.
-Furthermore, paired $t$-tests results indicate that the difference in quantile scores between methods 3 and 5 is only statistically significant after q(0.97) for setting 4 and after q(0.93) for setting 1.
+We compared the Brier scores for exceeding 11 different thresholds for each dataset.
+For each threshold, Brier score were calculated for each day and site in the testing set.
+The Brier scores were then averaged over all the days and sites to obtain a single Brier score for threshold $c$.
+The thresholds used for the Brier scores are extreme quantiles from the simulated data.
+Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier score for the Gaussian method calculated as
+\begin{align*}
+  \text{BS}_{\text{rel}} = \frac{\text{BS}_{\text{method}}}{\text{BS}_{\text{Gaussian}}}.
+\end{align*}
+For data that are relatively symmetric, the standard Gaussian method outperforms the other methods.
+However, when the data come from a skewed distribution (settings 3 -- 6), the partitioned and thresholded methods outperform the Gaussian method.
+Additionally, for both of the skew-$t$ settings ($K = 1$, $K = 5$), the skew-$t$ method with the appropriate number of partitions performs the best.
+Finally, the simulation results suggest that for data from a skew-$t$ distribution, thresholded methods provide some improvement over non-thresholded models for the extreme thresholds.
+With the exception of the Brier score for $c = q(0.995)$ in setting 6, the improvement over the Gaussian method is statistically significant using a Wilcoxon signed rank test ($\alpha = 0.05$).
+
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{plots/quantileplots.pdf}
-  \caption{Quantile score plots for simulation study results}
-  \label{fig:simquantscores}
+  \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
+  \caption{Brier scores relative to the Gaussian method for simulation study results. A ratio lower than 1 indicates that the method outperforms relative to the Gaussian method.}
+  \label{fig:simbrierscores}
 \end{figure}
 
 \section{Data analysis}\label{s:analysis}
