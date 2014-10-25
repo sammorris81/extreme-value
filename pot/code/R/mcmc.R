@@ -599,7 +599,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       for (i in 1:length(mh.tau.ns)) {
         if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
-          if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) { mh.tau.ns[i] <- mh.tau.ns[i] * 0.8 }
+          if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {  # numerical stability
+            mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6) 
+          }
           if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
           acc.tau.ns[i] <- att.tau.ns[i] <- 0
         }
@@ -701,7 +703,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       can.C <- CorFx(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
       can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
                          error = function(e) {
-                           eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T)
+                           tryCatch(eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T),
+                                    error = function(e) {
+                                      print(paste("can.alpha =", can.alpha))
+                                      print(paste("can.rho =", can.rho))
+                                      print(paste("can.nu =", can.nu))
+                                    })
                          })
       can.sd.mtx <- can.CC$sd.mtx
       can.prec.cor <- can.CC$prec
