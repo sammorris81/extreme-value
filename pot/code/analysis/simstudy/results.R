@@ -19,6 +19,59 @@
 #  5 - t-5 (T = 0.80)
 #	
 #########################################################################
+# Look at coverage for non-thresholded methods that match data setting
+rm(list=ls())
+load("simdata.RData")
+beta.t <- c(10, 0, 0)
+nu.t <- 0.5
+alpha.t <- 0.9
+mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t
+nknots.t <- c(1, 1, 5, 1, 5, 1)
+gau.rho.t <- c(1, 1, 1, 1, 1, 1)
+t.rho.t <- c(1, 1, 1, 1, 1, 4)
+z.alpha.t <- c(0, 0, 0, 3, 3, 0)
+tau.alpha.t <- 3
+tau.beta.t  <- 8
+
+# load in the dataset
+grp <- 1
+filename <- paste("2-c-", grp, ".RData", sep="")
+load(filename)
+par(mfrow=c(3, 5))
+for (i in 1:5) {
+  interval <- quantile(fit.2[[i]]$tau.alpha, probs=c(0.025, 0.975))
+  plot(fit.2[[i]]$tau.alpha, type="l", ylab="tau.alpha", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.2[[i]]$tau.beta, probs=c(0.025, 0.975)), 1)
+  plot(fit.2[[i]]$tau.beta, type="l", ylab="tau.beta", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))  
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.2[[i]]$z.alpha, probs=c(0.025, 0.975)), 1)
+  plot(fit.2[[i]]$z.alpha, type="l", ylab="z.alpha", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
+par(mfrow=c(3, 5))
+for (i in 1:5) {
+  interval <- round(quantile(fit.2[[i]]$rho, probs=c(0.025, 0.975)), 2)
+  plot(fit.2[[i]]$rho, type="l", ylab="rho", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.2[[i]]$nu, probs=c(0.025, 0.975)), 2)
+  plot(fit.2[[i]]$nu, type="l", ylab="nu", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))  
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.2[[i]]$alpha, probs=c(0.025, 0.975)), 2)
+  plot(fit.2[[i]]$alpha, type="l", ylab="alpha", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
+par(mfrow=c(5, 5))
 
 rm(list=ls())
 load("simdata.RData")
