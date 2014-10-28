@@ -72,6 +72,20 @@ for (i in 1:5) {
 }
 
 par(mfrow=c(5, 5))
+daygrp <- 1
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.2[[1]]$tau[, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.2[[1]]$tau[, day], type="l", ylab=round(tau.t[[2]][1, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+daygrp <- 2
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.2[[1]]$tau[, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.2[[1]]$tau[, day], type="l", ylab=round(tau.t[[2]][1, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
 
 rm(list=ls())
 load("simdata.RData")
