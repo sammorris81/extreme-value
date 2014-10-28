@@ -197,10 +197,12 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
 
     dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
     if (dist) {
+      tau[, t] <- t.tau[, t]
       taug   <- t.tau[g, t]
       zg     <- t.z[g, t]
       chol.C <- gau.C.chol
     } else {
+      tau[, t] <- gau.tau[, t]
       taug   <- gau.tau[g, t]
       zg     <- gau.z[g, t]
       chol.C <- t.C.chol

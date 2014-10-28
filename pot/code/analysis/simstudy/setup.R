@@ -116,21 +116,21 @@ y.gau <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
                   tau.beta=tau.beta.t, nknots=1)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
-hist(y.gau$y[, 1], main="Histogram", xlab="")
+hist(y.gau$y, main="Histogram", xlab="")
 
 y.t1 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
                   gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
                   tau.beta=tau.beta.t, nknots=1)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.t1$y[, 1], nx=50, ny=50, main="t, K=1")
-hist(y.t1$y[, 1], main="Histogram", xlab="")
+hist(y.t1$y, main="Histogram", xlab="")
 
 y.t3 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
                   gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
                   tau.beta=tau.beta.t, nknots=3)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
-hist(y.t3$y[, 1], main="Histogram", xlab="")
+hist(y.t3$y, main="Histogram", xlab="")
 
 y.st1 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
                   gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=3, tau.alpha=tau.alpha.t,
