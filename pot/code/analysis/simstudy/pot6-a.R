@@ -1,4 +1,4 @@
-w#########################################################################
+#########################################################################
 # A simulation study to determine if a thresholded or skew methods improve
 # return-level estimation and threshold exceedance prediction over
 # standard kriging methods
