@@ -36,7 +36,7 @@ analysis <- "b"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 6:10) {
+for (g in 1:10) {
   fit.1 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
@@ -47,7 +47,7 @@ for (g in 6:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
-    obs <- c(rep(T, 100), rep(F, 30))
+    obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
     s.o <- s[obs, ]

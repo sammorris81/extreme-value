@@ -47,7 +47,7 @@ for (g in 1:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
-    obs <- c(rep(T, 100), rep(F, 30))
+    obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
     s.o <- s[obs, ]

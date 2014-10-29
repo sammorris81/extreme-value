@@ -37,14 +37,9 @@ iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
 for (g in 1:10) {
+  fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-  
-  if (g > 7) {
-    fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
-  } else {
-  	load(outputfile)  # included for redo
-  }
 
   start <- proc.time()
   for (d in 1:nsets) {
@@ -52,7 +47,7 @@ for (g in 1:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
-    obs <- c(rep(T, 100), rep(F, 30))
+    obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
     s.o <- s[obs, ]
@@ -61,30 +56,28 @@ for (g in 1:10) {
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
     
-    if (g > 7) {
-      cat("  start: gaussian - Set", dataset, "\n")
-      tic <- proc.time()
-      fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                         method="gaussian", skew=F, thresh.all=0, thresh.quant=T, 
-                         nknots=1, iterplot=F, iters=iters, burn=burn,
-                         update=update, thin=thin)
-      toc <- proc.time()
-      cat("  gaussian took:", (toc - tic)[3], "\n")
-      cat("  end: gaussian \n")
-      cat("------------------\n")
+    cat("  start: gaussian - Set", dataset, "\n")
+    tic <- proc.time()
+    fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                       method="gaussian", skew=F, thresh.all=0, thresh.quant=T, 
+                       nknots=1, iterplot=F, iters=iters, burn=burn,
+                       update=update, thin=thin)
+    toc <- proc.time()
+    cat("  gaussian took:", (toc - tic)[3], "\n")
+    cat("  end: gaussian \n")
+    cat("------------------\n")
 
-      cat("  start: skew t-1 - Set", dataset, "\n")
-      tic <- proc.time()
-      fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                         method="t", skew=T, thresh.all=0, thresh.quant=T, 
-                         nknots=1, iterplot=F, iters=iters, burn=burn,
-                         update=update, thin=thin)
-      toc <- proc.time()
-      cat("  skew t-1 took:", (toc - tic)[3], "\n")
-      cat("  end: skew t-1 \n")
-      cat("------------------\n")
-    }
-
+    cat("  start: skew t-1 - Set", dataset, "\n")
+    tic <- proc.time()
+    fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=T, thresh.all=0, thresh.quant=T, 
+                       nknots=1, iterplot=F, iters=iters, burn=burn,
+                       update=update, thin=thin)
+    toc <- proc.time()
+    cat("  skew t-1 took:", (toc - tic)[3], "\n")
+    cat("  end: skew t-1 \n")
+    cat("------------------\n")
+    
     cat("start: t-1 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,

@@ -37,11 +37,11 @@ source('./max-stab/Bayes_GEV.R')
 beta.t <- c(10, 0, 0)
 nu.t <- 0.5
 alpha.t <- 0.9
-mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t
-nknots.t <- c(1, 1, 5, 1, 5, 1)
-gau.rho.t <- c(1, 1, 1, 1, 1, 1)
-t.rho.t <- c(1, 1, 1, 1, 1, 4)
-z.alpha.t <- c(0, 0, 0, 3, 3, 0)
+mixprob.t <- c(0, 1, 1, 1, 1)  # 0: Gaussian, 1: t
+nknots.t <- c(1, 1, 5, 1, 5)
+gau.rho.t <- c(1, 1, 1, 1, 1)
+t.rho.t <- c(1, 1, 1, 1, 1)
+z.alpha.t <- c(0, 0, 0, 3, 3)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
 
@@ -54,7 +54,6 @@ ns        <- nrow(s)
 nt        <- 50
 nsets     <- 50
 nsettings <- 6
-ntest     <- 30
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
@@ -156,6 +155,6 @@ quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
 
 # remove simstudy "truth" settings to help diagnose errors.
 save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, 
-     x, ntest,  # covariate data that should be the same for all datasets
+     x, # covariate data that should be the same for all datasets
      file='simdata.RData')
 rm(list=ls())
