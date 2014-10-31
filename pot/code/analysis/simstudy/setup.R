@@ -45,7 +45,6 @@ z.alpha.t <- c(0, 0, 0, 3, 3)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
 
-
 # covariate data
 s         <- cbind(runif(144, 0, 10), runif(144, 0, 10))
 knots.x   <- seq(1, 9, length=12)
@@ -54,6 +53,7 @@ ns        <- nrow(s)
 nt        <- 50
 nsets     <- 50
 nsettings <- 6
+ntest     <- 44
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
@@ -154,7 +154,7 @@ quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
 quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
 
 # remove simstudy "truth" settings to help diagnose errors.
-save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, 
+save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
      x, # covariate data that should be the same for all datasets
      file='simdata.RData')
 rm(list=ls())
