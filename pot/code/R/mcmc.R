@@ -37,7 +37,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  thresh.site.specific=F, thresh.site=NULL
         ){
     
-  library(geoR)
+  library(SpatialTools)
   library(fields)
   library(emulator)
   start.time <- proc.time()
