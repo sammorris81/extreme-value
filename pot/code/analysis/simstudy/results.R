@@ -252,7 +252,7 @@ for (setting in 1:nsettings) {
     abline(h=1, lty=3)
   }
   if (setting == 6) {
-  	legend("topleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
+  	legend("bottomleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
   }
 }
 
@@ -280,8 +280,8 @@ for (setting in 1:nsettings) {
     points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
     abline(h=1, lty=2)
   }
-  if (setting == 6) {
-  	legend("topleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
+  if (setting == 2) {
+  	legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
   }
 }
 
