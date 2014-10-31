@@ -29,7 +29,8 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0) {
 }
 
 CorFx <- function(d, alpha, rho, nu) {
-  library(geoR)    
+  library(geoR)
+  library(SpatialTools)
   # using cov.spatial instead of matern because it 
   # doesn't use the bessel function unless needed.
   cor       <- alpha * cov.spatial(d, cov.model="matern", cov.pars=c(1, rho), kappa=nu)
