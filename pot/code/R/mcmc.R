@@ -289,7 +289,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (nu == 0.5) {  # quicker than matern function
         cor <- alpha * exp(-(d / rho))
       } else {
-        cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
+        cor <- alpha * simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
+                                     smoothness=nu, finescale.var=0)  # only for the spatial error
       }
       for (t in 1:nt) {
         these.thresh.obs <- thresh.obs[, t]
@@ -852,8 +853,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # predictions
   if (predictions) {
   	if (cov.model == "matern") {
-      s.11 <- alpha * matrix(matern(d11, rho, nu), np, np)
-      s.12 <- alpha * matrix(matern(d12, rho, nu), np, ns)
+  	  s.11 <- alpha * simple.cov.sp(D=d11, sp.type="matern", sp.par=c(1, rho), error.var=0, 
+                                    smoothness=nu, finescale.var=0)
+      s.12 <- alpha * simple.cov.sp(D=d12, sp.type="matern", sp.par=c(1, rho), error.var=0,
+                                    smoothness=nu, finescale.var=0)
+      # s.11 <- alpha * matrix(matern(d11, rho, nu), np, np)
+      # s.12 <- alpha * matrix(matern(d12, rho, nu), np, ns)
     } else {
       s.11 <- alpha * matrix(exp(-d11 / rho), np, np)
       s.12 <- alpha * matrix(exp(-d12 / rho), np, ns)

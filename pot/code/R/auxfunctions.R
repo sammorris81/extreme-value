@@ -34,10 +34,12 @@ CorFx <- function(d, alpha, rho, nu) {
   # using cov.spatial instead of matern because it 
   # doesn't use the bessel function unless needed.
   # cor <- alpha * cov.spatial(d, cov.model="matern", cov.pars=c(1, rho), kappa=nu)
-  if (rho == 0.5) {
-    cor <- alpha * simple.cov.sp(D=d, sp.type=)
+  if (nu == 0.5) {
+    cor <- alpha * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho), error.var=0, 
+                                 smoothness=nu, finescale.var=0)
   }
-  cor <- alpha * simple.cov.sp(D=d, sp.type="")
+  cor <- alpha * simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
+                                 smoothness=nu, finescale.var=0)
   diag(cor) <- 1
 
   return(cor)

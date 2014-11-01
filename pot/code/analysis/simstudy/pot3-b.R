@@ -22,7 +22,7 @@
 #########################################################################
 
 library(fields)
-library(geoR)
+library(SpatialTools)
 options(warn=2)
 
 #### Load simdata
