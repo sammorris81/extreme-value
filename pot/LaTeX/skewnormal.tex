@@ -43,92 +43,86 @@ The advantage of using a thresholded model as opposed to a non-thresholded model
 The random spatial partition alleviates the long-range spatial dependence seen by the skew-$t$.
 
 The paper is organized as follows.
-In section \ref{s:model}, we describe the skew-$t$ process with partitioning and thresholding.
+In section \ref{s:spatial}, we describe a spatial skew-$t$ process with partitioning and thresholding.
+In section \ref{s:temporal}, we provide a way to model temporal correlation.
 The computing is described in section \ref{s:comp}.
 In section \ref{s:simstudy}, we present a simulation study that examines the predictive capabilities of this model compared with a na{\"i}ve Gaussian method.
 We then compare our method to Gaussian and max-stable methods with a data analysis of ozone measurements from the eastern US in section \ref{s:analysis}.
 The final section provides brief discussion and direction for future research.
 
-\section{Statistical model}\label{s:model}
-Let $Y_t(\bs)\in \calR$ be the observed value at location $\bs$ and timepoint $t$.
-To avoid bias in estimating tail parameters, we model censored data
+\section{Spatial model}\label{s:spatial}
+To avoid bias in estimating tail parameters, we model censored data.
+Let
 \beq\label{Yt}
-  \Yt_t(\bs) = \left\{
-          \begin{array}{ll}
-            Y_t(\bs) & Y_t(\bs)>T \\
-            T & Y_t(\bs)\le T
-          \end{array}
-        \right.
+  \tilde{Y}(\bs) = \delta(\bs) Y(\bs) + (1 - \delta(\bs)) T
 \eeq
-where $T$ is a pre-specified threshold.
-Then, assuming the full data are observations from a skew-$t$ process, we update values censored below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
+be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored observation, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
+Then, assuming the uncensored data are observations from a skew-$t$ process, we update values censored below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
 
 \subsection{Skew-$t$ process}\label{s:data}
 Many types of data demonstrate some level of skewness, and therefore should be modeled with distributions that allow for non-symmetry.
 The skew-elliptical family of distributions provides models that are mathematically tractable while introducing additional paremeters to account for non-symmetric data \citep{Genton2004}.
-One member of this family, is the skew-$t$ distribution \citep{Azzalini2003}.
+One member of this family, is the skew-$t$ distribution \citep[see Appendix A.5]{Azzalini2003}.
 \citet{Zhang2010} show that the skew-$t$ can be expressed as a hierarchical model
 \begin{align} \label{eq:fullmodel}
-  Y_t(\bs) &= X_t(\bs) \beta + \alpha |z_t| + \sigma_t v_t(\bs)
+  \bY &= \bX \bbeta + \alpha |z| + \sigma \bv
 \end{align}
-where $\alpha \in \calR$ controls the skewness, $z_{t} \ind N(0, \sigma^2_t)$ are a random effect from a half-normal distribution (see appendix A.4), $v_t(\bs)$ is a Gaussian process with mean zero, variance one, \Matern correlation, and $\sigma^2_t \iid \text{IG}(a, b)$.
-When marginalizing over the $z_t$ and $\sigma^2_t$ terms,
+where $\alpha \in \calR$ controls the skewness; $z \sim N(0, \sigma^2)$ is a random effect from a half-normal distribution (see appendix A.4); $\bv$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation; and $\sigma^2 \sim \text{IG}(a, b)$.
+When marginalizing over the $z$ and $\sigma^2$ terms, the joint distribution for all sites becomes
 \begin{align*}
-  Y_t(\bs) \sim \text{skew-}t (\mu, \Sigma^*, \alpha, \text{df} = 2a)
+  \bY \sim \text{skew-}t (\mu, \bSigma^*, \alpha, \text{df} = 2a)
 \end{align*}
-where $\mu$ is the location, $\Sigma^* = \frac{ b }{ a } \Sigma$, $\Sigma$ is a \Matern covariance matrix, and $\alpha \in \calR$ controls the skewness.
+where $\mu$ is the location, $\bSigma^* = \frac{ b }{ a } \bSigma$, $\bSigma$ is a \Matern covariance matrix, and $\alpha \in \calR$ controls the skewness.
 The skew-$t$ process is desirable because of its flexible tail that is controlled by the skewness parameter, $\alpha$, and the degrees of freedom, $2a$.
 Furthermore, if $\bY$ follows a multivariate skew-$t$ distribution, the marginal distributions also follow a skew-$t$ distribution \citep{Azzalini2003}.
 
 \subsection{Extremal dependence}
-One common measure of extremal spatial dependence is the extremal coefficient which describes the pairwise dependence between spatial locations \citep{Smith1990}.
-Consider a spatial process $Y(\bs) \in \calR^n$ observed at locations $s \in \calD \subset \calR^2$.
-Then the bivariate extremal coefficient, $\theta(\bs_i, \bs_j) \in [1, 2]$, is defined as
-\begin{align}
-  \Pr(Y(\bs_i) < c, Y(\bs_j) < c) = \Pr(Y(\bs_i) < c)^{\theta(\bs_i, \bs_j) }. \label{eq:extremalcoef}
-\end{align}
-One way to characterize the dependence over the entire set of spatial locations is to calculate all of the pairwise extremal coefficients.
-Although this method provides information regarding the spatial structure of the observations, it does not fully characterize the joint spatial dependence.
-
-Another measure of extremal dependence is the $\chi$ statistic.
+One measure of extremal dependence is the $\chi$ statistic \citep{Padoan2011}.
 The $\chi$ statistic for the upper tail is given by
 \begin{align*}
-  \chi = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c),
+  \chi = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c).
 \end{align*}
 In a stationary spatial process, we can write the $\chi$ coefficient as
 \begin{align*}
-  \chi(\bh) = \lim_{c \rightarrow \infty} \Pr(Y(0) > c | Y(\bh) > c)
+  \chi(h) = \lim_{c \rightarrow \infty} \Pr(Y(0) > c | Y(h) > c)
 \end{align*}
-where $\bh = ||\bs_1 - \bs_2||$.
-If $\chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
-For Gaussian processes, $\chi(\bh) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
-However, for the process described in Section \ref{s:data}, $\chi(\bh) > 0$ \citep{Padoan2011}.
+where $h = ||\bs_1 - \bs_2||$.
+If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
+For Gaussian processes, $\chi(h) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
+However, for the skew-$t$ process described in \ref{s:data}, $\chi(h) > 0$ \citep[see Appendix A.5 for the expression]{Padoan2011}.
 
 \subsection{Random daily partition}\label{s:part}
 One problem with the spatial skew-$t$ process is that all sites are asymptotically dependent regardless of their spatial separation.
-This occurs because all observations, both near and far, share the same $z_t$ and $\sigma^2_t$ terms.
-We handle this problem with a daily random partition similar to \citet{Kim2005} that allows $z_t$ and $\sigma^2_t$ to vary by site.
-The model then becomes
-\begin{align}
-  Y_t(\bs) &= X_t(\bs) \beta + \alpha |z_t(\bs)| + \sigma_t(\bs) v_t(\bs).
-\end{align}
-In this extension of (\ref{eq:fullmodel}), $z_t(\bs)$ and $\sigma_t(\bs)$ are allowed to vary by site.
-Their spatial variation is determined by the random partition model defined below.
-Consider a set of daily spatial knots $\bw_{tk} \sim \text{Uniform}(\calD)$ that define a random daily partition $P_{t1}, \ldots, P_{tK}$ of the spatial domain of interest $\calD \subset \calR^2$ such that
+This occurs because all observations, both near and far, share the same $z$ and $\sigma^2$ terms.
+Even more problematic is that $\lim_{h \rightarrow \infty} \chi(h) \neq 0$.
+We handle this problem with a random partition similar to \citet{Kim2005} that allows $z$ and $\sigma^2$ to vary by site.
+
+Consider a set of spatial knots $\bw_{k} \sim \text{Uniform}(\calD)$ that define a random daily partition $P_{1}, \ldots, P_{K}$ of the spatial domain of interest $\calD \subset \calR^2$ such that
 \begin{align*}
-  P_{tk} = \{ \bs : k = \argmin_\ell || \bs - \bw_{t\ell} || \}.
+  P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \}.
 \end{align*}
-So, for $\bs \in P_{tk}$, let
+Then, the observation at each site becomes
 \begin{align}
-  z_t(\bs) &= z_{tk} \label{eq:sitez}\\
-  \sigma^2_t(\bs) &= \sigma^2_{tk} \label{eq:sitesig}.
+  Y(\bs) &= X(\bs) \bbeta + \alpha |z(\bs)| + \sigma v(\bs),
 \end{align}
-Then within each partition, $Y_t(\bs)$ follows the distribution given in (\ref{eq:fullmodel}).
+and, for $\bs \in P_{k}$,
+\begin{align}
+  z(\bs) &= z_{tk} \label{eq:sitez}\\
+  \sigma^2(\bs) &= \sigma^2_{k} \label{eq:sitesig}.
+\end{align}
+So, within each partition, $\bY$ follows the distribution given in (\ref{eq:fullmodel}).
+
 When incorporating the random daily partition, the $\chi$ statistic becomes
 \begin{align}
-  \chi(\bh) = \lim_{c \rightarrow \infty} \pi(\bh) \chi(\bh)
+  \chi(h) = \pi(h) \chi(h) + (1 - \pi(h)) \chi(h)
 \end{align}
 where $\pi(h)$ is the probability that two sites separated by distance $h$ are in the same partition.
+Asymptotic dependence is eliminated as $h$ increases, because
+\begin{align}
+  \lim_{h \rightarrow \infty} \chi(h) = \lim_{h \rightarrow \infty} \pi(h) \chi(h) = 0.
+\end{align}
+A proof of this can be found in Appendix A.3.
+
 Figure \ref{fig:simchi} shows $\chi(h)$ for different sample quantiles from simulated datasets where $\bs \in [0, 1] \times [0, 1]$.
 These plots show how the partitioning allows for short range extremal dependence while reducing extremal dependence as the distance between sites increases.
 \begin{figure}
@@ -136,14 +130,6 @@ These plots show how the partitioning allows for short range extremal dependence
   \caption{$\chi(h)$ for simulated datasets.}
   \label{fig:simchi}
 \end{figure}
-
-Asymptotic dependence is eliminated as $h$ increases, because
-\begin{align}
-  \lim_{h \rightarrow \infty} \chi(\bh) = \lim_{h \rightarrow \infty} \pi(\bh) \chi(\bh) = 0.
-\end{align}
-A proof of this can be found in Appendix A.3.
-
-
 
 \subsection{Accounting for temporal dependence} \label{s:temporal}
 In a standard block-maxima approach, the temporal dependence is assumed to be negligible because blocks (e.g. yearly maxima) are taken to be large enough to assume independence.
