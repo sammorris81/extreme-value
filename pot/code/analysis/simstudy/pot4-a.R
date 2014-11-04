@@ -31,12 +31,12 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 1
+setting <- 4
 analysis <- "a"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 4:10) {
+for (g in 1:10) {
   fit.1 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
