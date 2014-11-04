@@ -226,6 +226,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else {
   	mh.tau.ns <- seq(5, 1, length=ns)
     acc.tau.low <- acc.tau.high <- 0
+    tau.trials  <- nknots * nt * 2  # accept/rejects before adjusting mh.tau start
   }
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
@@ -607,7 +608,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             acc.tau.ns[i] <- att.tau.ns[i] <- 0
           }
         }
-        if (acc.tau.high + acc.tau.low > 50) {
+        if ((acc.tau.high + acc.tau.low > tau.trials) & (iter < (burn / 2))) {
           if (acc.tau.low < acc.tau.high) {
             mh.seq.start <- mh.tau.ns[1] * 1.2
             mh.tau.ns <- seq(mh.seq.start, 1, length=ns)
