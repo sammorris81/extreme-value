@@ -224,7 +224,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mh.phi.tau <- 1
     mh.tau.ns <- rep(0.1, 10)
   } else {
-  	mh.tau.ns <- rep(1, 10)
+  	mh.tau.ns <- seq(5, 1, length=ns)
+    acc.tau.low <- acc.tau.high <- 0
   }
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
@@ -488,7 +489,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 1.2 }
           acc.phi.tau <- att.phi.tau <- 0
         }
-
+        
+        # we have this part in separately because the update rules are different for the time series vs MH
+        for (i in 1:length(mh.tau.ns)) {
+          if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
+            if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {  # numerical stability
+              mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6) 
+            }
+            if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
+            acc.tau.ns[i] <- att.tau.ns[i] <- 0
+          }
+        }
       } else {
         if (nknots == 1) {
           for (t in 1:nt) {
@@ -515,26 +526,34 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               nparts.tau[k, t] <- nparts
               
               if(nparts==0){
-                tau[k, t] <- rgamma(1, tau.alpha, tau.beta)
+                aaa <- tau.alpha + 0.5
+                bbb <- tau.beta + z[k, t]^2 / 2
+                # tau[k, t] <- rgamma(1, tau.alpha, tau.beta)
+                tau[k, t] <- rgamma(1, aaa, bbb)
                 if (tau[k, t] < 1e-6) {
                   tau[k, t] <- 1e-6
                 }
               } else {      
-                mh.idx <- get.tau.mh.idx(nparts, ns, mh.tau.parts)
-                att.tau.ns[mh.idx] <- att.tau.ns[mh.idx] + 1
+                att.tau.ns[nparts] <- att.tau.ns[nparts]
                 att.tau[k, t] <- att.tau[k, t] + 1
-                aaa <- nparts / 2 + tau.alpha
-                bbb <- quad.form(prec.cor[these, these], res.t[these]) / 2 + tau.beta
+                # mh.idx <- get.tau.mh.idx(nparts, ns, mh.tau.parts)
+                
+                # aaa <- nparts / 2 + tau.alpha
+                # bbb <- quad.form(prec.cor[these, these], res.t[these]) / 2 + tau.beta
                 # if ((k == 1 & t == 1) | (k == 1 & t == 10) | (k == 1 & t == 21)) {
                   # print(paste("MH.idx =", mh.idx))
                   # print(paste("MH s =", mh.tau.ns[mh.idx]))
                   # print(paste("nparts =", nparts))
                 # }
 
-                aaa <- aaa / mh.tau.ns[mh.idx]
-                bbb <- bbb / mh.tau.ns[mh.idx]
+                # aaa <- aaa / mh.tau.ns[mh.idx]
+                # bbb <- bbb / mh.tau.ns[mh.idx]
                 # aaa <- aaa / mh.tau[k, t]
                 # bbb <- bbb / mh.tau[k, t]
+                aaa <- (nparts + 1) / 2 + tau.alpha
+                bbb <- quad.form(prec.cor[these, these], res.t[these]) / 2 + tau.beta + z[k, t]^2 / 2
+                aaa <- aaa / mh.tau.ns[nparts]
+                bbb <- bbb / mh.tau.ns[nparts]
 
                 cantau    <- tau[, t]
                 cantau[k] <- rgamma(1, aaa, bbb)
@@ -563,7 +582,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                         dgamma(cantau[k], aaa, bbb, log=TRUE)
                 
                 if (!is.na(R)) { if (log(runif(1)) < R) {
-                  acc.tau.ns[mh.idx] <- acc.tau.ns[mh.idx] + 1
+                  acc.tau.ns[nparts] <- acc.tau.ns[nparts] + 1
                   acc.tau[k, t] <- acc.tau[k, t] + 1
                   tau[, t]  <- cantau
                   taug[, t] <- cantaug
@@ -575,7 +594,30 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         }  # end t
         
         }  # fi knots == 1
-     
+        for (i in 1:length(mh.tau.ns)) {
+          if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
+            if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {  # numerical stability
+              # mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6) 
+              acc.tau.low <- acc.tau.low + 1
+            }
+            if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { 
+              # mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 
+              acc.tau.high <- acc.tau.high + 1
+            }
+            acc.tau.ns[i] <- att.tau.ns[i] <- 0
+          }
+        }
+        if (acc.tau.high + acc.tau.low > 50) {
+          if (acc.tau.low < acc.tau.high) {
+            mh.seq.start <- mh.tau.ns[1] * 1.2
+            mh.tau.ns <- seq(mh.seq.start, 1, length=ns)
+          } else {
+            mh.seq.start <- mh.tau.ns[1] * 0.8
+            mh.tau.ns <- seq(mh.seq.start, 1, length=ns)
+          }
+        acc.tau.low <- acc.tau.high <- 0
+        print(mh.tau.ns)
+        }
       }  # fi temporal
       
       # update tau.alpha and tau.beta
@@ -592,21 +634,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # update candidate tau
       for (t in 1:nt) { for (k in 1:nknots) {
         if ((att.tau[k, t] > 50) & (iter < (burn / 2))) {
-          if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
-          if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
+          if (acc.tau[k, t] / att.tau[k, t] < 0.25) { mh.tau[k, t] <- mh.tau[k, t] * 1.2 }
+          if (acc.tau[k, t] / att.tau[k, t] > 0.50) { mh.tau[k, t] <- mh.tau[k, t] * 0.8 }
           acc.tau[k, t] <- att.tau[k, t] <- 0
         }
       } }
       
-      for (i in 1:length(mh.tau.ns)) {
-        if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
-          if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {  # numerical stability
-            mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6) 
-          }
-          if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
-          acc.tau.ns[i] <- att.tau.ns[i] <- 0
-        }
-      }
+      
     }  # fi method == t
     
     # update rho and nu and alpha
@@ -987,12 +1021,34 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       title.nu <- paste("acc =", acc.rate.nu)
       plot(keepers.nu[begin:iter], type="l", main=title.nu)
       
+      title.alpha <- paste("acc =", acc.rate.alpha)
+      plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
+      
+      nparts.1 <- length(which(g[, 1] == 1))
+      mh.disp.1 <- round(mh.tau.ns[nparts.1], 2)
+      nparts.2 <- length(which(g[, 10] == 1))
+      mh.disp.2 <- round(mh.tau.ns[nparts.2], 2)
+      nparts.3 <- length(which(g[, 21] == 1))
+      mh.disp.3 <- round(mh.tau.ns[nparts.3], 2)
       title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
       title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
       title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
-      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1)
-      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2)
-      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3)
+      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1, ylab="tau 1,1", xlab=paste(nparts.1, ", ", mh.disp.1))
+      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2, ylab="tau 1, 10", xlab=paste(nparts.2, ", ", mh.disp.2))
+      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3, ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
+      
+      nparts.4 <- length(which(g[, 1] == 2))
+      mh.disp.4 <- round(mh.tau.ns[nparts.4], 2)
+      nparts.5 <- length(which(g[, 10] == 2))
+      mh.disp.5 <- round(mh.tau.ns[nparts.5], 2)
+      nparts.6 <- length(which(g[, 21] == 2))
+      mh.disp.6 <- round(mh.tau.ns[nparts.6], 2)
+      title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
+      title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
+      title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
+      plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4, ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
+      plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5, ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
+      plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6, ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))      
       
       title.alpha <- paste("acc =", acc.rate.alpha)
       plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
@@ -1010,7 +1066,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         }
         plot(keepers.z[begin:iter, 1, 1], type="l", main=title.z.1)
         plot(keepers.z[begin:iter, 1, 10], type="l", main=title.z.2)
-        plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
+        # plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
       } 
     }
     

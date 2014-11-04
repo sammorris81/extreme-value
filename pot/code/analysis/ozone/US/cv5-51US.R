@@ -8,14 +8,14 @@ load('cv-setup-us.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
 
-setting <- 20
+setting <- 51
 method <- "t"
-nknots <- 5
+nknots <- 2
 keep.knots <- F
-threshold <- 75
-tau.init <- 0.05
+threshold <- 0
+tau.init <- 0.5
 thresh.quant <- F
-skew <- F
+skew <- T
 outputfile <- paste("cv5-", setting, "US.RData", sep="")
 
 start <- proc.time()
@@ -40,7 +40,7 @@ for(val in 1:2){
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
 	                   method=method, skew=skew, keep.knots=keep.knots,
 	                   thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots, 
-                       iters=30000, burn=25000, update=500, iterplot=F,
+                       iters=30000, burn=25000, update=100, iterplot=T,
                        beta.init=beta.init, tau.init=tau.init, rho.init=1,
                        nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()
@@ -51,4 +51,3 @@ for(val in 1:2){
 	cat("CV", val, "finished", round(avg.time.val, 2), "per dataset \n")
 	save(fit, file=outputfile)
 }
-

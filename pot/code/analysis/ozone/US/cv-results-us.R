@@ -1,6 +1,99 @@
 load("cv-setup-us.RData")
 source("../../../R/auxfunctions.R")
 
+load("cv5-10US.RData")
+
+par(mfrow=c(5, 5))
+days1 <- c(1, 4, 7, 10, 13)
+days2 <- c(16, 19, 22, 25, 28)
+
+# plot tau
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days1[j]))
+  plot(fit[[1]]$tau[, i, days1[j]], type="l", xlab=xlab, main=main)
+} }
+for(i in 6:10){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days1[j]))
+  plot(fit[[1]]$tau[, i, days1[j]], type="l", xlab=xlab, main=main)
+} }
+
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days2[j]))
+  plot(fit[[1]]$tau[, i, days2[j]], type="l", xlab=xlab, main=main)
+} }
+for(i in 6:10){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days2[j]))
+  plot(fit[[1]]$tau[, i, days2[j]], type="l", xlab=xlab, main=main)
+} }
+
+# plot z
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days1[j]))
+  plot(fit[[1]]$z[, i, days1[j]], type="l", xlab=xlab, main=main)
+} }
+for(i in 6:10){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days1[j]))
+  plot(fit[[1]]$z[, i, days1[j]], type="l", xlab=xlab, main=main)
+} }
+
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days2[j]))
+  plot(fit[[1]]$z[, i, days2[j]], type="l", xlab=xlab, main=main)
+} }
+for(i in 6:10){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days2[j]))
+  plot(fit[[1]]$z[, i, days2[j]], type="l", xlab=xlab, main=main)
+} }
+
+
+load("cv5-6US.RData")
+par(mfrow=c(5, 5))
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days1[j]))
+  plot(fit[[1]]$tau[, i, days1[j]], type="l", xlab=xlab, main=main)
+} }
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days2[j]))
+  plot(fit[[1]]$tau[, i, days2[j]], type="l", xlab=xlab, main=main)
+} }
+
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days1[j]))
+  plot(fit[[1]]$z[, i, days1[j]], type="l", xlab=xlab, main=main)
+} }
+for(i in 1:5){ for (j in 1:5) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", days2[j]))
+  plot(fit[[1]]$z[, i, days2[j]], type="l", xlab=xlab, main=main)
+} }
+
+
+load("cv5-2US.RData")
+par(mfrow=c(3, 5))
+days1 <- seq(1, 30, by=2)
+for (j in days1) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", j))
+  plot(fit[[1]]$tau[, j], type="l", xlab=xlab, main=main)
+}
+for (j in days1) {
+  xlab <- print(paste("knot", i))
+  main <- print(paste("day", j))
+  plot(fit[[1]]$z[, j], type="l", xlab=xlab, main=main)
+}
+
+
 # # X11()
 # # boxplot(log(fit.schlather$gpdre))
 # # lines(log(r^2))
