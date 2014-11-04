@@ -15,8 +15,8 @@
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - t-1 (T = 0.80)
-#  4 - skew t-3
-#  5 - t-3 (T = 0.80)
+#  4 - skew t-5
+#  5 - t-5 (T = 0.80)
 #  6 - max-stable
 #	
 #########################################################################
@@ -31,7 +31,7 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 4
+setting <- 1
 analysis <- "a"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
