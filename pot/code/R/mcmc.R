@@ -997,7 +997,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	# print(mh.tau.ns)
     if (iterplot) {
       if (skew) {
-        par(mfrow=c(3, 5))
+        par(mfrow=c(3, 6))
       } else {
         par(mfrow=c(3, 4))
       }
@@ -1038,18 +1038,23 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2, ylab="tau 1, 10", xlab=paste(nparts.2, ", ", mh.disp.2))
       plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3, ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
       
-      nparts.4 <- length(which(g[, 1] == 2))
-      mh.disp.4 <- round(mh.tau.ns[nparts.4], 2)
-      nparts.5 <- length(which(g[, 10] == 2))
-      mh.disp.5 <- round(mh.tau.ns[nparts.5], 2)
-      nparts.6 <- length(which(g[, 21] == 2))
-      mh.disp.6 <- round(mh.tau.ns[nparts.6], 2)
-      title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
-      title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
-      title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
-      plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4, ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
-      plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5, ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
-      plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6, ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))      
+      if (nknots > 1) {
+        nparts.4 <- length(which(g[, 1] == 2))
+        mh.disp.4 <- round(mh.tau.ns[nparts.4], 2)
+        nparts.5 <- length(which(g[, 10] == 2))
+        mh.disp.5 <- round(mh.tau.ns[nparts.5], 2)
+        nparts.6 <- length(which(g[, 21] == 2))
+        mh.disp.6 <- round(mh.tau.ns[nparts.6], 2)
+        title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
+        title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
+        title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
+        plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4, 
+             ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
+        plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5, 
+             ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
+        plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6, 
+             ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))
+      }    
       
       title.alpha <- paste("acc =", acc.rate.alpha)
       plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
