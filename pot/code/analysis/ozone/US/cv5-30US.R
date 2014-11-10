@@ -42,7 +42,7 @@ for(val in 1:2){
                    temporalw=T, temporalz=T, temporaltau=T,
                    method=method, skew=skew, keep.knots=keep.knots,
 	               thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-                   iters=30000, burn=25000, update=500, iterplot=F,
+                   iters=30000, burn=25000, update=100, iterplot=T,
                    beta.init=beta.init, tau.init=tau.init, rho.init=1,
                    nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()

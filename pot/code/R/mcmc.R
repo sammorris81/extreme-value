@@ -222,7 +222,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- 1
     mh.phi.tau <- 1
-    mh.tau.ns <- rep(0.1, 10)
+    mh.tau.ns <- rep(0.5, ns)
+    acc.tau.low <- acc.tau.high <- 0
+    tau.trials  <- 100
   } else {
   	mh.tau.ns <- seq(5, 1, length=ns)
     acc.tau.low <- acc.tau.high <- 0
@@ -231,7 +233,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
     phi.z <- 0.5
-    acc.z <- att.z <- mh.z <- matrix(1, nknots, nt)
+    acc.z <- att.z <- matrix(1, nknots, nt)
+    mh.z <- matrix(15, nknots, nt)
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
   }
     
@@ -482,9 +485,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         tau <- ts.tau$tau
         att.tau <- ts.tau$att.tau
         acc.tau <- ts.tau$acc.tau
+        att.tau.ns <- ts.tau$att.tau.ns
+        acc.tau.ns <- ts.tau$acc.tau.ns
         phi.tau <- ts.tau$phi
         att.phi.tau <- ts.tau$att.phi
         acc.phi.tau <- ts.tau$acc.phi
+        # print(att.tau.ns)
+        # print(acc.tau.ns)
         if ((att.phi.tau > 50) & (iter < (burn / 2))) {
           if (acc.phi.tau / att.phi.tau < 0.25) { mh.phi.tau <- mh.phi.tau * 0.8 }
           if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 1.2 }
@@ -497,7 +504,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {  # numerical stability
               mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6) 
             }
-            if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 }
+            if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { 
+              mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 
+            }
             acc.tau.ns[i] <- att.tau.ns[i] <- 0
           }
         }
@@ -840,7 +849,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	acc.phi.z <- ts.z.update$acc.phi
       	
       	for (t in 1:nt) { 
-          zg[, t] <- z[g[, t], t]
+          # zg[, t] <- z[g[, t], t]
           for (k in 1:nknots) {
             if (att.z[k, t] > 50) {  # block accepting all knots for a day
               if (acc.z[k, t] / att.z[k, t] < 0.25) { mh.z[k, t] <- mh.z[k, t] * 0.8 }
@@ -848,7 +857,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               acc.z[k, t] <- att.z[k, t] <- 0
             }
           }
-        } 
+        }
+        # if (iter %% 51 == 0) {
+          # print(iter)
+          # print(mh.z) 
+        # }
         
         if ((att.phi.z > 50) & (iter < (burn / 2)) ) {
           if (acc.phi.z / att.phi.z < 0.25) { mh.phi.z <- mh.phi.z * 0.8 }
@@ -1025,37 +1038,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       title.alpha <- paste("acc =", acc.rate.alpha)
       plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
       
-      nparts.1 <- length(which(g[, 1] == 1))
-      mh.disp.1 <- round(mh.tau.ns[nparts.1], 2)
-      nparts.2 <- length(which(g[, 10] == 1))
-      mh.disp.2 <- round(mh.tau.ns[nparts.2], 2)
-      nparts.3 <- length(which(g[, 21] == 1))
-      mh.disp.3 <- round(mh.tau.ns[nparts.3], 2)
-      title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
-      title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
-      title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
-      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1, ylab="tau 1,1", xlab=paste(nparts.1, ", ", mh.disp.1))
-      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2, ylab="tau 1, 10", xlab=paste(nparts.2, ", ", mh.disp.2))
-      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3, ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
-      
-      if (nknots > 1) {
-        nparts.4 <- length(which(g[, 1] == 2))
-        mh.disp.4 <- round(mh.tau.ns[nparts.4], 2)
-        nparts.5 <- length(which(g[, 10] == 2))
-        mh.disp.5 <- round(mh.tau.ns[nparts.5], 2)
-        nparts.6 <- length(which(g[, 21] == 2))
-        mh.disp.6 <- round(mh.tau.ns[nparts.6], 2)
-        title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
-        title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
-        title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
-        plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4, 
-             ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
-        plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5, 
-             ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
-        plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6, 
-             ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))
-      }    
-      
       title.alpha <- paste("acc =", acc.rate.alpha)
       plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
       if (skew) {
@@ -1074,6 +1056,38 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         plot(keepers.z[begin:iter, 1, 10], type="l", main=title.z.2)
         # plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
       } 
+      
+      nparts.1 <- length(which(g[, 1] == 1))
+      mh.disp.1 <- round(mh.tau.ns[nparts.1], 2)
+      nparts.2 <- length(which(g[, 10] == 1))
+      mh.disp.2 <- round(mh.tau.ns[nparts.2], 2)
+      nparts.3 <- length(which(g[, 21] == 1))
+      mh.disp.3 <- round(mh.tau.ns[nparts.3], 2)
+      title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
+      title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
+      title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
+      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1, ylab="tau 1,1", xlab=paste(nparts.1, ", ", mh.disp.1))
+      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2, ylab="tau 1, 10", xlab=paste(nparts.2, ", ", mh.disp.2))
+      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3, ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
+     
+      if (nknots > 1) {
+        nparts.4 <- length(which(g[, 1] == 2))
+        mh.disp.4 <- round(mh.tau.ns[nparts.4], 2)
+        nparts.5 <- length(which(g[, 10] == 2))
+        mh.disp.5 <- round(mh.tau.ns[nparts.5], 2)
+        nparts.6 <- length(which(g[, 21] == 2))
+        mh.disp.6 <- round(mh.tau.ns[nparts.6], 2)
+        title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
+        title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
+        title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
+        plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4, 
+             ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
+        plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5, 
+             ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
+        plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6, 
+             ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))
+      }    
+      
     }
     
     toc <- proc.time()

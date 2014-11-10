@@ -108,7 +108,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
       
       # candidate moves are in the AR(1) distribution
       # att.tau.ns[(nparts + 1)] <- att.tau.ns[(nparts + 1)] + 1
-      att.tau.ns[mh.idx] <- att.tau.ns[mh.idx] + 1
+      att.tau.ns[nparts] <- att.tau.ns[nparts] + 1
       att.tau[k, t]      <- att.tau[k, t] + 1
       can.tau.star       <- tau.star[, t]  # pull out all taus for a day
       can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[mh.idx])  # get candidate for knot k
@@ -144,7 +144,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
       }
              
       if (!is.na(R)) { if (log(runif(1)) < R) {
-        acc.tau.ns[mh.idx] <- acc.tau.ns[mh.idx] + 1
+        acc.tau.ns[nparts] <- acc.tau.ns[nparts] + 1
         acc.tau[k, t]      <- acc.tau[k, t] + 1
         tau[k, t]          <- can.tau[k]
         tau.star[k, t]     <- can.tau.star[k]
@@ -176,6 +176,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
   } }
   
   results <- list(tau=tau, att.tau=att.tau, acc.tau=acc.tau,
+                  att.tau.ns=att.tau.ns, acc.tau.ns=acc.tau.ns,
                   phi=phi, att.phi=att.phi, acc.phi=acc.phi)
                   
   return(results)                         
