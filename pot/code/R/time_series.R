@@ -92,7 +92,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
     for (k in 1:nknots) {
       these  <- which(g[, t] == k)
       nparts <- length(these)  # determines MH standard deviation
-      mh.idx <- get.tau.mh.idx(nparts, ns, mh.tau.parts)
+      # mh.idx <- get.tau.mh.idx(nparts, ns, mh.tau.parts)
       
       if (t == 1) {
         mean <- 0
@@ -107,12 +107,12 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
       # likelihood uses tau
       
       # candidate moves are in the AR(1) distribution
-      # att.tau.ns[(nparts + 1)] <- att.tau.ns[(nparts + 1)] + 1
-      att.tau.ns[nparts] <- att.tau.ns[nparts] + 1
+      att.tau.ns[(nparts + 1)] <- att.tau.ns[(nparts + 1)] + 1
+      # att.tau.ns[nparts] <- att.tau.ns[nparts] + 1
       att.tau[k, t]      <- att.tau[k, t] + 1
       can.tau.star       <- tau.star[, t]  # pull out all taus for a day
-      can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[mh.idx])  # get candidate for knot k
-      # can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[(nparts + 1)])  # get candidate for knot k
+      # can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[mh.idx])  # get candidate for knot k
+      can.tau.star[k]    <- rnorm(1, tau.star[k, t], mh.tau.ns[(nparts + 1)])  # get candidate for knot k
       # can.tau.star[k] <- rnorm(1, tau.star[k, t], mh.tau[k, t])  # get candidate for knot k
       if (can.tau.star[k] > 8) { can.tau.star[k] = 8 }  # numerical stability
       if (can.tau.star[k] < -8) { can.tau.star[k] = 8 }  # numerical stability
@@ -144,7 +144,7 @@ ts.sample.tau <- function(tau, acc.tau, att.tau, mh.tau, att.tau.ns, acc.tau.ns,
       }
              
       if (!is.na(R)) { if (log(runif(1)) < R) {
-        acc.tau.ns[nparts] <- acc.tau.ns[nparts] + 1
+        acc.tau.ns[(nparts+1)] <- acc.tau.ns[(nparts+1)] + 1
         acc.tau[k, t]      <- acc.tau[k, t] + 1
         tau[k, t]          <- can.tau[k]
         tau.star[k, t]     <- can.tau.star[k]

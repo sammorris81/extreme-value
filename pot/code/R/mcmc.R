@@ -222,10 +222,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     phi.tau <- 0
     acc.phi.tau <- att.phi.tau <- 1
     mh.phi.tau <- 1
-    mh.tau.ns <- rep(0.5, ns)
+    mh.tau.ns <- rep(5, (ns + 1))
     acc.tau.low <- acc.tau.high <- 0
     tau.trials  <- 100
+    acc.tau.ns <- att.tau.ns <- rep(1, (ns + 1))
   } else {
+  	acc.tau.ns <- att.tau.ns <- rep(1, ns)
   	mh.tau.ns <- seq(5, 1, length=ns)
     acc.tau.low <- acc.tau.high <- 0
     tau.trials  <- nknots * nt * 2  # accept/rejects before adjusting mh.tau start
@@ -237,6 +239,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mh.z <- matrix(15, nknots, nt)
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
   }
+  
+  # candidate distributions for tau depend on the percentage of sites in the 
+  # partition. 
+  # avg.sites.part <- 1 / nknots
+  # mh.tau.parts <- c(0, (avg.sites.part / 4), (avg.sites.part / 2), avg.sites.part, 
+                    # (2 * avg.sites.part), (3 * avg.sites.part), (4 * avg.sites.part))
+  acc.tau <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
+  mh.tau <- matrix(0.05, nknots, nt)
+  nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
     
   # MH tuning params
   acc.w      <- att.w      <- mh.w     <- rep(0.1, nt)  # knot locations
@@ -245,16 +256,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   acc.nu     <- att.nu     <- mh.nu    <- 0.1
   acc.alpha  <- att.alpha  <- mh.alpha <- 0.5
   
-  # candidate distributions for tau depend on the percentage of sites in the 
-  # partition. 
-  acc.tau.ns <- att.tau.ns <- rep(1, ns)
-  avg.sites.part <- 1 / nknots
-  mh.tau.parts <- c(0, (avg.sites.part / 4), (avg.sites.part / 2), avg.sites.part, 
-                    (2 * avg.sites.part), (3 * avg.sites.part), (4 * avg.sites.part))
-  acc.tau    <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
-  mh.tau <- matrix(0.05, nknots, nt)
-  nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
-       
   # storage
   keepers.tau       <- array(NA, dim=c(iters, nknots, nt))
   keepers.beta      <- matrix(NA, nrow=iters, ncol=p)
@@ -502,13 +503,28 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         for (i in 1:length(mh.tau.ns)) {
           if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
             if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {  # numerical stability
-              mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6) 
+              # mh.tau.ns[i] <- max(mh.tau.ns[i] * 0.8, 1e-6)
+              acc.tau.low <- acc.tau.low + 1 
             }
             if (acc.tau.ns[i] / att.tau.ns[i] > 0.50) { 
-              mh.tau.ns[i] <- mh.tau.ns[i] * 1.2 
+              # mh.tau.ns[i] <- mh.tau.ns[i] * 1.2
+              acc.tau.high <- acc.tau.high + 1 
             }
             acc.tau.ns[i] <- att.tau.ns[i] <- 0
           }
+        }
+        # print(acc.tau.high + acc.tau.low)
+        # print(tau.trials)
+        if ((acc.tau.high + acc.tau.low > tau.trials) & (iter < (burn / 2))) {
+          if (acc.tau.low < acc.tau.high) {
+            mh.seq.start <- mh.tau.ns[1] * 1.2
+            mh.tau.ns <- rep(mh.seq.start, length=(ns + 1))
+          } else if (acc.tau.low > acc.tau.high) {
+            mh.seq.start <- mh.tau.ns[1] * 0.8
+            mh.tau.ns <- rep(mh.seq.start, length=(ns + 1))
+          }
+          acc.tau.low <- acc.tau.high <- 0
+          # print(mh.tau.ns)
         }
       } else {
         if (nknots == 1) {
@@ -1038,8 +1054,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       title.alpha <- paste("acc =", acc.rate.alpha)
       plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
       
-      title.alpha <- paste("acc =", acc.rate.alpha)
-      plot(keepers.alpha[begin:iter], type="l", main=title.alpha)
       if (skew) {
         plot(keepers.z.alpha[begin:iter], type="l")
         
@@ -1054,15 +1068,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         }
         plot(keepers.z[begin:iter, 1, 1], type="l", main=title.z.1)
         plot(keepers.z[begin:iter, 1, 10], type="l", main=title.z.2)
-        # plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
+        plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
       } 
       
       nparts.1 <- length(which(g[, 1] == 1))
-      mh.disp.1 <- round(mh.tau.ns[nparts.1], 2)
+      mh.disp.1 <- round(mh.tau.ns[(nparts.1 + 1)], 2)
       nparts.2 <- length(which(g[, 10] == 1))
-      mh.disp.2 <- round(mh.tau.ns[nparts.2], 2)
+      mh.disp.2 <- round(mh.tau.ns[(nparts.2 + 1)], 2)
       nparts.3 <- length(which(g[, 21] == 1))
-      mh.disp.3 <- round(mh.tau.ns[nparts.3], 2)
+      mh.disp.3 <- round(mh.tau.ns[(nparts.3 + 1)], 2)
       title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
       title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
       title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
@@ -1072,11 +1086,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
      
       if (nknots > 1) {
         nparts.4 <- length(which(g[, 1] == 2))
-        mh.disp.4 <- round(mh.tau.ns[nparts.4], 2)
+        mh.disp.4 <- round(mh.tau.ns[(nparts.4 + 1)], 2)
         nparts.5 <- length(which(g[, 10] == 2))
-        mh.disp.5 <- round(mh.tau.ns[nparts.5], 2)
+        mh.disp.5 <- round(mh.tau.ns[(nparts.5 + 1)], 2)
         nparts.6 <- length(which(g[, 21] == 2))
-        mh.disp.6 <- round(mh.tau.ns[nparts.6], 2)
+        mh.disp.6 <- round(mh.tau.ns[(nparts.6 + 1)], 2)
         title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
         title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
         title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
