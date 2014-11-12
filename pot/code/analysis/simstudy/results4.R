@@ -26,7 +26,7 @@ load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 1
+ngroups <- 10
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
