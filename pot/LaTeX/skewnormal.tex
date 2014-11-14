@@ -43,38 +43,61 @@ The advantage of using a thresholded model as opposed to a non-thresholded model
 The random spatial partition alleviates the long-range spatial dependence seen by the skew-$t$.
 
 The paper is organized as follows.
-In section \ref{s:spatial}, we describe a spatial skew-$t$ process with partitioning and thresholding.
-In section \ref{s:temporal}, we expand the model to incorporate temporal dependence.
+Section \ref{s:skewt} is a brief review of the spatial skew-$t$ process.
+In section \ref{s:temporal}, we build upon the traditional skew-$t$ by incorporating censoring to focus on tails, partitioning to remove long-range asymptotic dependence, and extending the model to space-time data.
 The computing is described in section \ref{s:comp}.
 In section \ref{s:simstudy}, we present a simulation study that examines the predictive capabilities of this model compared with a na{\"i}ve Gaussian method.
 We then compare our method to Gaussian and max-stable methods with a data analysis of ozone measurements from the eastern US in section \ref{s:analysis}.
 The final section provides brief discussion and direction for future research.
 
-\section{Spatial model}\label{s:spatial}
-To avoid bias in estimating tail parameters, we model censored data.
-Let
-\beq\label{Yt}
-  \tilde{Y}(\bs) = \delta(\bs) Y(\bs) + (1 - \delta(\bs)) T
-\eeq
-be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored observation, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
-Then, assuming the uncensored data are observations from a skew-$t$ process, we update values censored below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
+\section{Spatial skew processes}\label{s:skewt}
+Many types of data demonstrate some level of skewness and therefore should be modeled with distributions that allow for non-symmetry.
+The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter $\alpha$ to account for non-symmetric data \citep{Genton2004}.
 
-\subsection{Skew-$t$ process}\label{s:data}
-Many types of data demonstrate some level of skewness, and therefore should be modeled with distributions that allow for non-symmetry.
-The skew-elliptical family of distributions provides models that are mathematically tractable while introducing additional paremeters to account for non-symmetric data \citep{Genton2004}.
-One member of this family, is the skew-$t$ distribution \citep[see Appendix A.5]{Azzalini2003}.
-\citet{Zhang2010} show that the skew-$t$ can be expressed as a hierarchical model
-\begin{align} \label{eq:fullmodel}
-  \bY &= \bX \bbeta + \alpha |z| + \sigma \bv
+\subsection{Skew-normal process}
+Let $U(\bs)$ be a normalized skew-normal process with slant $\alpha$. We write $U(\bs) \sim \text{SN}_d(\Omega, \alpha)$, and the density is given as
+\begin{align}
+  2 \phi_d (U(\bs); \Omega) \Phi(\alpha \bOne^T U(\bs))
 \end{align}
-where $\alpha \in \calR$ controls the skewness; $z \sim N(0, \sigma^2)$ is a random effect from a half-normal distribution (see appendix A.4); $\bv$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation; and $\sigma^2 \sim \text{IG}(a, b)$.
-When marginalizing over the $z$ and $\sigma^2$ terms, the joint distribution for all sites becomes
+where $\phi_d$ is the density function for a $N_d(0, \Sigma)$ random variable, and $\Phi$ is a standard normal cumulative distribution function.
+There is an additive representation \citep{Zhang2010} to construct a standardized skew-normal process given by
+\begin{align}
+  U(\bs) = \alpha |z| + v(\bs)
+\end{align}
+where $\alpha \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, and $v(\bs)$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation.
+So,
+\begin{align}
+  \text{cor}(U(\bs), U(\bs)) = \gamma I(s = t) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right).
+\end{align}
+Let $Y(\bs) = \bX(\bs)^T + \sigma U(\bs)$.
+Then, after marginalizing over the $z$ term, we find that
+\begin{align}
+  Y(\bs) \sim \text{SN}_d(\bX^T(\bs)\bbeta, \Omega, \alpha)
+\end{align}
+where $\Omega = \sigma^2 (\Sigma + \alpha^2 \bOne \bOne^T$).
+
+\subsection{Skew-$t$ process}
+If $\sigma^2 \sim \text{IG}(a, b)$, after over the $\sigma^2$ terms, we have a skew-$t$ process with distribution function
+
 \begin{align*}
   \bY \sim \text{skew-}t (\mu, \bSigma^*, \alpha, \text{df} = 2a)
 \end{align*}
 where $\mu$ is the location, $\bSigma^* = \frac{ b }{ a } \bSigma$, $\bSigma$ is a \Matern covariance matrix, and $\alpha \in \calR$ controls the skewness.
 The skew-$t$ process is desirable because of its flexible tail that is controlled by the skewness parameter, $\alpha$, and the degrees of freedom, $2a$.
 Furthermore, if $\bY$ follows a multivariate skew-$t$ distribution, the marginal distributions also follow a skew-$t$ distribution \citep{Azzalini2003}.
+
+One member of this family, is the skew-$t$ distribution \citep[see Appendix A.5]{Azzalini2003}.
+\citet{Zhang2010} show that the skew-$t$ process can be expressed as a hierarchical model
+\begin{align} \label{eq:fullmodel}
+  Y(\bs) &= \bX(\bs)^T \bbeta + \alpha |z| + \sigma v(\bs)
+\end{align}
+where $\alpha \in \calR$ controls the skewness; $z \sim N(0, \sigma^2)$ is a normal random effect; $v(\bs)$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation; and $\sigma^2 \sim \text{IG}(a, b)$.
+So,
+\begin{align}
+  \text{cor}(Y(\bs), Y(\bs)) = \gamma I(s = t) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)
+\end{align}
+
+
 
 \subsection{Extremal dependence}
 One measure of extremal dependence is the $\chi$ statistic \citep{Padoan2011}.
@@ -89,9 +112,24 @@ In a stationary spatial process, we can write the $\chi$ coefficient as
 where $h = ||\bs_1 - \bs_2||$.
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
-However, for the skew-$t$ process described in \ref{s:data}, $\chi(h) > 0$ \citep[they give an expression that is the sum of two survival functions from the skew-$t$ distribution. The expression isn't terribly informative, but I can include it if you think it would be helpful.]{Padoan2011}.
+However, for the skew-$t$ process described in \ref{s:skewt}, $\chi(h) > 0$ \citep[they give an expression that is the sum of two survival functions from the skew-$t$ distribution. The expression isn't terribly informative, but I can include it if you think it would be helpful.]{Padoan2011}.
 
-\subsection{Random daily partition}\label{s:part}
+\section{Spatiotemporal skew-$t$ model for extremes}\label{s:spatial}
+In this section, we describe the
+
+\subsection{Censoring to focus on the tails}
+To avoid bias in estimating tail parameters, we model censored data.
+Let
+\beq\label{Yt}
+  \tilde{Y}(\bs) = \left\{ \begin{array}{ll}
+      Y(\bs) \quad & \delta(\bs) = 1 \\
+      T & \delta(\bs) = 0
+  \end{array} \right.
+\eeq
+be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored observation, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
+Then, assuming the uncensored data $Y(\bs)$ are observations from a skew-$t$ process, we update values censored below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
+
+\subsection{Partitioning to remove long-range asymptotic dependence}\label{s:part}
 One problem with the spatial skew-$t$ process is that all sites are asymptotically dependent regardless of their spatial separation.
 This occurs because all observations, both near and far, share the same $z$ and $\sigma^2$ terms.
 Even more problematic is that $\lim_{h \rightarrow \infty} \chi(h) \neq 0$.
@@ -125,7 +163,7 @@ These plots show how the partitioning allows for short range extremal dependence
   \label{fig:simchi}
 \end{figure}
 
-\section{Accounting for temporal dependence} \label{s:temporal}
+\subsection{Extension to space-time data} \label{s:temporal}
 In a standard block-maxima approach, the temporal dependence is assumed to be negligible because blocks (e.g. yearly maxima) are taken to be large enough to assume independence.
 However, when using daily meausrements, the assumption of temporal independence is no longer appropriate.
 There are several places where temporal dependence could be included, including the residual $v(\bs)$.

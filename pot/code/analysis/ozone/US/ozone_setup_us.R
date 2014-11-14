@@ -1,5 +1,5 @@
 library(fields)
-library(geoR)
+# library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
@@ -128,13 +128,13 @@ for (thresh in 1:length(threshs)){
 
 # par(mfrow=c(1, 2))
 xplot <- (1:(length(bins)-1)) - 0.5
-plot(xplot, exceed[, 1], type="o", ylim=c(0, 0.5), ylab="exceed", xaxt="n", xlab="bin distance / 1000", pch=1, lty=3, main="chi-plot ozone")
+plot(xplot, exceed[, 1], type="o", ylim=c(0, 0.35), ylab="exceed", xaxt="n", xlab="bin distance / 1000", pch=1, lty=3, main="chi-plot ozone")
 axis(1, at=0:(length(bins)-2), labels=bins[-length(bins)])
 for (line in 2:3) { 
 	lines(xplot, exceed[, line], lty=line)
 	points(xplot, exceed[, line], pch=line)
 }
-legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quants")
+legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quantiles")
 
 # Making the chi plot
 # run preprocessing first
@@ -186,18 +186,20 @@ for (thresh in 1:length(threshs)){
   exceed.h.res[, thresh] <- exceed.thresh
 }
 
+par(mar=c(5.1, 5.1, 4.1, 2.1))
 xplot <- bins.h[-length(bins)] + 0.125
-plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, 
-     xlim=c(0, 3.5), xaxt="n", xlab="bin distance / 1000", 
-     ylim=c(0, 0.35), ylab="exceed", 
-     main=bquote(paste(chi, "(h) for ozone residuals"))
+plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, lwd=2,  
+     xlim=c(0, 3.5), xaxt="n", xlab="bin distance (km) / 1000", 
+     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(h)")), 
+     main=bquote(paste(chi, "(h) for ozone residuals")),
+     cex.lab=1.5, cex.axis=1.5, cex.main=2
      )
-axis(1, at=bins)
+axis(1, at=bins, cex.axis=1.5)
 for (line in 2:3) { 
-	lines(xplot, exceed.h.res[, line], lty=1, pch=line, type="b")
+	lines(xplot, exceed.h.res[, line], lty=1, pch=line, type="b", lwd=2)
 }
-abline(v=1, lty=3)
-legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quants")
+abline(v=1, lty=3, lwd=2)
+legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", cex=1.5, lwd=2)
 
 # chi(t) plot
 max.lag <- 5
@@ -220,16 +222,17 @@ for (thresh in 1:length(threshs)){
 }
 
 xplot <- seq(1, 5, 1)
-plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, 
+plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, lwd=2, 
      xlim=c(0.5, 5.5), xaxt="n", xlab="lag", 
-     ylim=c(0, 0.35), ylab="exceed",  
-     main=bquote(paste(chi, "(t) for ozone residuals"))
+     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(t)")),  
+     main=bquote(paste(chi, "(t) for ozone residuals")),
+     cex.lab=1.5, cex.axis=1.5, cex.main=2
 )
-axis(1, at=xplot)
+axis(1, at=xplot, cex.axis=1.5)
 for (line in 2:3) { 
-	lines(xplot, exceed.t.res[, line], lty=1, pch=line, type="b")
+	lines(xplot, exceed.t.res[, line], lty=1, pch=line, type="b", lwd=2)
 }
-legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quants", pt.bg="white")
+legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", pt.bg="white", cex=1.5, lwd=2)
 
 # qq plot of residuals
 library(sn)
