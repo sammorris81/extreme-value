@@ -196,10 +196,10 @@ load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 10
+ngroups <- 3
 nsettings <- dim(y)[4]
 nmethods <- 5
-obs <- rep(c(T, F), 100)[1:ns]
+obs <- c(rep(T, 100), rep(F, 44))
 
 setting <- 1
 filename <- paste("scores", setting, ".RData", sep="")
@@ -229,8 +229,8 @@ rho.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsett
 nu.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 # not all methods use skew or multiple partitions
-z.alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 4, nsettings))
-avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
+z.alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 5, nsettings))
+avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
 
 iters <- 20000; burn <- 10000
 for (setting in 1:nsettings) {

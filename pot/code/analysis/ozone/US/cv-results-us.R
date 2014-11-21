@@ -107,20 +107,27 @@ for (j in days1) {
 # # abline(0,1)
 # # print(mean(y.full.p>lo & y.full.p<hi))
 
+load("cv-setup-us.RData")
+source("../../../R/auxfunctions.R")
+
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 thresholds <- quantile(Y, probs=probs, na.rm=T)
 nsets <- 2 # Number of cv sets
 nbetas <- 2 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 26))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 26))
+quant.score <- array(NA, dim=c(length(probs), nsets, 50))
+brier.score <- array(NA, dim=c(length(thresholds), nsets, 50))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 26))
-beta.1 <- array(NA, dim=c(5000, nsets, 26)) 
+beta.0 <- array(NA, dim=c(5000, nsets, 50))
+beta.1 <- array(NA, dim=c(5000, nsets, 50))
 
-done <- c(1:26)
+phi.z <- array(NA, dim=c(5000, nsets, 24))
+phi.w <- array(NA, dim=c(5000, nsets, 24))
+phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-for (i in 1:26) {
+done <- c(1:41, 43:47, 49)
+
+for (i in 1:50) {
   file <- paste("cv5-", i, "US.RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
@@ -136,9 +143,16 @@ for (i in 1:26) {
     }
     quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
     brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
-    if (i <= 25) {
+    if (i != 26) {
       beta.0[, d, i] <- fit.d$beta[, 1]
       beta.1[, d, i] <- fit.d$beta[, 2]
+    }
+    if (i >= 27) {
+      if (i <= 42) {
+        phi.z[, d, (i-26)] <- fit.d$phi.z
+      }
+      phi.w[, d, (i-26)] <- fit.d$phi.w
+      phi.tau[, d, (i-26)] <- fit.d$phi.tau
     }
   }
   }
@@ -163,14 +177,14 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 26, length(probs))
-brier.score.mean <- matrix(NA, 26, length(thresholds))
+quant.score.mean <- matrix(NA, 50, length(probs))
+brier.score.mean <- matrix(NA, 50, length(thresholds))
 
-quant.score.se <- matrix(NA, 26, length(probs))
-brier.score.se <- matrix(NA, 26, length(thresholds))
+quant.score.se <- matrix(NA, 50, length(probs))
+brier.score.se <- matrix(NA, 50, length(thresholds))
 
-done <- c(1:26)
-for (i in 1:26) {
+done <- c(1:9, 13:41, 43, 44)
+for (i in 1:50) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)

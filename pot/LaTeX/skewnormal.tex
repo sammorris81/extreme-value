@@ -50,72 +50,83 @@ In section \ref{s:simstudy}, we present a simulation study that examines the pre
 We then compare our method to Gaussian and max-stable methods with a data analysis of ozone measurements from the eastern US in section \ref{s:analysis}.
 The final section provides brief discussion and direction for future research.
 
-\section{Spatial skew processes}\label{s:skewt}
+\section{Spatial skew processes}\label{s:spatialskew}
 Many types of data demonstrate some level of skewness and therefore should be modeled with distributions that allow for non-symmetry.
 The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter $\alpha$ to account for non-symmetric data \citep{Genton2004}.
+A brief review of the additive process by which a skew-$t$ process is created is given here.
 
-\subsection{Skew-normal process}
-Let $U(\bs)$ be a normalized skew-normal process with slant $\alpha$. We write $U(\bs) \sim \text{SN}_d(\Omega, \alpha)$, and the density is given as
+\subsection{Skew-normal process} \label{s:skewnorm}
+A skew-normal process can be constructed using an additive representation \citep{Zhang2010} given by
 \begin{align}
-  2 \phi_d (U(\bs); \Omega) \Phi(\alpha \bOne^T U(\bs))
+  U(\bs) = \lambda |z| + v(\bs)
 \end{align}
-where $\phi_d$ is the density function for a $N_d(0, \Sigma)$ random variable, and $\Phi$ is a standard normal cumulative distribution function.
-There is an additive representation \citep{Zhang2010} to construct a standardized skew-normal process given by
-\begin{align}
-  U(\bs) = \alpha |z| + v(\bs)
-\end{align}
-where $\alpha \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, and $v(\bs)$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation.
+where $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, and $v(\bs)$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation.
 So,
 \begin{align}
-  \text{cor}(U(\bs), U(\bs)) = \gamma I(s = t) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right).
+  \text{cor}(v(\bs), v(\bt)) = \gamma I(s = t) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right).
 \end{align}
-Let $Y(\bs) = \bX(\bs)^T + \sigma U(\bs)$.
 Then, after marginalizing over the $z$ term, we find that
 \begin{align}
-  Y(\bs) \sim \text{SN}_d(\bX^T(\bs)\bbeta, \Omega, \alpha)
+  U(\bs) \sim \text{SN}_d(0, \bar{\bOmega}, \balpha)
 \end{align}
-where $\Omega = \sigma^2 (\Sigma + \alpha^2 \bOne \bOne^T$).
+where $\bar{\bOmega} = (\Sigma + \lambda^2 \bOne \bOne^T$), $\balpha = \lambda (1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ is a vector of slant parameters, and SN is a skew-normal process with correlation matrix $\bar{\bOmega}$ \citep{Azzalini2013}.
 
-\subsection{Skew-$t$ process}
-If $\sigma^2 \sim \text{IG}(a, b)$, after over the $\sigma^2$ terms, we have a skew-$t$ process with distribution function
-
-\begin{align*}
-  \bY \sim \text{skew-}t (\mu, \bSigma^*, \alpha, \text{df} = 2a)
-\end{align*}
-where $\mu$ is the location, $\bSigma^* = \frac{ b }{ a } \bSigma$, $\bSigma$ is a \Matern covariance matrix, and $\alpha \in \calR$ controls the skewness.
-The skew-$t$ process is desirable because of its flexible tail that is controlled by the skewness parameter, $\alpha$, and the degrees of freedom, $2a$.
-Furthermore, if $\bY$ follows a multivariate skew-$t$ distribution, the marginal distributions also follow a skew-$t$ distribution \citep{Azzalini2003}.
-
-One member of this family, is the skew-$t$ distribution \citep[see Appendix A.5]{Azzalini2003}.
-\citet{Zhang2010} show that the skew-$t$ process can be expressed as a hierarchical model
-\begin{align} \label{eq:fullmodel}
-  Y(\bs) &= \bX(\bs)^T \bbeta + \alpha |z| + \sigma v(\bs)
-\end{align}
-where $\alpha \in \calR$ controls the skewness; $z \sim N(0, \sigma^2)$ is a normal random effect; $v(\bs)$ is a Gaussian process with mean zero, variance one, \Matern spatial correlation with spatial range $\rho$, smoothness $\nu$, and $\gamma$ is the proportion of variance accounted for by the spatial variation; and $\sigma^2 \sim \text{IG}(a, b)$.
-So,
+\subsection{Skew-$t$ process} \label{s:skewt}
+Let
 \begin{align}
-  \text{cor}(Y(\bs), Y(\bs)) = \gamma I(s = t) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ ||\bs - \bt|| }{ \rho } \right)
+  Y(\bs) = \bX(\bs)^T \bbeta + \sigma \lambda |z| + \sigma \bv(\bs)
 \end{align}
+where $\sigma^2 \sim \text{IG}(a, b)$ is an inverse gamma random variable.
+Then after marginalizing over both the $z$ and $\sigma$ terms, we find that
+\begin{align}
+  Y(\bs) \sim \text{ST}(\bX(\bs)^T \bbeta, \bOmega, \balpha, 2a) \label{eq:fullmodel}
+\end{align}
+where $\bOmega = \bomega \bar{\bOmega} \bomega$, $\bomega = \text{diag}\left(\frac{1}{ \sqrt{ab}}, \ldots, \frac{1}{\sqrt{ab}}\right)$, $\bar{\bOmega}$ and $\balpha$ are given in Section \ref{s:skewnorm}, and ST$(\mu(\bs), \bOmega, \balpha, 2a)$ represents a $d$-dimensional skew-$t$ process with location $\mu(\bs)$, correlation matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $2a$.
 
-
+This kind of process is desirable because of its flexible tail that is controlled by the skewness parameter $\lambda$ and degrees of freedom $2a$.
+Furthermore, the marginal distributions also follow a skew-$t$ distribution \citep{Azzalini2013}.
+If we partition a $d$-dimensional vector of observations $Y(\bs)$ into two components $Y(\bs_1)$ and $Y(\bs_2)$ of size $p$ and $d - p$ respectively, then after marginalizing over $Y(\bs_2)$, we get that
+\begin{align}
+  Y(\bs_1) \sim \text{ST}_p(\bX(\bs_1)^T \bbeta, \bOmega_{11}, \balpha_{1(2)}, 2a)
+\end{align}
+where
+\begin{align}
+  \bX(\bs) &= \left( \begin{array}{c}
+    \bX(\bs_1) \\
+    \bX(\bs_2)
+  \end{array} \right), \quad
+  \bOmega = \left( \begin{array}{cc}
+    \bOmega_{11} & \bOmega_{12} \\
+    \bOmega_{21} & \bOmega_{22}
+  \end{array} \right), \quad
+  \balpha = \left(\begin{array}{c}
+    \balpha_1\\
+    \balpha_2
+  \end{array} \right),\\
+  \balpha_{1(2)} &= (1 = \balpha_2^T \bar{\bOmega}_{22 \cdot 1} \balpha)^{-1/2}(\balpha_1 + \bar{\bOmega}_{11}^{-1} \bar{\bOmega}_{12} \balpha_{2}),\\
+  \bar{\bOmega}_{11}^{-1} &= (\bar{\bOmega})^{-1}, \qquad \bar{\bOmega}_{22 \cdot 1} = \bar{\bOmega}_{22} - \bar{\bOmega}_{21} \bar{\bOmega}_{11}^{-1} \bar{\bOmega}_{12}.
+\end{align}
 
 \subsection{Extremal dependence}
 One measure of extremal dependence is the $\chi$ statistic \citep{Padoan2011}.
 The $\chi$ statistic for the upper tail is given by
-\begin{align*}
-  \chi = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c).
-\end{align*}
+\begin{align}
+  \chi(\bs_1, \bs_2) = \lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c).
+\end{align}
 In a stationary spatial process, we can write the $\chi$ coefficient as
-\begin{align*}
+\begin{align}
   \chi(h) = \lim_{c \rightarrow \infty} \Pr(Y(0) > c | Y(h) > c)
-\end{align*}
+\end{align}
 where $h = ||\bs_1 - \bs_2||$.
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the the distance, so they are not suitable for modeling spatially dependent extremes.
-However, for the skew-$t$ process described in \ref{s:skewt}, $\chi(h) > 0$ \citep[they give an expression that is the sum of two survival functions from the skew-$t$ distribution. The expression isn't terribly informative, but I can include it if you think it would be helpful.]{Padoan2011}.
+One problem with the spatial skew-$t$ process is that all sites are asymptotically dependent regardless of their spatial separation.
+This occurs because all observations, both near and far, share the same $z$ and $\sigma^2$ terms.
+Even more problematic is that $\lim_{h \rightarrow \infty} \chi(h) > 0$ \citep[see Appendix A.5]{Padoan2011}.
+
 
 \section{Spatiotemporal skew-$t$ model for extremes}\label{s:spatial}
-In this section, we describe the
+In this section, we introduce censoring to focus on tail behavior, and a random partition to remove long-range asymptotic dependence.
 
 \subsection{Censoring to focus on the tails}
 To avoid bias in estimating tail parameters, we model censored data.
@@ -130,27 +141,29 @@ be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored obser
 Then, assuming the uncensored data $Y(\bs)$ are observations from a skew-$t$ process, we update values censored below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
 
 \subsection{Partitioning to remove long-range asymptotic dependence}\label{s:part}
-One problem with the spatial skew-$t$ process is that all sites are asymptotically dependent regardless of their spatial separation.
-This occurs because all observations, both near and far, share the same $z$ and $\sigma^2$ terms.
-Even more problematic is that $\lim_{h \rightarrow \infty} \chi(h) \neq 0$.
-We handle this problem with a random partition similar to \citet{Kim2005} that allows $z$ and $\sigma^2$ to vary by site.
-
-Consider a set of spatial knots $\bw_{k} \sim \text{Uniform}(\calD)$ that define a random daily partition $P_{1}, \ldots, P_{K}$ of the spatial domain of interest $\calD \subset \calR^2$ such that
-\begin{align*}
-  P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \}.
-\end{align*}
+We handle the problem or long-range asymptotic dependence with a random partition similar to \citet{Kim2005} for Gaussian data that allows $z$ and $\sigma^2$ to vary by site.
 Then, the observation at each site becomes
 \begin{align}
-  Y(\bs) &= X(\bs) \bbeta + \alpha |z(\bs)| + \sigma v(\bs),
+  Y(\bs) &= \bX(\bs)^T \bbeta + \lambda |z(\bs)| + \sigma v(\bs).
 \end{align}
+To model spatial variation, consider a set of spatial knots $\bw_1, \ldots, \bw_K$ from a homogeneous Poisson process with rate $\lambda$ over spatial domain $\calD \in \calR^2$
+The knots define a random daily partition $P_{1}, \ldots, P_{K}$ of $\calD$ given by
+\begin{align*}
+  P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \},
+\end{align*}
 and, for $\bs \in P_{k}$,
 \begin{align}
-  z(\bs) &= z_{tk} \label{eq:sitez}\\
+  z(\bs) &= z_{k} \label{eq:sitez}\\
   \sigma(\bs) &= \sigma_{k} \label{eq:sitesig}.
 \end{align}
-So, within each partition, $\bY$ follows the distribution given in (\ref{eq:fullmodel}).
+So, within each partition, $Y(\bs)$ follows the distribution given in (\ref{eq:fullmodel}).
+Across partitions, the $Y(\bs)$ remain correlated via the correlation function for $v(\bs)$ because it spans the partitions.
 
-When incorporating the random daily partition, for two sites in the same partition, the $\chi$ statistic is $\chi(h) = \chi_{\text{skew-}t}(h)$. However, for two sites in different partitions, the $\chi$ statistic should be the same as the Gaussian $\chi(h)$, because the only correlation between the two sites, is the correlation given by $\bSigma$.
+When incorporating the random daily partition, the $\chi$ statistic is for two sites $\bs$ in partition $k_s$ and $\bt$ in partition $k_t$ is
+\begin{align}
+  \chi(h) = I(k_s = k_t) \chi_{\text{skew-}t}(h) + I(k_s \neq k_t) \chi_{\text{Gaus}}(h).
+\end{align}
+However, for two sites in different partitions, the $\chi$ statistic should be the same as the Gaussian $\chi(h)$, because the only correlation between the two sites, is the correlation given by $\bSigma$.
 So, to show that $\lim_{h \rightarrow \infty} \chi(h) = 0$, we need only know that $\lim_{h \rightarrow \infty} \pi(h) = 0$
 where $\pi(h)$ is the probability that two sites separated by distance $h$ are in the same partition.
 A proof of this is given in Appendix A.3.
@@ -209,10 +222,10 @@ Let $\bw_{t,1}, \ldots, \bw_{t,K}$ be a set of daily spatial knots in a spatial 
 
 Then
 \begin{align}
-   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= X_t(\bs) \beta + \alpha |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
+   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= \bX_t(\bs)^T \beta + \lambda |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
    z_t(\bs) &= z_{tk} \text{ if } \bs \in P_{tk}\\
    \sigma^2_{t}(\bs) &= \sigma^2_{tk} \text{ if } \bs \in P_{tk}\\
-   \alpha &\sim N(0, 10)\\
+   \lambda &\sim N(0, 10)\\
    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
    z_{tk} \mid z_{t-1, k}, \sigma^2_{tk} &\sim N(\phi_z z_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2))\\
    \sigma^{2*}_{tk} \mid \sigma^{2*}_{t-1, k} &\sim N(\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2))\\
@@ -226,7 +239,7 @@ Then, we update $\Theta$ using Metropolis Hastings or Gibbs sampling when approp
 Finally, we make spatial predictions using conditional multivariate normal results and the fact that the distribution of $Y_t(\bs) \mid \Theta, z(\bs)$ is the usual multivariate normal distribution with a \Matern spatial covariance structure.
 
 We can use Gibbs sampling to update $Y_t(\bs)$ for censored observations that are below the threshold $T$.
-After conditioning on $\alpha$, $z_t(\bs)$ and non-censored observations, $Y_t(\bs)$ has truncated normal full conditionals.
+After conditioning on $\lambda$, $z_t(\bs)$ and non-censored observations, $Y_t(\bs)$ has truncated normal full conditionals.
 So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\mu(\bs), \bSigma)$.
 After imputing the censored observations, we update the model parameters.
 To update the model parameters, we use standard Gibbs updates for parameters when possible.
@@ -254,8 +267,8 @@ In the first five designs, the $v_t(\bs)$ terms are generated using a \Matern co
 For the covariance matrices in designs 1 -- 5, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
 In the first design, $\sigma^2 = 2$ is used for all days.
 For designs 2 -- 4, $\sigma^2_{tk} \iid \text{IG}(3, 8)$
-For designs 1 -- 3, we set $\alpha = 0$.
-For designs four and five, $\alpha = 3$ was used, and the $z_t$ are generated as described in (\ref{eq:sitez}).
+For designs 1 -- 3, we set $\lambda = 0$.
+For designs four and five, $\lambda = 3$ was used, and the $z_t$ are generated as described in (\ref{eq:sitez}).
 In the sixth design, we generate from a spatial max-stable distribution \citep{Reich2012} with parameters $\mu = 1, \sigma=1, \xi=0.2$ and 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
 \hl{I know I need more here about the max-stable method}
 In all six designs, the mean $\mu(\bs) = 10$ is assumed to be constant across space.
@@ -272,7 +285,7 @@ For each data set we fit the data using
 where $q(0.80)$ is the 80th sample quantile of the data.
 The design matrix $\bX$ includes an the intercept with a prior of $\beta \sim \text{N}(0, 10)$.
 The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{U}(0, 1)$, $\log(\rho) \sim \text{N}(-2, 1)$.
-The skewness parameter has prior $\alpha \sim \text{N}(0, 2)$.
+The skewness parameter has prior $\lambda \sim \text{N}(0, 2)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1)$.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We do not fit the data using the max-stable methods from \citet{Reich2012} because of the time it takes.
@@ -402,8 +415,8 @@ The acceptance ratio is
     \frac{ l[Y_t(\bs) | {\sigma^2_{tk}}^{(c)}, \ldots] }
          { l[Y_t(\bs) | {\sigma^2_{tk}}^{(r - 1)}]}
     \right\} \times \left\{
-    \frac{ l[z_tk | {\sigma^2_{tk}}^{(c)}, \ldots] }
-         { l[z_tk | {\sigma^2_{tk}}^{(r - 1)}, \ldots] }
+    \frac{ l[z_{tk} | {\sigma^2_{tk}}^{(c)}, \ldots] }
+         { l[z_{tk} | {\sigma^2_{tk}}^{(r - 1)}, \ldots] }
     \right\} \times \left\{
     \frac{ p[ {\sigma^2_{tk}}^{(c)} ] }
          { p[ {\sigma^2_{tk}}^{(r - 1)}] }
@@ -433,7 +446,7 @@ All three candidates are accepted with probability $\min\{R, 1\}$.
 \input{zpost.tex}
 \input{betapost.tex}
 \input{sigpost.tex}
-\input{alphapost.tex}
+\input{lambdapost.tex}
 
 \section*{Appendix A.3: Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$}
 Let $N(A)$ be the number of knots in $A$, the area between sites $\bs_1$ and $\bs_2$.
@@ -454,9 +467,32 @@ Specifically, we consider the case where $\mu = 0$. Then $U$ follows a half-norm
 \end{align}
 When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
 
-\section*{Appendix A.5: Multivariate skew-$t$ distribution}
-\input{mvskewt.tex}
+\section*{Appendix A.5: Skew-$t$ distribution}
+\subsection*{Univariate extended skew-$t$ distribution}
+We say that $Y$ follow a univariate extended skew-$t$ distribution with location $\xi \in \calR$, scale $\omega > 0$, skew parameter $\alpha \in \calR$, extended parameter $\tau \in \calR$, and degrees of freedom $\nu$ if has distribution function
+\begin{align}
+  f_{\text{EST}}(y) = \omega^{-1} \frac{ f_T (z; \nu) }{ F_T(\tau / \sqrt{ 1 + \alpha^2}; \nu)} F_T\left( (\alpha z + \tau) \sqrt{ \frac{ \nu + 1 }{ \nu + z^2}}; 0, 1, \nu + 1 \right)
+\end{align}
+where $f_T(t; \nu)$ is a univariate Student's $t$ with $\nu$ degrees of freedom, $F_T(t; \nu) = P(T < t)$, and $z = (y - \xi) / \omega$.
+In the case that $\tau = 0$, then $Y$ follows a univariate skew-$t$ distribution.
+\subsection*{Multivariate skew-$t$ distribution}
+If $\bZ \sim \text{ST}_d(0, \bar{\bOmega}, \balpha, \nu)$ is a $d$-dimensional skew-$t$ distribution, and $\bY = \xi + \bomega \bZ$, where $\bomega = \text{diag}(\omega_1, \ldots, \omega_d)$, then the density of $Y$ at $y$ is
+\begin{align*}
+  f_y(\by) = det(\bomega)^{-1} f_z(\bz)
+\end{align*}
+where
+\begin{align*}
+  f_z(\bz) &= 2 t_d(\bz; \bar{\bOmega}, \nu) T \left( \balpha^T \bz \sqrt{ \frac{\nu + d}{\nu + Q(\bz)} }; \nu + d\right) \\
+  \bz &= \bomega^{-1}(\by - \xi)
+\end{align*}
+where $t_d(\bz; \bar{\bOmega}, \nu)$ is a $d$-dimensional Student's $t$-distribution with scale matrix $\bar{\bOmega}$ and degrees of freedom $\nu$, $Q(z) = \bz^T \bar{\Omega}^{-1}\bz$ and $T(\cdot; \nu)$ denotes the univariate Student's $t$ distribution function with $\nu$ degrees of freedom \citep{Azzalini2013}.
 
+\subsection*{Extremal dependence}
+The $\chi$ statistic \citep{Padoan2011} is given by
+\begin{align}
+  \chi = \bar{F}_{\text{EST}}\left\{ \frac{(x_1^{1 / \nu} - \omega) \sqrt{\nu + 1} }{\sqrt{1 - \omega^2}}; 0, 1, \alpha_1, \tau_1, \nu+1 \right\} + \bar{F}_{\text{EST}}\left\{ \frac{ (x_2^{1 / \nu} - \omega) \sqrt{\nu + 1} }{ \sqrt{1 - \omega^2} }; 0, 1, \alpha_2, \tau_2, \nu + 1 \right\},
+\end{align}
+where $\bar{F}_{\text{EST}}$ is the univariate survival extended skew-$t$ function with zero location, unit scale, $\alpha_j = \alpha_i \sqrt{1 - \omega^2}$, $\tau_j = \sqrt{\nu + 1}(\alpha_j + \alpha_i \omega)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\nu + 1}; 0, 1, \nu) / F_T(\bar{\alpha}_j \sqrt{\nu + 1}; 0, 1, \nu)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \omega) / \sqrt{ 1 + \alpha_i^2 (1 - \omega^2)}$
 \bibliographystyle{rss}
 \bibliography{skewnormal}
 
