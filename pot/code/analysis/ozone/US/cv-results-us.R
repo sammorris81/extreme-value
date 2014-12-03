@@ -83,16 +83,85 @@ load("cv5-2US.RData")
 par(mfrow=c(3, 5))
 days1 <- seq(1, 30, by=2)
 for (j in days1) {
-  xlab <- print(paste("knot", i))
+  xlab <- print(paste("knot 1"))
   main <- print(paste("day", j))
   plot(fit[[1]]$tau[, j], type="l", xlab=xlab, main=main)
 }
 for (j in days1) {
-  xlab <- print(paste("knot", i))
+  xlab <- print(paste("knot 1"))
   main <- print(paste("day", j))
   plot(fit[[1]]$z[, j], type="l", xlab=xlab, main=main)
 }
+plot(fit[[1]]$alpha, type="l")
+plot(fit[[1]]$tau.alpha, type="l")
+plot(fit[[1]]$tau.beta, type="l")
+plot(fit[[1]]$rho, type="l")
+plot(fit[[1]]$nu, type="l")
+plot(fit[[1]]$beta[, 1], type="l")
+plot(fit[[1]]$beta[, 2], type="l")
 
+for (j in days1) {
+  xlab <- print(paste("knot 1"))
+  main <- print(paste("day", j))
+  plot(fit[[2]]$tau[, j], type="l", xlab=xlab, main=main)
+}
+for (j in days1) {
+  xlab <- print(paste("knot 1"))
+  main <- print(paste("day", j))
+  plot(fit[[2]]$z[, j], type="l", xlab=xlab, main=main)
+}
+
+plot(fit[[2]]$alpha, type="l")
+plot(fit[[2]]$tau.alpha, type="l")
+plot(fit[[2]]$tau.beta, type="l")
+plot(fit[[2]]$rho, type="l")
+plot(fit[[2]]$nu, type="l")
+plot(fit[[2]]$beta[, 1], type="l")
+plot(fit[[2]]$beta[, 2], type="l")
+
+load("cv5-27US.RData")
+par(mfrow=c(3, 5))
+days1 <- seq(1, 30, by=2)
+for (j in days1) {
+  xlab <- print(paste("knot 1"))
+  main <- print(paste("day", j))
+  plot(fit[[1]]$tau[, j], type="l", xlab=xlab, main=main)
+}
+for (j in days1) {
+  xlab <- print(paste("knot 1"))
+  main <- print(paste("day", j))
+  plot(fit[[1]]$z[, j], type="l", xlab=xlab, main=main)
+}
+plot(fit[[1]]$alpha, type="l")
+plot(fit[[1]]$tau.alpha, type="l")
+plot(fit[[1]]$tau.beta, type="l")
+plot(fit[[1]]$rho, type="l")
+plot(fit[[1]]$nu, type="l")
+plot(fit[[1]]$phi.z, type="l")
+plot(fit[[1]]$phi.tau, type="l")
+plot(fit[[1]]$beta[, 1], type="l")
+plot(fit[[1]]$beta[, 2], type="l")
+
+for (j in days1) {
+  xlab <- print(paste("knot 1"))
+  main <- print(paste("day", j))
+  plot(fit[[2]]$tau[, j], type="l", xlab=xlab, main=main)
+}
+for (j in days1) {
+  xlab <- print(paste("knot 1"))
+  main <- print(paste("day", j))
+  plot(fit[[2]]$z[, j], type="l", xlab=xlab, main=main)
+}
+
+plot(fit[[2]]$alpha, type="l")
+plot(fit[[2]]$tau.alpha, type="l")
+plot(fit[[2]]$tau.beta, type="l")
+plot(fit[[2]]$rho, type="l")
+plot(fit[[2]]$nu, type="l")
+plot(fit[[2]]$phi.z, type="l")
+plot(fit[[2]]$phi.tau, type="l")
+plot(fit[[2]]$beta[, 1], type="l")
+plot(fit[[2]]$beta[, 2], type="l")
 
 # # X11()
 # # boxplot(log(fit.schlather$gpdre))
@@ -125,7 +194,7 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:41, 43:47, 49)
+done <- c(1:50)
 
 for (i in 1:50) {
   file <- paste("cv5-", i, "US.RData", sep="")
@@ -183,7 +252,7 @@ brier.score.mean <- matrix(NA, 50, length(thresholds))
 quant.score.se <- matrix(NA, 50, length(probs))
 brier.score.se <- matrix(NA, 50, length(thresholds))
 
-done <- c(1:9, 13:41, 43, 44)
+done <- c(1:50)
 for (i in 1:50) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
@@ -194,10 +263,138 @@ for (i in 1:50) {
 }
 
 quant.score.mean[c(1:10, 13, 14, 17:19, 21, 23, 25, 26), ]
-for (i in 1:12) {
- print(which(quant.score.mean[c(1:26), i] == min(quant.score.mean[c(1:26), i])))
- print(which(brier.score.mean[c(1:26), i] == min(brier.score.mean[c(1:26), i])))
+for (i in 1:length(thresholds)) {
+ print(which(quant.score.mean[done, i] == min(quant.score.mean[done, i])))
 }
+
+for (i in 1:length(thresholds)) {
+  print(which(brier.score.mean[done, i] == min(brier.score.mean[done, i])))
+}
+
+bs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
+qs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
+for (i in 1:49) {
+  bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
+  qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
+}
+
+# one knot
+plot(bs.mean.ref.gau[1, ], type="b", ylim=c(0.5, 4))
+lines(bs.mean.ref.gau[2, ], type="b")   # T = 50
+lines(bs.mean.ref.gau[3, ], type="b")   # T = 75
+lines(bs.mean.ref.gau[4, ], type="b")   # T = 90
+lines(bs.mean.ref.gau[17, ], type="b")  # T = 75, no skew
+lines(bs.mean.ref.gau[18, ], type="b")  # T = 90, no skew
+plot(bs.mean.ref.gau[26, ], type="b")  # T = 0, time series
+lines(bs.mean.ref.gau[27, ], type="b")  # T = 50, time series
+lines(bs.mean.ref.gau[28, ], type="b")  # T = 75, time series
+lines(bs.mean.ref.gau[29, ], type="b")  # T = 90, time series
+lines(bs.mean.ref.gau[42, ], type="b")  # T = 75, time series, no skew
+lines(bs.mean.ref.gau[43, ], type="b")  # T = 90, time series, no skew
+
+# 5 knots
+plot(bs.mean.ref.gau[5, ], type="b", ylim=c(0.5, 4))
+lines(bs.mean.ref.gau[6, ], type="b")
+lines(bs.mean.ref.gau[7, ], type="b")
+lines(bs.mean.ref.gau[8, ], type="b")
+lines(bs.mean.ref.gau[19, ], type="b")  # T = 75, no skew
+lines(bs.mean.ref.gau[20, ], type="b")  # T = 90, no skew
+lines(bs.mean.ref.gau[30, ], type="b")  # T = 0, time series
+lines(bs.mean.ref.gau[31, ], type="b")  # T = 50, time series
+lines(bs.mean.ref.gau[32, ], type="b")  # T = 75, time series
+lines(bs.mean.ref.gau[33, ], type="b")  # T = 90, time series
+lines(bs.mean.ref.gau[44, ], type="b")  # T = 75, time series, no skew
+lines(bs.mean.ref.gau[45, ], type="b")  # T = 90, time series, no skew
+
+# 10 knots
+plot(bs.mean.ref.gau[9, ], type="b", ylim=c(0.5, 4))
+lines(bs.mean.ref.gau[10, ], type="b")
+lines(bs.mean.ref.gau[11, ], type="b")
+lines(bs.mean.ref.gau[12, ], type="b")
+lines(bs.mean.ref.gau[21, ], type="b")  # T = 75, no skew
+lines(bs.mean.ref.gau[22, ], type="b")  # T = 90, no skew
+lines(bs.mean.ref.gau[34, ], type="b")  # T = 0, time series
+lines(bs.mean.ref.gau[35, ], type="b")  # T = 50, time series
+lines(bs.mean.ref.gau[36, ], type="b")  # T = 75, time series
+lines(bs.mean.ref.gau[37, ], type="b")  # T = 90, time series
+lines(bs.mean.ref.gau[46, ], type="b")  # T = 75, time series, no skew
+lines(bs.mean.ref.gau[47, ], type="b")  # T = 90, time series, no skew
+
+# 15 knots
+plot(bs.mean.ref.gau[13, ], type="b", ylim=c(0.5, 4))
+lines(bs.mean.ref.gau[14, ], type="b")
+lines(bs.mean.ref.gau[15, ], type="b")
+lines(bs.mean.ref.gau[16, ], type="b")
+lines(bs.mean.ref.gau[23, ], type="b")  # T = 75, no skew
+lines(bs.mean.ref.gau[24, ], type="b")  # T = 90, no skew
+lines(bs.mean.ref.gau[38, ], type="b")  # T = 0, time series
+lines(bs.mean.ref.gau[39, ], type="b")  # T = 50, time series
+lines(bs.mean.ref.gau[40, ], type="b")  # T = 75, time series
+lines(bs.mean.ref.gau[41, ], type="b")  # T = 90, time series
+lines(bs.mean.ref.gau[48, ], type="b")  # T = 75, time series, no skew
+lines(bs.mean.ref.gau[49, ], type="b")  # T = 90, time series, no skew
+
+bg <- c("firebrick1", "dodgerblue1")
+col <- c("firebrick4", "dodgerblue4")
+
+# T = 0
+xplot <- probs
+plot(xplot, bs.mean.ref.gau[1, ], type="b", ylim=c(0.75, 1.05), col=col[1], bg=bg[1], pch=19)
+lines(xplot, bs.mean.ref.gau[5, ], type="b", col=col[1], bg=bg[1], pch=19)   # 5 knots
+lines(xplot, bs.mean.ref.gau[9, ], type="b", col=col[1], bg=bg[1], pch=19)   # 10 knots
+lines(xplot, bs.mean.ref.gau[13, ], type="b", col=col[1], bg=bg[1], pch=19)  # 15 knots
+lines(xplot, bs.mean.ref.gau[26, ], type="b", col=col[2], bg=bg[2], pch=19)  # 1 knot, time series
+lines(xplot, bs.mean.ref.gau[30, ], type="b", col=col[2], bg=bg[2], pch=19)  # 5 knots, time series
+lines(xplot, bs.mean.ref.gau[34, ], type="b", col=col[2], bg=bg[2], pch=19)  # 10 knots, time series
+lines(xplot, bs.mean.ref.gau[38, ], type="b", col=col[2], bg=bg[2], pch=19)  # 15 knots, time series
+
+# T = 50
+plot(xplot, bs.mean.ref.gau[2, ], type="b", ylim=c(0.75, 1.05), col=col[1], bg=bg[1], pch=19)
+lines(xplot, bs.mean.ref.gau[6, ], type="b", col=col[1], bg=bg[1], pch=19)   # 5 knots
+lines(xplot, bs.mean.ref.gau[10, ], type="b", col=col[1], bg=bg[1], pch=19)  # 10 knots
+lines(xplot, bs.mean.ref.gau[14, ], type="b", col=col[1], bg=bg[1], pch=19)  # 15 knots
+lines(xplot, bs.mean.ref.gau[27, ], type="b", col=col[2], bg=bg[2], pch=19)  # 1 knot, time series
+lines(xplot, bs.mean.ref.gau[31, ], type="b", col=col[2], bg=bg[2], pch=19)  # 5 knots, time series
+lines(xplot, bs.mean.ref.gau[35, ], type="b", col=col[2], bg=bg[2], pch=19)  # 10 knots, time series
+lines(xplot, bs.mean.ref.gau[39, ], type="b", col=col[2], bg=bg[2], pch=19)  # 15 knots, time series
+
+# T = 75
+xplot <- probs[6:11]
+plot(xplot, bs.mean.ref.gau[3, c(6:11)], type="b", ylim=c(0.5, 1.5), col=col[1], bg=bg[1], pch=19)
+lines(xplot, bs.mean.ref.gau[7, c(6:11)], type="b", col=col[1], bg=bg[1], pch=19)   # 5 knots
+lines(xplot, bs.mean.ref.gau[11, c(6:11)], type="b", col=col[1], bg=bg[1], pch=19)  # 10 knots
+lines(xplot, bs.mean.ref.gau[15, c(6:11)], type="b", col=col[1], bg=bg[1], pch=19)  # 15 knots
+lines(xplot, bs.mean.ref.gau[17, c(6:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 1 knot, no skew
+lines(xplot, bs.mean.ref.gau[19, c(6:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 5 knots, no skew
+lines(xplot, bs.mean.ref.gau[21, c(6:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 10 knots, no skew
+lines(xplot, bs.mean.ref.gau[23, c(6:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 15 knots, no skew
+lines(xplot, bs.mean.ref.gau[28, c(6:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 1 knot, time series
+lines(xplot, bs.mean.ref.gau[32, c(6:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 5 knots, time series
+lines(xplot, bs.mean.ref.gau[36, c(6:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 10 knots, time series
+lines(xplot, bs.mean.ref.gau[40, c(6:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 15 knots, time series
+lines(xplot, bs.mean.ref.gau[42, c(6:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 1 knot, no skew, time series
+lines(xplot, bs.mean.ref.gau[44, c(6:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 5 knots, no skew, time series
+lines(xplot, bs.mean.ref.gau[46, c(6:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 10 knots, no skew, time series
+lines(xplot, bs.mean.ref.gau[48, c(6:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 15 knots, no skew, time series
+
+# T = 90
+xplot <- probs[10:11]
+plot(xplot, bs.mean.ref.gau[4, c(10:11)], type="b", ylim=c(0.5, 4), col=col[1], bg=bg[1], pch=19)
+lines(xplot, bs.mean.ref.gau[8, c(10:11)], type="b", col=col[1], bg=bg[1], pch=19)   # 5 knots
+lines(xplot, bs.mean.ref.gau[12, c(10:11)], type="b", col=col[1], bg=bg[1], pch=19)  # 10 knots
+lines(xplot, bs.mean.ref.gau[16, c(10:11)], type="b", col=col[1], bg=bg[1], pch=19)  # 15 knots
+lines(xplot, bs.mean.ref.gau[18, c(10:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 1 knot, no skew
+lines(xplot, bs.mean.ref.gau[20, c(10:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 5 knots, no skew
+lines(xplot, bs.mean.ref.gau[22, c(10:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 10 knots, no skew
+lines(xplot, bs.mean.ref.gau[24, c(10:11)], type="b", col=col[1], bg=bg[1], pch=15)  # 15 knots, no skew
+lines(xplot, bs.mean.ref.gau[29, c(10:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 1 knot, time series
+lines(xplot, bs.mean.ref.gau[33, c(10:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 5 knots, time series
+lines(xplot, bs.mean.ref.gau[37, c(10:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 10 knots, time series
+lines(xplot, bs.mean.ref.gau[41, c(10:11)], type="b", col=col[2], bg=bg[2], pch=19)  # 15 knots, time series
+lines(xplot, bs.mean.ref.gau[43, c(10:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 1 knot, no skew, time series
+lines(xplot, bs.mean.ref.gau[45, c(10:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 5 knots, no skew, time series
+lines(xplot, bs.mean.ref.gau[47, c(10:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 10 knots, no skew, time series
+lines(xplot, bs.mean.ref.gau[49, c(10:11)], type="b", col=col[2], bg=bg[2], pch=15)  # 15 knots, no skew, time series
 
 library(fields)
 xplot <- c(1:4)
