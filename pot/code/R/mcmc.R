@@ -649,6 +649,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               if (skew) {
                 cur.ll.z <- 0.5 * log(tau[k, t]) - 0.5 * tau[k, t] * z[k, t]^2
                 can.ll.z <- 0.5 * log(can.tau[k]) - 0.5 * can.tau[k] * z[k, t]^2
+              } else {
+              	cur.ll.z <- can.ll.z <- 0
               }
               
               R <- can.ll.y - cur.ll.y + can.ll.z - cur.ll.z + 
