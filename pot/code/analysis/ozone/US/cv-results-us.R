@@ -394,68 +394,80 @@ for (i in 1:49) {
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
 
+bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
+col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
+
 # one knot
-plot(bs.mean.ref.gau[1, ], type="b", ylim=c(0.5, 4))
-lines(bs.mean.ref.gau[2, ], type="b")   # T = 50
-lines(bs.mean.ref.gau[3, ], type="b")   # T = 75
-lines(bs.mean.ref.gau[4, ], type="b")   # T = 90
-lines(bs.mean.ref.gau[17, ], type="b")  # T = 75, no skew
-lines(bs.mean.ref.gau[18, ], type="b")  # T = 90, no skew
-plot(bs.mean.ref.gau[26, ], type="b")  # T = 0, time series
-lines(bs.mean.ref.gau[27, ], type="b")  # T = 50, time series
-lines(bs.mean.ref.gau[28, ], type="b")  # T = 75, time series
-lines(bs.mean.ref.gau[29, ], type="b")  # T = 90, time series
-lines(bs.mean.ref.gau[42, ], type="b")  # T = 75, time series, no skew
-lines(bs.mean.ref.gau[43, ], type="b")  # T = 90, time series, no skew
+par(mfrow=c(2, 3))
+xplot <- probs[6:11]
+plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.2), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 1)")
+lines(xplot, bs.mean.ref.gau[2, 6:11], type="b", pch=21, col=col[2], bg=bg[2])   # T = 50
+lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[3], bg=bg[3])   # T = 75
+abline(h=1, lty=2)
+lines(xplot, bs.mean.ref.gau[4, ], type="b")   # T = 90
+# lines(xplot, bs.mean.ref.gau[17, ], type="b")  # T = 75, no skew
+# lines(xplot, bs.mean.ref.gau[18, ], type="b")  # T = 90, no skew
+# plot(bs.mean.ref.gau[26, ], type="b")  # T = 0, time series
+# lines(bs.mean.ref.gau[27, ], type="b")  # T = 50, time series
+# lines(bs.mean.ref.gau[28, ], type="b")  # T = 75, time series
+# lines(bs.mean.ref.gau[29, ], type="b")  # T = 90, time series
+# lines(bs.mean.ref.gau[42, ], type="b")  # T = 75, time series, no skew
+# lines(bs.mean.ref.gau[43, ], type="b")  # T = 90, time series, no skew
 
 # 5 knots
-plot(bs.mean.ref.gau[5, ], type="b", ylim=c(0.5, 4))
-lines(bs.mean.ref.gau[6, ], type="b")
-lines(bs.mean.ref.gau[7, ], type="b")
-lines(bs.mean.ref.gau[8, ], type="b")
-lines(bs.mean.ref.gau[19, ], type="b")  # T = 75, no skew
-lines(bs.mean.ref.gau[20, ], type="b")  # T = 90, no skew
-lines(bs.mean.ref.gau[30, ], type="b")  # T = 0, time series
-lines(bs.mean.ref.gau[31, ], type="b")  # T = 50, time series
-lines(bs.mean.ref.gau[32, ], type="b")  # T = 75, time series
-lines(bs.mean.ref.gau[33, ], type="b")  # T = 90, time series
-lines(bs.mean.ref.gau[44, ], type="b")  # T = 75, time series, no skew
-lines(bs.mean.ref.gau[45, ], type="b")  # T = 90, time series, no skew
+plot(xplot, bs.mean.ref.gau[5, 6:11], type="b", ylim=c(0.8, 5.5), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 5)")
+lines(xplot, bs.mean.ref.gau[6, 6:11], type="b", pch=21, col=col[2], bg=bg[2])  # unusually high
+lines(xplot, bs.mean.ref.gau[7, 6:11], type="b", pch=21, col=col[3], bg=bg[3])
+abline(h=1, lty=2)
+lines(xplot, bs.mean.ref.gau[8, ], type="b")
+# lines(xplot, bs.mean.ref.gau[19, ], type="b")  # T = 75, no skew
+# lines(xplot, bs.mean.ref.gau[20, ], type="b")  # T = 90, no skew
+# lines(bs.mean.ref.gau[30, ], type="b")  # T = 0, time series
+# lines(bs.mean.ref.gau[31, ], type="b")  # T = 50, time series
+# lines(bs.mean.ref.gau[32, ], type="b")  # T = 75, time series
+# lines(bs.mean.ref.gau[33, ], type="b")  # T = 90, time series
+# lines(bs.mean.ref.gau[44, ], type="b")  # T = 75, time series, no skew
+# lines(bs.mean.ref.gau[45, ], type="b")  # T = 90, time series, no skew
 
 # 10 knots
-plot(bs.mean.ref.gau[9, ], type="b", ylim=c(0.5, 4))
-lines(bs.mean.ref.gau[10, ], type="b")
-lines(bs.mean.ref.gau[11, ], type="b")
-lines(bs.mean.ref.gau[12, ], type="b")
-lines(bs.mean.ref.gau[21, ], type="b")  # T = 75, no skew
-lines(bs.mean.ref.gau[22, ], type="b")  # T = 90, no skew
-lines(bs.mean.ref.gau[34, ], type="b")  # T = 0, time series
-lines(bs.mean.ref.gau[35, ], type="b")  # T = 50, time series
-lines(bs.mean.ref.gau[36, ], type="b")  # T = 75, time series
-lines(bs.mean.ref.gau[37, ], type="b")  # T = 90, time series
-lines(bs.mean.ref.gau[46, ], type="b")  # T = 75, time series, no skew
-lines(bs.mean.ref.gau[47, ], type="b")  # T = 90, time series, no skew
+plot(xplot, bs.mean.ref.gau[9, 6:11], type="b", ylim=c(0.8, 1.3), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 10)")
+lines(xplot, bs.mean.ref.gau[10, 6:11], type="b", pch=21, col=col[2], bg=bg[2])
+lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=21, col=col[3], bg=bg[3])
+abline(h=1, lty=2)
+lines(xplot, bs.mean.ref.gau[12, ], type="b")
+# lines(bs.mean.ref.gau[21, ], type="b")  # T = 75, no skew
+# lines(bs.mean.ref.gau[22, ], type="b")  # T = 90, no skew
+# lines(bs.mean.ref.gau[34, ], type="b")  # T = 0, time series
+# lines(bs.mean.ref.gau[35, ], type="b")  # T = 50, time series
+# lines(bs.mean.ref.gau[36, ], type="b")  # T = 75, time series
+# lines(bs.mean.ref.gau[37, ], type="b")  # T = 90, time series
+# lines(bs.mean.ref.gau[46, ], type="b")  # T = 75, time series, no skew
+# lines(bs.mean.ref.gau[47, ], type="b")  # T = 90, time series, no skew
 
 # 15 knots
-plot(bs.mean.ref.gau[13, ], type="b", ylim=c(0.5, 4))
-lines(bs.mean.ref.gau[14, ], type="b")
-lines(bs.mean.ref.gau[15, ], type="b")
-lines(bs.mean.ref.gau[16, ], type="b")
-lines(bs.mean.ref.gau[23, ], type="b")  # T = 75, no skew
-lines(bs.mean.ref.gau[24, ], type="b")  # T = 90, no skew
-lines(bs.mean.ref.gau[38, ], type="b")  # T = 0, time series
-lines(bs.mean.ref.gau[39, ], type="b")  # T = 50, time series
-lines(bs.mean.ref.gau[40, ], type="b")  # T = 75, time series
-lines(bs.mean.ref.gau[41, ], type="b")  # T = 90, time series
-lines(bs.mean.ref.gau[48, ], type="b")  # T = 75, time series, no skew
-lines(bs.mean.ref.gau[49, ], type="b")  # T = 90, time series, no skew
+plot(xplot, bs.mean.ref.gau[13, 6:11], type="b", ylim=c(0.8, 3), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 15)")
+lines(xplot, bs.mean.ref.gau[14, 6:11], type="b", pch=21, col=col[2], bg=bg[2])  # unusually high
+lines(xplot, bs.mean.ref.gau[15, 6:11], type="b", pch=21, col=col[3], bg=bg[3])
+abline(h=1, lty=2)
+lines(xplot, bs.mean.ref.gau[16, ], type="b")
+# lines(bs.mean.ref.gau[23, ], type="b")  # T = 75, no skew
+# lines(bs.mean.ref.gau[24, ], type="b")  # T = 90, no skew
+# lines(bs.mean.ref.gau[38, ], type="b")  # T = 0, time series
+# lines(bs.mean.ref.gau[39, ], type="b")  # T = 50, time series
+# lines(bs.mean.ref.gau[40, ], type="b")  # T = 75, time series
+# lines(bs.mean.ref.gau[41, ], type="b")  # T = 90, time series
+# lines(bs.mean.ref.gau[48, ], type="b")  # T = 75, time series, no skew
+# lines(bs.mean.ref.gau[49, ], type="b")  # T = 90, time series, no skew
 
+# max-stable
+plot(xplot, bs.mean.ref.gau[25, 6:11], type="b", ylim=c(0.8, 1.2), pch=24, col=col[5], bg=bg[5], ylab="brier score", xlab="sample quantiles", main="Brier scores (Max stable)")
+abline(h=1, lty=2)
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")
 
 # T = 0
 xplot <- probs
-plot(xplot, bs.mean.ref.gau[1, ], type="b", ylim=c(0.75, 1.05), col=col[1], bg=bg[1], pch=19)
+plot(xplot, bs.mean.ref.gau[1, ], type="b", ylim=c(0.8, 1.05), col=col[1], bg=bg[1], pch=19)
 lines(xplot, bs.mean.ref.gau[5, ], type="b", col=col[1], bg=bg[1], pch=19)   # 5 knots
 lines(xplot, bs.mean.ref.gau[9, ], type="b", col=col[1], bg=bg[1], pch=19)   # 10 knots
 lines(xplot, bs.mean.ref.gau[13, ], type="b", col=col[1], bg=bg[1], pch=19)  # 15 knots
