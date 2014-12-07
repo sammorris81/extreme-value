@@ -779,10 +779,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       if (temporaltau) {
         if ((att.phi.tau > 50) & (iter < (burn / 2))) {
-          print(paste("mh.phi.tau = ", mh.phi.tau))
+          # print(paste("mh.phi.tau = ", mh.phi.tau))
           if (acc.phi.tau / att.phi.tau < 0.25) { mh.phi.tau <- mh.phi.tau * 0.8 }
           if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 1.2 }
-          print(paste("mh.phi.tau = ", mh.phi.tau))
+          # print(paste("mh.phi.tau = ", mh.phi.tau))
           acc.phi.tau <- att.phi.tau <- 0
         }
       }
