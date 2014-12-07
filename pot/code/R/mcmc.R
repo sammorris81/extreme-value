@@ -494,9 +494,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             can.taug <- rep(can.tau, ns)
             
             cur.ll.y <- 0.5 * sum(log(taug[, t])) - 
-              0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t)
+                        0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t)
             can.ll.y <- 0.5 * sum(log(can.taug)) -
-              0.5 * quad.form(prec.cor, sqrt(can.taug) * res.t)
+                        0.5 * quad.form(prec.cor, sqrt(can.taug) * res.t)
             
             if (skew) {
               cur.ll.z <- 0.5 * log(tau[1, t]) - 0.5 * tau[1, t] * z[1, t]^2
@@ -779,8 +779,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       if (temporaltau) {
         if ((att.phi.tau > 50) & (iter < (burn / 2))) {
-          if (acc.phi.tau / att.phi.tau < 0.25) { mh.phi.tau <- mh.phi.tau * 1.2 }
-          if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 0.8 }
+          print(paste("mh.phi.tau = ", mh.phi.tau))
+          if (acc.phi.tau / att.phi.tau < 0.25) { mh.phi.tau <- mh.phi.tau * 0.8 }
+          if (acc.phi.tau / att.phi.tau > 0.50) { mh.phi.tau <- mh.phi.tau * 1.2 }
+          print(paste("mh.phi.tau = ", mh.phi.tau))
           acc.phi.tau <- att.phi.tau <- 0
         }
       }
