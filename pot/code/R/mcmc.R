@@ -345,16 +345,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     res <- y - z.alpha * zg  
     for (t in 1:nt) {
        taug.t <- sqrt(taug[, t])
-       # prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
-       # x.t    <- x[, t, ]
-       # ttt    <- t(x.t) %*% prec.t
-       # vvv    <- vvv + ttt %*% x.t
-       # mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
-       x.t    <- x[, t, ] * taug.t  # each of the sites should be multiplied by its own variance
-       res.t  <- res[, t] * taug.t
-       ttt    <- t(x.t) %*% prec.cor
+       prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+       x.t    <- x[, t, ]
+       ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
-       mmm    <- mmm + ttt %*% res.t
+       mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
+       # x.t    <- x[, t, ] * taug.t  # each of the sites should be multiplied by its own variance
+       # res.t  <- res[, t] * taug.t
+       # ttt    <- t(x.t) %*% prec.cor
+       # vvv    <- vvv + ttt %*% x.t
+       # mmm    <- mmm + ttt %*% res.t
     }
     
     vvv <- chol2inv(chol(vvv))
@@ -581,8 +581,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                 bbb <- bbb / mh.tau.ns[1]
                 can.tau  <- rgamma(1, aaa, bbb)
                 
-                cur.ll.y <- can.ll.y <- 0  # there are no sites in the partition
-                
                 if (skew) {
                   cur.ll.z <- 0.5 * log(tau[k, t]) - 0.5 * tau[k, t] * z[k, t]^2
                   can.ll.z <- 0.5 * log(can.tau) - 0.5 * can.tau * z[k, t]^2
@@ -590,7 +588,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                   cur.ll.z <- can.ll.z <- 0
                 }
                 
-                R <- can.ll.y - cur.ll.y + can.ll.z - cur.ll.z + 
+                R <- can.ll.z - cur.ll.z + 
                      dgamma(tau[k, t], aaa, bbb, log=TRUE) -  # non-symmetric candidate
                      dgamma(can.tau, aaa, bbb, log=TRUE)
                 
@@ -615,12 +613,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                   cur.mean      <- phi.tau * cur.tau.star
                   tau.star.sd   <- sqrt(1 - phi.tau^2)
                   R <- R + dnorm(tau.star.next, can.mean, tau.star.sd, log=TRUE) - 
-                    dnorm(tau.star.next, cur.mean, tau.star.sd, log=TRUE)
+                           dnorm(tau.star.next, cur.mean, tau.star.sd, log=TRUE)
                 }
                 
                 if (!is.na(R)) { if (log(runif(1)) < R) {
                   acc.tau.ns[1] <- acc.tau.ns[1] + 1
-                  tau[, t]  <- can.tau
+                  tau[k, t]  <- can.tau
                 }}
               } else {  # tau is conjugate
                 tau[k, t] <- rgamma(1, aaa, bbb)
@@ -629,7 +627,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                 }
               }  
               
-            } else {      
+            } else {  # nparts > 0
               att.tau.ns[(nparts + 1)] <- att.tau.ns[(nparts + 1)] + 1
               att.tau[k, t] <- att.tau[k, t] + 1
               
@@ -1164,6 +1162,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       } else {
         par(mfrow=c(3, 4))
       }
+      
+      plot(keepers.beta[begin:iter, 1], type="l")
+      plot(keepers.beta[begin:iter, 2], type="l")
       if (temporalw) {
         title.phi.w <- paste("acc =", acc.rate.phi.w)
         plot(keepers.phi.w[begin:iter], type="l", main=title.phi.w)
