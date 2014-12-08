@@ -82,7 +82,7 @@ chol.inv <- function(Q, inv=T, logdet=T) {
 }
 
 mem <- function(s, knots) {
-  library(fields)
+  # library(fields)
   d <- rdist(s, knots)
   g <- apply(d, 1, which.min)
 
