@@ -87,15 +87,119 @@ for (t in 1:25) {
   main=print(paste(interval[1], ", ", interval[2])))
 }
 
+
+grp <- 1
+filename <- paste("3-b-", grp, ".RData", sep="")
+load(filename)
+par(mfrow=c(3, 5))
+for (i in 1:5) {
+  interval <- quantile(fit.1[[i]]$tau.alpha, probs=c(0.025, 0.975))
+  plot(fit.1[[i]]$tau.alpha, type="l", ylab="tau.alpha", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.1[[i]]$tau.beta, probs=c(0.025, 0.975)), 1)
+  plot(fit.1[[i]]$tau.beta, type="l", ylab="tau.beta", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))  
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.1[[i]]$z.alpha, probs=c(0.025, 0.975)), 1)
+  plot(fit.1[[i]]$z.alpha, type="l", ylab="z.alpha", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
+par(mfrow=c(3, 5))
+for (i in 1:5) {
+  interval <- round(quantile(fit.1[[i]]$rho, probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[i]]$rho, type="l", ylab="rho", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.1[[i]]$nu, probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[i]]$nu, type="l", ylab="nu", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))  
+}
+for (i in 1:5) {
+  interval <- round(quantile(fit.1[[i]]$alpha, probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[i]]$alpha, type="l", ylab="alpha", xlab=print(paste("Set:", (grp - 1) * 5 +i)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
+par(mfrow=c(5, 5))
+daygrp <- 1
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 1, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 1, day], type="l", ylab=round(tau.t[[3]][1, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 2, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 2, day], type="l", ylab=round(tau.t[[3]][2, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 3, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 3, day], type="l", ylab=round(tau.t[[3]][3, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 4, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 4, day], type="l", ylab=round(tau.t[[3]][4, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 5, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 5, day], type="l", ylab=round(tau.t[[3]][5, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
+daygrp <- 2
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 1, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 1, day], type="l", ylab=round(tau.t[[3]][1, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 2, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 2, day], type="l", ylab=round(tau.t[[3]][2, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 3, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 3, day], type="l", ylab=round(tau.t[[3]][3, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 4, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 4, day], type="l", ylab=round(tau.t[[3]][4, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+for (t in 1:25) {
+  day <- (daygrp - 1) * 25 + t
+  interval <- round(quantile(fit.1[[1]]$tau[, 5, day], probs=c(0.025, 0.975)), 2)
+  plot(fit.1[[1]]$tau[, 5, day], type="l", ylab=round(tau.t[[3]][5, day, 1], 2), xlab=print(paste("Day:", day)),
+  main=print(paste(interval[1], ", ", interval[2])))
+}
+
 rm(list=ls())
 load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 10
+ngroups <- 3
 nsettings <- dim(y)[4]
 nmethods <- 5
-obs <- rep(c(T, F), 100)[1:ns]
+obs <- c(rep(T, 100), rep(F, 44))
 
 setting <- 1
 filename <- paste("scores", setting, ".RData", sep="")
@@ -125,8 +229,8 @@ rho.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsett
 nu.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 # not all methods use skew or multiple partitions
-z.alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 4, nsettings))
-avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 2, nsettings))
+z.alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 5, nsettings))
+avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
 
 iters <- 20000; burn <- 10000
 for (setting in 1:nsettings) {
@@ -259,29 +363,29 @@ for (setting in 1:nsettings) {
 dev.print(file="plots/bsplots-med.pdf", device=pdf)
 dev.off()
 
-setting.title <- c("Gaussian", "t (K = 1)", "t (K = 5)", "skew t (K = 1, alpha = 3)", "skew t (K = 5, alpha = 3)", "max-stable")
-methods <- c("skew-t, K = 1, T = q(0.0)", "t, K = 1, T = q(0.8)", "skew-t, K = 5, T = q(0.0)", "t, K = 5, T = q(0.8)")
+setting.title <- c("Gaussian", "T (K = 1)", "T (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable")
+methods <- c("Skew-t, K = 1, T = q(0.0)", "T, K = 1, T = q(0.8)", "Skew-t, K = 5, T = q(0.0)", "T, K = 5, T = q(0.8)")
 bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
 pch <- c(22, 22, 22, 22)
 lty <- c(1, 1, 3, 3)
 
 quartz(width=15, height=12)
-par(mfrow=c(3, 2))
+par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in 1:nsettings) {  
   ymax <- max(bs.mean.ref.gau[, , setting], 1)
   ymin <- min(bs.mean.ref.gau[, , setting], 1)
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o', 
-       lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
-       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="relative brier score", xlab="threshold quantile")
+       lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
+       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="Relative brier score", xlab="Threshold quantile", cex.lab=2, cex.axis=2, cex.main=2)
   
   for (i in 2:(nmethods - 1)) {
     lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
-    points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+    points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i], cex=1.7)
     abline(h=1, lty=2)
   }
-  if (setting == 2) {
-  	legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.5)
+  if (setting == 6) {
+  	legend("bottomleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.7)
   }
 }
 

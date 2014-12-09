@@ -1,7 +1,11 @@
-Consider two spatial locations, $\bs_1, \bs_2 \in \calR^2$, and any two knots, $w_1, w_2 \in \calR^2$.
-Let $\overline{S}$ be the line segment connecting $\bs_1$ and $\bs_2$.
-Let $h = ||\bs_1 - \bs_2||$ be the distance between sites $\bs_1$ and $\bs_2$.
-Let $\overline{W}$ be the perpendicular bisector of the line connecting $w_1$ and $w_2$.
-Then $\overline{W}$ defines a partition dividing $\calR^2$ into two half-planes.
-Let $\lim_{h \rightarrow \infty}$ be a limit in the sense that both $\bs_1$ and $\bs_2$ are moving at some rate away from their midpoint.
-Provided that $\overline{W}$ and $\overline{S}$ are not parallel to one another, we are guaranteed that as $h \rightarrow \infty$, $\bs_1$ and $\bs_2$ will be in different partitions.
+% Consider two spatial locations, $\bs_1, \bs_2 \in \calR^2$, and any two knots, $w_1, w_2 \in \calR^2$.
+% Let $\overline{S}$ be the line segment connecting $\bs_1$ and $\bs_2$.
+% Let $h = ||\bs_1 - \bs_2||$ be the distance between sites $\bs_1$ and $\bs_2$.
+% Let $\overline{W}$ be the perpendicular bisector of the line connecting $w_1$ and $w_2$.
+% Then $\overline{W}$ defines a partition dividing $\calR^2$ into two half-planes.
+% Let $\lim_{h \rightarrow \infty}$ be a limit in the sense that both $\bs_1$ and $\bs_2$ are moving at some rate away from their midpoint.
+% Provided that $\overline{W}$ and $\overline{S}$ are not parallel to one another, we are guaranteed that as $h \rightarrow \infty$, $\bs_1$ and $\bs_2$ will be in different partitions.
+Consider two spatial locations $\bs_1, \bs_2 \in \calR^2$, and consider spatial knots that follow a Poisson process with intensity $\lambda$.
+Let $h = ||\bs_1 - \bs_2||$, and let $\pi(h)$ be the probability that two sites are in the same partition.
+To guarantee that $\bs_1$ and $\bs_2$ are indifferent partitions, we need at least two knots to be in between $\bs_1$ and $\bs_2$.
+Let $B_{\bs}(\frac{h}{2})$ be a ball that is of radius $\frac{h}{2}$ that has $\bs_1$ and $\bs_2$ on its circumference, and consider $\overline{S}$ to be the line connecting $\bs_1$ and $\bs_2$ that divides $B_{\bs}(\frac{h}{2})$ into two sizes of equal area.

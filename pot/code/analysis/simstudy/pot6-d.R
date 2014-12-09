@@ -31,8 +31,8 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R')
 source('../../R/auxfunctions.R')
 
-setting <- 4
-analysis <- "b"
+setting <- 6
+analysis <- "d"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
@@ -55,16 +55,29 @@ for (g in 1:10) {
     y.validate[, , d] <- y.d[!obs, ]
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
-
-    cat("  start: skew t-5 - Set", dataset, "\n")
+    
+    cat("  start: t-5 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
-    fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=0, thresh.quant=T,
-                       nknots=5, iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
+    fit.1[[d]] <- tryCatch(
+                       mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=T, thresh.all=0.80, thresh.quant=T,
+                       nknots=5, iterplot=F, iters=iters, burn=burn, 
+                       update=update, thin=thin,
+                       nu.init=0.5, cov.model="exponential", rho.prior="cont"),
+                       error = function(e) {
+                         tryCatch(mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                         method="t", skew=T, thresh.all=0.80, thresh.quant=T, 
+                         nknots=5, iterplot=F, iters=iters, burn=burn, 
+                         update=update, thin=thin,
+                         nu.init=0.5, cov.model="exponential", rho.prior="disc"),
+                         error = function(e) {
+                           cat("dataset", d, "not working \n")
+                           "no results"
+                         })
+                       })
     toc <- proc.time()
-    cat("  skew t-5 took:", (toc - tic)[3], "\n")
-    cat("  end: skew t-5 \n")
+    cat("  t-5 (T=0.80) took:", (toc - tic)[3], "\n")
+    cat("  end: t-5 (T=0.80) \n")
     cat("------------------\n")
 
     save(fit.1, file=outputfile)
