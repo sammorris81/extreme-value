@@ -1,6 +1,6 @@
 options(warn=2)
 library(fields)
-library(SpatialTools)
+library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
@@ -41,8 +41,8 @@ for(val in 1:2){
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
                    temporalw=T, temporalz=T, temporaltau=T,
                    method=method, skew=skew, keep.knots=keep.knots,
-	                 thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-                   iters=30000, burn=25000, update=500, iterplot=T,
+	               thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
+                   iters=30000, burn=25000, update=500, iterplot=F,
                    beta.init=beta.init, tau.init=tau.init, rho.init=1,
                    nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()

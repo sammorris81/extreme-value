@@ -1,6 +1,6 @@
 options(warn=2)
 library(fields)
-library(SpatialTools)
+library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
@@ -10,7 +10,7 @@ source('../../../R/auxfunctions.R')
 
 setting <- 8
 method <- "t"
-nknots <- 2
+nknots <- 5
 keep.knots <- F
 threshold <- 75
 tau.init <- 0.05
@@ -40,7 +40,7 @@ for(val in 1:2){
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
 	                   method=method, skew=skew, keep.knots=keep.knots,
 	                   thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots, 
-                       iters=30000, burn=25000, update=100, iterplot=T,
+                       iters=30000, burn=25000, update=500, iterplot=F,
                        beta.init=beta.init, tau.init=tau.init, rho.init=1,
                        nu.init=0.5, alpha.init=0.5)
 	toc.set <- proc.time()

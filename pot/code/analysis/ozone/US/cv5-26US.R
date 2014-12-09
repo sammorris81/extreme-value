@@ -1,6 +1,6 @@
 options(warn=2)
 library(fields)
-library(SpatialTools)
+library(geoR)
 library(mvtnorm)
 
 rm(list=ls())
