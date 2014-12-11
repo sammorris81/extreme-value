@@ -52,7 +52,7 @@ The final section provides brief discussion and direction for future research.
 
 \section{Spatial skew processes}\label{s:spatialskew}
 Many types of data demonstrate some level of skewness and therefore should be modeled with distributions that allow for asymmetry.
-The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter to account for non-symmetric data \citep{Genton2004}.
+The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter to account for asymmetric data \citep{Genton2004}.
 A brief review of the additive process by which a skew-$t$ process is created is given here.
 
 \subsection{Skew-$t$ process} \label{s:skewt}
@@ -62,19 +62,18 @@ The spatial skew-$t$ process can be written
   Y(\bs) = \bX(\bs)^T \bbeta + \lambda \sigma |z| + \sigma v(\bs)
 \end{align}
 where $\bX(\bs)$ is a set of spatial covariates at site $\bs$, $\bbeta$ is a set of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a, b)$ is an inverse gamma random variable, and $v(\bs)$ is a spatial Gaussian process with mean zero and variance one.
-It should be noted that the spatial-$t$ process is a special case of the skew-$t$ process when $\lambda = 0$.
 A common spatial correlation function is the \Matern with
 \begin{align}
   \text{cor}(v(\bs), v(\bt)) = \gamma I(\bs = \bt) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right) \label{eq:matern}
 \end{align}
-where $\rho$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second time, and $h = || \bs - \bt ||$.
+where $\rho$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second kind, and $h = || \bs - \bt ||$.
 
 Let $\bY = [Y(\bs_1), \ldots, Y(\bs_n)]^T$ be a set of observations at a finite collection of locations $\bs_1, \ldots, \bs_n$.
 After marginalizing over both $z$ and $\sigma$,
 \begin{align}
   \bY \sim \text{ST}_n(\bX \bbeta, \bOmega, \balpha, 2a), \label{eq:fullmodel}
 \end{align}
-that is, $\bY$ follows an $n$-dimensional skew-$t$ process with location $\bX \bbeta$, correlation matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $2a$ where $\bX = [\bX(\bs_1)^T, \ldots, \bX(\bs_n)^T]$, $\bOmega = \bomega \bar{\bOmega} \bomega$, $\bomega = \text{diag}\left(\frac{1}{ \sqrt{ab}}, \ldots, \frac{1}{\sqrt{ab}}\right)$, $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T$), $\bSigma$ is a positive definite correlation matrix, $\balpha = \lambda (1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ is a vector of slant parameters.
+that is, $\bY$ follows an $n$-dimensional skew-$t$ process with location $\bX \bbeta$, correlation matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $2a$, where $\bX = [\bX(\bs_1)^T, \ldots, \bX(\bs_n)^T]$, $\bOmega = \bomega \bar{\bOmega} \bomega$, $\bomega = \text{diag}\left(\frac{1}{ \sqrt{ab}}, \ldots, \frac{1}{\sqrt{ab}}\right)$, $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T$), $\bSigma$ is a positive definite correlation matrix, $\balpha = \lambda (1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ is a vector of slant parameters.
 This process is desirable because of its flexible tail that is controlled by the skewness parameter $\lambda$ and degrees of freedom $2a$.
 Furthermore, the marginal distributions at each location also follow a univariate skew-$t$ distribution \citep{Azzalini2013}.
 
@@ -111,7 +110,7 @@ Then, assuming the uncensored data $Y(\bs)$ are observations from a skew-$t$ pro
 \subsection{Partitioning to remove long-range asymptotic dependence}\label{s:part}
 We handle the problem of long-range asymptotic dependence with a random partition model.
 As discussed in Section \ref{s:spatialskew}, the source of long-range dependence is the shared $z$ and $\sigma$.
-Therefore, to alleviate this dependence, we allow $z$ and $\sigma$to vary by site.
+Therefore, to alleviate this dependence, we allow $z$ and $\sigma$ to vary by site.
 Then, the model becomes
 \begin{align} \label{eq:partition}
   Y(\bs) &= \bX(\bs)^T \bbeta + \lambda \sigma(\bs) |z(\bs)| + \sigma(\bs) v(\bs).
@@ -119,9 +118,9 @@ Then, the model becomes
 Let $\bw = (w_1, w_2)$ be the location of a spatial knot.
 To model spatial variation, consider a set of spatial knots $\bw_1, \ldots, \bw_K$ from a homogeneous Poisson process with intensity $\mu$ over spatial domain $\calD \in \calR^2$.
 The knots define a random daily partition of $\calD$ by subregions $P_{1}, \ldots, P_{K}$ defined as
-\begin{align*}
+\begin{align} \label{eq:subregions}
   P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \}.
-\end{align*}
+\end{align}
 All $z(\bs)$ and $\sigma(\bs)$ for sites in subregion $k$ are assigned common values
 \begin{align}
   z(\bs) &= z_{k} \label{eq:sitez}\\
@@ -139,15 +138,16 @@ When incorporating the random daily partition, conditional on knots $\bw_1, \ldo
 where $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
 Therefore, sites in different subregions are asymptotically independent.
 Marginally, over the knots $\bw_1, \ldots, \bw_K$, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_s = k_t)$ is the probability that two sites separated by distance $h$ are in the same partition.
-So, to show that $\lim_{h \rightarrow \infty} \chi(h) = 0$, we need only know that $\lim_{h \rightarrow \infty} \pi(h) = 0$
+So, to show that $\lim_{h \rightarrow \infty} \chi(h) = 0$, we need only know that $\lim_{h \rightarrow \infty} \pi(h) = 0$.
 A proof of this is given in Appendix \ref{a:proofsamepartition}.
 
-Figure \ref{fig:simchi} shows $\chi(h)$ for different sample quantiles from simulated datasets where $\bs \in [0, 1] \times [0, 1]$.
-These plots show how the partitioning allows for short range extremal dependence while reducing extremal dependence as the distance between sites increases.
+Figure \ref{fig:simchi} shows $\chi(h)$ for varying data settings when $\bs \in [0, 1] \times [0, 1]$.
+The plot clearly shows that without partitioning, in a skew-$t$ process, all sites remain asymptotically dependent.
+However, upon incorporating partitioning into the model, the asymptotic dependence is only shared by sites that are close to one another.
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{plots/sim-chi.pdf}
-  \caption{$\chi(h)$ for simulated datasets. The dashed line indicates the $\chi(h)$ we would expect under asymptotic independence.}
+  %\includegraphics[width=\linewidth]{plots/sim-chi.pdf}
+  \caption{$\chi(h)$ for different settings. I need to replace the plot here.}
   \label{fig:simchi}
 \end{figure}
 
@@ -157,9 +157,9 @@ There are several places where temporal dependence could be incorporated in the 
 However, we choose to allow for temporal dependence in the $\bw$, $z$, and $\sigma$ terms because these terms dictate the tail behavior which is our primary focus.
 In this section, we extend (\ref{eq:partition}) to the spatiotemporal setting.
 Let
-\begin{align*}
+\begin{align} \label{eq:spatiotemp}
   Y_t(\bs) = \bX_t(\bs)^T \bbeta + \lambda \sigma_t(\bs) |z_t(\bs)| + \sigma_t(\bs) v_t(\bs),
-\end{align*}
+\end{align}
 where $t \in \{1, \ldots, T\}$ denotes the day of each observation.
 Let \hbox{$\bw_{tk} = (w_{tk1}, w_{tk2})$} be a spatial knot on day $t$, and let $w_{t1}, \ldots, w_{tK}$ be a collection of spatial knots on day $t$.
 As in section \ref{s:part}, these knots define a daily partition $P_{t1}, \ldots, P_{tK}$, and for $\bs \in P_{tk}$,
@@ -173,10 +173,10 @@ The time series model must be specified after a transformation to preserve the s
 We first transform the spatial knots from $\calD$ to $\calR^2$ as follows.
 Let
 \begin{align}
-  w^*_{tki} = \Phi^{-1}\left[ \frac{ (w_{tki} - \min(s_i))}{ \text{range}(s_i) } \right], \quad i = 1, 2
+  w^*_{tki} = \Phi^{-1}\left[ \frac{ (w_{tki} - \min(\bs_i))}{ \text{range}(\bs_i) } \right], \quad i = 1, 2
 \end{align}
-where $\Phi$ is a univariate standard normal density function.
-Then $\bw^*_k \in \calR^2$.
+where $\Phi$ is a univariate standard normal density function, and $\bs_i = [s_{1i}, \ldots, s_{ni}]$.
+Then $\bw^*_{tk} \in \calR^2$.
 We use a copula on the $\sigma^2_t(\bs)$ to ensure that the marginal distributions of $\sigma^2_t(\bs)$ are inverse gamma.
 Let
 \begin{align}
@@ -190,16 +190,16 @@ The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z_{1k
   \sigma^{2*}_{tk} | \sigma^{2*}_{t-1, k} &\sim N \left[\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2) \right]
 \end{align}
 where $|\phi_w| < 1$, $0 < \phi_z < 1$, and $|\phi_\sigma| < 1$.
-We restrict $\phi_z$ to be positive because in the skew-$t$ distribution, we use $|z_t(\bs)|$.
+We restrict $\phi_z$ to be positive because in the model, we assume $Y(\bs)$ is a function of $|z_t(\bs)|$.
 These are stationary time series models with marginal distributions $\bw^*_{k} \sim N_2(0, 1)$, $z_{k} \sim N(0, \sigma^2_{k})$, $\sigma^{2*}_{k} \sim N(0, 1)$.
-After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $\sigma^2 \sim \text{IG}(a, b)$.
-For each day, the model is identical to the spatial-only model in Section \ref{s:part} by construction.
+After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $\sigma^2_{tk} \sim \text{IG}(a, b)$.
+For each day, the model is identical to the spatial-only model in (\ref{eq:partition}) by construction.
 
 \subsection{Hierarchical model}\label{s:hier}
 Conditioned on $z_{tk}(\bs)$, $\sigma^2_{tk}(\bs)$, and $P_{tk}$, the marginal distributions are Gaussian and the joint distribution multivariate Gaussian.
 However, we do not fix the partitions, they are treated as unknown and updated in the MCMC.
 We model this with a Bayesian hierarchical model as follows.
-Let $\bw_{t1}, \ldots, \bw_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, and $P_{tk}$ as defined in \ref{s:part}.
+Let $\bw_{t1}, \ldots, \bw_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, and $P_{tk}$ as defined in (\ref{eq:subregions}).
 
 Then
 \begin{align}
@@ -212,7 +212,7 @@ Then
    \sigma^{2*}_{tk} \mid \sigma^{2*}_{t-1, k} &\sim N(\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2))\\
    \bw^*_{tk} \mid \bw^*_{t-1, k} &\sim N_2(\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2))
 \end{align}
-where $\Theta = \{\rho, \nu, \gamma\}$; \mbox{$k = \argmin_\ell ||\bs - \bw_\ell ||$}; and $\Sigma$ is a \Matern covariance matrix as described in Section \ref{s:skewt}.
+where $\Theta = \{\rho, \nu, \gamma\}$, and $\Sigma$ is a \Matern covariance matrix as described in Section \ref{s:skewt}.
 
 \section{Computation}\label{s:comp}
 First, we impute values below the threshold.

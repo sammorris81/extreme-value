@@ -183,7 +183,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                    error = function(e) {
                      eig.inv(C, inv=T, logdet=T, mtx.sqrt=T)
                    })
-    chol.C <- CC$sd.mtx
+    sd.mtx <- CC$sd.mtx
     prec.cor <- CC$prec
     logdet.prec <- CC$logdet.prec  # already includes 0.5
   } else if (rho.prior == "disc"){  # precompute eigenvectors and eigenvalues
@@ -289,54 +289,88 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (thresh.all != 0) {
       mu <- x.beta + z.alpha * zg
       thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
-      y.imputed <- matrix(y, ns, nt)
+      y.impute <- matrix(y, ns, nt)
       
-      if (nu == 0.5) {  # quicker than matern function
-        cor <- alpha * exp(-(d / rho))
-      } else {
-        cor <- alpha * simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
-                                     smoothness=nu, finescale.var=0)  # only for the spatial error
-      }
+      # if (nu == 0.5) {  # quicker than matern function
+        # cor <- alpha * exp(-(d / rho))
+      # } else {
+        # cor <- alpha * simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
+                                     # smoothness=nu, finescale.var=0)  # only for the spatial error
+      # }
+           
       for (t in 1:nt) {
-        these.thresh.obs <- thresh.obs[, t]
-        these.missing.obs <- missing.obs[, t]
+        mu.t   <- mu[, t]
+        taug.t <- sqrt(taug[, t])
+        res.t  <- (y[, t] - mu.t)
+        prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+        
+        # data imputation first
+        impute.u     <- runif(ns)
+        impute.these <- which(thresh.obs[, t])  # gives sites that are thresholded on day t.
+        impute.sd    <- sqrt(1 / diag(prec.t))  # conditional standard deviation
+        upper.y      <- thresh.mtx[, t]
+        
+        for (i in impute.these) {
+          impute.e <- mu.t[i] - 1 / prec.t[i, i] * prec.t[i, -i] %*% (res.t[-i])  # conditional expectation
+          upper.u  <- pnorm(upper.y[i], impute.e, impute.sd[i])
+          y.impute[i, t] <- impute.e + impute.sd[i] * qnorm(impute.u[i] * upper.u)
+        }
+        
+        # missing values next
+        missing.these <- which(missing.obs[, t])  # gives sites that are missing on day t.
+        sig.t <- 1 / taug.t
+        y.missing.t <- mu.t + sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)
+        y.impute[missing.these, t] <- y.missing.t[missing.these]
+        
+        # print(dim(prec.t))
+        # print(det(prec.t))
+        # print(diag(taug.t))
+        # print(det(diag(taug.t)))
+        
+        # print(det(prec.cor))
 
-        # spatial error
-        sig.t <- 1 / sqrt(taug[, t])
-        sd.mtx <- tryCatch(chol(cor),  # only want the cholesky factor
-                           error = function(e) {
-                             eig.inv(cor, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
-                           })
-        theta.t <- sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)  # generate for all sites
+        # impute the values below the threshold
         
-        # nugget error
-        # new expected value and standard deviation
-        e.y <- mu[, t] + theta.t
-        s.y <- sqrt(1 - alpha) * sig.t
-        upper.y <- thresh.mtx[, t]
         
-        y.impute.t <- tryCatch(rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y),
-                               warning = function(e) {
-                               	cat("sig.t = ", sig.t, "\n")
-                               	cat("e.y = ", e.y, "\n")
-                               	cat("s.y = ", s.y, "\n")
-                               	cat("alpha = ", alpha, "\n")
-                               })
+        
+        
+
+        # # spatial error
+        # sig.t <- 1 / sqrt(taug[, t])
+        # sd.mtx <- tryCatch(chol(cor),  # only want the cholesky factor
+                           # error = function(e) {
+                             # eig.inv(cor, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
+                           # })
+        # theta.t <- sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)  # generate for all sites
+        
+        # # nugget error
+        # # new expected value and standard deviation
+        # e.y <- mu[, t] + theta.t
+        # s.y <- sqrt(1 - alpha) * sig.t
+        # upper.y <- thresh.mtx[, t]
+        
+        # y.impute.t <- tryCatch(rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y),
+                               # warning = function(e) {
+                               	# cat("sig.t = ", sig.t, "\n")
+                               	# cat("e.y = ", e.y, "\n")
+                               	# cat("s.y = ", s.y, "\n")
+                               	# cat("alpha = ", alpha, "\n")
+                               # })
        
         # if any y.impute.t come back as -Inf, it's because P(Y < T) = 0
-        usefudge <- y.impute.t == -Inf
-        y.impute.t[usefudge] <- thresh.mtx.fudge[usefudge, t]
-        y.imputed[these.thresh.obs, t] <- y.impute.t[these.thresh.obs]
+        # usefudge <- y.impute.t == -Inf
+        # y.impute.t[usefudge] <- thresh.mtx.fudge[usefudge, t]
+        # y.imputed[these.thresh.obs, t] <- y.impute.t[these.thresh.obs]
        
-        # we already know the spatial part through the theta term
-        y.missing.t <- rnorm(n=ns, mean=e.y, sd=s.y)
-        y.imputed[these.missing.obs, t] <- y.missing.t[these.missing.obs]
+        # # we already know the spatial part through the theta term
+        # y.missing.t <- rnorm(n=ns, mean=e.y, sd=s.y)
+        # y.imputed[these.missing.obs, t] <- y.missing.t[these.missing.obs]
       }
       
       # Only the sites/days with missing/thresholded observations are different from
       # the true y in y.imputed
-      y <- y.imputed
-
+      y <- y.impute
+      #print(y[1:10, 1:10])
     }
     
     # update beta
@@ -345,16 +379,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     res <- y - z.alpha * zg  
     for (t in 1:nt) {
        taug.t <- sqrt(taug[, t])
-       prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
-       x.t    <- x[, t, ]
-       ttt    <- t(x.t) %*% prec.t
+       x.t    <- x[, t, ] * taug.t  # each of the sites should be multiplied by its own precision
+       res.t  <- res[, t] * taug.t
+       ttt    <- t(x.t) %*% prec.cor
        vvv    <- vvv + ttt %*% x.t
-       mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
-       # x.t    <- x[, t, ] * taug.t  # each of the sites should be multiplied by its own variance
-       # res.t  <- res[, t] * taug.t
-       # ttt    <- t(x.t) %*% prec.cor
-       # vvv    <- vvv + ttt %*% x.t
-       # mmm    <- mmm + ttt %*% res.t
+       mmm    <- mmm + ttt %*% res.t
     }
     
     vvv <- chol2inv(chol(vvv))
