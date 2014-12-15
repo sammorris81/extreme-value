@@ -301,19 +301,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       for (t in 1:nt) {
         mu.t   <- mu[, t]
         taug.t <- sqrt(taug[, t])
-        res.t  <- (y[, t] - mu.t)
-        prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+        res.t  <- (y[, t] - mu.t) * taug.t  # standardized
+        # prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
         
         # data imputation first
         impute.u     <- runif(ns)
         impute.these <- which(thresh.obs[, t])  # gives sites that are thresholded on day t.
-        impute.sd    <- sqrt(1 / diag(prec.t))  # conditional standard deviation
+        impute.sd    <- sqrt(1 / diag(prec.cor))  # conditional standard deviation
+        impute.sd.t  <- impute.sd / taug.t
         upper.y      <- thresh.mtx[, t]
         
         for (i in impute.these) {
-          impute.e <- mu.t[i] - 1 / prec.t[i, i] * prec.t[i, -i] %*% (res.t[-i])  # conditional expectation
-          upper.u  <- pnorm(upper.y[i], impute.e, impute.sd[i])
-          y.impute[i, t] <- impute.e + impute.sd[i] * qnorm(impute.u[i] * upper.u)
+          sig.11 <- impute.sd[i]^2 / taug.t[i]
+          impute.e <- mu.t[i] - sig.11 * prec.cor[i, -i] %*% res.t[-i]
+          upper.u  <- pnorm(upper.y[i], impute.e, impute.sd.t[i])
+          y.impute[i, t] <- impute.e + impute.sd.t[i] * qnorm(impute.u[i] * upper.u)
         }
         
         # missing values next
@@ -370,7 +372,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # Only the sites/days with missing/thresholded observations are different from
       # the true y in y.imputed
       y <- y.impute
-      #print(y[1:10, 1:10])
+      # print(y[1:10, 1:10])
     }
     
     # update beta
@@ -1008,7 +1010,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       z.alpha <- rnorm(1, mmm, sqrt(vvv))
     
       # z random effect
-      mu <- y - x.beta - z.alpha * zg
+      mu <- x.beta + z.alpha * zg
       
       if (temporalz) {  # need to use MH sampling if there is a time series on the z terms
       	ts.z.update <- ts.sample.z(z.star=z.star, acc.z=acc.z, att.z=att.z, mh.z=mh.z, zg=zg,
@@ -1055,10 +1057,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
             r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
             prec.11 <- prec.t[these, these, drop=F]  # with cov
-            prec.21 <- prec.t[-these, these, drop=F]
+            prec.12 <- prec.t[these, -these, drop=F]
             lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
           
-            mu.l <- z.alpha * sum(t(r.1) %*% prec.11 + t(r.2) %*% prec.21)
+            mu.l <- z.alpha * sum(prec.11 %*% r.1 + prec.12 %*% r.2)
           
             e.z <- mu.l / lambda.l
             sd.z <- 1 / sqrt(lambda.l)
