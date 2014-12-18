@@ -206,13 +206,15 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
     if (dist) {
       tau[, t] <- t.tau[, t]
       taug   <- t.tau[g, t]
+      z[, t] <- t.z[, t]
       zg     <- t.z[g, t]
-      chol.C <- gau.C.chol
+      chol.C <- t.C.chol
     } else {
       tau[, t] <- gau.tau[, t]
       taug   <- gau.tau[g, t]
+      z[, t] <- gau.z[, t]
       zg     <- gau.z[g, t]
-      chol.C <- t.C.chol
+      chol.C <- gau.C.chol
     }  
         
     if (p == 1) {

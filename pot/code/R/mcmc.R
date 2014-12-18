@@ -381,9 +381,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     res <- y - z.alpha * zg  
     for (t in 1:nt) {
        taug.t <- sqrt(taug[, t])
-       x.t    <- x[, t, ] * taug.t  # each of the sites should be multiplied by its own precision
-       res.t  <- res[, t] * taug.t
-       ttt    <- t(x.t) %*% prec.cor
+       prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+       x.t    <- x[, t, ] #* taug.t  # each of the sites should be multiplied by its own precision
+       res.t  <- res[, t] #* taug.t
+       # ttt    <- t(x.t) %*% prec.cor
+       ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
        mmm    <- mmm + ttt %*% res.t
     }
@@ -914,16 +916,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       can.nu <- exp(can.lognu)
     
-      norm.alpha <- qnorm(alpha)
-      can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
-      can.alpha <- pnorm(can.norm.alpha)
+      # norm.alpha <- qnorm(alpha)
+      # can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
+      # can.alpha <- pnorm(can.norm.alpha)
     
-      can.C <- CorFx(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
+      # can.C <- CorFx(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
+      can.C <- CorFx(d=d, alpha=alpha, rho=can.rho, nu=can.nu)
       can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
                          error = function(e) {
                            tryCatch(eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T),
                                     error = function(e) {
-                                      print(paste("can.alpha =", can.alpha))
+                                      # print(paste("can.alpha =", can.alpha))
                                       print(paste("can.rho =", can.rho))
                                       print(paste("can.nu =", can.nu))
                                     })
@@ -944,15 +947,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
             dnorm(logrho, logrho.m, logrho.s, log=T) + 
             dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
-            dnorm(lognu, lognu.m, lognu.s, log=T) +
-            dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-            dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
+            dnorm(lognu, lognu.m, lognu.s, log=T) # +
+            # dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+            # dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
     
       if (can.nu <= 10) {  # sometimes nu gets lost in the MCMC and ends up way too big
         if (!is.na(R)) { if (log(runif(1)) < R) {
           rho <- can.rho
           nu <- can.nu
-          alpha <- can.alpha
+          # alpha <- can.alpha
           C <- can.C
           sd.mtx <- can.sd.mtx
           prec.cor <- can.prec.cor
@@ -960,10 +963,50 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           cur.rss <- can.rss
           acc.rho <- acc.rho + 1
           acc.nu  <- acc.nu + 1
-          acc.alpha <- acc.alpha + 1
+          # acc.alpha <- acc.alpha + 1
         }}
       }
+      
+      norm.alpha <- qnorm(alpha)
+      can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
+      can.alpha <- pnorm(can.norm.alpha)
     
+      can.C <- CorFx(d=d, alpha=can.alpha, rho=rho, nu=nu)
+      can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
+                         error = function(e) {
+                           tryCatch(eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T),
+                                    error = function(e) {
+                                      print(paste("can.alpha =", can.alpha))
+                                      # print(paste("can.rho =", can.rho))
+                                      # print(paste("can.nu =", can.nu))
+                                    })
+                         })
+      can.sd.mtx <- can.CC$sd.mtx
+      can.prec.cor <- can.CC$prec
+      can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
+    
+      can.rss <- rep(NA, nt)
+      cur.rss <- rep(NA, nt)
+      for (t in 1:nt) {
+        can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t]) 
+        cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
+      }
+    
+      R <- -0.5 * sum(can.rss - cur.rss) + 
+            nt * (can.logdet.prec - logdet.prec) + 
+            dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
+            dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
+    
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        alpha <- can.alpha
+        C <- can.C
+        sd.mtx <- can.sd.mtx
+        prec.cor <- can.prec.cor
+        logdet.prec <- can.logdet.prec
+        cur.rss <- can.rss
+        acc.alpha <- acc.alpha + 1
+      }}
+            
       if ((att.rho > 50) & (iter < (burn / 2))) {
         if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
         if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
@@ -1003,14 +1046,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         vvv <- vvv + ttt %*% zg.t
         mmm <- mmm + ttt %*% res.t
       }
-    
+      
       vvv <- 1 / vvv
       mmm <- vvv * mmm 
-    
+      
       z.alpha <- rnorm(1, mmm, sqrt(vvv))
+      z.alpha <- 3
+      
     
       # z random effect
       mu <- x.beta + z.alpha * zg
+      res <- y - mu
       
       if (temporalz) {  # need to use MH sampling if there is a time series on the z terms
       	ts.z.update <- ts.sample.z(z.star=z.star, acc.z=acc.z, att.z=att.z, mh.z=mh.z, zg=zg,
@@ -1050,21 +1096,33 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       } else { 
         for (t in 1:nt) {
           taug.t <- sqrt(taug[,t])
-          prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+          # prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
           # prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
           for (k in 1:nknots) {
             these <- which(g[, t] == k)
             r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
             r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
-            prec.11 <- prec.t[these, these, drop=F]  # with cov
-            prec.12 <- prec.t[these, -these, drop=F]
-            lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
-          
+            # prec.11 <- prec.t[these, these, drop=F]  # with cov
+            # prec.12 <- prec.t[these, -these, drop=F]
+            # lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
+            # # print(lambda.l)
+            # mu.l <- z.alpha * sum(prec.11 %*% r.1 + prec.12 %*% r.2)
+            
+            r.1 <- r.1 * taug.t[these]
+            r.2 <- r.2 * taug.t[-these]
+            prec.11 <- prec.cor[these, these, drop=F] * sqrt(tau[k, t])
+            prec.12 <- prec.cor[these, -these, drop=F] * sqrt(tau[k, t])
+            lambda.l <- z.alpha^2 * sqrt(tau[k, t]) * sum(prec.11) + tau[k, t]
             mu.l <- z.alpha * sum(prec.11 %*% r.1 + prec.12 %*% r.2)
           
             e.z <- mu.l / lambda.l
             sd.z <- 1 / sqrt(lambda.l)
-            z.new <- rTNorm(mn=e.z, sd=sd.z, lower=0, upper=Inf)
+            # z.new <- rTNorm(mn=e.z, sd=sd.z, lower=0, upper=Inf)
+            
+            lower.u <- pnorm(0, e.z, sd.z)
+            z.u <- runif(1, lower.u, 1)
+            z.new <- e.z + sd.z * qnorm(z.u) 
+            
             if (z.new == Inf) {  # if z.new comes back Inf, then P(z > 0) = 0
               z.new = 0.00001
             }
