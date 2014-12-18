@@ -73,7 +73,7 @@ for (g in 1:10) {
     fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh.all=0, thresh.quant=T, 
                        nknots=1, iterplot=T, iters=iters, burn=burn,
-                       update=100, thin=thin)
+                       update=100, fixhyper=T, thin=thin)
 
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")

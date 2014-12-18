@@ -33,8 +33,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # skew inits
                  z.init=1, z.alpha.init=0,
                  # skew priors
-                 z.alpha.m=0, z.alpha.s=2, skew=T,
-                 thresh.site.specific=F, thresh.site=NULL
+                 z.alpha.m=0, z.alpha.s=10, skew=T,
+                 thresh.site.specific=F, thresh.site=NULL,
+                 fixhyper=F
         ){
     
   library(SpatialTools)
@@ -378,21 +379,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update beta
     vvv <- diag(p) / beta.s^2
     mmm <- rep(beta.m, p)
-    res <- y - z.alpha * zg  
+    res.beta <- y - z.alpha * zg  
     for (t in 1:nt) {
        taug.t <- sqrt(taug[, t])
-       prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
-       x.t    <- x[, t, ] #* taug.t  # each of the sites should be multiplied by its own precision
-       res.t  <- res[, t] #* taug.t
-       # ttt    <- t(x.t) %*% prec.cor
-       ttt    <- t(x.t) %*% prec.t
+       # prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
+       x.t    <- x[, t, ] * taug.t  # each of the sites should be multiplied by its own precision
+       res.t  <- res.beta[, t] * taug.t
+       ttt    <- t(x.t) %*% prec.cor
+       # ttt    <- t(x.t) %*% prec.t
        vvv    <- vvv + ttt %*% x.t
        mmm    <- mmm + ttt %*% res.t
     }
     
     vvv <- chol2inv(chol(vvv))
     beta <- vvv %*% mmm + t(chol(vvv)) %*% rnorm(p)
-      
+    # beta <- c(10, 0, 0)  
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
@@ -525,7 +526,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             bbb <- bbb + 0.5 * z[1, t]^2
           }
           
-          if (temporaltau) {  # prior on tau.star is not conjugate
+          if (!temporaltau) {
+            tau[1, t] <- rgamma(1, aaa, bbb)
+            taug[, t] <- tau[1, t]
+          } else {  # prior on tau.star is not conjugate
             att.tau.ns[1] <- att.tau.ns[1] + 1
             att.tau[1, t] <- att.tau[1, t] + 1
             aaa <- aaa / mh.tau.ns[1]
@@ -579,11 +583,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               tau[, t]  <- can.tau
               taug[, t] <- can.taug
             }}
-            
-            
-          } else {  # conjugate
-            tau[1, t] <- rgamma(1, aaa, bbb)
-            taug[, t] <- tau[1, t]
           }
         }  # end t in 1:nt
         
@@ -607,7 +606,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                 bbb <- bbb + 0.5 * z[k, t]^2
               }
               
-              if (temporaltau) {  # tau is not conjugate
+              if (!temporaltau) {
+                tau[k, t] <- rgamma(1, aaa, bbb)
+                if (tau[k, t] < 1e-6) {
+                  tau[k, t] <- 1e-6
+                }
+              } else {  # tau is not conjugate
                 att.tau.ns[1] <- att.tau.ns[1] + 1
                 att.tau[k, t] <- att.tau[k, t] + 1
                 aaa <- aaa / mh.tau.ns[1]
@@ -653,11 +657,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                   acc.tau.ns[1] <- acc.tau.ns[1] + 1
                   tau[k, t]  <- can.tau
                 }}
-              } else {  # tau is conjugate
-                tau[k, t] <- rgamma(1, aaa, bbb)
-                if (tau[k, t] < 1e-6) {
-                  tau[k, t] <- 1e-6
-                }
               }  
               
             } else {  # nparts > 0
@@ -782,6 +781,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         lll[l] <- sum(dgamma(tau, mmm[l], tau.beta, log=T))
       }
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
+      
+      if (fixhyper) {
+        tau.alpha <- 3
+        tau.beta <- 8
+      }
       
       # update for acceptance ratios
       for (i in 1:length(mh.tau.ns)) {
@@ -1024,6 +1028,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
         acc.alpha <- att.alpha <- 0
       }
+      
+      if (fixhyper) {
+        nu <- 0.5
+        rho <- 1
+        alpha <- 0.9
+      }
 
     }
     
@@ -1031,7 +1041,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # Skewness parameter
       vvv <- 1 / z.alpha.s^2
       mmm <- z.alpha.m
-      res <- y - x.beta
+      res.z.alpha <- y - x.beta
     
       for (t in 1:nt) {
       	taug.t <- sqrt(taug[, t])
@@ -1041,17 +1051,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         # vvv <- vvv + ttt %*% zg[, t]
         # mmm <- mmm + ttt %*% (y[, t] - x.beta[, t])
         zg.t <- zg[, t] * taug.t
-        res.t <- res[, t] * taug.t
+        res.t <- res.z.alpha[, t] * taug.t
         ttt <- zg.t %*% prec.cor
         vvv <- vvv + ttt %*% zg.t
         mmm <- mmm + ttt %*% res.t
       }
-      
+      # print(mmm)
       vvv <- 1 / vvv
       mmm <- vvv * mmm 
       
       z.alpha <- rnorm(1, mmm, sqrt(vvv))
-      z.alpha <- 3
+      # z.alpha <- 3
       
     
       # z random effect
@@ -1094,7 +1104,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           acc.phi.z <- att.phi.z <- 0
         }
       } else { 
-        for (t in 1:nt) {
+      	for (t in 1:nt) {
           taug.t <- sqrt(taug[,t])
           # prec.t <- sweep(prec.cor, 2, taug.t, "*") * taug.t
           # prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
@@ -1107,6 +1117,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             # lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
             # # print(lambda.l)
             # mu.l <- z.alpha * sum(prec.11 %*% r.1 + prec.12 %*% r.2)
+            # print(mu.l)
+            # print(lambda.l)
             
             r.1 <- r.1 * taug.t[these]
             r.2 <- r.2 * taug.t[-these]
@@ -1114,6 +1126,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             prec.12 <- prec.cor[these, -these, drop=F] * sqrt(tau[k, t])
             lambda.l <- z.alpha^2 * sqrt(tau[k, t]) * sum(prec.11) + tau[k, t]
             mu.l <- z.alpha * sum(prec.11 %*% r.1 + prec.12 %*% r.2)
+            # print(mu.l)
+            # print(lambda.l)
           
             e.z <- mu.l / lambda.l
             sd.z <- 1 / sqrt(lambda.l)
@@ -1254,6 +1268,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       
       plot(keepers.beta[begin:iter, 1], type="l")
       plot(keepers.beta[begin:iter, 2], type="l")
+      plot(keepers.beta[begin:iter, 3], type="l")
       if (temporalw) {
         title.phi.w <- paste("acc =", acc.rate.phi.w)
         plot(keepers.phi.w[begin:iter], type="l", main=title.phi.w)
@@ -1266,7 +1281,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         title.phi.tau <- paste("acc =", acc.rate.phi.tau)
       	plot(keepers.phi.tau[begin:iter], type="l", main=title.phi.tau)
       }
-      # plot(keepers.beta[begin:iter, 1], type="l")
+      
       plot(keepers.tau.alpha[begin:iter], type="l")
       plot(keepers.tau.beta[begin:iter], type="l")
       
