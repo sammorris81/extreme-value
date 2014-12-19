@@ -165,8 +165,8 @@ logdet.exp <- function(alpha, lambda) {
 
 
 
-rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,  
-                     mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
+rpotspat <- function(nt, x, s, beta, gamma, nu, gau.rho, t.rho,  
+                     mixprob, lambda, tau.alpha, tau.beta, nknots) {
 
   p <- dim(x)[3]
   ns <- nrow(s)
@@ -178,15 +178,13 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
    
   d <- as.matrix(dist(s))
   # gau is used if mixprob = 0
-  gau.C      <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
-  gau.C.chol <- chol(gau.C)
+  gau.C      <- CorFx(d=d, gamma=gamma, rho=gau.rho, nu=nu)
   gau.tau    <- matrix(0.25, nrow=nknots, ncol=nt)
   gau.sd     <- 1 / sqrt(gau.tau)
   gau.z      <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
   
   # t is used if mixprob = 1
-  t.C      <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
-  t.C.chol <- chol(t.C)
+  t.C      <- CorFx(d=d, gamma=gamma, rho=t.rho, nu=nu)
   t.tau    <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
   t.sd     <- 1 / sqrt(t.tau)
   t.z      <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
@@ -202,30 +200,33 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
     g <- mem(s, knots.t)
 
     dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
+    
     if (dist) {
       tau[, t] <- t.tau[, t]
-      taug   <- t.tau[g, t]
-      z[, t] <- t.z[, t]
-      zg     <- t.z[g, t]
-      chol.C <- t.C.chol
+      taug     <- t.tau[g, t]
+      z[, t]   <- t.z[, t]
+      zg       <- t.z[g, t]
+      C        <- t.C
     } else {
       tau[, t] <- gau.tau[, t]
-      taug   <- gau.tau[g, t]
-      z[, t] <- gau.z[, t]
-      zg     <- gau.z[g, t]
-      chol.C <- gau.C.chol
+      taug     <- gau.tau[g, t]
+      z[, t]   <- gau.z[, t]
+      zg       <- gau.z[g, t]
+      C        <- gau.C
     }  
-        
+    
+    sdg  <- 1 / sqrt(taug)
+    C <- diag(sdg) %*% C %*% diag(sdg)
+    chol.C <- chol(C)
+
     if (p == 1) {
       x.beta <- matrix(x[, t, ], ns, 1) * beta 
     } else {
       x.beta <- x[, t, ] %*% beta
     }
-    mu <- x.beta + z.alpha * zg
+    mu <- x.beta + lambda * zg
     
-    sdg  <- 1 / sqrt(taug)
-    y.t <- t(chol.C) %*% matrix(rnorm(ns), ns, 1)
-    y.t <- mu + sdg * y.t
+    y.t <- mu + t(chol.C) %*% matrix(rnorm(ns), ns, 1)
     y[, t] <- y.t
   }
   

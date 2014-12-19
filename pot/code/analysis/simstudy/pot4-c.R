@@ -67,13 +67,12 @@ for (g in 1:10) {
     cat("  end: gaussian \n")
     cat("------------------\n")
     
-    source('../../R/mcmc.R')
     cat("  start: skew t-1 - Set", dataset, "\n")
     tic <- proc.time()
     fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh.all=0, thresh.quant=T, 
-                       nknots=1, iterplot=T, iters=iters, burn=burn,
-                       update=100, fixhyper=T, thin=thin)
+                       nknots=1, iterplot=F, iters=iters, burn=burn,
+                       update=update, thin=thin)
 
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")
@@ -98,60 +97,3 @@ for (g in 1:10) {
   rm(fit.1, fit.2, fit.3)
   gc()
 }
-
-source('../../R/auxfunctions.R')
-source('../../R/mcmc.R')
-g <- 1
-d <- 1
-fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
-y.validate <- array(NA, dim=c(ntest, nt, nsets))
-outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-start <- proc.time()
-
-dataset <- (g-1) * 5 + d
-cat("start dataset", dataset, "\n")
-set.seed(setting * 100 + dataset)
-y.d <- y[, , dataset, setting]
-obs <- c(rep(T, 100), rep(F, 44))
-y.o <- y.d[obs, ]
-x.o <- x[obs, , ]
-s.o <- s[obs, ]
-y.validate[, , d] <- y.d[!obs, ]
-x.p <- x[!obs, , ]
-s.p <- s[!obs, ]
-
-fit <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-            method="t", skew=T, thresh.all=0.8, thresh.quant=T, 
-            nknots=1, iterplot=T, iters=iters, burn=burn,
-            update=100, thin=thin,
-            fixhyper=F, debug=T, gamma.init=0.5, rho.init=5, lambda.init=0, nu.init=0.5,
-            tau.t=tau.t[[4]][, , 1], z.t=z.t[[4]][, , 1])
-                   
-source('../../R/auxfunctions.R')
-source('../../R/mcmc.R')
-setting <- 3
-g <- 1
-d <- 1
-fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
-y.validate <- array(NA, dim=c(ntest, nt, nsets))
-outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-start <- proc.time()
-
-dataset <- (g-1) * 5 + d
-cat("start dataset", dataset, "\n")
-set.seed(setting * 100 + dataset)
-y.d <- y[, , dataset, setting]
-obs <- c(rep(T, 100), rep(F, 44))
-y.o <- y.d[obs, ]
-x.o <- x[obs, , ]
-s.o <- s[obs, ]
-y.validate[, , d] <- y.d[!obs, ]
-x.p <- x[!obs, , ]
-s.p <- s[!obs, ]
-
-fit <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-            method="t", skew=F, thresh.all=0, thresh.quant=T, 
-            nknots=5, iterplot=T, iters=iters, burn=burn,
-            update=100, thin=thin,
-            fixhyper=F, debug=T, gamma.init=0.5, rho.init=5, lambda.init=0, nu.init=0.5,
-            tau.t=tau.t[[3]][, , 1], z.t=z.t[[3]][, , 1])

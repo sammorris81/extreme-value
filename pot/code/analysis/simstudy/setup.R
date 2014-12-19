@@ -26,7 +26,7 @@ rm(list=ls())
 
 # libraries
 library(fields)
-library(geoR)
+library(SpatialTools)
 
 # necessary functions
 source('../../R/mcmc.R')
@@ -36,12 +36,12 @@ source('./max-stab/Bayes_GEV.R')
 # data settings
 beta.t <- c(10, 0, 0)
 nu.t <- 0.5
-alpha.t <- 0.9
+gamma.t <- 0.9
 mixprob.t <- c(0, 1, 1, 1, 1)  # 0: Gaussian, 1: t
 nknots.t <- c(1, 1, 5, 1, 5)
 gau.rho.t <- c(1, 1, 1, 1, 1)
 t.rho.t <- c(1, 1, 1, 1, 1)
-z.alpha.t <- c(0, 0, 0, 3, 3)
+lambda.t <- c(0, 0, 0, 3, 3)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
 
@@ -73,9 +73,9 @@ for (setting in 1:nsettings) {
     knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
     for (set in 1:nsets) {
       set.seed(setting*100 + set)
-      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, alpha=alpha.t, nu=nu.t,
+      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                        gau.rho=gau.rho.t[setting], t.rho=t.rho.t[setting],
-                       mixprob=mixprob.t[setting], z.alpha=z.alpha.t[setting],
+                       mixprob=mixprob.t[setting], lambda=lambda.t[setting],
                        tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                        nknots=nknots.t[setting])
     
@@ -84,7 +84,7 @@ for (setting in 1:nsettings) {
       z.t.setting[, , set]       <- data$z
       knots.t.setting[, , , set] <- data$knots
     }
-    
+    print(setting)
     tau.t[[setting]]   <- tau.t.setting
     z.t[[setting]]     <- z.t.setting
     knots.t[[setting]] <- knots.t.setting
@@ -94,6 +94,10 @@ for (setting in 1:nsettings) {
   	}
   }
 }
+
+save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
+     x, # covariate data that should be the same for all datasets
+     file='simdata.RData')
 
 # par(mfrow=c(2, 3))
 # quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 1], nx=20, ny=20)
@@ -154,7 +158,4 @@ quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
 quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
 
 # remove simstudy "truth" settings to help diagnose errors.
-save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
-     x, # covariate data that should be the same for all datasets
-     file='simdata.RData')
 rm(list=ls())

@@ -14,7 +14,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  temporalw=F, temporaltau=F, temporalz=F,  # eventually change to temporal=F
                  # initial values
                  beta.init=NULL, tau.init=2, tau.alpha.init=0.1, tau.beta.init=0.1,
-                 rho.init=0.5, nu.init=0.5, gamma.init=0.5,
+                 rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
                  beta.m=0, beta.s=10, 
                  tau.alpha.m=0, tau.alpha.s=1, 
@@ -248,11 +248,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
   }
   
-  # candidate distributions for tau depend on the percentage of sites in the 
-  # partition. 
-  # avg.sites.part <- 1 / nknots
-  # mh.tau.parts <- c(0, (avg.sites.part / 4), (avg.sites.part / 2), avg.sites.part, 
-                    # (2 * avg.sites.part), (3 * avg.sites.part), (4 * avg.sites.part))
   acc.tau <- att.tau   <- matrix(1, nrow=nknots, ncol=nt) 
   mh.tau <- matrix(0.05, nknots, nt)
   nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
@@ -309,7 +304,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	
       	for (i in impute.these) {
       	  impute.sd <- impute.sds[i] / taug.t[i]
-      	  impute.e  <- mu.t[i] - impute.sd^2 * taug.t[i] * prec.cor[i, -i] %*% (res.t[-i] * taug.t[-i])
+      	  impute.e  <- mu.t[i] - impute.sd^2 * taug.t[i] * prec.cor[i, -i] %*% (res.t[-i] * taug.t[-i])     	  
       	  u.upper   <- pnorm(thresh.mtx[i, t], impute.e, impute.sd)
       	  u.impute  <- runif(1)
       	  y.impute[i, t]  <- impute.e + impute.sd * qnorm(u.impute * u.upper)
@@ -803,6 +798,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
               mmm <- vvv * mmm
               z[k, t] <- abs(rnorm(1, mmm, sqrt(vvv)))
               zg[these, t] <- z[k, t]
+              mu[, t] <- x.beta[, t] + lambda * zg[, t]
             }
           }
         }  # fi nknots > 1

@@ -67,13 +67,12 @@ for (g in 1:10) {
     cat("  end: gaussian \n")
     cat("------------------\n")
 
-    source('../../R/mcmc.R')
     cat("  start: skew t-1 - Set", dataset, "\n")
     tic <- proc.time()
     fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh.all=0, thresh.quant=T, 
-                       nknots=1, iterplot=T, iters=iters, burn=burn,
-                       update=100, thin=thin)
+                       nknots=1, iterplot=F, iters=iters, burn=burn,
+                       update=update, thin=thin)
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-1 \n")
@@ -83,8 +82,8 @@ for (g in 1:10) {
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=F, thresh.all=0.80, thresh.quant=T,
-                       nknots=1, iterplot=T, iters=iters, burn=burn,
-                       update=100, thin=thin)
+                       nknots=1, iterplot=F, iters=iters, burn=burn,
+                       update=update, thin=thin)
     toc <- proc.time()
     cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
     cat("  end: t-1 (T=0.80) \n")
