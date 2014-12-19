@@ -12,7 +12,7 @@ setting <- 19
 method <- "t"
 nknots <- 1
 keep.knots <- F
-threshold <- 90
+threshold <- 85
 tau.init <- 0.05
 thresh.quant <- F
 skew <- F
