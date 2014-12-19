@@ -915,8 +915,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       
       plot(keepers.beta[begin:iter, 1], type="l")
-      plot(keepers.beta[begin:iter, 2], type="l")
-      plot(keepers.beta[begin:iter, 3], type="l")
+      if (p > 1) {
+        plot(keepers.beta[begin:iter, 2], type="l")
+      } else if (p > 2) {
+        plot(keepers.beta[begin:iter, 3], type="l")
+      }
       if (temporalw) {
         title.phi.w <- paste("acc =", acc.rate.phi.w)
         plot(keepers.phi.w[begin:iter], type="l", main=title.phi.w)
