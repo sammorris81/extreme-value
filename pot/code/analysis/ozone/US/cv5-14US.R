@@ -5,7 +5,7 @@ library(mvtnorm)
 
 rm(list=ls())
 load('cv-setup-us.RData')
-source('../../../R/mcmc.R')
+source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
 setting <- 14

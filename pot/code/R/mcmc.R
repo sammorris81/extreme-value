@@ -302,6 +302,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	res.t <- y[, t] - mu[, t]
       	impute.these <- which(thresh.obs[, t])
       	
+      	# cpp function to find all conditional means and standard deviations
       	impute.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t, 
       	                                taug=taug.t, include=impute.these)
       	impute.sd <- impute.cond$cond.sd

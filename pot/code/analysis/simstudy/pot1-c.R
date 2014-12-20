@@ -28,7 +28,7 @@ options(warn=2)
 #### Load simdata
 rm(list = ls())
 load(file='./simdata.RData')
-source('../../R/mcmc.R')
+source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 
 setting <- 1
