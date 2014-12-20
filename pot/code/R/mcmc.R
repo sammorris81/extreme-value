@@ -308,10 +308,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	impute.sd <- impute.cond$cond.sd
       	impute.e  <- impute.cond$cond.mn
       	
-        u.upper  <- pnorm(thresh.mtx[impute.these, t], impute.e, impute.sd)
-        u.impute <- runif(length(impute.these))
-        
-        y.impute[impute.these, t] <- impute.e + impute.sd * qnorm(u.impute * u.upper)
+        u.upper    <- pnorm(thresh.mtx[impute.these, t], impute.e, impute.sd)
+        u.impute   <- runif(length(impute.these))
+        y.impute.t <- ifelse(  # for numerical stability
+          u.upper < 1e-6,
+          thresh.mtx.fudge[impute.these, t],
+          impute.e + impute.sd * qnorm(u.impute * u.upper)
+        )
+        y.impute[impute.these, t] <- y.impute.t
         
         # missing values next
         missing.these <- which(missing.obs[, t])  # gives sites that are missing on day t.
@@ -343,7 +347,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     vvv  <- chol2inv(chol(vvv))
     mmm  <- vvv %*% mmm
     beta <- mmm + t(chol(vvv)) %*% rnorm(p)
-    
+    # print(mmm)
+    # print(vvv)
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
@@ -483,7 +488,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	      # when nparts -> 1, want a wider candidate
       	      aaa <- aaa / mh.tau.ns[nparts + 1]
       	      bbb <- bbb / mh.tau.ns[nparts + 1]
-      	      
+      	      if(is.nan(bbb)) {
+      	        print(tau)
+      	        print(z)
+      	        print(aaa)
+      	        print(y[1:5, ])
+      	        print(res[1:5, ])
+      	        print(mu[1:5, ])
+      	        print(beta)
+      	        print(quad.form(prec.cor[these, these], res.t[these]))
+      	      }
       	      can.tau <- tau[, t]
       	      can.tau[k] <- rgamma(1, aaa, bbb)
       	      if (can.tau[k] < 1e-6) {
