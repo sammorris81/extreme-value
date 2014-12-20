@@ -652,7 +652,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       if (rho.upper == Inf) {
         upper.logrho <- 1
       } else {
-        upper.logrho <- dnorm(log(rho.upper), logrho, mh.rho)
+        upper.logrho <- pnorm(log(rho.upper), logrho, mh.rho)
       }
       can.rho.u  <- runif(1) * upper.logrho
       can.logrho <- logrho + mh.rho * qnorm(can.rho.u)
@@ -663,7 +663,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         if (nu.upper == Inf) {
           upper.lognu <- 1
         } else {
-          upper.lognu <- dnorm(log(nu.upper), lognu, mh.nu)
+          upper.lognu <- pnorm(log(nu.upper), lognu, mh.nu)
         }
         can.nu.u  <- runif(1) * upper.lognu
         can.lognu <- lognu + mh.nu * qnorm(can.nu.u)
