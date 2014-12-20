@@ -28,7 +28,7 @@ options(warn=2)
 #### Load simdata
 rm(list = ls())
 load(file='./simdata.RData')
-source('../../R/mcmc.R')
+source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 
 setting <- 1
@@ -55,7 +55,7 @@ for (g in 1:10) {
     y.validate[, , d] <- y.d[!obs, ]
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
-    
+
     cat("  start: t-5 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- tryCatch(

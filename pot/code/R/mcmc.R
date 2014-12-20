@@ -5,6 +5,7 @@
 #
 #ASSUMES x and y are in [0,1]^2
 #########################################################################
+source('condmean_cpp.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
@@ -300,15 +301,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	mu.t <- mu[, t]
       	res.t <- y[, t] - mu[, t]
       	impute.these <- which(thresh.obs[, t])
-      	impute.sds <- sqrt(1 / diag(prec.cor))
       	
-      	for (i in impute.these) {
-      	  impute.sd <- impute.sds[i] / taug.t[i]
-      	  impute.e  <- mu.t[i] - impute.sd^2 * taug.t[i] * prec.cor[i, -i] %*% (res.t[-i] * taug.t[-i])     	  
-      	  u.upper   <- pnorm(thresh.mtx[i, t], impute.e, impute.sd)
-      	  u.impute  <- runif(1)
-      	  y.impute[i, t]  <- impute.e + impute.sd * qnorm(u.impute * u.upper)
-      	}      	
+      	impute.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t, 
+      	                                taug=taug.t, include=impute.these)
+      	impute.sd <- impute.cond$cond.sd
+      	impute.e  <- impute.cond$cond.mn
+      	
+        u.upper  <- pnorm(thresh.mtx[impute.these, t], impute.e, impute.sd)
+        u.impute <- runif(length(impute.these))
+        
+        y.impute[impute.these, t] <- impute.e + impute.sd * qnorm(u.impute * u.upper)
         
         # missing values next
         missing.these <- which(missing.obs[, t])  # gives sites that are missing on day t.
