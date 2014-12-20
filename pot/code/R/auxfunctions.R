@@ -29,18 +29,26 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0) {
 }
 
 CorFx <- function(d, gamma, rho, nu) {
-  # library(geoR)    
-  library(SpatialTools)
-  # using cov.spatial instead of matern because it 
+  if (rho < 1e-6) {
+  	n <- nrow(d)
+  	cor <- diag(1, nrow=n)
+  } else { 
+    if (nu == 0.5) {
+      cor <- gamma * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho), error.var=0, 
+                                   smoothness=nu, finescale.var=0)
+    } else { 
+      cor <- tryCatch(simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
+                                    smoothness=nu, finescale.var=0),
+                      warning=function(e) {
+                        cat("rho = ", rho, "\n")
+                        cat("nu = ", nu, "\n")
+                      })
+      cor <- gamma * cor
+    }
   
-  if (nu == 0.5) {
-    cor <- gamma * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho), error.var=0, 
-                                 smoothness=nu, finescale.var=0)
+    diag(cor) <- 1
   }
-  cor <- gamma * simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
-                                 smoothness=nu, finescale.var=0)
-  diag(cor) <- 1
-
+  
   return(cor)
 }
 
