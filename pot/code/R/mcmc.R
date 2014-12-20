@@ -20,8 +20,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  beta.m=0, beta.s=10, 
                  tau.alpha.m=0, tau.alpha.s=1, 
                  tau.beta.a=0.1, tau.beta.b=0.1,
-                 logrho.m=0, logrho.s=10,
-                 lognu.m=-1.2, lognu.s=1,
+                 logrho.m=0, logrho.s=10, rho.upper=NULL,
+                 lognu.m=-1.2, lognu.s=1, nu.upper=NULL,
                  gamma.m=0, gamma.s=1,
                  # covariance model
                  cov.model="matern",  # or "exponential"
@@ -177,8 +177,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize spatial covariance
   rho    <- rho.init
   logrho <- log(rho)
+  if (is.null(rho.upper)) {
+    rho.upper <- Inf
+  }
   nu     <- nu.init
   lognu  <- log(nu)
+  if (is.null(nu.upper)) {
+    nu.upper <- Inf
+  }
   gamma  <- gamma.init
   fixnu <- F
   
@@ -638,17 +644,29 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         acc.gamma <- att.gamma <- 0
       }
 
-    } else {
+    } else {  # using a truncated normal candidate
       att.rho <- att.rho + 1
       att.nu  <- att.nu + 1
          
       logrho <- log(rho)
-      can.logrho <- rnorm(1, logrho, mh.rho)
-      can.rho <- exp(can.logrho)
+      if (rho.upper == Inf) {
+        upper.logrho <- 1
+      } else {
+        upper.logrho <- dnorm(log(rho.upper), logrho, mh.rho)
+      }
+      can.rho.u  <- runif(1) * upper.logrho
+      can.logrho <- logrho + mh.rho * qnorm(can.rho.u)
+      can.rho    <- exp(can.logrho)
 
       lognu  <- log(nu)
       if (!fixnu) {
-        can.lognu <- rnorm(1, lognu, mh.nu)
+        if (nu.upper == Inf) {
+          upper.lognu <- 1
+        } else {
+          upper.lognu <- dnorm(log(nu.upper), lognu, mh.nu)
+        }
+        can.nu.u  <- runif(1) * upper.lognu
+        can.lognu <- lognu + mh.nu * qnorm(can.nu.u)
       } else {
         can.lognu <- lognu
       }
@@ -680,21 +698,28 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             dnorm(logrho, logrho.m, logrho.s, log=T) + 
             dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
             dnorm(lognu, lognu.m, lognu.s, log=T)
-    
-      if (can.nu <= 10) {  # sometimes nu gets lost in the MCMC and ends up way too big
-        if (!is.na(R)) { if (log(runif(1)) < R) {
-          rho <- can.rho
-          nu <- can.nu
-          C <- can.C
-          sd.mtx <- can.sd.mtx
-          prec.cor <- can.prec.cor
-          logdet.prec <- can.logdet.prec
-          cur.rss <- can.rss
-          acc.rho <- acc.rho + 1
-          acc.nu  <- acc.nu + 1
-        }}
-      }
       
+      if (upper.logrho < 1) {  # candidate is not symmetric
+        R <- R + dnorm(logrho, logrho, mh.rho, log=T) - 
+                 dnorm(can.logrho, logrho, mh.rho, log=T)
+      }
+      if (upper.lognu < 1) {  # candidate is not symmetric
+        R <- R + dnorm(lognu, lognu, mh.nu, log=T) - 
+                 dnorm(can.lognu, lognu, mh.nu, log=T)
+      }
+    
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        rho <- can.rho
+        nu <- can.nu
+        C <- can.C
+        sd.mtx <- can.sd.mtx
+        prec.cor <- can.prec.cor
+        logdet.prec <- can.logdet.prec
+        cur.rss <- can.rss
+        acc.rho <- acc.rho + 1
+        acc.nu  <- acc.nu + 1
+      }}
+           
       # gamma
       att.gamma <- att.gamma + 1
       
@@ -954,9 +979,24 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       plot(keepers.tau.beta[begin:iter], type="l")
       
       title.rho <- paste("acc =", acc.rate.rho)
-      plot(keepers.rho[begin:iter], type="l", main=title.rho)
+      if (mh.rho < 0.00001) {
+      	xlab.rho <- "<0.00001"
+      } else if (mh.rho < 10000) {
+      	xlab.rho <- round(mh.rho, 5)
+      } else {
+      	xlab.rho <- "> 10000"
+      }
+      plot(keepers.rho[begin:iter], type="l", main=title.rho, xlab=xlab.rho)
+
       title.nu <- paste("acc =", acc.rate.nu)
-      plot(keepers.nu[begin:iter], type="l", main=title.nu)
+      if (mh.nu < 0.00001) {
+      	xlab.nu <- "<0.00001"
+      } else if (mh.nu < 10000) {
+      	xlab.nu <- round(mh.nu, 5)
+      } else {
+      	xlab.nu <- "> 10000"
+      }
+      plot(keepers.nu[begin:iter], type="l", main=title.nu, xlab=xlab.nu)
       
       title.gamma <- paste("acc =", acc.rate.gamma)
       plot(keepers.gamma[begin:iter], type="l", main=title.gamma)
