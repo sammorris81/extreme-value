@@ -695,18 +695,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       R <- -0.5 * sum(can.rss - cur.rss) + 
             nt * (can.logdet.prec - logdet.prec) + 
             dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
-            dnorm(logrho, logrho.m, logrho.s, log=T) + 
-            dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
-            dnorm(lognu, lognu.m, lognu.s, log=T)
+            dnorm(logrho, logrho.m, logrho.s, log=T)
       
       if (upper.logrho < 1) {  # candidate is not symmetric
         R <- R + dnorm(logrho, logrho, mh.rho, log=T) - 
                  dnorm(can.logrho, logrho, mh.rho, log=T)
       }
-      if (upper.lognu < 1) {  # candidate is not symmetric
-        R <- R + dnorm(lognu, lognu, mh.nu, log=T) - 
-                 dnorm(can.lognu, lognu, mh.nu, log=T)
-      }
+      
+      if (!fixnu) {
+        R <- R + dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
+                 dnorm(lognu, lognu.m, lognu.s, log=T)
+        if (upper.lognu < 1) {  # candidate is not symmetric
+          R <- R + dnorm(lognu, lognu, mh.nu, log=T) - 
+                   dnorm(can.lognu, lognu, mh.nu, log=T)
+        }
+      } 
     
       if (!is.na(R)) { if (log(runif(1)) < R) {
         rho <- can.rho
