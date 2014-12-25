@@ -60,7 +60,7 @@ for (g in 1:10) {
     tic <- proc.time()
     fit.1[[d]] <- tryCatch(
                        mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=F, thresh.all=0.80, thresh.quant=T,
+                       method="t", skew=T, thresh.all=0.80, thresh.quant=T,
                        nknots=5, iterplot=F, iters=iters, burn=burn, 
                        update=update, thin=thin,
                        nu.init=0.5, cov.model="exponential", rho.prior="cont"),
