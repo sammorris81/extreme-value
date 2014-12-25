@@ -17,9 +17,9 @@ code <- '
     r_temp = r % tau;
     H_temp.shed_col(idx);
     r_temp.shed_row(idx);
-    sd_i = sqrt(1 / H(idx, idx)) / tau(i);
+    sd_i = sqrt(1 / H(idx, idx)) / tau(idx);
     condsd(i) = sd_i;
-    condmean(i) = m(idx) - pow(sd_i, 2) * tau(i) * as_scalar(H_temp * r_temp);
+    condmean(i) = m(idx) - pow(sd_i, 2) * tau(idx) * as_scalar(H_temp * r_temp);
   }
   return Rcpp::List::create(
     Rcpp::Named("cond.mn") = condmean, 
