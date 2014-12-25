@@ -196,7 +196,8 @@ load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 3
+ngroups <- 10
+done.groups <- c(1:10)
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
@@ -385,7 +386,7 @@ for (setting in 1:nsettings) {
     abline(h=1, lty=2)
   }
   if (setting == 6) {
-  	legend("bottomleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.7)
+  	legend("topleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.7)
   }
 }
 
