@@ -6,6 +6,7 @@
 #ASSUMES x and y are in [0,1]^2
 #########################################################################
 source('condmean_cpp.R')
+source('mem_cpp.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,

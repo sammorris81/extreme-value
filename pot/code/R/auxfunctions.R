@@ -89,11 +89,9 @@ chol.inv <- function(Q, inv=T, logdet=T) {
 }
 
 mem <- function(s, knots) {
-  # library(fields)
   d <- rdist(s, knots)
-  g <- apply(d, 1, which.min)
-
-  return(g)
+  g <- g.Rcpp(d=d)
+  return(g$g)
 }
 
 #### Go from normal to Gamma(alpha, beta)
