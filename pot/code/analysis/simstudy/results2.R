@@ -26,7 +26,8 @@ load("simdata.RData")
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-ngroups <- 3
+ngroups <- 10
+done.groups <- c(1:10)
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
@@ -64,7 +65,7 @@ avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
 
 iters <- 20000; burn <- 10000
 
-for (group in 1:ngroups) {
+for (group in done.groups) {
   # for(setting in 1:nsettings){
     dataset <- paste(setting,"-c-",group,".RData", sep="")
     load(dataset)
@@ -174,34 +175,34 @@ for (group in 1:ngroups) {
     rm(fit, fit.1)
     gc()
     
-    dataset <- paste(setting,"-d-",group,".RData", sep="")
-    load(dataset)
-    for(d in 1:nsets){ 
-      set.idx <- (group - 1) * 5 + d
-      thresholds <- quantile(y[, , set.idx, setting], probs=probs, na.rm=T)
-      validate <- y[!obs, , set.idx, setting]
+    # dataset <- paste(setting,"-d-",group,".RData", sep="")
+    # load(dataset)
+    # for(d in 1:nsets){ 
+      # set.idx <- (group - 1) * 5 + d
+      # thresholds <- quantile(y[, , set.idx, setting], probs=probs, na.rm=T)
+      # validate <- y[!obs, , set.idx, setting]
       
-      fit <- fit.1[[d]]  # skew t-5 (T = 0.90)
-      pred <- fit$yp
-      quant.score[, set.idx, 6, setting] <- QuantScore(pred, probs, validate) 
-      brier.score[, set.idx, 6, setting] <- BrierScore(pred, thresholds, validate)
-      beta.0[, set.idx, 6, setting] <- quantile(fit$beta[, 1], probs=intervals)
-      beta.1[, set.idx, 6, setting] <- quantile(fit$beta[, 2], probs=intervals)
-      beta.2[, set.idx, 6, setting] <- quantile(fit$beta[, 3], probs=intervals)
-      tau.alpha[, set.idx, 6, setting] <- quantile(fit$tau.alpha, probs=intervals)
-      tau.beta[, set.idx, 6, setting] <- quantile(fit$tau.beta, probs=intervals)
-      rho[, set.idx, 6, setting] <- quantile(fit$rho, probs=intervals)
-      nu[, set.idx, 6, setting] <- quantile(fit$nu, probs=intervals)
-      alpha[, set.idx, 6, setting] <- quantile(fit$alpha, probs=intervals)
-      z.alpha[, set.idx, 5, setting] <- quantile(fit$z.alpha, probs=intervals)
-      avgparts[, set.idx, 3, setting] <- mean(fit$avgparts)
-    }
+      # fit <- fit.1[[d]]  # skew t-5 (T = 0.90)
+      # pred <- fit$yp
+      # quant.score[, set.idx, 6, setting] <- QuantScore(pred, probs, validate) 
+      # brier.score[, set.idx, 6, setting] <- BrierScore(pred, thresholds, validate)
+      # beta.0[, set.idx, 6, setting] <- quantile(fit$beta[, 1], probs=intervals)
+      # beta.1[, set.idx, 6, setting] <- quantile(fit$beta[, 2], probs=intervals)
+      # beta.2[, set.idx, 6, setting] <- quantile(fit$beta[, 3], probs=intervals)
+      # tau.alpha[, set.idx, 6, setting] <- quantile(fit$tau.alpha, probs=intervals)
+      # tau.beta[, set.idx, 6, setting] <- quantile(fit$tau.beta, probs=intervals)
+      # rho[, set.idx, 6, setting] <- quantile(fit$rho, probs=intervals)
+      # nu[, set.idx, 6, setting] <- quantile(fit$nu, probs=intervals)
+      # alpha[, set.idx, 6, setting] <- quantile(fit$alpha, probs=intervals)
+      # z.alpha[, set.idx, 5, setting] <- quantile(fit$z.alpha, probs=intervals)
+      # avgparts[, set.idx, 3, setting] <- mean(fit$avgparts)
+    # }
 
-  # }
+  # # }
   
-    cat("dataset", dataset, "\n")
-    rm(fit, fit.1)
-    gc()
+    # cat("dataset", dataset, "\n")
+    # rm(fit, fit.1)
+    # gc()
   
   save(
 	quant.score, brier.score, beta.0, beta.1, beta.2, 

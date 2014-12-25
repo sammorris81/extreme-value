@@ -310,7 +310,7 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:50)
+done <- c(1:18, 26)
 
 for (i in 1:50) {
   file <- paste("cv5-", i, "US.RData", sep="")
