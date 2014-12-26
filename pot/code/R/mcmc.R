@@ -7,6 +7,7 @@
 #########################################################################
 source('condmean_cpp.R')
 source('mem_cpp.R')
+source('z_update_cpp.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
@@ -827,26 +828,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
             zg[, t] <- z[1, t]
           }
         } else {  # nknots > 1
-          for (t in 1:nt) {
-          	taug.t <- sqrt(taug[, t])
-          	for (k in 1:nknots) {
-              these <- which(g[, t] == k)
-              r.1 <- (y[these, t] - x.beta[these, t]) * taug.t[these]
-              r.2 <- (y[-these, t] - mu[-these, t]) * taug.t[-these]
-              
-              prec.11 <- prec.cor[these, these, drop=F]
-              prec.21 <- prec.cor[-these, these, drop=F]
-              
-              mmm <- lambda * sqrt(tau[k, t]) * sum(r.1 %*% prec.11 + r.2 %*% prec.21)
-              vvv <- tau[k, t] + lambda^2 * tau[k, t] * sum(prec.11)
-              
-              vvv <- 1 / vvv
-              mmm <- vvv * mmm
-              z[k, t] <- abs(rnorm(1, mmm, sqrt(vvv)))
-              zg[these, t] <- z[k, t]
-              mu[, t] <- x.beta[, t] + lambda * zg[, t]
-            }
-          }
+          z_update <- z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu,
+                             g=g, prec=prec.cor, lambda=lambda, zg=zg)
+          z <- z_update$z                   
+          zg <- z_update$zg
+          
         }  # fi nknots > 1
       } else {
         # TODO: time series z
