@@ -10,6 +10,7 @@
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
+#   7 - 1/2 Gaussian (range = 1), 1/2 t (range = 4)
 #
 # analysis methods:
 #  1 - Gaussian
@@ -18,7 +19,7 @@
 #  4 - skew t-3
 #  5 - t-3 (T = 0.80)
 #  6 - max-stable
-#	
+#
 #########################################################################
 
 # clean out previous variables
@@ -29,19 +30,20 @@ library(fields)
 library(SpatialTools)
 
 # necessary functions
-source('../../R/mcmc.R')
+source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
+load('simdata.RData')
 
 # data settings
 beta.t <- c(10, 0, 0)
 nu.t <- 0.5
 gamma.t <- 0.9
-mixprob.t <- c(0, 1, 1, 1, 1)  # 0: Gaussian, 1: t
-nknots.t <- c(1, 1, 5, 1, 5)
-gau.rho.t <- c(1, 1, 1, 1, 1)
-t.rho.t <- c(1, 1, 1, 1, 1)
-lambda.t <- c(0, 0, 0, 3, 3)
+mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t
+nknots.t <- c(1, 1, 5, 1, 5, 1)
+gau.rho.t <- c(1, 1, 1, 1, 1, 1)
+t.rho.t <- c(1, 1, 1, 1, 1, 4)
+lambda.t <- c(0, 0, 0, 3, 3, 0)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
 
@@ -49,10 +51,10 @@ tau.beta.t  <- 8
 s         <- cbind(runif(144, 0, 10), runif(144, 0, 10))
 knots.x   <- seq(1, 9, length=12)
 knots.gev <- expand.grid(knots.x, knots.x)
-ns        <- nrow(s)  
+ns        <- nrow(s)
 nt        <- 50
 nsets     <- 50
-nsettings <- 6
+nsettings <- 7
 ntest     <- 44
 
 x <- array(1, c(ns, nt, 3))
@@ -78,7 +80,7 @@ for (setting in 1:nsettings) {
                        mixprob=mixprob.t[setting], lambda=lambda.t[setting],
                        tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                        nknots=nknots.t[setting])
-    
+
       y[, , set, setting]        <- data$y
       tau.t.setting[, , set]     <- data$tau
       z.t.setting[, , set]       <- data$z
@@ -88,10 +90,30 @@ for (setting in 1:nsettings) {
     tau.t[[setting]]   <- tau.t.setting
     z.t[[setting]]     <- z.t.setting
     knots.t[[setting]] <- knots.t.setting
-  } else {
+  } else if (setting == 6) {
   	for (set in 1:nsets) {
   	  y[, , set, setting] <- rgevspatial(nreps=nt, S=s, knots=knots.gev, xi=0.2)
   	}
+  } else if (setting == 7) {
+    nknots <- nknots.t[setting - 1]
+    tau.t.setting <- array(NA, dim=c(nknots, nt, nsets))
+    z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
+    knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
+    for (set in 1:nsets) {
+      set.seed(setting*100 + set)
+      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                       gau.rho=gau.rho.t[setting - 1], t.rho=t.rho.t[setting - 1],
+                       mixprob=mixprob.t[setting - 1], lambda=lambda.t[setting - 1],
+                       tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                       nknots=nknots.t[setting - 1])
+      y[, , set, setting]        <- data$y
+      tau.t.setting[, , set]     <- data$tau
+      z.t.setting[, , set]       <- data$z
+      knots.t.setting[, , , set] <- data$knots
+    }
+    tau.t[[setting]]   <- tau.t.setting
+    z.t[[setting]]     <- z.t.setting
+    knots.t[[setting]] <- knots.t.setting
   }
 }
 
