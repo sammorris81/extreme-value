@@ -41,7 +41,7 @@ for (g in 1:10) {
   fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-  load(outputfile)
+
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
