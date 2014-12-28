@@ -197,7 +197,7 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 ngroups <- 10
-done.groups <- c(1,2)
+done.groups <- c(1:6)
 done.sets <- rep(NA, length(done.groups) * nsets)
 for (i in 1:length(done.groups)){
   idx <- (i - 1) * 5 + seq(1:5)
@@ -206,9 +206,6 @@ for (i in 1:length(done.groups)){
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
-
-setting <- 1
-filename <- paste("scores", setting, ".RData", sep="")
 
 source("../../R/auxfunctions.R")	# Included for easy access if we need to change score functions
 
@@ -285,12 +282,12 @@ quant.score.mean
 brier.score.mean
 
 # find the best performing for each data setting
-best.quant <- matrix(NA, nrow=11, ncol=6)
-best.brier <- matrix(NA, nrow=11, ncol=6)
+best.quant <- matrix(NA, nrow=11, ncol=nsettings)
+best.brier <- matrix(NA, nrow=11, ncol=nsettings)
 for (i in 1:11) {
-  for (j in 1:6) {
-    best.quant[i, j] <- which(quant.score.mean[i, , j] == min(quant.score.mean[i, , j]))
-    best.brier[i, j] <- which(brier.score.mean[i, , j] == min(brier.score.mean[i, , j]))
+  for (j in 1:nsettings) {
+    best.quant[i, j] <- which(quant.score.mean[i, , j] == min(quant.score.mean[i, , j], na.rm=T))
+    best.brier[i, j] <- which(brier.score.mean[i, , j] == min(brier.score.mean[i, , j], na.rm=T))
   }
 }
 
@@ -332,15 +329,15 @@ for (i in 1:length(probs)) { for (k in 1:nsettings) {
 quant.score.med <- apply(quant.score, c(1, 3, 4), median, na.rm=T)
 brier.score.med <- apply(brier.score, c(1, 3, 4), median, na.rm=T)
 
-bs.med.ref.gau <- array(NA, dim=c(11, 4, 6))
-bs.mean.ref.gau <- array(NA, dim=c(11, 4, 6))
+bs.med.ref.gau <- array(NA, dim=c(11, 4, nsettings))
+bs.mean.ref.gau <- array(NA, dim=c(11, 4, nsettings))
 for (j in 1:4) {
   bs.med.ref.gau[, j, ] <- brier.score.med[, (j + 1), ] / brier.score.med[, 1, ]
   bs.mean.ref.gau[, j, ] <- brier.score.mean[, (j + 1), ] / brier.score.mean[, 1, ]
 }
 
-qs.med.ref.gau <- array(NA, dim=c(11, 4, 6))
-qs.mean.ref.gau <- array(NA, dim=c(11, 4, 6))
+qs.med.ref.gau <- array(NA, dim=c(11, 4, nsettings))
+qs.mean.ref.gau <- array(NA, dim=c(11, 4, nsettings))
 for (j in 1:4) {
   qs.med.ref.gau[, j, ] <- quant.score.med[, (j + 1), ] / quant.score.med[, 1, ]
   qs.mean.ref.gau[, j, ] <- quant.score.mean[, (j + 1), ] / quant.score.mean[, 1, ]
@@ -388,9 +385,9 @@ for (setting in 1:nsettings) {
   if (setting == 6) {
     ymax <- max(bs.mean.ref.gau[, , setting], 1) + 0.05
   } else {
-    ymax <- max(bs.mean.ref.gau[, , setting], 1)
+    ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   }
-  ymin <- min(bs.mean.ref.gau[, , setting], 1)
+  ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
        ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="Relative brier score", xlab="Threshold quantile", cex.lab=2, cex.axis=2, cex.main=2)
