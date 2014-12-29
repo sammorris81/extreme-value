@@ -1,4 +1,4 @@
-load("cv-setup-us.RData")
+load("us-east-setup.RData")
 source("../../../R/auxfunctions.R")
 
 load("us-east-10.RData")
@@ -54,7 +54,7 @@ for(i in 6:10){ for (j in 1:5) {
 } }
 
 
-load("cv5-6US.RData")
+load("us-east-6.RData")
 days1 <- c(1, 4, 7, 10, 13)
 days2 <- c(16, 19, 22, 25, 28)
 par(mfrow=c(5, 5))
@@ -121,7 +121,7 @@ plot(fit[[2]]$nu, type="l")
 plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
-load("cv5-31US.RData")
+load("us-east-31.RData")
 days1 <- c(1, 4, 7, 10, 13)
 days2 <- c(16, 19, 22, 25, 28)
 par(mfrow=c(5, 5))
@@ -195,7 +195,7 @@ plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
 
-load("cv5-2US.RData")
+load("us-east-2.RData")
 par(mfrow=c(3, 5))
 days1 <- seq(1, 30, by=2)
 for (j in days1) {
@@ -235,7 +235,7 @@ plot(fit[[2]]$nu, type="l")
 plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
-load("cv5-27US.RData")
+load("us-east-27.RData")
 par(mfrow=c(3, 5))
 days1 <- seq(1, 30, by=2)
 for (j in days1) {
@@ -292,7 +292,7 @@ plot(fit[[2]]$beta[, 2], type="l")
 # # abline(0,1)
 # # print(mean(y.full.p>lo & y.full.p<hi))
 
-load("cv-setup-us.RData")
+load("us-east-setup.RData")
 source("../../../R/auxfunctions.R")
 
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
@@ -312,34 +312,27 @@ phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
 done <- c(1:26)
 
-for (i in 1:50) {
-  file <- paste("cv5-", i, "US.RData", sep="")
+for (i in 1:32) {
+  file <- paste("us-east-", i, "US.RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
-  load(file)
-  for (d in 1:nsets) {
-    fit.d <- fit[[d]]
-    val.idx <- cv.lst[[d]]
-    validate <- Y[val.idx, ]
-    pred.d <- fit.d$yp[, , ]
-    if (i == 26) {
-      validate <- t(validate)
-      pred.d <- fit.d$yp[(25001:30000), , ]
-    }
-    quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
-    brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
-    if (i != 26) {
-      beta.0[, d, i] <- fit.d$beta[, 1]
-      beta.1[, d, i] <- fit.d$beta[, 2]
-    }
-    if (i >= 27) {
-      if (i <= 42) {
-        phi.z[, d, (i-26)] <- fit.d$phi.z
+    load(file)
+    for (d in 1:nsets) {
+      fit.d <- fit[[d]]
+      val.idx <- cv.lst[[d]]
+      validate <- Y[val.idx, ]
+      pred.d <- fit.d$yp[, , ]
+      if (i == 26) {
+        validate <- t(validate)
+        pred.d <- fit.d$yp[(25001:30000), , ]
       }
-      phi.w[, d, (i-26)] <- fit.d$phi.w
-      phi.tau[, d, (i-26)] <- fit.d$phi.tau
+      quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
+      brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
+      if (i != 26) {
+        beta.0[, d, i] <- fit.d$beta[, 1]
+        beta.1[, d, i] <- fit.d$beta[, 2]
+      }
     }
-  }
   }
   cat("finish file", file, "\n")
 }
@@ -348,12 +341,12 @@ savelist <- list(quant.score, brier.score,
                  beta.0, beta.1,
                  probs, thresholds)
 
-save(savelist, file="cv-scores-us.RData")
+save(savelist, file="us-east-results.RData")
 
 rm(list=ls())
-load("cv-setup-us.RData")
+load("us-east-setup.RData")
 source("../../../R/auxfunctions.R")
-load("cv-scores-us.RData")
+load("us-east-results.RData")
 
 quant.score <- savelist[[1]]
 brier.score <- savelist[[2]]
@@ -362,14 +355,14 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 50, length(probs))
-brier.score.mean <- matrix(NA, 50, length(thresholds))
+quant.score.mean <- matrix(NA, 32, length(probs))
+brier.score.mean <- matrix(NA, 32, length(thresholds))
 
-quant.score.se <- matrix(NA, 50, length(probs))
-brier.score.se <- matrix(NA, 50, length(thresholds))
+quant.score.se <- matrix(NA, 32, length(probs))
+brier.score.se <- matrix(NA, 32, length(thresholds))
 
 done <- c(1:26)
-for (i in 1:50) {
+for (i in 1:32) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
@@ -387,9 +380,9 @@ for (i in 1:length(thresholds)) {
   print(which(brier.score.mean[done, i] == min(brier.score.mean[done, i])))
 }
 
-bs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
-qs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
-for (i in 1:49) {
+bs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
+qs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
+for (i in 1:31) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
