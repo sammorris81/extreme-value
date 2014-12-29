@@ -11,7 +11,7 @@ source('../max-stab/gen_data.R')
 source('../max-stab/MCMC4MaxStable.R')
 
 setting <- 26
-outputfile <- paste("cv5-", setting, "US.RData", sep="")
+outputfile <- paste("us-east-", setting, "US.RData", sep="")
 
 start <- proc.time()
 thresh <- 75

@@ -15,7 +15,7 @@ keep.knots <- F
 threshold <- 0
 thresh.quant <- F
 skew <- F
-outputfile <- paste("cv5-", setting, "US.RData", sep="")
+outputfile <- paste("us-east-", setting, "US.RData", sep="")
 
 start <- proc.time()
 
