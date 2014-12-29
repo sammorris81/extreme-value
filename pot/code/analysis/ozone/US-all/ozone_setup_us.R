@@ -3,12 +3,12 @@ library(fields)
 library(mvtnorm)
 
 rm(list=ls())
-source('../../../R/mcmc.R')
+source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
 # Setup from Brian
 load("ozone_data.RData")
-S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ 
+S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ
 
 # Exclude if site is missing more than 50% of its days
 excl   <- which(rowMeans(is.na(Y)) > 0.50)
@@ -22,11 +22,32 @@ lines(borders)  # Add state lines
 
 #### start data preprocessing
 # only include sites from the eastern US
-keep.these <- which(S[, 1] > 0)
+# keep.these <- which(S[, 1] > 0)
+# index      <- index[keep.these]
+# Y          <- Y[keep.these, ]
+# S          <- S[keep.these, ]
+# cmaq       <- CMAQ[index, ]
+
+# take a stratified sample of 800 with equal representation from each region of
+# the US
+set.seed(4218)
+total <- 800
+NE <- S[, 1] > 0 & S[, 2] > 0
+NW <- S[, 1] < 0 & S[, 2] > 0
+SE <- S[, 1] > 0 & S[, 2] < 0
+SW <- S[, 1] < 0 & S[, 2] < 0
+nNE <- round(mean(NE) * total)
+nNW <- round(mean(NW) * total)
+nSE <- round(mean(SE) * total)
+nSW <- round(mean(SW) * total)
+keep.these <- c(sample(which(NE), nNE), sample(which(NW), nNW),
+                sample(which(SE), nSE), sample(which(SW), nSW))
+
 index      <- index[keep.these]
 Y          <- Y[keep.these, ]
 S          <- S[keep.these, ]
 cmaq       <- CMAQ[index, ]
+
 
 # center and scale CMAQ data
 cmaq <- (cmaq - mean(cmaq)) / sd(cmaq)
@@ -46,27 +67,28 @@ y <- y / 1000
 #### end data preprocessing
 
 # Plot CMAQ
-image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - eastern US")
+image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - US")
 points(S)       # Locations of monitoring stations
 lines(borders/1000)  # Add state lines
 
 # Plot a day's data
-quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100, 
-           xaxt="n", xlim=c(-20, 2400),
-           yaxt="n", ylim=c(-1600, 1200),
+quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
+           xaxt="n", xlim=c(-2.5, 2.5),
+           yaxt="n", ylim=c(-1.65, 1.3),
            main="Ozone values on 10 July 2005")
-lines(borders)
+lines(borders/1000)
 
 #### 2-fold cross validation
+set.seed(1)
 cv.idx <- sample(nrow(S), nrow(S), replace=F)
-cv.1 <- cv.idx[1:367]
-cv.2 <- cv.idx[368:735]
+cv.1 <- cv.idx[1:400]
+cv.2 <- cv.idx[401:800]
 cv.lst <- list(cv.1=cv.1, cv.2=cv.2)
 
 beta.init <- 0
 tau.init <- 1
 
-save.image(file="cv-setup-us.RData")
+save.image(file="cv-setup-us-all.RData")
 
 # Remove non-US locations (for making maps - not done yet)
 east <- s.p[, 1] > 2350
@@ -130,7 +152,7 @@ for (thresh in 1:length(threshs)){
 xplot <- (1:(length(bins)-1)) - 0.5
 plot(xplot, exceed[, 1], type="o", ylim=c(0, 0.35), ylab="exceed", xaxt="n", xlab="bin distance / 1000", pch=1, lty=3, main="chi-plot ozone")
 axis(1, at=0:(length(bins)-2), labels=bins[-length(bins)])
-for (line in 2:3) { 
+for (line in 2:3) {
 	lines(xplot, exceed[, line], lty=line)
 	points(xplot, exceed[, line], pch=line)
 }
@@ -143,7 +165,7 @@ y.lm <- Y[, 1]
 x.lm <- X[, 1, ]
 for (t in 2:nt) {
   y.lm <- c(y.lm, Y[, t])
-  x.lm <- rbind(x.lm, X[, t, c(1, 2)]) 
+  x.lm <- rbind(x.lm, X[, t, c(1, 2)])
 }
 ozone.lm <- lm(y.lm ~ x.lm)
 ozone.res <- residuals(ozone.lm)
@@ -188,14 +210,14 @@ for (thresh in 1:length(threshs)){
 
 par(mar=c(5.1, 5.1, 4.1, 2.1))
 xplot <- bins.h[-length(bins)] + 0.125
-plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, lwd=2,  
-     xlim=c(0, 3.5), xaxt="n", xlab="bin distance (km) / 1000", 
-     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(h)")), 
+plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, lwd=2,
+     xlim=c(0, 3.5), xaxt="n", xlab="bin distance (km) / 1000",
+     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(h)")),
      main=bquote(paste(chi, "(h) for ozone residuals")),
      cex.lab=1.5, cex.axis=1.5, cex.main=2
      )
 axis(1, at=bins, cex.axis=1.5)
-for (line in 2:3) { 
+for (line in 2:3) {
 	lines(xplot, exceed.h.res[, line], lty=1, pch=line, type="b", lwd=2)
 }
 abline(v=1, lty=3, lwd=2)
@@ -213,7 +235,7 @@ for (thresh in 1:length(threshs)){
     for (t in these){
       for (lag in 1:max.lag) {
         att[lag] <- att[lag] + 1
-        acc[lag] <- acc[lag] + sum(these == (t + lag)) 
+        acc[lag] <- acc[lag] + sum(these == (t + lag))
       }
     }
     exceed.thresh <- acc / att
@@ -222,14 +244,14 @@ for (thresh in 1:length(threshs)){
 }
 
 xplot <- seq(1, 5, 1)
-plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, lwd=2, 
-     xlim=c(0.5, 5.5), xaxt="n", xlab="lag", 
-     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(t)")),  
+plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, lwd=2,
+     xlim=c(0.5, 5.5), xaxt="n", xlab="lag",
+     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(t)")),
      main=bquote(paste(chi, "(t) for ozone residuals")),
      cex.lab=1.5, cex.axis=1.5, cex.main=2
 )
 axis(1, at=xplot, cex.axis=1.5)
-for (line in 2:3) { 
+for (line in 2:3) {
 	lines(xplot, exceed.t.res[, line], lty=1, pch=line, type="b", lwd=2)
 }
 legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", pt.bg="white", cex=1.5, lwd=2)
