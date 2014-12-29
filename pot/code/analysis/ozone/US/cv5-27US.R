@@ -11,12 +11,15 @@ source('../../../R/time_series.R')
 
 setting <- 27
 method <- "t"
-nknots <- 1
+nknots <- 2
 keep.knots <- F
 threshold <- 0
 tau.init <- 0.05
 thresh.quant <- F
 skew <- T
+temporalw <- F
+temporalz <- F
+temporaltau <- F
 outputfile <- paste("cv5-", setting, "US.RData", sep="")
 
 start <- proc.time()
@@ -39,7 +42,7 @@ for(val in 1:2){
 
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-                   temporalw=T, temporalz=T, temporaltau=T,
+                   temporalw, temporalz, temporaltau,
                    method=method, skew=skew, keep.knots=keep.knots,
 	                 thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
                    iters=30000, burn=25000, update=500, iterplot=T,
