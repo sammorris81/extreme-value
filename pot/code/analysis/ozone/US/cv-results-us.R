@@ -1,7 +1,7 @@
 load("cv-setup-us.RData")
 source("../../../R/auxfunctions.R")
 
-load("cv5-10US.RData")
+load("us-east-10.RData")
 
 par(mfrow=c(5, 5))
 days1 <- c(1, 4, 7, 10, 13)
