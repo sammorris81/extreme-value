@@ -310,10 +310,10 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:26)
+done <- c(1:27, 29)
 
 for (i in 1:32) {
-  file <- paste("us-east-", i, "US.RData", sep="")
+  file <- paste("us-east-", i, ".RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
     load(file)

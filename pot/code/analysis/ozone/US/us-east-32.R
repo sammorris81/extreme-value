@@ -19,7 +19,7 @@ skew <- T
 temporalw <- F
 temporalz <- F
 temporaltau <- F
-outputfile <- paste("us-east-", setting, "US.RData", sep="")
+outputfile <- paste("us-east-", setting, ".RData", sep="")
 
 start <- proc.time()
 

@@ -16,7 +16,7 @@ threshold <- 50
 tau.init <- 0.05
 thresh.quant <- F
 skew <- T
-outputfile <- paste("us-all-", setting, "US.RData", sep="")
+outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
 

@@ -16,7 +16,7 @@ threshold <- 75
 tau.init <- 0.05
 thresh.quant <- F
 skew <- T
-outputfile <- paste("us-east-", setting, "US.RData", sep="")
+outputfile <- paste("us-east-", setting, ".RData", sep="")
 
 start <- proc.time()
 
