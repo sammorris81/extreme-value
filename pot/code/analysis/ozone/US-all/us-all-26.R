@@ -7,8 +7,8 @@ rm(list=ls())
 load('us-all-setup.RData')
 source('../../../R/mcmc.R')
 source('../../../R/auxfunctions.R')
-source('max-stab/gen_data.R')
-source('max-stab/MCMC4MaxStable.R')
+source('../max-stab/gen_data.R')
+source('../max-stab/MCMC4MaxStable.R')
 
 setting <- 26
 outputfile <- paste("us-all-", setting, "US.RData", sep="")
