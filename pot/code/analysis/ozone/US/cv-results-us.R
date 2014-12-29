@@ -368,7 +368,7 @@ brier.score.mean <- matrix(NA, 50, length(thresholds))
 quant.score.se <- matrix(NA, 50, length(probs))
 brier.score.se <- matrix(NA, 50, length(thresholds))
 
-done <- c(1:50)
+done <- c(1:26)
 for (i in 1:50) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
@@ -398,15 +398,18 @@ bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
 
 # one knot
-par(mfrow=c(2, 3))
+quartz(width=15, height=12)
+par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 xplot <- probs[6:11]
-plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.2), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 1)")
-lines(xplot, bs.mean.ref.gau[2, 6:11], type="b", pch=21, col=col[2], bg=bg[2])   # T = 50
-lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[3], bg=bg[3])   # T = 75
+plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.2), pch=21,
+     col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles",
+     main="Brier scores (K = 1)", cex.lab=2, cex.axis=2, cex.main=2, cex=1.7)
+lines(xplot, bs.mean.ref.gau[2, 6:11], type="b", pch=21, col=col[2], bg=bg[2], cex=1.7)   # T = 50
+lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[3], bg=bg[3], cex=1.7)   # T = 75
 abline(h=1, lty=2)
-lines(xplot, bs.mean.ref.gau[4, ], type="b")   # T = 90
-# lines(xplot, bs.mean.ref.gau[17, ], type="b")  # T = 75, no skew
-# lines(xplot, bs.mean.ref.gau[18, ], type="b")  # T = 90, no skew
+lines(xplot, bs.mean.ref.gau[4, 6:11], type="b", pch=21, col=col[4], bg=bg[4], cex=1.7)   # T = 90
+lines(xplot, bs.mean.ref.gau[17, 6:11], type="b", pch=24, col=col[3], bg=bg[3], cex=1.7)  # T = 75, no skew
+lines(xplot, bs.mean.ref.gau[18, 6:11], type="b", pch=24, col=col[4], bg=bg[4], cex=1.7)  # T = 90, no skew
 # plot(bs.mean.ref.gau[26, ], type="b")  # T = 0, time series
 # lines(bs.mean.ref.gau[27, ], type="b")  # T = 50, time series
 # lines(bs.mean.ref.gau[28, ], type="b")  # T = 75, time series
@@ -415,13 +418,15 @@ lines(xplot, bs.mean.ref.gau[4, ], type="b")   # T = 90
 # lines(bs.mean.ref.gau[43, ], type="b")  # T = 90, time series, no skew
 
 # 5 knots
-plot(xplot, bs.mean.ref.gau[5, 6:11], type="b", ylim=c(0.8, 5.5), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 5)")
-lines(xplot, bs.mean.ref.gau[6, 6:11], type="b", pch=21, col=col[2], bg=bg[2])  # unusually high
-lines(xplot, bs.mean.ref.gau[7, 6:11], type="b", pch=21, col=col[3], bg=bg[3])
+plot(xplot, bs.mean.ref.gau[5, 6:11], type="b", ylim=c(0.8, 1.2), pch=21,
+     col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles",
+     main="Brier scores (K = 5)", cex.lab=2, cex.axis=2, cex.main=2, cex=1.7)
+lines(xplot, bs.mean.ref.gau[6, 6:11], type="b", pch=21, col=col[2], bg=bg[2], cex=1.7)  # unusually high
+lines(xplot, bs.mean.ref.gau[7, 6:11], type="b", pch=21, col=col[3], bg=bg[3], cex=1.7)
 abline(h=1, lty=2)
-lines(xplot, bs.mean.ref.gau[8, ], type="b")
-# lines(xplot, bs.mean.ref.gau[19, ], type="b")  # T = 75, no skew
-# lines(xplot, bs.mean.ref.gau[20, ], type="b")  # T = 90, no skew
+lines(xplot, bs.mean.ref.gau[8, 6:11], type="b", pch=21, col=col[4], bg=bg[4], cex=1.7)
+lines(xplot, bs.mean.ref.gau[19, 6:11], type="b", pch=24, col=col[3], bg=bg[3], cex=1.7)  # T = 75, no skew
+lines(xplot, bs.mean.ref.gau[20, 6:11], type="b", pch=24, col=col[4], bg=bg[4], cex=1.7)  # T = 90, no skew
 # lines(bs.mean.ref.gau[30, ], type="b")  # T = 0, time series
 # lines(bs.mean.ref.gau[31, ], type="b")  # T = 50, time series
 # lines(bs.mean.ref.gau[32, ], type="b")  # T = 75, time series
@@ -430,13 +435,15 @@ lines(xplot, bs.mean.ref.gau[8, ], type="b")
 # lines(bs.mean.ref.gau[45, ], type="b")  # T = 90, time series, no skew
 
 # 10 knots
-plot(xplot, bs.mean.ref.gau[9, 6:11], type="b", ylim=c(0.8, 1.3), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 10)")
-lines(xplot, bs.mean.ref.gau[10, 6:11], type="b", pch=21, col=col[2], bg=bg[2])
-lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=21, col=col[3], bg=bg[3])
+plot(xplot, bs.mean.ref.gau[9, 6:11], type="b", ylim=c(0.8, 1.2), pch=21,
+     col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles",
+     main="Brier scores (K = 10)", cex.lab=2, cex.axis=2, cex.main=2, cex=1.7)
+lines(xplot, bs.mean.ref.gau[10, 6:11], type="b", pch=21, col=col[2], bg=bg[2], cex=1.7)
+lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=21, col=col[3], bg=bg[3], cex=1.7)
 abline(h=1, lty=2)
-lines(xplot, bs.mean.ref.gau[12, ], type="b")
-# lines(bs.mean.ref.gau[21, ], type="b")  # T = 75, no skew
-# lines(bs.mean.ref.gau[22, ], type="b")  # T = 90, no skew
+lines(xplot, bs.mean.ref.gau[12, 6:11], type="b", pch=21, col=col[4], bg=bg[4], cex=1.7)
+lines(xplot, bs.mean.ref.gau[21, 6:11], type="b", pch=24, col=col[3], bg=bg[3], cex=1.7)  # T = 75, no skew
+lines(xplot, bs.mean.ref.gau[22, 6:11], type="b", pch=24, col=col[4], bg=bg[4], cex=1.7)  # T = 90, no skew
 # lines(bs.mean.ref.gau[34, ], type="b")  # T = 0, time series
 # lines(bs.mean.ref.gau[35, ], type="b")  # T = 50, time series
 # lines(bs.mean.ref.gau[36, ], type="b")  # T = 75, time series
@@ -445,13 +452,15 @@ lines(xplot, bs.mean.ref.gau[12, ], type="b")
 # lines(bs.mean.ref.gau[47, ], type="b")  # T = 90, time series, no skew
 
 # 15 knots
-plot(xplot, bs.mean.ref.gau[13, 6:11], type="b", ylim=c(0.8, 3), pch=21, col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles", main="Brier scores (K = 15)")
-lines(xplot, bs.mean.ref.gau[14, 6:11], type="b", pch=21, col=col[2], bg=bg[2])  # unusually high
-lines(xplot, bs.mean.ref.gau[15, 6:11], type="b", pch=21, col=col[3], bg=bg[3])
+plot(xplot, bs.mean.ref.gau[13, 6:11], type="b", ylim=c(0.8, 1.2), pch=21,
+  col=col[1], bg=bg[1], ylab="brier score", xlab="sample quantiles",
+  main="Brier scores (K = 15)", cex.lab=2, cex.axis=2, cex.main=2, cex=1.7)
+lines(xplot, bs.mean.ref.gau[14, 6:11], type="b", pch=21, col=col[2], bg=bg[2], cex=1.7)  # unusually high
+lines(xplot, bs.mean.ref.gau[15, 6:11], type="b", pch=21, col=col[3], bg=bg[3], cex=1.7)
 abline(h=1, lty=2)
-lines(xplot, bs.mean.ref.gau[16, ], type="b")
-# lines(bs.mean.ref.gau[23, ], type="b")  # T = 75, no skew
-# lines(bs.mean.ref.gau[24, ], type="b")  # T = 90, no skew
+lines(xplot, bs.mean.ref.gau[16, 6:11], type="b", pch=21, col=col[4], bg=bg[4], cex=1.7)
+lines(xplot, bs.mean.ref.gau[23, 6:11], type="b", pch=24, col=col[3], bg=bg[3], cex=1.7)  # T = 75, no skew
+lines(xplot, bs.mean.ref.gau[24, 6:11], type="b", pch=24, col=col[4], bg=bg[4], cex=1.7)  # T = 90, no skew
 # lines(bs.mean.ref.gau[38, ], type="b")  # T = 0, time series
 # lines(bs.mean.ref.gau[39, ], type="b")  # T = 50, time series
 # lines(bs.mean.ref.gau[40, ], type="b")  # T = 75, time series
@@ -460,8 +469,55 @@ lines(xplot, bs.mean.ref.gau[16, ], type="b")
 # lines(bs.mean.ref.gau[49, ], type="b")  # T = 90, time series, no skew
 
 # max-stable
-plot(xplot, bs.mean.ref.gau[25, 6:11], type="b", ylim=c(0.8, 1.2), pch=24, col=col[5], bg=bg[5], ylab="brier score", xlab="sample quantiles", main="Brier scores (Max stable)")
+plot(xplot, bs.mean.ref.gau[25, 6:11], type="b", ylim=c(0.8, 1.2), pch=23,
+     col=col[5], bg=bg[5], ylab="brier score", xlab="sample quantiles",
+     main="Brier scores (Max stable)", cex.lab=2, cex.axis=2, cex.main=2, cex=1.7)
 abline(h=1, lty=2)
+
+plot(xplot, type="n", axes=F, ylab="", xlab="")
+legend("center", legend=c("Skew-t, T=0", "Skew-t, T=50", "Skew-t, T=75", "Skew-t, T=85", "T, T=75", "T, T=85"),
+       col=c(col[1:4], col[3:4]), pch=c(rep(21, 4), rep(24, 2)), pt.bg=c(bg[1:4], bg[3:4]), cex=2.4, box.lty=0)
+
+# includes results for non-skewed methods
+plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.15), pch=21,
+     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=5,
+     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
+lines(xplot, bs.mean.ref.gau[9, 6:11], type="b", pch=24, col=col[1], bg=bg[1],
+      cex=1.3, lty=5)
+lines(xplot, bs.mean.ref.gau[17, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
+      cex=1.3, lty=3)
+lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
+      cex=1.3, lty=5)
+lines(xplot, bs.mean.ref.gau[21, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
+      cex=1.3, lty=3)
+lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
+      cex=1.3, lty=5)
+lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
+      cex=1.3, lty=1)
+abline(h=1, lty=2)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0", "T, K=1, T=75",
+       "Skew-t, K=1, T=75", "T, K=10, T=75", "Skew-t, K=10, T=75", "Max-stable"),
+       pch=c(21, 24, 21, 21, 24, 24, 23), lty=c(5, 5, 3, 5, 3, 5, 1),
+       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[2], bg[2], bg[5]), cex=1.3)
+
+# includes results for skewed methods only
+plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.1), pch=21,
+     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
+     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
+lines(xplot, bs.mean.ref.gau[9, 6:11], type="b", pch=24, col=col[1], bg=bg[1],
+      cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
+      cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
+      cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
+      cex=1.3, lty=1)
+abline(h=1, lty=2)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0",
+       "Skew-t, K=1, T=75", "Skew-t, K=10, T=75", "Max-stable"),
+       pch=c(21, 24, 21, 24, 23), lty=c(1, 1, 1, 1, 1),
+       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[5]), cex=1.3)
+
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")
 
