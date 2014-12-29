@@ -7,7 +7,7 @@ source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
 # Setup from Brian
-load("ozone_data.RData")
+load("../ozone_data.RData")
 S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ
 
 # Exclude if site is missing more than 50% of its days
