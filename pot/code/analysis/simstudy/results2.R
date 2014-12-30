@@ -27,7 +27,7 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 ngroups <- 10
-done.groups <- c(7)
+done.groups <- c(8:10)
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
