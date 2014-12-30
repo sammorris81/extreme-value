@@ -514,23 +514,26 @@ legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0",
 # includes knots 1 -- 5 with max-stable
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
-xplot <- probs[6:11]
-plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.1), pch=21,
+these.probs <- 1:11
+xplot <- probs[these.probs]
+plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.89), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
      main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[26, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
+lines(xplot, bs.mean.ref.gau[2, these.probs], type="b", pch=22, col=col[1], bg=bg[1],
+      cex=1.3, lty=3)
+lines(xplot, bs.mean.ref.gau[26, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[28, 6:11], type="b", pch=21, col=col[3], bg=bg[3],
+lines(xplot, bs.mean.ref.gau[28, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-# lines(xplot, bs.mean.ref.gau[5, 6:11], type="b", pch=21, col=col[4], bg=bg[4],
+# lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
 #       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
-      cex=1.3, lty=1)
+# lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[5], bg=bg[5],
+#        cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=2, T=0",
-       "Skew-t, K=3, T=0", "Max-stable"),
-       pch=c(21, 21, 21, 23), lty=c(1, 1, 1, 1),
-       pt.bg=c(bg[1], bg[2], bg[3], bg[5]), cex=1.3)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", "Skew-t, K=2, T=0",
+       "Skew-t, K=3, T=0"),
+       pch=c(21, 22, 21, 21, 21, 23), lty=c(1, 3, 1, 1, 1, 1),
+       pt.bg=c(bg[1], bg[1], bg[2], bg[3], bg[4], bg[5]), cex=1.3)
 
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")
