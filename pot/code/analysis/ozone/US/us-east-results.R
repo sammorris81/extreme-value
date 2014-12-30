@@ -310,7 +310,7 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:27, 29)
+done <- c(1:29, 31)
 
 for (i in 1:32) {
   file <- paste("us-east-", i, ".RData", sep="")
@@ -361,7 +361,7 @@ brier.score.mean <- matrix(NA, 32, length(thresholds))
 quant.score.se <- matrix(NA, 32, length(probs))
 brier.score.se <- matrix(NA, 32, length(thresholds))
 
-done <- c(1:27, 29)
+done <- c(1:29, 31)
 for (i in 1:32) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
