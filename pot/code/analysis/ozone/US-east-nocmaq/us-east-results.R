@@ -1,5 +1,6 @@
 load("us-east-setup.RData")
 source("../../../R/auxfunctions.R")
+settings <- read.csv("settings.csv")
 
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 thresholds <- quantile(Y, probs=probs, na.rm=T)
@@ -10,13 +11,12 @@ quant.score <- array(NA, dim=c(length(probs), nsets, 50))
 brier.score <- array(NA, dim=c(length(thresholds), nsets, 50))
 
 beta.0 <- array(NA, dim=c(5000, nsets, 50))
-beta.1 <- array(NA, dim=c(5000, nsets, 50))
 
 phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:7, 9:34)
+done <- c(1:4, 6, 10, 14, 27:32)
 
 for (i in 1:34) {
   file <- paste("us-east-", i, ".RData", sep="")
@@ -36,7 +36,6 @@ for (i in 1:34) {
       brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
       if (i != 26) {
         beta.0[, d, i] <- fit.d$beta[, 1]
-        beta.1[, d, i] <- fit.d$beta[, 2]
       }
     }
   }
@@ -44,8 +43,7 @@ for (i in 1:34) {
 }
 
 savelist <- list(quant.score, brier.score,
-                 beta.0, beta.1,
-                 probs, thresholds)
+                 beta.0, probs, thresholds)
 
 save(savelist, file="us-east-results.RData")
 
@@ -53,22 +51,20 @@ rm(list=ls())
 load("us-east-setup.RData")
 source("../../../R/auxfunctions.R")
 load("us-east-results.RData")
-settings <- read.csv("settings.csv")
 
 quant.score <- savelist[[1]]
 brier.score <- savelist[[2]]
 beta.0 <- savelist[[3]]
-beta.1 <- savelist[[4]]
-probs <- savelist[[5]]
-thresholds <- savelist[[6]]
+probs <- savelist[[4]]
+thresholds <- savelist[[5]]
 
-quant.score.mean <- matrix(NA, 34, length(probs))
-brier.score.mean <- matrix(NA, 34, length(thresholds))
+quant.score.mean <- matrix(NA, 32, length(probs))
+brier.score.mean <- matrix(NA, 32, length(thresholds))
 
-quant.score.se <- matrix(NA, 34, length(probs))
-brier.score.se <- matrix(NA, 34, length(thresholds))
+quant.score.se <- matrix(NA, 32, length(probs))
+brier.score.se <- matrix(NA, 32, length(thresholds))
 
-done <- c(1:7, 9:34)
+done <- c(1:4, 6, 10, 14, 27:32)
 for (i in 1:34) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
@@ -79,7 +75,7 @@ for (i in 1:34) {
 }
 
 for (i in 1:length(thresholds)) {
-  print(which(quant.score.mean[, i] == min(quant.score.mean[, i], na.rm=T)))
+ print(which(quant.score.mean[, i] == min(quant.score.mean[, i], na.rm=T)))
 }
 
 for (i in 1:length(thresholds)) {
@@ -220,31 +216,26 @@ legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0",
 # includes knots 1 -- 5 with max-stable
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
-these.probs <- 1:10
+these.probs <- 1:11
 xplot <- probs[these.probs]
-plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.96), pch=21,
+plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.89), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
      main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
 lines(xplot, bs.mean.ref.gau[2, these.probs], type="b", pch=22, col=col[1], bg=bg[1],
-      cex=1.3, lty=2)
+      cex=1.3, lty=3)
 lines(xplot, bs.mean.ref.gau[26, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[32, these.probs], type="b", pch=22, col=col[2], bg=bg[2],
-      cex=1.3, lty=2)
 lines(xplot, bs.mean.ref.gau[28, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[33, these.probs], type="b", pch=22, col=col[3], bg=bg[3],
-      cex=1.3, lty=2)
-lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
-      cex=1.3, lty=1)
+# lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+#       cex=1.3, lty=1)
 # lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[5], bg=bg[5],
 #        cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", 
-                           "Skew-t, K=2, T=0", "Skew-t, K=2, T=50",
-                           "Skew-t, K=3, T=0", "Skew-t, K=3, T=50"),
-       pch=c(21, 22, 21, 22, 21, 22), lty=c(1, 2, 1, 2, 1, 2),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[3], bg[3]), cex=1.3)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", "Skew-t, K=2, T=0",
+       "Skew-t, K=3, T=0"),
+       pch=c(21, 22, 21, 21, 21, 23), lty=c(1, 3, 1, 1, 1, 1),
+       pt.bg=c(bg[1], bg[1], bg[2], bg[3], bg[4], bg[5]), cex=1.3)
 
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")

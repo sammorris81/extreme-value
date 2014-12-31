@@ -1,5 +1,6 @@
-load("us-east-setup.RData")
+load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
+settings <- read.csv("settings.csv")
 
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 thresholds <- quantile(Y, probs=probs, na.rm=T)
@@ -16,10 +17,10 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:7, 9:34)
+done <- c(1:4, 6:7, 10, 27:32)
 
-for (i in 1:34) {
-  file <- paste("us-east-", i, ".RData", sep="")
+for (i in 1:32) {
+  file <- paste("us-all-", i, ".RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
     load(file)
@@ -47,12 +48,12 @@ savelist <- list(quant.score, brier.score,
                  beta.0, beta.1,
                  probs, thresholds)
 
-save(savelist, file="us-east-results.RData")
+save(savelist, file="us-all-results.RData")
 
 rm(list=ls())
-load("us-east-setup.RData")
+load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
-load("us-east-results.RData")
+load("us-all-results.RData")
 settings <- read.csv("settings.csv")
 
 quant.score <- savelist[[1]]
@@ -62,14 +63,14 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 34, length(probs))
-brier.score.mean <- matrix(NA, 34, length(thresholds))
+quant.score.mean <- matrix(NA, 32, length(probs))
+brier.score.mean <- matrix(NA, 32, length(thresholds))
 
-quant.score.se <- matrix(NA, 34, length(probs))
-brier.score.se <- matrix(NA, 34, length(thresholds))
+quant.score.se <- matrix(NA, 32, length(probs))
+brier.score.se <- matrix(NA, 32, length(thresholds))
 
-done <- c(1:7, 9:34)
-for (i in 1:34) {
+done <- c(1:4, 6:7, 10, 27:32)
+for (i in 1:32) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
@@ -78,17 +79,18 @@ for (i in 1:34) {
   }
 }
 
+quant.score.mean[c(1:10, 13, 14, 17:19, 21, 23, 25, 26), ]
 for (i in 1:length(thresholds)) {
-  print(which(quant.score.mean[, i] == min(quant.score.mean[, i], na.rm=T)))
+ print(which(quant.score.mean[, i] == min(quant.score.mean[, i], na.rm=T)))
 }
 
 for (i in 1:length(thresholds)) {
   print(which(brier.score.mean[, i] == min(brier.score.mean[, i], na.rm=T)))
 }
 
-bs.mean.ref.gau <- matrix(NA, nrow=33, ncol=11)
-qs.mean.ref.gau <- matrix(NA, nrow=33, ncol=11)
-for (i in 1:33) {
+bs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
+qs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
+for (i in 1:31) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
@@ -220,31 +222,26 @@ legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0",
 # includes knots 1 -- 5 with max-stable
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
-these.probs <- 1:10
+these.probs <- 1:11
 xplot <- probs[these.probs]
-plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.96), pch=21,
+plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.89), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
      main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
 lines(xplot, bs.mean.ref.gau[2, these.probs], type="b", pch=22, col=col[1], bg=bg[1],
-      cex=1.3, lty=2)
+      cex=1.3, lty=3)
 lines(xplot, bs.mean.ref.gau[26, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[32, these.probs], type="b", pch=22, col=col[2], bg=bg[2],
-      cex=1.3, lty=2)
 lines(xplot, bs.mean.ref.gau[28, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[33, these.probs], type="b", pch=22, col=col[3], bg=bg[3],
-      cex=1.3, lty=2)
-lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
-      cex=1.3, lty=1)
+# lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+#       cex=1.3, lty=1)
 # lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[5], bg=bg[5],
 #        cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", 
-                           "Skew-t, K=2, T=0", "Skew-t, K=2, T=50",
-                           "Skew-t, K=3, T=0", "Skew-t, K=3, T=50"),
-       pch=c(21, 22, 21, 22, 21, 22), lty=c(1, 2, 1, 2, 1, 2),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[3], bg[3]), cex=1.3)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", "Skew-t, K=2, T=0",
+       "Skew-t, K=3, T=0"),
+       pch=c(21, 22, 21, 21, 21, 23), lty=c(1, 3, 1, 1, 1, 1),
+       pt.bg=c(bg[1], bg[1], bg[2], bg[3], bg[4], bg[5]), cex=1.3)
 
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")
@@ -361,10 +358,10 @@ round(brier.score.mean*1000, 4)
 
 # legend("center", lty=1:9, pch=1:9, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5", "skew-t5 (T=0.9)"))
 
-load("us-east-setup.RData")
+load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
 
-load("us-east-10.RData")
+load("us-all-10.RData")
 
 par(mfrow=c(5, 5))
 days1 <- c(1, 4, 7, 10, 13)
@@ -417,7 +414,7 @@ for(i in 6:10){ for (j in 1:5) {
 } }
 
 
-load("us-east-6.RData")
+load("us-all-6.RData")
 days1 <- c(1, 4, 7, 10, 13)
 days2 <- c(16, 19, 22, 25, 28)
 par(mfrow=c(5, 5))
@@ -484,7 +481,7 @@ plot(fit[[2]]$nu, type="l")
 plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
-load("us-east-31.RData")
+load("us-all-31.RData")
 days1 <- c(1, 4, 7, 10, 13)
 days2 <- c(16, 19, 22, 25, 28)
 par(mfrow=c(5, 5))
@@ -558,7 +555,7 @@ plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
 
-load("us-east-2.RData")
+load("us-all-2.RData")
 par(mfrow=c(3, 5))
 days1 <- seq(1, 30, by=2)
 for (j in days1) {
@@ -598,7 +595,7 @@ plot(fit[[2]]$nu, type="l")
 plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
-load("us-east-27.RData")
+load("us-all-27.RData")
 par(mfrow=c(3, 5))
 days1 <- seq(1, 30, by=2)
 for (j in days1) {
