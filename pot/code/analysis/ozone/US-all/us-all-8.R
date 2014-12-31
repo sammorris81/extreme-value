@@ -10,7 +10,7 @@ source('../../../R/auxfunctions.R')
 
 setting <- 8
 method <- "t"
-nknots <- 2
+nknots <- 5
 keep.knots <- F
 threshold <- 75
 tau.init <- 0.05
