@@ -28,23 +28,131 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0) {
   return(y)
 }
 
-CorFx <- function(d, alpha, rho, nu) {
-  library(geoR)    
-  # using cov.spatial instead of matern because it 
-  # doesn't use the bessel function unless needed.
-  cor       <- alpha * cov.spatial(d, cov.model="matern", cov.pars=c(1, rho), kappa=nu)
-  diag(cor) <- 1
-
+CorFx <- function(d, gamma, rho, nu) {
+  if (rho < 1e-6) {
+  	n <- nrow(d)
+  	cor <- diag(1, nrow=n)
+  } else { 
+    if (nu == 0.5) {
+      cor <- gamma * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho), error.var=0, 
+                                   smoothness=nu, finescale.var=0)
+    } else { 
+      cor <- tryCatch(simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0, 
+                                    smoothness=nu, finescale.var=0),
+                      warning=function(e) {
+                        cat("rho = ", rho, "\n")
+                        cat("nu = ", nu, "\n")
+                      })
+      cor <- gamma * cor
+    }
+  
+    diag(cor) <- 1
+  }
+  
   return(cor)
 }
 
+dfoldnorm <- function(x, mu, sig) {
+  d <- dnorm(x, mu, sig) + dnorm(x, -mu, sig)
+  return(d)
+}
+
+eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
+  cor.inv <- NULL
+  logdet.prec <- NULL
+  cor.sqrt <- NULL
+  
+  eig <- eigen(Q)
+  V <- eig$vectors
+  D <- ifelse(eig$values < thresh, thresh, eig$values)
+  D.inv <- 1 / D
+  
+  if (logdet) { logdet.prec <- -0.5 * sum(log(D)) }
+  if (inv) { cor.inv <- sweep(V, 2, D.inv, "*") %*% t(V) }
+  if (mtx.sqrt) { cor.sqrt <- sweep(V, 2, sqrt(D), "*") %*% t(V) }
+  
+  results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=cor.sqrt)
+  
+  return(results)
+}
+
+chol.inv <- function(Q, inv=T, logdet=T) {
+  cor.inv <- NULL
+  logdet.prec <- NULL
+  chol.Q <- chol(Q)
+  
+  if (inv) { cor.inv <- chol2inv(chol.Q) }
+  if (logdet) { logdet.prec <- -sum(log(diag(chol.Q))) }
+  
+  results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=chol.Q)
+  return(results)
+}
 
 mem <- function(s, knots) {
-  library(fields)
   d <- rdist(s, knots)
-  g <- apply(d, 1, which.min)
+  g <- g.Rcpp(d=d)
+  return(g$g)
+}
 
-  return(g)
+#### Go from normal to Gamma(alpha, beta)
+# Arguments:
+#   tau.star(nknots, nt): copula terms for each knot / day
+#   phi(1): AR(1) coefficient
+#   alpha(1): gamma shape parameter
+#   beta(1): gamma rate parameter
+cop.IG <- function(tau.star, phi, alpha, beta) {
+  
+  if (!is.matrix(tau.star)) {
+    stop("Error cop.IG: Must have a matrix for the tau.star terms")
+  }
+  
+  nt <- ncol(tau.star)
+  nknots <- nrow(tau.star)
+  
+  mean <- matrix(0, nknots, nt)  # first day is mean 0
+  for (t in 2:nt) {
+    mean[, t] <- phi * tau.star[, (t-1)]
+  }
+  
+  sd <- sqrt(1 - phi^2)
+  res.std <- (tau.star - mean) / sd
+  tau <- qgamma(pnorm(res.std), shape=alpha, rate=beta)
+  
+  return(tau)
+}
+
+get.tau.mh.idx <- function(nparts, ns, mh.tau.parts) {
+  idx <- max(which((nparts / ns) >= mh.tau.parts))
+  return(idx)
+}
+
+#### Go from Gamma(alpha, beta) to normal
+# Arguments:
+#   tau(nknots, nt): variance terms for each knot / day
+#   phi(1): AR(1) coefficient
+#   alpha(1): gamma shape parameter
+#   beta(1): gamma rate parameter
+cop.inv.IG <- function(tau, phi, alpha, beta) {
+  
+  if (!is.matrix(tau)) { 
+    stop("Error cop.inv.IG: Must have a matrix for the tau terms")
+  }
+  
+  nt <- ncol(tau)
+  nknots <- nrow(tau)
+  
+  tau.star <- matrix(0, nknots, nt)
+  for (t in 1:nt) {
+    if (t == 1) {
+      mean <- 0
+    } else {
+      mean <- phi * tau.star[, (t - 1)]
+    }
+    sd <- sqrt(1 - phi^2)
+    tau.star[, t] <- qnorm(pgamma(tau[, t], shape=alpha, rate=beta), mean=mean, sd=sd)
+  }
+  
+  return(tau.star)
 }
 
 #########################################################################
@@ -63,8 +171,8 @@ logdet.exp <- function(alpha, lambda) {
 
 
 
-rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,  
-                     mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
+rpotspat <- function(nt, x, s, beta, gamma, nu, gau.rho, t.rho,  
+                     mixprob, lambda, tau.alpha, tau.beta, nknots) {
 
   p <- dim(x)[3]
   ns <- nrow(s)
@@ -76,19 +184,89 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
    
   d <- as.matrix(dist(s))
   # gau is used if mixprob = 0
-  gau.C   <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
-  gau.tau <- matrix(rgamma(1, tau.alpha, tau.beta), nknots, nt)
-  gau.sd  <- 1 / sqrt(gau.tau)
-  gau.z   <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  gau.C      <- CorFx(d=d, gamma=gamma, rho=gau.rho, nu=nu)
+  gau.tau    <- matrix(0.25, nrow=nknots, ncol=nt)
+  gau.sd     <- 1 / sqrt(gau.tau)
+  gau.z      <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
   
   # t is used if mixprob = 1
-  t.C   <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
-  t.tau <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
-  t.sd  <- 1 / sqrt(t.tau)
-  t.z   <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  t.C      <- CorFx(d=d, gamma=gamma, rho=t.rho, nu=nu)
+  t.tau    <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
+  t.sd     <- 1 / sqrt(t.tau)
+  t.z      <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
   
   knots <- array(NA, dim=c(nknots, nt, 2))
-  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 2])
+  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 1])
+  min.s2 <- min(s[, 2]); max.s2 <- max(s[, 2])
+
+  for (t in 1:nt) {
+    knots[, t, 1] <- runif(nknots, min.s1, max.s1)
+    knots[, t, 2] <- runif(nknots, min.s2, max.s2)
+    knots.t <- matrix(knots[, t, ], nknots, 2)
+    g <- mem(s, knots.t)
+
+    dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
+    
+    if (dist) {
+      tau[, t] <- t.tau[, t]
+      taug     <- t.tau[g, t]
+      z[, t]   <- t.z[, t]
+      zg       <- t.z[g, t]
+      C        <- t.C
+    } else {
+      tau[, t] <- gau.tau[, t]
+      taug     <- gau.tau[g, t]
+      z[, t]   <- gau.z[, t]
+      zg       <- gau.z[g, t]
+      C        <- gau.C
+    }  
+    
+    sdg  <- 1 / sqrt(taug)
+    C <- diag(sdg) %*% C %*% diag(sdg)
+    chol.C <- chol(C)
+
+    if (p == 1) {
+      x.beta <- matrix(x[, t, ], ns, 1) * beta 
+    } else {
+      x.beta <- x[, t, ] %*% beta
+    }
+    mu <- x.beta + lambda * zg
+    
+    y.t <- mu + t(chol.C) %*% matrix(rnorm(ns), ns, 1)
+    y[, t] <- y.t
+  }
+  
+  results <- list(y=y, tau=tau, z=z, knots=knots)
+}
+
+rpotspatTS <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho, phi.z, phi.w,
+                       mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
+
+  p <- dim(x)[3]
+  ns <- nrow(s)
+  
+  y <- matrix(NA, ns, nt)
+  tau <- matrix(NA, nknots, nt)
+  z <- matrix(NA, nknots, nt)
+  g <- matrix(NA, ns, nt)
+   
+  d <- as.matrix(dist(s))
+  # gau is used if mixprob = 0
+  gau.C      <- CorFx(d=d, alpha=alpha, rho=gau.rho, nu=nu)
+  gau.C.chol <- chol(gau.C)
+  gau.tau    <- matrix(0.25, nrow=nknots, ncol=nt)
+  gau.sd     <- 1 / sqrt(gau.tau)
+  gau.z      <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  
+  # t is used if mixprob = 1
+  t.C      <- CorFx(d=d, alpha=alpha, rho=t.rho, nu=nu)
+  t.C.chol <- chol(t.C)
+  t.tau    <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
+  t.sd     <- 1 / sqrt(t.tau)
+  t.z      <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  
+  knots <- array(NA, dim=c(nknots, nt, 2))
+  min.s1 <- min(s[, 1]); max.s1 <- max(s[, 1])
   min.s2 <- min(s[, 2]); max.s2 <- max(s[, 2])
 
   for (t in 1:nt) {
@@ -99,13 +277,13 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
 
     dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
     if (dist) {
-      taug <- t.tau[g, t]
-      zg   <- t.z[g, t]
-      C    <- t.C
+      taug   <- t.tau[g, t]
+      zg     <- t.z[g, t]
+      chol.C <- gau.C.chol
     } else {
-      taug <- gau.tau[g, t]
-      zg   <- gau.z[g, t]
-      C    <- gau.C
+      taug   <- gau.tau[g, t]
+      zg     <- gau.z[g, t]
+      chol.C <- t.C.chol
     }  
         
     if (p == 1) {
@@ -116,7 +294,7 @@ rpotspat <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho,
     mu <- x.beta + z.alpha * zg
     
     sdg  <- 1 / sqrt(taug)
-    y.t <- t(chol(C)) %*% matrix(rnorm(ns), ns, 1)
+    y.t <- t(chol.C) %*% matrix(rnorm(ns), ns, 1)
     y.t <- mu + sdg * y.t
     y[, t] <- y.t
   }
@@ -140,12 +318,12 @@ QuantScore <- function(preds, probs, validate) {
   nprobs <- length(probs)  # number of quantiles to find quantile score
   
   # we need to know the predicted quantiles for each site and day in the validation set
-  pred.quants <- apply(preds, c(2, 3), quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
+  pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
   
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
   
   for (q in 1:nprobs) {
-    diff <- pred.quants[q, , ] - validate
+    diff <- pred.quants[q, ] - validate
     i <- diff >= 0  # diff >= 0 means qhat is larger
     scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
   }

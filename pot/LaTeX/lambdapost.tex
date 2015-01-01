@@ -1,0 +1,13 @@
+\subsection*{Conditional posterior of $\lambda \mid \ldots$}\label{s:lambdapost}
+Let $\lambda \sim N(0, \tau_\lambda)$ where $\tau_\lambda$ is a precision term. Then
+\begin{align*}
+  \pi(\lambda \mid \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \tau_\lambda \lambda^2 + \sum_{ t = 1 }^T \frac{ 1 }{ 2 } [\bY_t - X_t\beta - \lambda |z_t|]^T \Omega [\bY_t - X_t\beta - \lambda |z_t|] \right\} \\
+      &\propto \exp \left\{ -\frac{ 1 }{ 2 } [\lambda^2(\tau_\lambda + \sum_{t = 1 }^T |z_t|^T \Omega |z_t|^T) - 2 \lambda \sum_{t=1}^T[|z_t|^T \Omega (\bY_t - X_t \beta) \right\}\\
+      &\propto \exp \left\{ -\frac{ 1 }{ 2 } [\tau_\lambda^* \lambda^2 - 2 \mu_\lambda] \right\}
+\end{align*}
+where
+\begin{align*}
+  \mu_\lambda &= \sum_{t = 1}^T |z_t|^T \Omega (\bY_t - X_t \beta)\\
+  \tau_\lambda^* &= t_\alpha + \sum_{t=1}^T |z_t|^T \Omega |z_t|.
+\end{align*}
+Then $\lambda \mid \ldots \sim N(\tau^{*-1}_\lambda \mu_\lambda, \tau^{*-1}_\lambda) $

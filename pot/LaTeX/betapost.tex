@@ -1,12 +1,12 @@
 \subsection*{Conditional posterior of $\beta \mid \ldots$}\label{s:betapost}
-Let $\beta \sim \mbox{N}_{p}(0, \Lambda_0)$ where $\Lambda_0$ is a precision matrix. Then 
+Let $\beta \sim \mbox{N}_{p}(0, \Lambda_0)$ where $\Lambda_0$ is a precision matrix. Then
 \begin{align*}
-    \pi(\beta \mid \ldots) & \propto \exp \left\{ - \frac{ 1 }{ 2 } \beta^T \Lambda_0 \beta - \frac{ 1 }{ 2 } \sum_{t = 1 }^T [\bY_t - X_t \beta - \alpha z_t]^T \Omega [\bY_t - X_t \beta - \alpha z_t] \right\}\\
-     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \beta^T \Lambda_\beta \beta  - 2 \sum_{ t = 1 }^T [ \beta^T X_t^T \Omega (\bY_t - \alpha z_t )] \right] \right\}\\
+    \pi(\beta \mid \ldots) & \propto \exp \left\{ - \frac{ 1 }{ 2 } \beta^T \Lambda_0 \beta - \frac{ 1 }{ 2 } \sum_{t = 1 }^T [\bY_t - X_t \beta - \alpha |z_t|]^T \Omega [\bY_t - X_t \beta - \alpha |z_t|] \right\}\\
+     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \beta^T \Lambda_\beta \beta  - 2 \sum_{ t = 1 }^T [ \beta^T X_t^T \Omega (\bY_t - \alpha |z_t| )] \right] \right\}\\
      & \propto \mbox{N} ( \Lambda_\beta^{-1} \mu_\beta , \Lambda_\beta^{-1})
 \end{align*}
 where
 \begin{align*}
-    \mu_\beta &= \sum_{t=1}^{T} \left[ X_t^T \Omega (\bY_t - \alpha z_t) \right]\\
-    \Lambda_\beta &= \Lambda_0 + \sum_{ t = 1 }^{ T} X_t^T \Omega X_t. 
+    \mu_\beta &= \sum_{t=1}^{T} \left[ X_t^T \Omega (\bY_t - \alpha |z_t|) \right]\\
+    \Lambda_\beta &= \Lambda_0 + \sum_{ t = 1 }^{ T} X_t^T \Omega X_t.
 \end{align*}
