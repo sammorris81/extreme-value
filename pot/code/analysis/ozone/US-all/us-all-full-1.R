@@ -15,7 +15,7 @@ keep.knots <- F
 threshold <- 0
 thresh.quant <- F
 skew <- F
-outputfile <- paste("OzoneFull-", setting, "US.RData", sep="")
+outputfile <- paste("us-all-full-", setting, ".RData", sep="")
 
 start <- proc.time()
 
@@ -84,7 +84,7 @@ fit <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
             thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
             iters=30000, burn=25000, update=500, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=1,
-            nu.init=0.5, alpha.init=0.5)
+            nu.init=0.5, gamma.init=0.5)
 toc.set <- proc.time()
 time.set <- (toc.set - tic.set)[3]
 
