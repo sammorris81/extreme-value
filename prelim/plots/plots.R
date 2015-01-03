@@ -472,7 +472,9 @@ for (i in 2:length(omega)) {
 
 chi.gaus <- rep(0, length(omega))
 
-plot(d, chi.0.2, type="l", lty=1, xlim=range(d), ylim=c(0, 1))
+plot(d, chi.0.2, type="l", lty=1, xlim=range(d), ylim=c(0, 1),
+  xlab=bquote(h), ylab=bquote(chi(h)),
+  main=bquote(paste(chi, " statistic as a function of distance")))
 lines(d, chi.10.2, lty=3)
 lines(d, chi.0.3, lty=1)
 lines(d, chi.10.3, lty=3)
@@ -568,7 +570,7 @@ for (i in 1:length(omega)) {
 }
 
 plot(omega, chi.0.3, type="l", lty=1, xlim=rev(range(omega)), ylim=c(0, 1),
-     xlab=bquote(omega), ylab=bquote(chi(omega)),
+     xlab=bquote(h), ylab=bquote(chi(h)),
      main=bquote(paste(chi, " statistic as a function of correlation")))
 lines(omega, chi.10.3, lty=3)
 lines(omega, chi.10.3.p3, lty=2)
