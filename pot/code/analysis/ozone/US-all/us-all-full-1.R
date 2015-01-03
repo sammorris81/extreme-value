@@ -55,10 +55,10 @@ ny <- length(unique(S.p[, 2]))
 # First, figure out what the x and y values are for the rows
 # and columns we should keep
 unique.x <- unique(S.p[, 1])
-keep.x <- unique.x[seq(1, length(unique.x), by=4)]
+keep.x <- unique.x[seq(1, length(unique.x), by=6)]
 nx <- length(keep.x)
 unique.y <- unique(S.p[, 2])
-keep.y <- unique.y[seq(1, length(unique(S.p[, 2])), by=4)]
+keep.y <- unique.y[seq(1, length(unique(S.p[, 2])), by=6)]
 ny <- length(keep.y)
 keep.these <- which((S.p[, 1] %in% keep.x) & (S.p[, 2] %in% keep.y))
 
