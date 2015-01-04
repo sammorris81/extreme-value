@@ -89,6 +89,6 @@ toc.set <- proc.time()
 time.set <- (toc.set - tic.set)[3]
 
 elap.time.val <- (proc.time() - start)[3]
-avg.time.val <- elap.time.val / val
+avg.time.val <- elap.time.val
 save(fit, file=outputfile)
 
