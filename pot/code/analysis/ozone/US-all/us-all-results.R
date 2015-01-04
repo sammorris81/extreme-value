@@ -17,9 +17,10 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:4, 6:7, 10, 27:32)
+done <- c(1:4, 6:7, 10:12, 14, 16, 27:32, 34:42)
 
-for (i in 1:32) {
+load("us-all-results.RData")
+for (i in 1:42) {
   file <- paste("us-all-", i, ".RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
@@ -63,14 +64,14 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 32, length(probs))
-brier.score.mean <- matrix(NA, 32, length(thresholds))
+quant.score.mean <- matrix(NA, 42, length(probs))
+brier.score.mean <- matrix(NA, 42, length(thresholds))
 
-quant.score.se <- matrix(NA, 32, length(probs))
-brier.score.se <- matrix(NA, 32, length(thresholds))
+quant.score.se <- matrix(NA, 42, length(probs))
+brier.score.se <- matrix(NA, 42, length(thresholds))
 
-done <- c(1:4, 6:7, 10, 27:32)
-for (i in 1:32) {
+done <- c(1:4, 6:7, 10:12, 14, 16, 27:32, 34:42)
+for (i in 1:42) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
@@ -88,9 +89,9 @@ for (i in 1:length(thresholds)) {
   print(which(brier.score.mean[, i] == min(brier.score.mean[, i], na.rm=T)))
 }
 
-bs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
-qs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
-for (i in 1:31) {
+bs.mean.ref.gau <- matrix(NA, nrow=41, ncol=11)
+qs.mean.ref.gau <- matrix(NA, nrow=41, ncol=11)
+for (i in 1:41) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
