@@ -82,7 +82,7 @@ One measure of extremal dependence is the $\chi$ statistic \citep{Padoan2011}.
 The $\chi$ statistic for the upper tail is given by $\lim_{c \rightarrow \infty} \Pr(Y(\bs_1) > c | Y(\bs_2) > c)$.
 For a stationary spatial process, we can write the $\chi$ coefficient as
 \begin{align}
-  \chi(h) = \lim_{c \rightarrow \infty} \Pr(Y(\bs) > c | Y(\bt) > c).
+  \chi(h) = \lim_{c \rightarrow \infty} \Pr[Y(\bs) > c | Y(\bt) > c].
 \end{align}
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the distance, so they are not suitable for modeling spatially-dependent extremes.
@@ -140,16 +140,15 @@ Therefore, sites in different subregions are asymptotically independent.
 Marginally, over the knots $\bw_1, \ldots, \bw_K$, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_s = k_t)$ is the probability that two sites separated by distance $h$ are in the same partition.
 So, to show that $\lim_{h \rightarrow \infty} \chi(h) = 0$, we need only know that $\lim_{h \rightarrow \infty} \pi(h) = 0$.
 A proof of this is given in Appendix \ref{a:proofsamepartition}.
-
-Figure \ref{fig:simchi} shows $\chi(h)$ for varying data settings when $\bs \in [0, 1] \times [0, 1]$.
-The plot clearly shows that without partitioning, in a skew-$t$ process, all sites remain asymptotically dependent.
-However, upon incorporating partitioning into the model, the asymptotic dependence is only shared by sites that are close to one another.
+Figure \ref{fig:chi} shows how partitioning reduces the extremal dependence.
 
 \begin{figure}
-  %\includegraphics[width=\linewidth]{plots/sim-chi.pdf}
-  \caption{$\chi(h)$ for different settings. I need to replace the plot here.}
-  \label{fig:simchi}
+  \centering
+  \includegraphics[width=0.5\linewidth]{plots/chi-h.pdf}
+  \caption{$\chi(h)$ for $K = 1, 3, 5$, and $10$ partitions as a function of distance.}
+  \label{fig:chi}
 \end{figure}
+
 
 \subsection{Extension to space-time data} \label{s:temporal}
 When using daily measurements, the assumption of temporal independence is inappropriate.
@@ -244,14 +243,16 @@ We generate data from 6 different simulation designs:
   \item Skew-$t$ marginal, $K=5$ knots
   \item Max-stable.
 \end{enumerate}
-In the first five designs, the $v_t(\bs)$ terms are generated using a \Matern covariance with smoothness parameter $\nu = 0.5$ and spatial range $\rho = 0.1$.
+In the first five designs, the $v_t(\bs)$ terms are generated using a \Matern covariance with smoothness parameter $\nu = 0.5$ and spatial range $\rho = 1$.
 For the covariance matrices in designs 1 -- 5, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
 In the first design, $\sigma^2 = 2$ is used for all days.
 For designs 2 -- 4, $\sigma^2_{tk} \iid \text{IG}(3, 8)$
 For designs 1 -- 3, we set $\lambda = 0$.
 For designs four and five, $\lambda = 3$ was used, and the $z_t$ are generated as described in (\ref{eq:sitez}).
-In the sixth design, we generate from a spatial max-stable distribution \citep{Reich2012} with parameters $\mu = 1, \sigma=1, \xi=0.2$ and 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
-\hl{I know I need more here about the max-stable method}
+In the sixth design, we generate from a spatial max-stable distribution \citep{Reich2012}.
+In this design, data have marginal distributions that follow a generalized extreme value distribution with parameters $\mu = 1, \sigma=1, \xi=0.2$.
+In this model, a random effect is used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
+For this setting, we set $\gamma = 0.5$.
 In all six designs, the mean $\bX \bbeta = 10$ is assumed to be constant across space.
 
 $M = 50$ data sets are generated for each design.
@@ -259,9 +260,9 @@ For each data set we fit the data using
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=1$ knots, $T=-\infty$
-  \item $T$ marginal, $K=1$ knots, $T=q(0.80)$
+  \item Skew-$t$ marginal, $K=1$ knots, $T=q(0.80)$
   \item Skew-$t$ marginal, $K=5$ knots, $T=-\infty$
-  \item $T$ marginal, $K=5$ knots, $T=q(0.80)$
+  \item Skew-$t$ marginal, $K=5$ knots, $T=q(0.80)$
 \end{enumerate}
 where $q(0.80)$ is the 80th sample quantile of the data.
 The design matrix $\bX$ includes an the intercept with a prior of $\beta \sim \text{N}(0, 10)$.
@@ -272,7 +273,7 @@ The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We do not fit the data using the max-stable methods from \citet{Reich2012} because of the time it takes.
 
 \subsection{Cross validation}\label{s:modelselect}
-Models were compared using cross validation with 100 sites used as training sites and 30 sites witheld for testing.
+Models were compared using cross validation with 100 sites used as training sites and 44 sites witheld for testing.
 The model was fit using the training set, and predictions were generated at the testing site locations.
 Because one of the primary goals of this model is to predict extreme events, we use Brier scores to select the model that best fits the data \citep{Gneiting2007}.
 The Brier score for predicting exceedance of a threshold $c$ is given by $[e(c) - P(c)]^2$ where $e(c) = I[y>c]$ is an indicator function indicating that a test set value, $y$, has exceeded the threshold, $c$, and $P(c)$ is the predicted probability of exceeding $c$.
@@ -286,12 +287,12 @@ Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier scor
 \begin{align*}
   \text{BS}_{\text{rel}} = \frac{\text{BS}_{\text{method}}}{\text{BS}_{\text{Gaussian}}}.
 \end{align*}
-For data that are relatively symmetric, the standard Gaussian method outperforms the other methods.
-However, when the data come from a skewed distribution (settings 3 -- 6), the partitioned and thresholded methods outperform the Gaussian method.
-Additionally, for both of the skew-$t$ settings ($K = 1$, $K = 5$), the skew-$t$ method with the appropriate number of partitions performs the best.
-Finally, the simulation results suggest that for data from a skew-$t$ distribution, thresholded methods provide some improvement over non-thresholded models for the extreme thresholds.
-With the exception of the Brier score for $c = q(0.995)$ in setting 6, the improvement over the Gaussian method is statistically significant using a Wilcoxon signed rank test ($\alpha = 0.05$).
-
+We analyzed the results for the simulation study using two-sided Wilcoxon signed rank tests.
+For the first five data settings, our model with no thresholding and $K = 1$ or $5$ partitions performs significantly better (p-value $<0.001$) than the Gaussian method.
+Additionally, for the $T$ and skew-$t$ settings with $K = 5$, the skew-$t$ method with $K=5$ partitions performs significantly better (p-value $<0.001$) than the skew-$t$ method with $K=1$ partition except for the Brier score at $T = q(0.995)$ for the $T$ setting with $K = 5$ (p-value $=0.036$).
+For the $T$ and skew-$t$ settings with $K = 1$, the Brier scores for the model with $K = 1$ partition are significantly better (p-value $<0.001$) for thesholds less than $q(0.95)$.
+However, as the threshold for the Brier score increases, the difference becomes less significant.
+Finally, in the max-stable data setting, our model with $K=1$ partition has significantly better Brier scores than the Gaussian method for thresholds $q(0.92)$ -- $q(0.95)$ (p-value $<0.05$) and $q(0.95)$ -- $q(0.995)$ (p-value $<0.001$).
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
@@ -306,46 +307,57 @@ Initially, we fit a linear regression assuming a mean function of
 \begin{align}
   \bX \bbeta = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
 \end{align}
-The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot of the residuals compared to a skew-$t$ distribution with 8 d.f. and $\alpha = 1$.
-\begin{center}
+The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
-  \includegraphics[width=0.5\linewidth]{plots/ozone-10jul.pdf}
-  \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
+  \centering
+  \includegraphics[width=0.55\linewidth]{plots/ozone-10jul-us.pdf}
+  \includegraphics[width=0.44\linewidth]{plots/qq-res.pdf}
   \caption{Ozone values on 10 July 2005 (left) Q-Q plot of the residuals (right)}
   \label{fig:ozone}
 \end{figure}
-\end{center}
-The $\widehat{\chi}(h)$ and $\widehat{\chi}(t)$ plots estimate the spatial and temporal dependence using sample data.
-For $\widehat{\chi}(h)$, we take the sample proportion of all pairs of sites within distance $h$ of one another that are above a threshold $T$.
-\hl{I know I need another sentence or two here about $\widehat{\chi}(t)$}
-indicate that the residuals still demonstrate spatial and temporal dependence (see Figure \ref{fig:chi-st})
-\begin{center}
+
+We explore spatial and temporal extremal dependence by considering $\chi_c = \Pr[Y(\bs) > c | Y(\bt) > c]$.
+To examine spatial dependence in high quantiles, we consider observations at all pairs of sites $\bs$ and $\bt$ that are distance $h$ apart where $h$ is separated into bins of size 0.25 km.
+Then conditioned on $Y(\bt) > c$, we take the sample proportion of $Y(\bs) > c$.
+Finally, $\widehat{\chi}_c(h)$ is averaged over all days at each of the three threshold quantiles.
+To examine temporal dependence in high quantiles, we consider observations at a single site that are taken lag-$t$ days apart.
+Then conditioned on $Y_n(\bs) > c$, we take the sample proportion of $Y_{n + t}(\bs) > c$.
+Finally, $\widehat{\chi}(t)$ is averaged over all sites at each of the three threshold quantiles.
+The $\widehat{\chi}_c(h)$ and $\widehat{\chi}_c(t)$ plots in Figure \ref{fig:chi-st} show the estimated spatial and temporal dependence of the residuals for the ozone data at three quantile levels $q(0.90), q(0.95)$, and $q(0.99)$.
+Both plots indicate that there is dependence in the high quantile levels beyond what we expect if the residuals were independent.
 \begin{figure}
-  \includegraphics[width=0.5\linewidth]{plots/chi-h-ozone.pdf}
-  \includegraphics[width=0.5\linewidth]{plots/chi-t-ozone.pdf}
-  \caption{$\widehat{\chi}(h)$ plot for the residuals. The vertical line indicates the distance after which observations no longer demonstrate dependence (left) $\widehat{\chi}(t)$ plot for the residuals (right)}
+  \centering
+  \includegraphics[width=0.49\linewidth]{plots/chi-h-ozone.pdf}
+  \includegraphics[width=0.49\linewidth]{plots/chi-t-ozone.pdf}
+  \caption{$\widehat{\chi}_c(h)$ plot for the residuals (left). $\widehat{\chi}_c(t)$ plot for the residuals (right).}
   \label{fig:chi-st}
 \end{figure}
-\end{center}
 
 \subsection{Model comparisons}
-We fit the model using Gaussian and skew-$t$ marginal distributions, $K=1, 5, 10, 15$ partitions, with $Y(\bs)$ censored at $T = 0, 50, 75, 90$ ppb as described in Section \ref{s:data}.
-We also include a max-stable analysis using the method by ????
+The data analysis was done in two stages.
+In the first stage, we fit the model using Gaussian and skew-$t$ marginal distributions with $K=1, 5, 10, 15$ partitions.
+We chose to censor $Y(\bs)$ at $T = 0, 50, 75, 85$ ppb in order to compare results from no, moderate, and high censoring.
+We also include a max-stable analysis using the hierarchical max-stable model of \citet{Reich2012}.
 All methods assume the mean function given in (\ref{eq:datamean}).
-For each model, Brier scores and quantile scores were were averaged over all sites and days to obtain a single quantile score for each dataset.
+For each model, Brier scores were were averaged over all sites and days to obtain a single Brier score for each dataset.
 At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
-Looking at the heatplot in Figure \ref{fig:heatplot}, we can see that the methods using no thresholding tend to outperform those methods that do use thresholding.
-
+Based on the results from the first stage, we conducted a second stage analysis with $K = 6, 7, 8, 9$.
 
 \subsection{Results}\label{s:results}
+The plot in Figure \ref{fig:bs-ozone} shows the relative Brier scores (see Section \ref{s:simresults}) for the first and second stages of the analysis.
 \begin{figure}
-  \includegraphics[width=0.5\linewidth]{plots/heatplot.pdf}
-  \includegraphics[width=0.5\linewidth]{plots/qscore-best.pdf}
-  \caption{Heatplot of quantile scores for the 99th quantile (left) Quantile scores of Gaussian, skew-$t$ (K=10, T=q(0)), and Max-stable (right)}
-  \label{fig:heatplot}
+  \includegraphics[width=0.5\linewidth]{plots/bs-ozone-1.pdf}
+  \includegraphics[width=0.5\linewidth]{plots/bs-ozone-2.pdf}
+  \caption{Relative Brier scores for stage 1 ozone analysis (left) and stage 2 ozone analysis (right)}
+  \label{fig:bs-ozone}
 \end{figure}
+As with the simulation results, the Brier scores from the thresholded models were higher than those from the non-thresholded models, so we do not include them here.
+Based upon these results, it would appear that our model using a partition with anywhere from $K = 5$ to $K = 10$ partitions gives Brier scores across all threshold levels that are consistently low.
 
-\section{Conclusions}\label{s:con}
+\section{Discussion}\label{s:con}
+Given the nature
+
+There are also questions that remain regarding this model
 
 \section*{Acknowledgments}
 

@@ -203,7 +203,7 @@ for (i in 1:length(done.groups)){
   idx <- (i - 1) * 5 + seq(1:5)
   done.sets[idx] <- (done.groups[i] - 1) * 5 + seq(1:5)
 }
-nsettings <- dim(y)[4]
+nsettings <- 6
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
 
@@ -271,7 +271,7 @@ rm(quant.score.all, brier.score.all, beta.0.all, beta.1.all, beta.2.all,
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-nsettings <- dim(y)[4]
+nsettings <- 6
 nmethods <- 5
 
 # get single brier scores and quantile scores for each setting x method x quantile
@@ -315,14 +315,19 @@ for (i in 1:length(probs)) { for (j in 1:(nmethods-1)) { for (k in 1:nsettings) 
 round(paired.results, 4)
 
 # wilcoxon signed-rank test for Brier scores
-wilcox.results <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
-best.methods <- vector(mode="list")
+wilcox.results.gau <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
 for (i in 1:length(probs)) { for (k in 1:nsettings) {
-  ref.j <- best.brier[i, k]
-  cmp.j <- (1:5)[-ref.j]
-  for (j in 1:(nmethods-1)) {
-    wilcox.results[i, j, k] <- wilcox.test(brier.score[i, , ref.j, k], brier.score[i, , cmp.j[j], k], paired=T)$p.value
+  ref.j <- 1
+  for (j in 2:nmethods) {
+    wilcox.results.gau[i, (j-1), k] <- wilcox.test(brier.score[i, , ref.j, k], brier.score[i, , j, k],
+                                               paired=T, alternative="greater")$p.value
   }
+}}
+
+wilcox.results.5 <- matrix(NA, nrow=length(probs), ncol=nsettings)
+for (i in 1:length(probs)) { for (k in 1:nsettings) {
+  wilcox.results.5[i, k] <- wilcox.test(brier.score[i, , 2, k], brier.score[i, , 4, k],
+                                               paired=T)$p.value
 }}
 
 # get single brier scores and quantile scores for each setting x method x quantile
@@ -384,12 +389,12 @@ par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in 1:nsettings) {
   if (setting == 6) {
     ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T) + 0.1
-    ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T) 
+    ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   } else {
     ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
     ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   }
-  
+
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
        ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="Relative Brier score", xlab="Threshold quantile", cex.lab=2, cex.axis=2, cex.main=2)

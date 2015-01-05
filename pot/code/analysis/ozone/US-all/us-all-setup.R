@@ -210,18 +210,19 @@ for (thresh in 1:length(threshs)){
 
 par(mar=c(5.1, 5.1, 4.1, 2.1))
 xplot <- bins.h[-length(bins)] + 0.125
-plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, lwd=2,
-     xlim=c(0, 3.5), xaxt="n", xlab="bin distance (km) / 1000",
-     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(h)")),
-     main=bquote(paste(chi, "(h) for ozone residuals")),
+plot(xplot, exceed.h.res[, 1], type="b", pch=21, lty=1, lwd=2,
+     xlim=c(0, 3.75), xaxt="n", xlab="bin distance (km) / 1000",
+     ylim=c(0, 0.35), ylab=bquote(paste(hat(chi)[c], "(h)")),
+     # main=bquote(paste(chi, "(h) for ozone residuals")),
      cex.lab=1.5, cex.axis=1.5, cex.main=2
      )
 axis(1, at=bins, cex.axis=1.5)
 for (line in 2:3) {
-	lines(xplot, exceed.h.res[, line], lty=1, pch=line, type="b", lwd=2)
+	lines(xplot, exceed.h.res[, line], lty=1, pch=(20 + line), type="b", lwd=2)
 }
-abline(v=1, lty=3, lwd=2)
-legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", cex=1.5, lwd=2)
+# abline(v=1, lty=3, lwd=2)
+legend("topright", lty=1, pch=21:23, legend=c("c = q(0.90)", "c = q(0.95)", "c = q(0.99)"),
+       title="Sample quantiles", cex=1.5, lwd=2, pt.bg="white")
 
 # chi(t) plot
 max.lag <- 5
@@ -244,17 +245,18 @@ for (thresh in 1:length(threshs)){
 }
 
 xplot <- seq(1, 5, 1)
-plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, lwd=2,
+plot(xplot, exceed.t.res[, 1], type="b", pch=21, lty=1, lwd=2,
      xlim=c(0.5, 5.5), xaxt="n", xlab="lag",
-     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(t)")),
-     main=bquote(paste(chi, "(t) for ozone residuals")),
+     ylim=c(0, 0.37), ylab=bquote(paste(hat(chi)[c], "(t)")),
+     # main=bquote(paste(chi, "(t) for ozone residuals")),
      cex.lab=1.5, cex.axis=1.5, cex.main=2
 )
 axis(1, at=xplot, cex.axis=1.5)
 for (line in 2:3) {
-	lines(xplot, exceed.t.res[, line], lty=1, pch=line, type="b", lwd=2)
+	lines(xplot, exceed.t.res[, line], lty=1, pch=(20 + line), type="b", lwd=2)
 }
-legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", pt.bg="white", cex=1.5, lwd=2)
+legend("topright", lty=1, pch=21:23, legend=c("c = q(0.90)", "c = q(0.95)", "c = q(0.99)"),
+       title="Sample quantiles", pt.bg="white", cex=1.5, lwd=2)
 
 # qq plot of residuals
 library(sn)
@@ -269,9 +271,9 @@ xplot <- qt(theory.qq, 10)
 plot(xplot, res.qq)
 abline(0, 1)
 
-xplot <- qst(theory.qq, nu=8, alpha=1)
+xplot <- qst(theory.qq, nu=10, alpha=1)
 xplot <- (xplot - mean(xplot))
-plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 8 d.f. and alpha = 1")
+plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1")
 abline(0, 1)
 
 

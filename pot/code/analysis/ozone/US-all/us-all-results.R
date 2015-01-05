@@ -17,7 +17,7 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:4, 6:7, 10:12, 14, 16, 27:32, 34:42)
+done <- c(1:25, 27:42)
 
 load("us-all-results.RData")
 for (i in 1:42) {
@@ -70,7 +70,7 @@ brier.score.mean <- matrix(NA, 42, length(thresholds))
 quant.score.se <- matrix(NA, 42, length(probs))
 brier.score.se <- matrix(NA, 42, length(thresholds))
 
-done <- c(1:4, 6:7, 10:12, 14, 16, 27:32, 34:42)
+done <- c(1:25, 27:42)
 for (i in 1:42) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
@@ -180,69 +180,54 @@ plot(xplot, type="n", axes=F, ylab="", xlab="")
 legend("center", legend=c("Skew-t, T=0", "Skew-t, T=50", "Skew-t, T=75", "Skew-t, T=85", "T, T=75", "T, T=85"),
        col=c(col[1:4], col[3:4]), pch=c(rep(21, 4), rep(24, 2)), pt.bg=c(bg[1:4], bg[3:4]), cex=2.4, box.lty=0)
 
-# includes results for non-skewed methods
-plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.15), pch=21,
-     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=5,
-     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[9, 6:11], type="b", pch=24, col=col[1], bg=bg[1],
-      cex=1.3, lty=5)
-lines(xplot, bs.mean.ref.gau[17, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
-      cex=1.3, lty=3)
-lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
-      cex=1.3, lty=5)
-lines(xplot, bs.mean.ref.gau[21, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
-      cex=1.3, lty=3)
-lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
-      cex=1.3, lty=5)
-lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
-      cex=1.3, lty=1)
-abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0", "T, K=1, T=75",
-       "Skew-t, K=1, T=75", "T, K=10, T=75", "Skew-t, K=10, T=75", "Max-stable"),
-       pch=c(21, 24, 21, 21, 24, 24, 23), lty=c(5, 5, 3, 5, 3, 5, 1),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[2], bg[2], bg[5]), cex=1.3)
 
-# includes results for skewed methods only
-plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.1), pch=21,
+
+# best performing partition settings
+plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.755, 0.843), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
-     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[9, 6:11], type="b", pch=24, col=col[1], bg=bg[1],
+     # main="Select ozone Brier scores",
+     cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
+lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
+lines(xplot, bs.mean.ref.gau[9, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
-      cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
+lines(xplot, bs.mean.ref.gau[13, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
       cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0",
-       "Skew-t, K=1, T=75", "Skew-t, K=10, T=75", "Max-stable"),
-       pch=c(21, 24, 21, 24, 23), lty=c(1, 1, 1, 1, 1),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[5]), cex=1.3)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=5, T=0", "Skew-t, K=10, T=0",
+       "Skew-t, K=15, T=0"),
+       pch=c(21, 21, 21, 21), lty=c(1, 1, 1, 1), cex=1.3,
+       pt.bg=c(bg[1], bg[2], bg[3], bg[4]),
+       col=c(col[1], col[2], col[3], col[4]))
 
-# includes knots 1 -- 5 with max-stable
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
-these.probs <- 1:11
+these.probs <- 1:10
 xplot <- probs[these.probs]
-plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.89), pch=21,
+plot(xplot, bs.mean.ref.gau[32, these.probs], type="b", ylim=c(0.755, 0.843), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
-     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[2, these.probs], type="b", pch=22, col=col[1], bg=bg[1],
-      cex=1.3, lty=3)
-lines(xplot, bs.mean.ref.gau[26, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
+     # main="Select ozone Brier scores",
+     cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
+lines(xplot, bs.mean.ref.gau[33, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[28, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
+lines(xplot, bs.mean.ref.gau[34, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-# lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
-#       cex=1.3, lty=1)
-# lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[5], bg=bg[5],
-#        cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[35, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+      cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", "Skew-t, K=2, T=0",
-       "Skew-t, K=3, T=0"),
-       pch=c(21, 22, 21, 21, 21, 23), lty=c(1, 3, 1, 1, 1, 1),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[3], bg[4], bg[5]), cex=1.3)
+legend("topleft", legend=c("Skew-t, K=6, T=0", "Skew-t, K=7, T=0", "Skew-t, K=8, T=0",
+       "Skew-t, K=9, T=0"),
+       pch=c(21, 21, 21, 21), lty=c(1, 1, 1, 1), cex=1.3,
+       pt.bg=c(bg[1], bg[2], bg[3], bg[4]),
+       col=c(col[1], col[2], col[3], col[4]))
+
+
+
+wilcox.results.gau <- matrix(NA, nrow=length(probs), ncol=4)
+part.best <- c(6, 33, 34, 35)
+for(i in 1:length(probs)) { for (k in 1:4) {
+  wilcox.results.gau[i, k] <- wilcox.test(brier.score[i, , 1], brier.score[i, , 6])$p.value
+}}
 
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")

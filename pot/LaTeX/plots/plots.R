@@ -20,10 +20,10 @@ tau.beta.t  <- 8
 
 # covariate data
 s         <- cbind(runif(500), runif(500))
-ns        <- nrow(s)  
+ns        <- nrow(s)
 nt        <- 50
 nsets     <- 1
-nsettings <- length(mixprob.t) 
+nsettings <- length(mixprob.t)
 ntest     <- floor(ns / 2)
 
 x <- array(1, c(ns, nt, 3))
@@ -48,13 +48,13 @@ for (setting in 1:nsettings) {
                      mixprob=mixprob.t[setting], z.alpha=z.alpha.t[setting],
                      tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                      nknots=nknots.t[setting])
-    
+
     y[, , set, setting]        <- data$y
     tau.t.setting[, , set]     <- data$tau
     z.t.setting[, , set]       <- data$z
     knots.t.setting[, , , set] <- data$knots
   }
-    
+
   tau.t[[setting]]   <- tau.t.setting
   z.t[[setting]]     <- z.t.setting
   knots.t[[setting]] <- knots.t.setting
@@ -127,7 +127,7 @@ for (thresh in 1:length(threshs)){
 par(mfrow=c(1, 2))
 xplot <- bins[-11]
 plot(xplot, exceed[, 1], type="b", ylim=c(0, 0.75), ylab="exceed", xlab="bin distance", pch=1, lty=3, main="chi-plot: t, 1 partition")
-for (line in 2:9) { 
+for (line in 2:9) {
 	lines(xplot, exceed[, line], lty=3)
 	points(xplot, exceed[, line], pch=line)
 }
@@ -160,7 +160,7 @@ for (thresh in 1:length(threshs)){
 
 xplot <- bins[-11]
 plot(xplot, exceed[, 1], type="b", ylim=c(0, 0.75), ylab="exceed", xlab="bin distance", pch=1, lty=3, main="chi-plot: t, 5 partitions")
-for (line in 2:9) { 
+for (line in 2:9) {
 	lines(xplot, exceed[, line], lty=3)
 	points(xplot, exceed[, line], pch=line)
 }
@@ -194,7 +194,7 @@ for (thresh in 1:length(threshs)){
 par(mfrow=c(1, 2))
 xplot <- bins[-11]
 plot(xplot, exceed[, 1], type="b", ylim=c(0, 1), ylab="exceed", xlab="bin distance", pch=1, lty=3, main="chi-plot: skew-t, 1 partition")
-for (line in 2:9) { 
+for (line in 2:9) {
 	lines(xplot, exceed[, line], lty=3)
 	points(xplot, exceed[, line], pch=line)
 }
@@ -227,7 +227,7 @@ for (thresh in 1:length(threshs)){
 
 xplot <- bins[-11]
 plot(xplot, exceed[, 1], type="b", ylim=c(0, 1), ylab="exceed", xlab="bin distance", pch=1, lty=3, main="chi-plot: skew-t, 5 partitions")
-for (line in 2:9) { 
+for (line in 2:9) {
 	lines(xplot, exceed[, line], lty=3)
 	points(xplot, exceed[, line], pch=line)
 }
@@ -314,3 +314,267 @@ quilt.plot(x=s[, 1], y=s[, 2], z=y[, 5], nx=40, ny=40, zlim=zlim, main="Day 5", 
 lines(l)
 quilt.plot(x=s[, 1], y=s[, 2], z=y[, 34], nx=40, ny=40, zlim=zlim, main="Day 34", xlab="", ylab="")
 lines(l)
+
+# chi plot
+rm(list=ls())
+library(sn)
+library(fields)
+dest <- function(y, alpha, tau, nu) {
+  ft <- dt(y, df=nu, log=T)
+  Ft.tau <- pt(tau / sqrt(1 + alpha^2), df=nu, log.p=T)
+  Ft <- pt((alpha * y + tau) * sqrt((nu + 1) / (nu + y^2)), df=(nu+1), log.p=T)
+  result.log <- ft - Ft.tau + Ft
+  return(exp(result.log))
+}
+
+d <- seq(0, 5, 0.05)
+omega <- exp(-d)
+
+alpha <- 0
+nu <- 2
+chi.0.2 <- rep(0, length(omega))
+chi.0.2[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.0.2[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 10
+nu <- 2
+chi.10.2 <- rep(0, length(omega))
+chi.10.2[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.10.2[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 0
+nu <- 3
+chi.0.3 <- rep(0, length(omega))
+chi.0.3[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.0.3[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 10
+nu <- 3
+chi.10.3 <- rep(0, length(omega))
+chi.10.3[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.10.3[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 0
+nu <- 4
+chi.0.4 <- rep(0, length(omega))
+chi.0.4[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.0.4[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 10
+nu <- 4
+chi.10.4 <- rep(0, length(omega))
+chi.10.4[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.10.4[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 0
+nu <- 6
+chi.0.6 <- rep(0, length(omega))
+chi.0.6[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.0.6[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 10
+nu <- 6
+chi.10.6 <- rep(0, length(omega))
+chi.10.6[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.10.6[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 0
+nu <- 20
+chi.0.20 <- rep(0, length(omega))
+chi.0.20[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.0.20[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+alpha <- 10
+nu <- 20
+chi.10.20 <- rep(0, length(omega))
+chi.10.20[1] <- 1
+for (i in 2:length(omega)) {
+  omega.i <- omega[i]
+  alpha.j <- alpha
+  alpha.i <- alpha.j * sqrt(1 - omega.i)
+  tau.i   <- sqrt(nu + 1) * (alpha.i + alpha.j * omega.i)
+  y.i <- (1 - omega.i) * sqrt(nu + 1) / sqrt(1 - omega.i^2)
+  chi.10.20[i] <- 2 * integrate(dest, lower=y.i, upper=Inf,
+                          alpha=alpha.i, tau=tau.i, nu=nu)$value
+}
+
+chi.gaus <- rep(0, length(omega))
+
+plot(d, chi.0.2, type="l", lty=1, xlim=range(d), ylim=c(0, 1),
+  xlab=bquote(h), ylab=bquote(chi(h)),
+  main=bquote(paste(chi, " statistic as a function of distance")))
+lines(d, chi.10.2, lty=3)
+lines(d, chi.0.3, lty=1)
+lines(d, chi.10.3, lty=3)
+lines(d, chi.0.4, lty=1)
+lines(d, chi.10.4, lty=3)
+lines(d, chi.0.6, lty=1)
+lines(d, chi.10.6, lty=3)
+lines(d, chi.0.20, lty=1)
+lines(d, chi.10.20, lty=3)
+lines(d, chi.gaus, lty=1)
+
+# generate pi(h)
+set.seed(200)
+rho <- 1
+ns <- 400
+nsims <- 500
+rho <- 1
+s <- cbind(runif(ns, 0, 9), runif(ns, 0, 9))
+d11 <- rdist(s)
+
+h <- cor <- same.3 <- same.5 <- same.10 <- rep(0, sum(1:(nrow(s) - 1)))
+idx <- 0
+
+for (i in 1:(nrow(s) - 1)) {
+  cat("Starting i =", i, "\n")
+  for (j in ((i+1):nrow(s))) {
+    s.ij <- s[c(i, j), ]
+    h[idx] <- d11[i, j]
+    cor[idx] <- exp(-h[idx])
+    for (k in 1:nsims){
+      knots <- cbind(runif(3, 0, 9), runif(3, 0, 9))
+      d <- rdist(s.ij, knots)
+      g <- apply(d, 1, which.min)
+      if (g[1] == g[2]) {
+        same.3[idx] <- same.3[idx] + 1 / nsims
+      }
+
+      knots <- cbind(runif(5, 0, 9), runif(5, 0, 9))
+      d <- rdist(s.ij, knots)
+      g <- apply(d, 1, which.min)
+      if (g[1] == g[2]) {
+        same.5[idx] <- same.5[idx] + 1 / nsims
+      }
+
+      knots <- cbind(runif(10, 0, 9), runif(10, 0, 9))
+      d <- rdist(s.ij, knots)
+      g <- apply(d, 1, which.min)
+      if (g[1] == g[2]) {
+        same.10[idx] <- same.10[idx] + 1 / nsims
+      }
+    }
+    idx <- idx + 1
+    if ((j %% 25) == 0) {
+      cat("\t j =", j, "\n")
+    }
+  }
+}
+
+d.same <- seq(0, 5, 0.05)
+d.window <- 0.025
+omega.same <- exp(-d.same)
+p.same.3 <- p.same.5 <- p.same.10 <- rep(0, length(omega.same))
+p.same.3[1] <- p.same.5[1] <- p.same.10[1] <- 1
+for (i in 2:length(omega.same)) {
+  d.i <- d.same[i]
+  d.l <- d.i - d.window
+  d.u <- d.i + d.window
+  p.same.3[i] <- mean(same.3[(h >= d.l) & (h < d.u)])
+  p.same.5[i] <- mean(same.5[(h >= d.l) & (h < d.u)])
+  p.same.10[i] <- mean(same.10[(h >= d.l) & (h < d.u)])
+}
+
+save.image(file="pot-chi.RData")
+
+load(file="pot-chi.RData")
+
+plot(d.same, p.same.3, xlim=range(d.same), type="l",
+     xlab=bquote(h), ylab=bquote(pi(h)), ylim=c(0, 1),
+     main="Simulated probability that two sites will be in the same partition")
+lines(d.same, p.same.5, lty=2)
+lines(d.same, p.same.10, lty=3)
+legend("bottomleft", legend=c("3 knots", "5 knots", "10 knots"), lty=c(1, 2, 3))
+
+# multiply by chi.0.3 and chi10.3 to find partition
+chi.0.3.p3 <- p.same.3 * chi.0.3
+chi.10.3.p3 <- p.same.3 * chi.10.3
+chi.0.3.p5 <- p.same.5 * chi.0.3
+chi.10.3.p5 <- p.same.5 * chi.10.3
+chi.0.3.p10 <- p.same.10 * chi.0.3
+chi.10.3.p10 <- p.same.10 * chi.10.3
+
+
+plot(d, chi.0.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
+     xlab=bquote(h), ylab=bquote(chi(h)),
+     # main=bquote(paste(chi, " statistic as a function of distance"))
+     )
+lines(d, chi.0.3.p3, lty=1, col="dodgerblue3")
+lines(d, chi.0.3.p5, lty=1, col="orange3")
+lines(d, chi.0.3.p10, lty=1, col="darkolivegreen3")
+lines(d, chi.gaus, lty=1)
+legend("topright", lty=c(1, 1, 1, 1, 1),
+  legend=c("T, K=1", "T, K=3", "T, K=5", "T, K=10", "Gaussian"),
+  col=c("firebrick3", "dodgerblue3", "orange3", "darkolivegreen3", "black"))
