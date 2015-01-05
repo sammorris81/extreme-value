@@ -355,9 +355,18 @@ As with the simulation results, the Brier scores from the thresholded models wer
 Based upon these results, it would appear that our model using a partition with anywhere from $K = 5$ to $K = 10$ partitions gives Brier scores across all threshold levels that are consistently low.
 
 \section{Discussion}\label{s:con}
-Given the nature
+In this paper we propose a new approach for spatitemporal modeling of extreme values.
+The proposed model gives flexible tail behavior, demonstrates asymptotic dependence for observations at sites that are near to one another, and has computation on the order of Gaussian models for large space-time datasets.
+In the simulation study, we demonstrate that there are statistically significant improvements over a na\"{i}ve Gaussian approach.
+In both the simulation study, and the application to ozone data, we find that incorporating a partition in the model improves extreme prediction.
+We also find that censoring the data below a threshold does not improve the results, and in many cases makes them worse.
 
-There are also questions that remain regarding this model
+This model presents new avenues for future research.
+One possibility is the implementation of a different partition structure.
+We choose to define the random effects for a site by using an indicator function based on closeness to a knot.
+However, this indicator function could be replaced by kernel function that would allow for multiple knots to impact each site, with the weight of each knot to be determined by some characteristic such as distance.
+Another area that should be explored is the temporal dependence in the model.
+Instead of implementing a time series on the random effects, a three-dimensional covariance structure on the residuals could be implemented to address temporal dependence.
 
 \section*{Acknowledgments}
 
