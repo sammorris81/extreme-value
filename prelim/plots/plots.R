@@ -558,23 +558,22 @@ lines(d.same, p.same.10, lty=3)
 legend("bottomleft", legend=c("3 knots", "5 knots", "10 knots"), lty=c(1, 2, 3))
 
 # multiply by chi.0.3 and chi10.3 to find partition
-chi.0.3.p3 <- chi.10.3.p3 <- chi.0.3.p5 <- chi.10.3.p5 <- chi.0.3.p10 <- chi.10.3.p10 <- rep(0, length(omega))
-for (i in 1:length(omega)) {
-  this.omega.same <- which((omega[i] >= round((omega.same - 0.005), 3)) & (omega[i] < round((omega.same + 0.005), 3)))
-  chi.0.3.p3[i] <- chi.0.3[i] * p.same.3[this.omega.same]
-  chi.10.3.p3[i] <- chi.10.3[i] * p.same.3[this.omega.same]
-  chi.0.3.p5[i] <- chi.0.3[i] * p.same.5[this.omega.same]
-  chi.10.3.p5[i] <- chi.10.3[i] * p.same.5[this.omega.same]
-  chi.0.3.p10[i] <- chi.0.3[i] * p.same.10[this.omega.same]
-  chi.10.3.p10[i] <- chi.10.3[i] * p.same.10[this.omega.same]
-}
+chi.0.3.p3 <- p.same.3 * chi.0.3
+chi.10.3.p3 <- p.same.3 * chi.10.3
+chi.0.3.p5 <- p.same.5 * chi.0.3
+chi.10.3.p5 <- p.same.5 * chi.10.3
+chi.0.3.p10 <- p.same.10 * chi.0.3
+chi.10.3.p10 <- p.same.10 * chi.10.3
 
-plot(omega, chi.0.3, type="l", lty=1, xlim=rev(range(omega)), ylim=c(0, 1),
+
+plot(d, chi.0.3, type="l", lty=2, xlim=range(d), ylim=c(0, 1), col="firebrick4",
      xlab=bquote(h), ylab=bquote(chi(h)),
-     main=bquote(paste(chi, " statistic as a function of correlation")))
-lines(omega, chi.10.3, lty=3)
-lines(omega, chi.10.3.p3, lty=2)
-lines(omega, chi.10.3.p10, lty=4)
-lines(omega, chi.gaus, lty=1)
-legend("topright", legend=c("T, K=1", "Skew-t, K=1", "Skew-t, K=3", "Skew-t, K=10"),
-       lty=c(1, 3, 2, 4))
+     main=bquote(paste(chi, " statistic as a function of distance")))
+lines(d, chi.10.3, lty=1, col="firebrick4")
+lines(d, chi.10.3.p3, lty=1, col="dodgerblue4")
+lines(d, chi.10.3.p5, lty=1, col="orange4")
+lines(d, chi.10.3.p10, lty=1, col="darkolivegreen4")
+lines(d, chi.gaus, lty=1)
+legend("topright", lty=c(2, 1, 1, 1, 1, 1),
+  legend=c("T, K=1", "Skew-t, K=1", "Skew-t, K=3", "Skew-t, K=5", "Skew-t, K=10", "Gaussian"),
+  col=c("firebrick4", "firebrick4", "dodgerblue4", "orange4", "darkolivegreen4", "black"))
