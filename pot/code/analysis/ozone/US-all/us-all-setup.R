@@ -82,6 +82,12 @@ quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
            main="Ozone values on 10 July 2005")
 lines(borders/1000)
 
+# Plot a day's data - presentation
+quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
+           xaxt="n", xlim=c(-2.5, 2.5),
+           yaxt="n", ylim=c(-1.65, 1.3),)
+lines(borders/1000)
+
 #### 2-fold cross validation
 set.seed(1)
 cv.idx <- sample(nrow(S), nrow(S), replace=F)
