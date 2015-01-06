@@ -22,7 +22,7 @@ code <- '
     condmean(i) = m(idx) - pow(sd_i, 2) * tau(idx) * as_scalar(H_temp * r_temp);
   }
   return Rcpp::List::create(
-    Rcpp::Named("cond.mn") = condmean, 
+    Rcpp::Named("cond.mn") = condmean,
     Rcpp::Named("cond.sd") = condsd
   );
 '
@@ -35,6 +35,6 @@ conditional.mean <- function(mn, prec, res, taug=NULL, include=NULL) {
   if (is.null(include)) {
     include <- 1:length(mn)
   }
-  
+
   results <- conditional.Rcpp(mn=mn, prec=prec, res=res, taug=taug, include=include)
 }

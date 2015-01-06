@@ -134,7 +134,7 @@
       \item computationally challenging to work with
       \item joint distribution only available in low dimension
     \end{itemize}
-    \item Bayesian hierarchical model
+    \item Bayesian hierarchical model (Reich and Shaby, 2012)
     \item Pairwise likelihood approach (Huser and Davison, 2014)
   \end{itemize}
 \end{frame}
@@ -150,16 +150,17 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Thresholding data}
+\begin{frame}{Censoring data}
   \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item We threshold the observed data at a high threshold $T$.
-    \item Thresholded data:
+    \item We censor the observed data at a high threshold $T$.
+    \item Censored data:
     \begin{align*}
-      Y_t^*(\bs) = \left\{ \begin{array}{ll}
-          Y_t(\bs) \quad & Y_t(\bs) > T\\
-          T \quad & Y_t(\bs) \le T
+      \tilde{Y}_t(\bs) = \left\{ \begin{array}{ll}
+          Y_t(\bs) \quad & \delta(\bs) = 1\\
+          T \quad & \delta(\bs) = 0
       \end{array}\right.
     \end{align*}
+    where $\delta(\bs) = I[Y(\bs) > T]$
     \item Allows tails of the distribution to speak for themselves.
   \end{itemize}
 \end{frame}
@@ -169,9 +170,10 @@
    \item The $\chi$ coefficient is a measure of extremal dependence
    \item Specifically, we focus on $\chi(\bh)$ for the upper tail given by
     \begin{align*}
-      \chi(\bh) = \lim_{c \rightarrow \infty}\Pr(Y(\bs) > c \mid Y(\bs + \bh) > c)
+      \chi(h) = \lim_{c \rightarrow \infty}\Pr(Y(\bs) > c \mid Y(\bt) > c)
     \end{align*}
-    \item If $ \chi(\bh) = 0$, then observations are asymptotically independent at distance $\bh$.
+    where $h = ||\bs - \bt||$
+    \item If $ \chi(h) = 0$, then observations are asymptotically independent at distance $\bh$.
     \item We expect $\lim_{\bh \rightarrow \infty}\chi(\bh)=0$.
   \end{itemize}
 \end{frame}
@@ -261,8 +263,8 @@ $\rho(\bh)$.
 \begin{frame}{Example daily partition}
     \centering
     \begin{figure}
-    \includegraphics[width=0.54\linewidth]{./plots/example-partition-1.pdf}
-    \includegraphics[width=0.54\linewidth]{./plots/example-partition-2.pdf}
+    \includegraphics[width=0.54\linewidth]{./plots/pot/example-partition-1.pdf}
+    \includegraphics[width=0.54\linewidth]{./plots/pot/example-partition-2.pdf}
     \caption{Two sample partitions (number is at partition center)}
     \end{figure}
 \end{frame}
@@ -271,16 +273,15 @@ $\rho(\bh)$.
 \begin{frame}{Simulated $\widehat{\chi}(\bh)$ plots}
   \centering
   \begin{figure}
-  \includegraphics[width=1\linewidth]{./plots/chi-plots.pdf}\\[-0.25in]
-  \includegraphics[width=0.2\linewidth]{./plots/chi-legend.pdf}
-  \caption{$\chi$ plots from simulated datasets}
+  \includegraphics[width=1\linewidth]{./plots/pot/chi-h.pdf}\\[-0.25in]
+  \caption{$\chi$ plot for different data settings}
   \end{figure}
 \end{frame}
 
 \begin{frame}{Sample simulated datasets}
   \centering
   \begin{figure}
-  \includegraphics[width=1\linewidth]{./plots/gauss-vs-t3.pdf}
+  \includegraphics[width=1\linewidth]{./plots/pot/gauss-vs-t3.pdf}
   \caption{Gaussian and $t$ with 3 partitions}
   \end{figure}
 \end{frame}
@@ -288,7 +289,7 @@ $\rho(\bh)$.
 \begin{frame}{Sample simulated datasets}
   \centering
   \begin{figure}
-  \includegraphics[width=1\linewidth]{./plots/gauss-vs-skew-t3.pdf}
+  \includegraphics[width=1\linewidth]{./plots/pot/gauss-vs-skew-t3.pdf}
   \caption{Gaussian and skew-$t$ with 3 partitions}
   \end{figure}
 \end{frame}
@@ -305,21 +306,43 @@ $\rho(\bh)$.
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Simulation study}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
+    \item 6 different data settings:
+    \begin{itemize}
+      \item Gaussian vs $t$ vs skew-$t$ marginal distribution
+        \item $K=1$ partition vs $K=5$ partitions
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Brier score results}
+\centering
+
+\end{frame}
+
 \begin{frame}{Data analysis}
 \begin{columns}[c]
 \column{.45 \linewidth}
 	\begin{itemize} \setlength{\itemsep}{0.5em}
-	\item Data analysis uses
+	\item Ozone measurements
 	\begin{itemize}
 		\item max 8-hour ozone measurements
-		\item 85 sites
-		\item 92 days
+		\item data from 1089 sites
+		\item July 2005
 	\end{itemize}
+  \item We take a stratified sample of $n = 800$ sites:
+  \begin{itemize}
+    \item 271 from northeast
+    \item 96 from northwest
+    \item 269 from southeast
+    \item 164 from southwest
+  \end{itemize}
 	\end{itemize}
 
 	\column{.55\linewidth}
 	\begin{figure}
-    \includegraphics[width=1\linewidth]{./plots/ozone_station.pdf}
+    \includegraphics[width=1\linewidth]{./plots/pot/ozone_stations.pdf}
     \caption{Ozone monitoring station locations}
     \end{figure}
 \end{columns}
@@ -328,8 +351,8 @@ $\rho(\bh)$.
 \begin{frame}{Data analysis}
   \centering
   \begin{figure}
-    \includegraphics[width=1\linewidth]{./plots/ozone-day.pdf}
-    \caption{Max 8-hour ozone measurements at 85 sites in NC, SC, and GA for days 5 and 34}
+    \includegraphics[width=1\linewidth]{./plots/pot/ozone-10jul-us.pdf}
+    \caption{Max 8-hour ozone measurements on July 10, 2005}
    \end{figure}
 
 \end{frame}
@@ -337,7 +360,7 @@ $\rho(\bh)$.
 \begin{frame}{Exploratory data analysis}
 	\centering
   \begin{figure}
-    \includegraphics[width=1\linewidth]{./plots/chi-plot-ozone-res.pdf}
+    \includegraphics[width=1\linewidth]{./plots/pot/chi-plot-ozone-res.pdf}
     \caption{$\widehat{\chi}$-plot for sample quantiles of ozone observations}
   \end{figure}
 \end{frame}
@@ -359,19 +382,19 @@ $\rho(\bh)$.
    \end{itemize}
 \end{frame}
 
-\begin{frame}{Quantile score for cross-validation}
-  \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item The quantile score for the $\tau$th quantile is
-    \begin{align*}
-      2 \{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q} - y)
-    \end{align*}
-    where:
-    \begin{itemize}
-      \item $y$ is a test set value
-      \item $\widehat{q}(\tau)$ is the estimated $\tau$th quantile
-    \end{itemize}
-  \end{itemize}
-\end{frame}
+% \begin{frame}{Quantile score for cross-validation}
+%   \begin{itemize} \setlength{\itemsep}{0.5em}
+%     \item The quantile score for the $\tau$th quantile is
+%     \begin{align*}
+%       2 \{ I[y < \widehat{q}(\tau)] - \tau\} (\widehat{q} - y)
+%     \end{align*}
+%     where:
+%     \begin{itemize}
+%       \item $y$ is a test set value
+%       \item $\widehat{q}(\tau)$ is the estimated $\tau$th quantile
+%     \end{itemize}
+%   \end{itemize}
+% \end{frame}
 
 \begin{frame}{Brier score}
   \begin{itemize} \setlength{\itemsep}{0.5em}
@@ -399,9 +422,9 @@ $\rho(\bh)$.
   \hline
 Gaussian 	& 1 & 0 	& 39.820 & 17.539 & 9.167 & 4.720 & 1.057\\
 $t$		& 1 & 0 	& {\bf 31.008} & {\bf 13.898} & 7.229 & {\bf 3.405} & 0.879\\
-$t$		& 3 & 0	& 31.213 & 13.920 & {\bf 7.218} & 3.498 & 0.918\\
+$t$		& 5 & 0	& 31.213 & 13.920 & {\bf 7.218} & 3.498 & 0.918\\
 $t$		& 1 & 0.9	& 32.221 & 14.519 & 7.549 & 3.604 & 0.896\\
-$t$		& 3 & 0.9 	& 38.842 & 16.781 & 8.434 & 4.180 & 1.020\\
+$t$		& 5 & 0.9 	& 38.842 & 16.781 & 8.434 & 4.180 & 1.020\\
 skew-$t$	& 1 & 0	& 31.845 & 14.542 & 7.533 & 3.645 & {\bf 0.844}\\
 skew-$t$	& 1 & 0.9	& 32.132 & 14.296 & 7.484 & 3.497 & 0.890\\
 skew-$t$	& 3 & 0	& 33.653 & 15.453 & 8.119 & 4.338 & 1.188\\
@@ -415,70 +438,60 @@ skew-$t$	& 3 & 0.9 	& 32.157 & 14.727 & 7.794 & 3.825 & 0.917\\
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Predicted 95th quantile}
-\centering
-\begin{figure}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-95-gau.pdf}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-95-t10.pdf}
-    \caption{Predicted 95th quantile using Gaussian and $t$}
-\end{figure}
-\end{frame}
+% % TODO: Update with new plots
+% \begin{frame}{Predicted 95th quantile}
+% \centering
+% \begin{figure}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-95-gau.pdf}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-95-t10.pdf}
+%     \caption{Predicted 95th quantile using Gaussian and $t$}
+% \end{figure}
+% \end{frame}
 
-\begin{frame}{Predicted 95th quantile}
-\centering
-\begin{figure}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-95-t10.pdf}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-95-t19.pdf}
-    \caption{Predicted 95th quantile using $t$ and $t$ thresholded at $T=0.9$}
-\end{figure}
-\end{frame}
+% \begin{frame}{Predicted 95th quantile}
+% \centering
+% \begin{figure}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-95-t10.pdf}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-95-t19.pdf}
+%     \caption{Predicted 95th quantile using $t$ and $t$ thresholded at $T=0.9$}
+% \end{figure}
+% \end{frame}
 
-\begin{frame}{Predicted 99th quantile}
-\centering
-\begin{figure}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-99-gau.pdf}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-99-t10.pdf}
-    \caption{Predicted 99th quantile using Gaussian and $t$}
-\end{figure}
-\end{frame}
+% \begin{frame}{Predicted 99th quantile}
+% \centering
+% \begin{figure}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-99-gau.pdf}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-99-t10.pdf}
+%     \caption{Predicted 99th quantile using Gaussian and $t$}
+% \end{figure}
+% \end{frame}
 
-\begin{frame}{Predicted 99th quantile}
-\centering
-\begin{figure}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-99-t10.pdf}
-    \includegraphics[width=.5\linewidth]{./plots/quantile-99-t19.pdf}
-    \caption{Predicted 99th quantile using $t$ and $t$ thresholded at $T=0.9$}
-\end{figure}
-\end{frame}
+% \begin{frame}{Predicted 99th quantile}
+% \centering
+% \begin{figure}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-99-t10.pdf}
+%     \includegraphics[width=.5\linewidth]{./plots/quantile-99-t19.pdf}
+%     \caption{Predicted 99th quantile using $t$ and $t$ thresholded at $T=0.9$}
+% \end{figure}
+% \end{frame}
 
-\begin{frame}{Probability of exceedance}
-\centering
-\begin{figure}
-    \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-gau.pdf}
-    \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t10.pdf}
-    \caption{Probability of exceeding the 75 ppb ozone standard using Gaussian and $t$}
-\end{figure}
-\end{frame}
+% \begin{frame}{Probability of exceedance}
+% \centering
+% \begin{figure}
+%     \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-gau.pdf}
+%     \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t10.pdf}
+%     \caption{Probability of exceeding the 75 ppb ozone standard using Gaussian and $t$}
+% \end{figure}
+% \end{frame}
 
-\begin{frame}{Probability of exceedance}
-\centering
-\begin{figure}
-    \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t10.pdf}
-    \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t19.pdf}
-    \caption{Probability of exceeding the 75 ppb ozone standard using $t$ and $t$ thresholded at $T=0.9$}
-\end{figure}
-\end{frame}
-
-\begin{frame}{Simulation study}
-  \begin{itemize} \setlength{\itemsep}{0.5em}
-    \item 6 different data settings:
-    \begin{itemize}
-    	\item Gaussian vs $t$ vs skew-$t$ marginal distribution
-        \item $K=1$ partition vs $K=5$ partitions
-    \end{itemize}
-    \item Preliminary results are inconclusive
-  \end{itemize}
-\end{frame}
+% \begin{frame}{Probability of exceedance}
+% \centering
+% \begin{figure}
+%     \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t10.pdf}
+%     \includegraphics[width=.5\linewidth]{./plots/p-exceed-std-t19.pdf}
+%     \caption{Probability of exceeding the 75 ppb ozone standard using $t$ and $t$ thresholded at $T=0.9$}
+% \end{figure}
+% \end{frame}
 
 \begin{frame}{Future Work}
   \begin{itemize} \setlength{\itemsep}{0.5em}

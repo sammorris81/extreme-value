@@ -20,6 +20,10 @@ image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-0
 points(S)       # Locations of monitoring stations
 lines(borders)  # Add state lines
 
+# for presentation
+plot(S, axes=F, ylab="", xlab="", ylim=c(-1600, 1300), xlim=c(-2300, 2400))
+lines(borders)
+
 #### start data preprocessing
 # only include sites from the eastern US
 # keep.these <- which(S[, 1] > 0)

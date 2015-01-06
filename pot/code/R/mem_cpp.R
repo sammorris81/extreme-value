@@ -1,9 +1,9 @@
 library(inline)
 code <- '
   arma::mat d = Rcpp::as<arma::mat>(d_knots);
-  int ns = d.n_rows; int nknots = d.n_cols; 
+  int ns = d.n_rows; int nknots = d.n_cols;
   arma::uword index; double min;
-  arma::rowvec d_temp(nknots);  
+  arma::rowvec d_temp(nknots);
   NumericVector g(ns);
   for (int i = 0; i < ns; i++) {
     d_temp = d.row(i);

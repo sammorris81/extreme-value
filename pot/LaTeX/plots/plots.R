@@ -301,8 +301,8 @@ text(knots[5, 1], knots[5, 2], "5", cex=4)
 lines(l)
 
 # plot monitoring station ozone locations
-load('../../code/analysis/ozone/SE/cv-setup-se.RData')
-source('../../code/R/mcmc.R')
+load('../../code/analysis/ozone/US-all/us-all-setup.RData')
+source('../../code/R/mcmc.R', chdir=T)
 source('../../code/R/auxfunctions.R')
 plot(s, type="p", xlab="", ylab="")
 lines(l)
