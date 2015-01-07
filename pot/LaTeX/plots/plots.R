@@ -567,24 +567,23 @@ chi.0.3.p10 <- p.same.10 * chi.0.3
 chi.10.3.p10 <- p.same.10 * chi.10.3
 
 # plot with just t-distribution and gaussian
-plot(d, chi.0.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
+plot(d, chi.10.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
      xlab=bquote(h), ylab=bquote(chi(h)),
      # main=bquote(paste(chi, " statistic as a function of distance"))
      )
-lines(d, chi.10.3, lty=2, col="firebrick3")
 lines(d, chi.gaus, lty=1)
-legend("topright", lty=c(1, 2, 1),
-  legend=c("T", as.expression(bquote(paste("Skew-t, ", alpha==10))), "Gaussian"),
-  col=c("firebrick3", "firebrick3", "black"))
+legend("topright", lty=c(1, 1),
+  legend=c(as.expression(bquote(paste("Skew-t, ", alpha==10))), "Gaussian"),
+  col=c("firebrick3", "black"))
 
-plot(d, chi.0.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
+plot(d, chi.10.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
      xlab=bquote(h), ylab=bquote(chi(h)),
      # main=bquote(paste(chi, " statistic as a function of distance"))
      )
-lines(d, chi.0.3.p3, lty=1, col="dodgerblue3")
-lines(d, chi.0.3.p5, lty=1, col="orange3")
-lines(d, chi.0.3.p10, lty=1, col="darkolivegreen3")
+lines(d, chi.10.3.p3, lty=1, col="dodgerblue3")
+lines(d, chi.10.3.p5, lty=1, col="orange3")
+lines(d, chi.10.3.p10, lty=1, col="darkolivegreen3")
 lines(d, chi.gaus, lty=1)
 legend("topright", lty=c(1, 1, 1, 1, 1),
-  legend=c("T, K=1", "T, K=3", "T, K=5", "T, K=10", "Gaussian"),
+  legend=c("Skew-t, K=1", "Skew-t, K=3", "Skew-t, K=5", "Skew-t, K=10", "Gaussian"),
   col=c("firebrick3", "dodgerblue3", "orange3", "darkolivegreen3", "black"))
