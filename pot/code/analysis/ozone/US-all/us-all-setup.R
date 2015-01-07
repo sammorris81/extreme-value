@@ -21,6 +21,7 @@ points(S)       # Locations of monitoring stations
 lines(borders)  # Add state lines
 
 # for presentation
+quartz(width=8, height=6)
 plot(S, axes=F, ylab="", xlab="", ylim=c(-1600, 1300), xlim=c(-2300, 2400))
 lines(borders)
 
@@ -83,6 +84,7 @@ quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
 lines(borders/1000)
 
 # Plot a day's data - presentation
+quartz(width=8, height=6)
 quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
            xaxt="n", xlim=c(-2.5, 2.5),
            yaxt="n", ylim=c(-1.65, 1.3),)

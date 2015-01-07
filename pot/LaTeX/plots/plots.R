@@ -566,6 +566,16 @@ chi.10.3.p5 <- p.same.5 * chi.10.3
 chi.0.3.p10 <- p.same.10 * chi.0.3
 chi.10.3.p10 <- p.same.10 * chi.10.3
 
+# plot with just t-distribution and gaussian
+plot(d, chi.0.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
+     xlab=bquote(h), ylab=bquote(chi(h)),
+     # main=bquote(paste(chi, " statistic as a function of distance"))
+     )
+lines(d, chi.10.3, lty=2, col="firebrick3")
+lines(d, chi.gaus, lty=1)
+legend("topright", lty=c(1, 2, 1),
+  legend=c("T", as.expression(bquote(paste("Skew-t, ", alpha==10))), "Gaussian"),
+  col=c("firebrick3", "firebrick3", "black"))
 
 plot(d, chi.0.3, type="l", lty=1, xlim=range(d), ylim=c(0, 1), col="firebrick3",
      xlab=bquote(h), ylab=bquote(chi(h)),
