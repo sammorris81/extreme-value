@@ -86,3 +86,78 @@ legend4 <- as.expression(bquote(alpha==0.8))
 legend5 <- as.expression(bquote(alpha==1.0))
 legend("bottomright", legend=c(legend1, legend2, legend3, legend4, legend5), lty=1,
        col=c("black", "firebrick3", "dodgerblue3", "darkolivegreen3", "orange3"))
+
+
+# link functions
+rm(list=ls())
+library(evd)
+set.seed(200)
+x <- rnorm(70, -1, 2)
+xplot <- seq(-10, 10, 0.01)
+logit <- exp(xplot) / (1 + exp(xplot))
+probit <- pnorm(xplot)
+cloglog <- 1 - exp(-exp(xplot))
+xi <- 0.4
+gev <- 1 - pgev(-xplot, shape=xi)
+plot(xplot, logit, type="l")
+lines(xplot, probit)
+lines(xplot, cloglog)
+lines(xplot, gev, lty=2)
+
+exceed <- 2
+y.norm <- x + rnorm(length(x), 0, 1)
+y.bin.norm <- (y.norm > exceed)
+
+y.gev <- x + rgev(length(x), 0, 1, xi)
+y.bin.gev <- (y.gev > exceed)
+
+y.gev.2 <- x + rgev(length(x), 0, 1, -xi)
+y.bin.gev.2 <- (y.gev.2 > exceed)
+
+probit.1 <- glm(y.bin.gev ~ x, family=binomial(link="probit"))
+probit.1.int <- probit.1$coef[1]
+probit.1.slope <- probit.1$coef[2]
+probit.1.xbeta <- probit.1.int + probit.1.slope * xplot
+logit.1 <- glm(y.bin.gev ~ x, family=binomial)
+logit.1.int <- logit.1$coef[1]
+logit.1.slope <- logit.1$coef[2]
+logit.1.xbeta <- logit.1.int + logit.1.slope * xplot
+
+probit.2 <- glm(y.bin.gev.2 ~ x, family=binomial(link="probit"))
+probit.2.int <- probit.2$coef[1]
+probit.2.slope <- probit.2$coef[2]
+probit.2.xbeta <- probit.2.int + probit.2.slope * xplot
+logit.2 <- glm(y.bin.gev.2 ~ x, family=binomial)
+logit.2.int <- logit.2$coef[1]
+logit.2.slope <- logit.2$coef[2]
+logit.2.xbeta <- logit.2.int + logit.2.slope * xplot
+
+yplot.prob.1 <- pnorm(probit.1.xbeta)
+yplot.logit.1 <- exp(logit.1.xbeta) / (1 + exp(logit.1.xbeta))
+yplot.prob.2 <- pnorm(probit.2.xbeta)
+yplot.logit.2 <- exp(logit.2.xbeta) / (1 + exp(logit.2.xbeta))
+yplot.gev <- 1 - pgev(exceed - xplot, 0, 1, xi)
+yplot.cloglog <- 1 - exp(-exp(-(exceed - xplot)))
+yplot.gev.2 <- 1 - pgev(exceed - xplot, 0, 1, -xi)
+
+quartz(width=11, height=5.5)
+par(mfrow=c(1, 2))
+plot(x, y.bin.gev, ylab="P(Y = 1)", xlab="x", xlim=c(-10, 10))
+lines(xplot, yplot.prob.1, lty=2)
+lines(xplot, yplot.logit.1, lty=3)
+lines(xplot, yplot.gev, lty=1, col="dodgerblue3")
+lines(xplot, yplot.gev.2, lty=1, col="firebrick3")
+legend3 <- as.expression(bquote(paste("GEV, ", xi==0.4)))
+legend4 <- as.expression(bquote(paste("GEV, ", xi==-0.4)))
+legend("left", legend=c("Probit", "Logistic", legend3, legend4),
+       lty=c(2, 3, 1, 1), col=c("black", "black", "dodgerblue3", "firebrick3"))
+
+plot(x, y.bin.gev.2, ylab="P(Y = 1)", xlab="x", xlim=c(-10, 10))
+lines(xplot, yplot.prob.2, lty=2)
+lines(xplot, yplot.logit.2, lty=3)
+lines(xplot, yplot.gev, lty=1, col="dodgerblue3")
+lines(xplot, yplot.gev.2, lty=1, col="firebrick3")
+legend3 <- as.expression(bquote(paste("GEV, ", xi==0.4)))
+legend4 <- as.expression(bquote(paste("GEV, ", xi==-0.4)))
+legend("left", legend=c("Probit", "Logistic", legend3, legend4),
+       lty=c(2, 3, 1, 1), col=c("black", "black", "dodgerblue3", "firebrick3"))

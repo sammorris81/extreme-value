@@ -17,10 +17,16 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:25, 27:42)
-
 load("us-all-results.RData")
-for (i in 1:42) {
+done <- c(43:50)
+quant.score <- savelist[[1]]
+brier.score <- savelist[[2]]
+beta.0 <- savelist[[3]]
+beta.1 <- savelist[[4]]
+probs <- savelist[[5]]
+thresholds <- savelist[[6]]
+
+for (i in 1:50) {
   file <- paste("us-all-", i, ".RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
@@ -64,14 +70,14 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 42, length(probs))
-brier.score.mean <- matrix(NA, 42, length(thresholds))
+quant.score.mean <- matrix(NA, 50, length(probs))
+brier.score.mean <- matrix(NA, 50, length(thresholds))
 
-quant.score.se <- matrix(NA, 42, length(probs))
-brier.score.se <- matrix(NA, 42, length(thresholds))
+quant.score.se <- matrix(NA, 50, length(probs))
+brier.score.se <- matrix(NA, 50, length(thresholds))
 
-done <- c(1:25, 27:42)
-for (i in 1:42) {
+done <- c(1:25, 27:50)
+for (i in 1:50) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
@@ -89,9 +95,9 @@ for (i in 1:length(thresholds)) {
   print(which(brier.score.mean[, i] == min(brier.score.mean[, i], na.rm=T)))
 }
 
-bs.mean.ref.gau <- matrix(NA, nrow=41, ncol=11)
-qs.mean.ref.gau <- matrix(NA, nrow=41, ncol=11)
-for (i in 1:41) {
+bs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
+qs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
+for (i in 1:49) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
@@ -319,30 +325,59 @@ round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
 round(quant.score.mean, 4)
 round(brier.score.mean*1000, 4)
 
-# par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
+# posterior prediction maps
+rm(list=ls())
+library(fields)
+library(SpatialTools)
+load('us-all-setup.RData')
+# select every third CMAQ value
+S.p <- expand.grid(x, y)
+keep.these <- which((S.p[, 1] > -2.3) & (S.p[, 1] < 2.4) & S.p[, 2] > -1.6 & S.p[, 2] < 1.3)
+CMAQ.p <- CMAQ[keep.these, ]
+S.p    <- S.p[keep.these, ]
+nx <- length(unique(S.p[, 1]))
+ny <- length(unique(S.p[, 2]))
 
-# plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="With CMAQ", xlab="quantile", ylab="score")
-# for (i in 2:9) {
-  # lines(probs, quant.score.mean[i, ], lty=i)
-  # points(probs, quant.score.mean[i, ], pch=i)
-# }
-# title(main="Quantile Scores - Ozone: NC, SC, GA", outer=T)
+#### Thin the rows and columns by 3
+# First, figure out what the x and y values are for the rows
+# and columns we should keep
+unique.x <- unique(S.p[, 1])
+keep.x <- unique.x[seq(1, length(unique.x), by=10)]
+nx <- length(keep.x)
+unique.y <- unique(S.p[, 2])
+keep.y <- unique.y[seq(1, length(unique(S.p[, 2])), by=10)]
+ny <- length(keep.y)
+keep.these <- which((S.p[, 1] %in% keep.x) & (S.p[, 2] %in% keep.y))
 
-# plot(probs, quant.score.mean[10, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
-# for (i in 11:18) {
-  # lines(probs, quant.score.mean[i, ], lty=(i-9))
-  # points(probs, quant.score.mean[i, ], pch=(i-9))
-# }
+# Now select the subset from the original covariate and location information
+CMAQ.p <- CMAQ.p[keep.these, ]
+S.p    <- S.p[keep.these, ]
 
-# plot(probs, (quant.score.mean[10, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
-# for (i in 2:9) {
-  # lines(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), lty=i)
-  # points(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), pch=i)
-# }
+# load results
+threshold <- 75
+load('us-all-full-1.RData')
+np <- dim(fit$yp)[2]
+gaus.95 <- apply(fit$yp, c(2, 3), quantile, probs=0.95)
+gaus.p.below <- matrix(0, np, nt)
+for (i in 1:np) {
+  gaus.p.exceed <-
+}
+load('us-all-full-2.RData')
+t1.yp <- fit$yp
+load('us-all-full-33.RData')
+t6.yp <- fit$yp
+rm(fit)
 
-# plot(probs, quant.score.mean[1, ], type="n", axes=F)
+# zlim=c(0, 122)
+# quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
+# lines(borders/1000)
 
-# legend("center", lty=1:9, pch=1:9, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5", "skew-t5 (T=0.9)"))
+# posterior maps: 95th quantile
+gaus.95 <- apply(gaus.yp, c(2, 3), quantile, probs=0.95)
+
+# probability of exceeding 75ppb at least once
+
+
 
 load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")

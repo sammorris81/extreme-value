@@ -177,7 +177,7 @@ for (j in 1:4) {
 }
 
 
-setting.title <- c("Gaussian", "T (K = 1)", "T (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable")
+setting.title <- c("Gaussian", "Symmetric-t (K = 1)", "Symmetric-t (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Skew-t, K = 1, T = q(0.8)", "Skew-t, K = 5, T = q(0.0)", "Skew-t, K = 5, T = q(0.8)")
 bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
