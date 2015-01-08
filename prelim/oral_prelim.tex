@@ -6,12 +6,14 @@
 \usepackage{mdwlist}
 \usepackage{lineno, hyperref}
 \usepackage{stackrel}
+\usepackage{changepage}
 
 \usepackage{amssymb,latexsym,amsmath,amsthm,bbm}
 \usepackage{hyperref}
 \usepackage{tikz}
 \usepackage[english]{babel}
 \usepackage[latin1]{inputenc}
+\usepackage[authoryear]{natbib}
 \usepackage{multirow}
 \usepackage{verbatim}
 \usepackage{alltt}
@@ -44,7 +46,6 @@
 \setbeamercolor{author in head/foot}{fg=white,bg=wp-gray}  % changes color for author in footer
 \setbeamerfont{author in head/foot}{series=\bfseries}
 
-
 \title[Spatial methods for EVA] % (optional, use only with long paper titles)
 {
   Spatial methods for extreme value analysis
@@ -66,7 +67,7 @@
     \item Average behavior is important to understand, but it does not paint the whole picture
     \begin{itemize}
       \item e.g. When constructing river levees, engineers need to be able to estimate a 100-year or 1000-year flood levels
-      \item e.g. Probability of exceeding a certain threshold level
+      \item e.g. Probability of ambient air pollution exceeding a certain threshold level
     \end{itemize}
     \item Estimating the probability of rare events is challenging because these events are, by definition, rare
     \item Spatial extremes is promising because it borrows informaation across space
@@ -83,19 +84,19 @@
 \end{frame}
 
 \begin{frame}{Motivation}
+\begin{adjustwidth}{1em}{0em}
+  Ozone compliance for Clean Air Act (EPA) \vspace{1em}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Ozone compliance for Clean Air Act (EPA)
-    \begin{itemize}
-      \item Annual fourth-highest daily maximum 8-hour concentration, averaged over 3 years, not to exceed 75 ppb
-      \item Annual fourth-highest is the 99th percentile for the year
-      \item Common objectives are
-      \begin{itemize}
-        \item To interpolate to unmonitored sites
-        \item Detect changes in extremes over time
-        \item Study factors that lead to extreme events
-      \end{itemize}
+    \item Annual fourth-highest daily maximum 8-hour concentration, averaged over 3 years, not to exceed 75 ppb
+    \item Annual fourth-highest is the 99th percentile for the year
+    \item Common objectives are \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
+      \item To interpolate to unmonitored sites
+      \item Detect changes in extremes over time
+      \item Study meterological conditions that lead to extreme events
     \end{itemize}
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Defining extremes}
@@ -113,12 +114,12 @@
   \column{.55\linewidth}
   \begin{figure}
     \includegraphics[width=1\linewidth, trim=0 0.5in 0 1in]{./plots/define_extreme.pdf}
-    \caption{Hypothetical monthly maximums recorded over a three years}
+    \caption{Hypothetical monthly data}
     \end{figure}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Standard non-spatial analysis: Block maxima}
+\begin{frame}{Non-spatial analysis: Block maxima}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item Let $X_1, \ldots, X_n$ be i.i.d.
     \item Consider the block maximum $M_n = \max(X_1, \ldots, X_n)$
@@ -127,11 +128,11 @@
       \frac{ M_n - b_n }{ a_n } \converged G(z)
     \end{align*}
     then $G(z)$ follows a generalized extreme value distribution (GEV) (Falk et al., 2011)
-    \item This motivates the use of the GEV for block max data
+    \item This motivates the use of the GEV for block maximum data
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Standard non-spatial analysis: Block maxima}
+\begin{frame}{Non-spatial analysis: Block maxima}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item GEV distribution
     \begin{align*}
@@ -141,7 +142,7 @@
       \end{array}\right.
     \end{align*}
     where
-    \begin{itemize}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
       \item $\mu \in \calR$ is a location parameter
       \item $\sigma > 0$ is a scale parameter
       \item $\xi \in \calR$ is a shape parameter
@@ -158,46 +159,46 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Standard non-spatial analysis: Peaks over threshold}
+\begin{frame}{Non-spatial analysis: Peaks over threshold}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item Let $X_1, \ldots, X_n \sim F$
     \item If there exist normalizing sequences $a_t > 0$ and $b_t \in \calR$ such that for any $x \ge 0$, as $T \rightarrow \infty$
     \begin{align*}
-      \Pr\left(\frac{X - b_t}{a_t} > t \mid X > T\right) \converged H(x),
+      \Pr\left(\frac{X - b_t}{a_t} > x \mid X > T\right) \converged H(x),
     \end{align*}
     where $T$ is a thresholding value, then $H(x)$ follows a generalized Pareto distribution (GPD) (Balkema and de Haan, 1974)
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Standard non-spatial analysis: Peaks over threshold}
-  \begin{itemize}  \setlength{\itemsep}{1em}
-    \item Select a threshold, $T$, and use the Generalized Pareto distribution to model the exceedances
-    \begin{align*}
-      H(y) = P(Y < y) = \left\{ \begin{array}{ll}
-        1 - \left[1 - \xi \left( \frac{ y - T }{ \sigma } \right) \right]^{-1 / \xi} & \quad \xi \neq 0 \\[0.5em]
-        1 - \exp \left\{ \frac{ y - T }{ \sigma} \right\} & \quad \xi = 0
-      \end{array}\right.
-    \end{align*}
-    where
+\begin{frame}{Non-spatial analysis: Peaks over threshold}
+\begin{adjustwidth}{1em}{0em}
+  Select a threshold, $T$, and use the GPD to model the exceedances
+  \begin{align*}
+    H(y) = P(Y < y) = \left\{ \begin{array}{ll}
+      1 - \left[1 - \xi \left( \frac{ y - T }{ \sigma } \right) \right]^{-1 / \xi} & \quad \xi \neq 0 \\[0.5em]
+      1 - \exp \left\{ \frac{ y - T }{ \sigma} \right\} & \quad \xi = 0
+    \end{array}\right.
+  \end{align*}
+  where
+  \begin{itemize} \setlength{\itemsep}{0.25em}
+    \item $\sigma > 0$ is a scale parameter
+    \item $\xi \in \calR$ is a shape parameter
     \begin{itemize}
-      \item $\sigma > 0$ is a scale parameter
-      \item $\xi \in \calR$ is a shape parameter
-      \begin{itemize}
-        \item Unbounded above if $\xi \ge 0$
-        \item Bounded above by $(T - \sigma) / \xi$ when $\xi < 0$
-      \end{itemize}
+      \item Unbounded above if $\xi \ge 0$
+      \item Bounded above by $(T - \sigma) / \xi$ when $\xi < 0$
     \end{itemize}
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
-\begin{frame}{Standard non-spatial analysis: Peaks over threshold}
+\begin{frame}{Non-spatial analysis: Peaks over threshold}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item The GPD is related to GEV distribution through
     \begin{align*}
       H(y) = 1 + \log[G(y)], \quad y \ge T
     \end{align*}
-    \item Challenges:
-    \begin{itemize}
+    \item Challenges: \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Sensitive to threshold selection
       \item Temporal dependence between observations (e.g. flood levels don't dissipate overnight)
     \end{itemize}
@@ -208,18 +209,18 @@
 \begin{frame}{Max-stable processes for spatial data}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item Consider i.i.d. spatial processes $x_j(\bs)$, $j = 1, \ldots, J$
-    \item Let $M_J(\bs) = \bigvee_{j=1}^J x_j(\bs_i)$ be the block max at site $\bs$
+    \item Let $M_J(\bs) = \bigvee_{j=1}^J x_j(\bs_i)$ be the block maximum at site $\bs$
     \item If there exists normalizing sequences $a_J(\bs)$ and $b_J(\bs)$ such that for all sites, $\bs_i, i = 1, \ldots, d$,
     \begin{align*}
       a_J^{-1}(\bs) \left\{ M_J(\bs) - b_J(\bs) \right\} \converged Y(\bs)
     \end{align*}
     which has a non-degenerate distribution, then $Y(\bs)$ is a max-stable process
-    \item Therefore, max-stable processes are the standard for block maxima
+    \item Therefore, max-stable processes are the standard model for block maxima
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Multivariate representations}
-  \begin{itemize}
+  \begin{itemize} \setlength{\itemsep}{1em}
     \item Marginally at each site, observations follow a GEV distribution
     \item For a finite collection of sites the multivariate representation for the GEV (mGEV) is
     \begin{align*}
@@ -227,16 +228,16 @@
             V(\bz)    &= d \int_{\Delta_d} \bigvee_{i = 1}^d \frac{w_i}{z_i} H(\ddd w)
     \end{align*}
     where
-    \begin{itemize}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
       \item $\Delta_d = \{ \bw \in \calR^d_+ \mid w_1 + \cdots + w_d = 1\}$
       \item $H$ is a probability measure on $\Delta_d$
-      \item $\int_{\Delta_d}w_i H(\ddd w) = 1 / d$ for $i = 1, \ldots, d$.
+      \item $\int_{\Delta_d}w_i H(\ddd w) = 1 / d$ for $i = 1, \ldots, d$
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Multivariate GEV challenges}
-  \begin{itemize}
+  \begin{itemize} \setlength{\itemsep}{1em}
     \item Only a few closed-form expressions for $V(\bz)$ exist (Stephenson, 2003)
     \item Two common forms for $V(\bz)$:
     \begin{itemize}
@@ -248,13 +249,13 @@
       \begin{align*}
         V(\bz) = \sum_{l = 1}^L \left[\sum_{i = 1}^n \left(\frac{w_{il}}{z_i} \right)^{1 / \alpha_l} \right]^{\alpha_l}
       \end{align*}
-      where $w_{il} \in [0, 1]$ and $\sum_{l = 1}^L w_{il} = 1$.
+      where $w_{il} \in [0, 1]$ and $\sum_{l = 1}^L w_{il} = 1$
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Multivariate peaks over threshold}
-  \begin{itemize}
+  \begin{itemize} \setlength{\itemsep}{1em}
     \item Few existing methods
     \item Often use max-stable methods due to the relationship between GEV and GPD
     \item Joint distribution function given by Falk et al. (2011)
@@ -286,7 +287,7 @@
     \item Multivariate max-stable and GPD models have nice features, but they are
     \begin{itemize}
       \item Computationally challenging (e.g,  the asymmetric logistic has $2^{n-1}(n + 2) - (2n + 1)$ free parameters)
-      \item Joint distribution only available in low dimensions
+      \item Joint density only available in low dimensions
     \end{itemize}
     \item Some recent approaches
     \begin{itemize}
@@ -298,35 +299,37 @@
 \end{frame}
 
 \begin{frame}{Three principal contributions}
-  \begin{enumerate}[1] \setlength{\itemsep}{1em}
+\begin{adjustwidth}{1em}{0em}
+  \begin{enumerate}[1.] \setlength{\itemsep}{1.5em}
     \item A spatio-temporal model with flexible tails, asymptotic spatial dependence, and computation on the order of Gaussian models for large space-time datasets
     \item Predicting rare binary events with a spatially dependent generalized extreme-value link function
     \item A Bayesian hierarchical model to allow for non-stationary covariance in extreme value models
   \end{enumerate}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Spatiotemporal modeling for extreme values}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item Model objectives:
+\begin{adjustwidth}{1em}{0em}
+  Model objectives: \vspace{1em}
+  \begin{itemize} \setlength{\itemsep}{1em} \setlength{\itemindent}{1em}
+    \item Marginal distribution at each site with a flexible tail
     \begin{itemize}
-      \item Marginal distribution with a flexible tail
-      \begin{itemize}
-        \item Allow for asymmetric distributions
-        \item Allow for heavy tails
-      \end{itemize}
-      \item Asymptotic spatial dependence
-      \item Computation on the order of Gaussian models for large space-time datasets
+      \item Allow for asymmetric distributions
+      \item Allow for heavy tails
     \end{itemize}
+    \item Asymptotic spatial dependence
+    \item Computation on the order of Gaussian models for large space-time datasets
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Gaussian spatial model}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item In geostatistics $Y(\bs)$ are often modeled using a Gaussian process with mean function $\mu(\bs)$ and covariance function $\rho(h)$.
+    \item In geostatistics, $Y(\bs)$ are often modeled using a Gaussian process with mean function $\mu(\bs)$ and covariance function $\rho(h)$.
     \item Model properties
     \begin{itemize}
       \item Nice computing properties (closed-form likelihood)
-      \item For a Gaussian spatial model $\lim_{c \rightarrow \infty} \chi(h) = 0$ regardless of the strength of the correlation in the bulk of the distribution
+      \item For a Gaussian spatial model $\chi(h) = 0$ regardless of the strength of the correlation in the bulk of the distribution
       \item Tail is not flexible
       \begin{itemize}
         \item Light-tailed
@@ -337,44 +340,44 @@
 \end{frame}
 
 \begin{frame}{Spatial skew-$t$ distribution}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item A more flexible alternative is the spatial skew-$t$ process (Zhang and El-Shaarawi, 2012)
-    \begin{align*}
-      Y(\bs) = \bX(\bs)\bbeta + \lambda |z| + v(\bs)
-    \end{align*}
-    where
-    \begin{itemize} \setlength{\itemsep}{0.25em}
-      \item $\lambda \in \calR$ controls the skewness
-      \item $z \sim N(0, \sigma^2)$ is a random effect
-      \item $v(\bs)$ is a Gaussian process with variance $\sigma^2$ and \Matern correlation
-      \item $\sigma^2 \sim \text{IG}(a, b)$
-    \end{itemize}
+\begin{adjustwidth}{1em}{0em}
+  A more flexible alternative is the spatial skew-$t$ process (Zhang and El-Shaarawi, 2012)
+  \begin{align*}
+    Y(\bs) = \bX(\bs)\bbeta + \lambda |z| + v(\bs)
+  \end{align*}
+  where
+  \begin{itemize} \setlength{\itemsep}{0.25em}
+    \item $\lambda \in \calR$ controls the skewness
+    \item $z \sim N(0, \sigma^2)$ is a random effect
+    \item $v(\bs)$ is a Gaussian process with variance $\sigma^2$ and \Matern correlation
+    \item $\sigma^2 \sim \text{IG}(a, b)$
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Spatial skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item \alert{Conditioned} on $z$ and $\sigma^2$, $Y(\bs)$ is a Gaussian spatial model
-    \item Can use standard geostatistical methods to fit this model
+    \item Standard geostatistical methods apply
     \item Predictions can be made through Kriging
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Spatial skew-$t$ distribution}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item \alert{Marginalizing} over $z$ and $\sigma^2$ (via MCMC),
-    \begin{align*}
-      Y(\bs) \sim \text{skew-t}(\bX(\bs), \bOmega, \alpha, \text{df}=2a)
-    \end{align*}
-    where
-    \begin{itemize}
-      \item $\bX(\bs) \bbeta$ is the location
-      \item $\bOmega = \frac{1}{ab} \bar{\bOmega}$ is a correlation matrix
-      \item $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T)$
-      \item $\bSigma$ is a postive definite correlation matrix
-      \item $\alpha = \lambda( 1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ controls the skewness
-    \end{itemize}
+\begin{adjustwidth}{1em}{0em}
+  \alert{Marginalizing} over $z$ and $\sigma^2$ (via MCMC),
+  \begin{align*}
+    Y(\bs) \sim \text{skew-t}(\bX(\bs), \bOmega, \alpha, \text{df}=2a)
+  \end{align*}
+  where
+  \begin{itemize} \setlength{\itemsep}{0.25em}
+    \item $\bX(\bs) \bbeta$ is the location
+    \item $\bOmega = \frac{1}{ab} \bar{\bOmega}$ is a correlation matrix
+    \item $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T)$
+    \item $\bSigma$ is a postive definite correlation matrix
+    \item $\alpha = \lambda( 1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ controls the skewness
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{$\chi(h)$ plot}
@@ -388,8 +391,8 @@
 
 \begin{frame}{Spatial skew-$t$ distribution properties}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Model properties:
-    \begin{itemize}
+    \item Model properties: \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Flexible tail
       \begin{itemize}
         \item Skewness controlled by $\lambda$
@@ -398,22 +401,22 @@
       \item For a skew-$t$ distribution $\lim_{c \rightarrow \infty} \chi(h) > 0$ (Padoan, 2011)
       \item Computation that is on the order of Gaussian computation
     \end{itemize}
-    \item Challenge: $\chi(h) > 0$ as $h \rightarrow \infty$ (Padoan, 2011)
-    \begin{itemize}
-      \item This occurs because all observations (near and far) share the same $z$ and $\sigma^2$
-    \end{itemize}
+    \item Challenge: Long-range dependence occurs because all observations (near and far) share the same $z$ and $\sigma^2$ (Padoan, 2011)
+    \begin{align*}
+      \lim_{h \rightarrow \infty} \chi(h) > 0
+    \end{align*}
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Extension of the skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Skew-$t$ distribution addresses two modeling concerns
-    \begin{itemize}
+    \item Skew-$t$ distribution addresses two modeling concerns \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Extremal dependence
       \item Reasonable computing
     \end{itemize}
-    \item Our contribution is to extend the skew-$t$
-    \begin{itemize}
+    \item Our contribution is to extend the skew-$t$ \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Censoring to focus on extreme observations
       \item Partitioning to address long-range dependence
     \end{itemize}
@@ -466,16 +469,39 @@
 
 \begin{frame}{Random partition}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Within each partition $Y(\bs)$ has the same MV skew-t distribution as before
+    \item Within each partition, $Y(\bs)$ has the same MV skew-t distribution as before
     \item Across partitions $Y(\bs)$ are asymptotically independent, but still correlated through $v(\bs)$
     \item New expression for $\chi(h)$
     \begin{align*}
       \chi(h) = \pi(h) \chi_{\text{skew-}t}(h)
     \end{align*}
-    where
-    \begin{itemize}
-      \item $\pi(h)$ is the probability two sites are in the same partition
+    where $\pi(h)$ is the probability two sites are in the same partition
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Proof that $\lim_{h \rightarrow \infty} \chi(h) = 0$}
+  \begin{itemize} \setlength{\itemsep}{1em}
+    \item Let $A$ be the area between two sites $\bs$ and $\bt$
+    \item Let $N(A)$ be the number of knots in $A$
+    \item Assume that $N(A) \sim \text{HPP}[\mu(A)]$, where \vspace{0.25em}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
+      \item HPP$[\mu]$ is a homogeneous poisson process with intensity $\mu$
+      \item $\mu(\cdot)$ is an intensity measure defined on $A$
+      \item $\lim_{h \rightarrow \infty} \mu(A) = \infty$
     \end{itemize}
+    \begin{align*}
+      \Pr[N(A) = k] = \frac{ \mu(A)^k \exp\{-\mu(A)\}}{k!}
+    \end{align*}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Proof that $\lim_{h \rightarrow \infty} \chi(h) = 0$}
+  \begin{itemize} \setlength{\itemsep}{1em}
+    \item For finite $k$, $\lim_{h \rightarrow \infty} P[N(A) = k] = 0$
+    \item As $N(A)$ increases, $\pi(h)$ decreases because partition is defined by closest knots, so
+    \begin{align*}
+      \lim_{h \rightarrow \infty} \chi(h) = \lim_{h \rightarrow \infty} \pi(h) \chi_{\text{skew-}t} (h) = 0
+    \end{align*}
   \end{itemize}
 \end{frame}
 
@@ -489,18 +515,18 @@
 \end{frame}
 
 \begin{frame}{Random partition skew-$t$ model}
+\begin{adjustwidth}{1em}{0em}
+  This new model is called a random partition skew-$t$ model, and it has all the properties we desire \vspace{1em}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item This new model is called a random partition skew-$t$ model, and it has the properties we desire
-    \begin{itemize}
-      \item Marginal distribution with flexible tails
-      \begin{itemize}
-        \item $\lambda$ term allows for asymmetry
-        \item Degrees of freedom control heavy vs light tails
-      \end{itemize}
-      \item Asymptotic spatial dependence for that decays with distance between sites through partitioning
-      \item Computation is on the order of Gaussian models for large space-time datasets
+    \item Marginal distribution with flexible tails \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
+      \item $\lambda$ term allows for asymmetry
+      \item Degrees of freedom control heavy vs light tails
     \end{itemize}
+    \item Asymptotic spatial dependence for that decays with distance between sites through partitioning
+    \item Computation is on the order of Gaussian models for large space-time datasets
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 % \begin{frame}{Sample simulated datasets}
@@ -522,8 +548,8 @@
 
 \begin{frame}{MCMC details}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Three main steps
-    \begin{enumerate}[1.]
+    \item Three main steps \vspace{0.5em}
+    \begin{enumerate}[1.] \setlength{\itemsep}{0.5em}
       \item Impute censored data below $T$
       \item Update parameters with standard random walk Metropolis Hastings or Gibbs sampling
       \item Make spatial predictions
@@ -533,35 +559,35 @@
 \end{frame}
 
 \begin{frame}{Simulation study}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item 6 different data settings
-    \begin{itemize}
-      \item Gaussian, $K = 1$ partition
-      \item Symmetric-$t$, $K = 1$ partition
-      \item Symmetric-$t$, $K = 5$ partitions
-      \item Skew-$t$, $K = 1$ partition
-      \item Skew-$t$, $K = 5$ partitions
-      \item Max-stable
-      \begin{itemize}
-        \item Marginally: GEV$(\mu=1, \sigma=1, \xi=0.2)$
-        \item Dependence function: asymmetric logistic with $\alpha = 0.5$
-      \end{itemize}
+\begin{adjustwidth}{1em}{0em}
+  6 different data settings \vspace{0.5em}
+  \begin{enumerate}[1.] \setlength{\itemsep}{0.5em}
+    \item Gaussian, $K = 1$ partition
+    \item Symmetric-$t$, $K = 1$ partition
+    \item Symmetric-$t$, $K = 5$ partitions
+    \item Skew-$t$, $K = 1$ partition
+    \item Skew-$t$, $K = 5$ partitions
+    \item Max-stable \vspace{0.25em}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
+      \item Marginally: GEV$(\mu=1, \sigma=1, \xi=0.2)$
+      \item Dependence function: asymmetric logistic with $\alpha = 0.5$
     \end{itemize}
-  \end{itemize}
+  \end{enumerate}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Simulation study}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item 50 datasets for each setting
-    \begin{itemize}
-      \item 144 sites in $[0, 10] \times [0, 10]$
-      \begin{itemize}
+    \item 50 datasets for each setting \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
+      \item 144 sites in $[0, 10] \times [0, 10]$ \vspace{0.25em}
+      \begin{itemize} \setlength{\itemsep}{0.25em}
         \item 100 training
         \item 44 testing
       \end{itemize}
     \end{itemize}
-    \item Model parameters
-    \begin{itemize}
+    \item Model parameters \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Spatial range: $\rho = 1$
       \item Skew parameter: $\lambda = 3$
       \item Degrees of freedom: 6 for $t$ distributions
@@ -570,16 +596,16 @@
 \end{frame}
 
 \begin{frame}{Simulation study}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item 5 different models fit to each data set
-    \begin{itemize}
-      \item Gaussian
-      \item Skew-$t$ with $K = 1$ partition, no thresholding
-      \item Skew-$t$ with $K = 1$ partition, thresholding at $q(0.80)$
-      \item Skew-$t$ with $K = 5$ partitions, no thresholding
-      \item Skew-$t$ with $K = 5$ partitions, thresholding at $q(0.80)$
-    \end{itemize}
-  \end{itemize}
+\begin{adjustwidth}{1em}{0em}
+  5 different models fit to each data set \vspace{0.5em}
+  \begin{enumerate}[1.] \setlength{\itemsep}{0.5em}
+    \item Gaussian
+    \item Skew-$t$ with $K = 1$ partition, no thresholding
+    \item Skew-$t$ with $K = 1$ partition, thresholding at $q(0.80)$
+    \item Skew-$t$ with $K = 5$ partitions, no thresholding
+    \item Skew-$t$ with $K = 5$ partitions, thresholding at $q(0.80)$
+  \end{enumerate}
+\end{adjustwidth}
 \end{frame}
 
 % \begin{frame}{Quantile score for cross-validation}
@@ -598,13 +624,13 @@
 
 \begin{frame}{Brier score}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Brier score used to determine model that gives best fit (Gneiting and Raftery, 2007)
+    \item Brier score (Gneiting and Raftery, 2007) used to compare fits
     \item The Brier score for predicting exceedance of threshold $c$ is
     \begin{align*}
       [e(c) - P(c)]^2
     \end{align*}
-    where
-    \begin{itemize}
+    where \vspace{0.25em}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
       \item $y$ is a test set value
       \item $e(c) = I[y > c]$
       \item $P(c)$ is the predicted probability of exceeding $c$
@@ -647,14 +673,14 @@
 \end{frame}
 
 \begin{frame}{Simulation study results}
+\begin{adjustwidth}{1em}{0em}
+  Key findings \vspace{1em}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Key findings
-    \begin{itemize}
-      \item Improvement over Gaussian methods when partitioning
-      \item Specifying too few knots has a detrimental impact
-      \item In all cases, non-thresholded models perform better than thresholded models
-    \end{itemize}
+    \item Improvement over Gaussian methods when partitioning
+    \item Specifying too few knots has a detrimental impact
+    \item In all cases, non-thresholded models perform better than thresholded models
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Data analysis}
@@ -703,12 +729,12 @@
 
 \begin{frame}{Model comparisons}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item 9 different analysis methods incorporating
-    \begin{itemize}
+    \item 9 different analysis methods incorporating \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Gaussian vs $t$ vs skew-$t$ marginal distribution
       \item $K=1, 5, 6, 7, 8, 9, 10, 15$ partitions
-      \item 4 threshold levels
-      \begin{itemize}
+      \item 4 threshold levels \vspace{0.25em}
+      \begin{itemize} \setlength{\itemsep}{0.25em}
          \item $T = 0$
          \item $T = 50$ppb, $q(0.48)$
          \item $T = 75$ppb, $q(0.92)$
@@ -736,19 +762,19 @@
   \begin{figure}
     \includegraphics[width=0.6\linewidth, trim=0 0 0 1in]{./plots/pot/bs-ozone-1.pdf}
     % \includegraphics[width=0.47\linewidth]{./plots/pot/bs-ozone-2.pdf} \\
-    \caption{Relative Brier score results ($K = 6$ -- $9$ are similar to $K = 5$ and $K = 10$)}
+    \caption{Relative Brier score results ($K = 6, \ldots, 9$ are similar to $K = 5, 10$)}
   \end{figure}
 \end{frame}
 
 \begin{frame}{Cross-validation results}
+\begin{adjustwidth}{1em}{0em}
+  Key findings \vspace{1em}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Key findings
-    \begin{itemize}
-      \item Partitioning improves performance across all high thresholds
-      \item Models with anywhere from $K = 5$ to $K = 10$ partitions perform similarly
-      \item In all cases, non-thresholded models perform better than thresholded models
-    \end{itemize}
+    \item Partitioning improves performance across all high thresholds
+    \item Models with anywhere from $K = 5$ to $K = 10$ partitions perform similarly
+    \item In all cases, non-thresholded models perform better than thresholded models
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 % % TODO: Update with new plots
@@ -809,8 +835,8 @@
 \begin{frame}{Discussion}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item Improvement of model performance when using partitioned models
-    \item Thresholding makes results worse
-    \begin{itemize}
+    \item Thresholding makes results worse \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Possible numerical instability due to truncated normal distribution
     \end{itemize}
   \end{itemize}
@@ -818,12 +844,12 @@
 
 \begin{frame}{Future work: Knots and their impact}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Different partition structure
-    \begin{itemize}
+    \item Different partition structure \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Distance weighting for each knot vs indicator functions
     \end{itemize}
-    \item Knot selection
-    \begin{itemize}
+    \item Knot selection \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Possible prior on the probability a knot is in the spatial domain
     \end{itemize}
   \end{itemize}
@@ -837,8 +863,8 @@
         Y_t(\bs) = \bX_t(\bs)^T \bbeta + \lambda \sigma_t(\bs) | z_t(\bs) | + \sigma_t(\bs) v_t(\bs)
       \end{align*}
       where $t$ denotes the day of each observation
-    \item Different ways to incorporate the temporal dependence
-    \begin{itemize}
+    \item Different ways to incorporate the temporal dependence \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Time series on $\bw_t$, $z_t(\bs)$, and $\sigma_t(\bs)$
       \item Three dimensional covariance model for $v_t(\bs)$ (e.g. Huser and Davison, 2014)
     \end{itemize}
@@ -859,8 +885,8 @@
 
 \begin{frame}{Rare binary regression}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Motivation
-    \begin{itemize}
+    \item Motivation \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Want to incorporate spatial dependence when modeling rare events (e.g. Diseased trees, Disease outbreak, Crimes)
     \end{itemize}
     \item We observe
@@ -875,24 +901,24 @@
 \end{frame}
 
 \begin{frame}{Rare binary regression}
+\begin{adjustwidth}{1em}{0em}
+  Common examples with non-spatial analysis \vspace{1em}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Common examples with non-spatial analysis
-    \begin{itemize}
-      \item Logistic regression
-      \begin{align*}
-        \Pr[Y_i = 1] = \frac{ \exp(\bX_i \bbeta) }{ 1 + \exp(\bX_i \bbeta)}
-      \end{align*}
-      \item Probit regression
-      \begin{align*}
-        \Pr[Y_i = 1] = \Phi(\bX_i \bbeta)
-      \end{align*}
-      where $\Phi$ is the standard normal distribution function
-      \item Cloglog regression
-      \begin{align*}
-        \Pr[Y_i = 1] = 1 - \exp[ -\exp(\bX_i \bbeta)]
-      \end{align*}
-    \end{itemize}
+    \item Logistic regression
+    \begin{align*}
+      \Pr[Y_i = 1] = \frac{ \exp(\bX_i \bbeta) }{ 1 + \exp(\bX_i \bbeta)}
+    \end{align*}
+    \item Probit regression
+    \begin{align*}
+      \Pr[Y_i = 1] = \Phi(\bX_i \bbeta)
+    \end{align*}
+    where $\Phi$ is the standard normal distribution function
+    \item Cloglog regression
+    \begin{align*}
+      \Pr[Y_i = 1] = 1 - \exp[ -\exp(\bX_i \bbeta)]
+    \end{align*}
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
 \begin{frame}{Rare binary regression}
@@ -901,8 +927,8 @@
     \begin{align*}
       \Pr[Y_i = 1] = 1 - \exp\left[-(1 - \xi \bX_i \bbeta)^{-1 / \xi} \right]
     \end{align*}
-    \item Link function allows for greater positive skew than existing methods
-    \begin{itemize}
+    \item Link function allows for greater positive skew than existing methods \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item When $\xi = 0$, the link is the Cloglog link
       \item When $\xi > 0$, the link allows for greater positive skew than Cloglog link
     \end{itemize}
@@ -912,9 +938,9 @@
 \begin{frame}{Rare spatial binary regression}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item We propose to develop a spatial model
-    \item Objectives are to borrow strength across sites to estimate covariate effects and spatial prediction
-    \item Proposed method will
-    \begin{itemize}
+    \item Objectives are spatial prediction and to borrow strength across sites to estimate covariate effects
+    \item Proposed method will \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Use the GEV link function
       \item Use the hierarchical method for spatially dependent extremes from Reich and Shaby (2012)
     \end{itemize}
@@ -924,17 +950,18 @@
 
 \begin{frame}{Rare spatial binary regression}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item We model $Y_i = I(Z_i > 0)$ where $z_i\sim$ multivariate GEV (mGEV)  is a latent variable
+    \item We model $Y_i = I(Z_i > 0)$ where $Z_i\sim$ multivariate GEV (mGEV)  is a latent variable
     \item Hierarchical model for mGEV (Reich and Shaby, 2012)
-    \begin{itemize}
-      \item $Z(\bs) = U(\bs) \theta(\bs)$
-      \begin{itemize}
-        \item $U(\bs) \iid$ GEV(1, $\alpha$, $\alpha$) is a nugget effect
-        \item $\theta(\bs) = [\sum_{l = 1}^L A_l w_l(\bs)^{1/\alpha}]^\alpha$ is the spatial process
-        \item $\alpha \in (0, 1)$ controls strength of nugget relative to spatial dependence
-        \item $A_l \iid$ Positive Stable($\alpha$) is an random effect representing the intensity
-        \item $w_l(\bs)$ gives the weight of the intensity of the $l$th random effect on site $\bs$
-      \end{itemize}
+    \begin{align*}
+      Z(\bs) = U(\bs) \theta(\bs)
+    \end{align*}
+    where
+    \begin{itemize} \setlength{\itemsep}{0.25em}
+      \item $U(\bs) \iid$ GEV(1, $\alpha$, $\alpha$) is a nugget effect
+      \item $\theta(\bs) = [\sum_{l = 1}^L A_l w_l(\bs)^{1/\alpha}]^\alpha$ is the spatial process
+      \item $\alpha \in (0, 1)$ controls strength of nugget relative to spatial dependence
+      \item $A_l \iid$ Positive Stable($\alpha$) is a random effect representing the intensity
+      \item $w_l(\bs)$ gives the weight of the intensity of the $l$th random effect on site $\bs$
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -948,7 +975,7 @@
     \end{align*}
     }
     where
-    \begin{itemize}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
       \item $w_l$ is a weighting function subject to the constraint that $\sum_{l = 1}^L w_l = 1$
       \item $\alpha$ controls spatial dependence
       \begin{itemize}
@@ -960,22 +987,22 @@
 \end{frame}
 
 \begin{frame}{Weighting function}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item We use the Gaussian weights proposed by Reich and Shaby (2012) given by
-    \footnotesize{
-    \begin{align*}
-      w_l(\bs_i) = \frac{ \exp\left[ -0.5 \left( \frac{ || \bs_i - \bv_l || }{ \rho} \right)^2 \right]}{ \sum_{l = 1}^L \exp\left[ -0.5 \left( \frac{ || \bs_i - \bv_l || }{ \rho} \right)^2 \right] }
-    \end{align*}
-    }
-    where
-    \begin{itemize}
-      \item $\bv_l$ are spatial knots
-      \item $\rho$ is a bandwidth term for the kernel function
-    \end{itemize}
+\begin{adjustwidth}{1em}{0em}
+  We use the Gaussian weights proposed by Reich and Shaby (2012) given by
+  \footnotesize{
+  \begin{align*}
+    w_l(\bs_i) = \frac{ \exp\left[ -0.5 \left( \frac{ || \bs_i - \bv_l || }{ \rho} \right)^2 \right]}{ \sum_{l = 1}^L \exp\left[ -0.5 \left( \frac{ || \bs_i - \bv_l || }{ \rho} \right)^2 \right] }
+  \end{align*}
+  }
+  where
+  \begin{itemize} \setlength{\itemsep}{0.25em}
+    \item $\bv_l$ are spatial knots
+    \item $\rho$ is a bandwidth term for the kernel function
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
 
-\begin{frame}{Illustrating asymmetric logistic dependence in one-dimension}
+\begin{frame}{Illustrating asymmetric logistic dependence}
   \centering
   \begin{figure}
     \includegraphics[width=\linewidth, trim=0 0.5in 0 0]{./plots/max-stable.pdf}
@@ -991,7 +1018,14 @@
       \item $Y_1, \ldots, Y_K$ are the observations where $Y(\bs_i) = 1$
       \item $Y_{K+1}, \ldots, Y_n$ are the observations where $Y(\bs_i) = 0$
     \end{itemize}
-    \item Then for $K = 0, 1, 2$
+    \item For small $K$, we can evaluate the likelihood directly
+    \item For large $K$, we use the hierarchical model of Reich and Shaby (2012)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Joint likelihood: $K$ small}
+  \begin{itemize} \setlength{\itemsep}{1em}
+    \item For $K = 0, 1, 2$
     {\scriptsize
     \begin{align*}
       \Pr(Y_1 = y_1, \ldots, Y_n = y_n) = \left\{ \begin{array}{ll}
@@ -1006,28 +1040,38 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Joint likelihood}
-  \begin{itemize} \setlength{\itemsep}{1em}
-    \item For small $K$, we can evaluate the likelihood directly
-    \item For large $K$, we use the hierarchical model of Reich and Shaby (2012)
+\begin{frame}{Joint likelihood: $K$ large}
+\begin{adjustwidth}{1em}{0em}
+  Hierarchical model: If $Z(\bs) \sim $ mGEV with marginal distribution GEV($\mu, \sigma, \xi$), then
+  \begin{align*}
+    Z(\bs) \mid A_1, \ldots, A_L &\ind \text{GEV}[\mu^*, \sigma^*, \xi^*] \\
+    A_l &\iid \text{Positive Stable}(\alpha)
+  \end{align*}
+  where
+  \begin{itemize} \setlength{\itemsep}{0.25em}
+    \item $\mu^* = \mu + \frac{ \sigma }{ \xi }[\theta(\bs)^\xi - 1]$
+    \item $\sigma^* = \alpha \sigma \theta(\bs)^\xi$
+    \item $\xi^* = \alpha \xi$
   \end{itemize}
+\end{adjustwidth}
 \end{frame}
+
 
 \begin{frame}{Future simulation study and data application}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Simulation study
-    \begin{itemize}
-      \item Data generated using logistic, Cloglog, and GEV links
+    \item Simulation study \vspace{0.5em}
+    \begin{itemize} \setlength{\itemsep}{0.5em}
+      \item Data generated using logistic, Cloglog, and GEV links \vspace{0.25em}
       \begin{itemize}
         \item Exploring how rarity of event impacts prediction
       \end{itemize}
-      \item Models fit using
-      \begin{itemize}
+      \item Models fit using \vspace{0.25em}
+      \begin{itemize} \setlength{\itemsep}{0.25em}
         \item mGEV
         \item Random effects Gaussian distribution
       \end{itemize}
     \end{itemize}
-    \item Data application: Modeling crime data
+    \item Data application: Modeling crime data \vspace{0.5em}
     \begin{itemize}
       \item Homicides, car theft, vandalism
     \end{itemize}
@@ -1049,19 +1093,19 @@
 \end{frame}
 
 \begin{frame}{Non-stationary covariance for extreme values}
-  \begin{itemize} \setlength{\itemsep}{1em}
+  \begin{itemize} \setlength{\itemsep}{0.5em}
     \item In extremes, stationary extremal dependence means
     \begin{align*}
       \chi(h) = \Pr[Y(\bs) > c | Y(\bt) > c]
     \end{align*}
     \item Currently, there are no methods to model non-stationarity in spatial extremes
     \item Semiparamtric approach using spectral density ratios (de Carvalho and Davison, 2014)
-    \begin{itemize}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
       \item Vector of observations can be transformed to psuedo-polar coordinates
       \item Pairwise analysis
     \end{itemize}
     \item New approach extending Reich and Shaby (2012)
-    \begin{itemize}
+    \begin{itemize} \setlength{\itemsep}{0.25em}
       \item Current model uses a single bandwidth term $\rho$ for all knots
       \item Proposed idea is to implement a knot-specific $\rho$ to induce non-stationarity
     \end{itemize}
@@ -1086,13 +1130,13 @@
   \end{itemize}
 \end{frame}
 
-% \begin{frame}{References}
-%   \begin{itemize} \setlength{\itemsep}{1em}
-%     \item Demarta, S. and McNeil, A. J. (2007) The $t$ copula and related copulas. {\it International Statistical Review}, {\bf 73}, 111--129.
-%     \item Huser, R. and Davison, A. C. (2014) Space-time modelling of extreme events. {\it Journal of the Royal Statistical Society: Series B (Statistical Methodology)}, {\bf 76}, 439--461.
-%     \item Padoan, S. A. (2011) Multivariate extreme models based on underlying skew-$t$ and skew-normal distributions. {\it Journal of Multivariate Analysis}, {\bf 102}, 977--991.
-%     \item Zhang, H. and El-Shaarawi, A. (2010) On spatial skew-Gaussian processes and applications. {\it Environmetrics}, {\bf 21}, 33--47.
-%   \end{itemize}
-% \end{frame}
+\begin{frame}[allowframebreaks]{References}
+  \begin{itemize} \setlength{\itemsep}{1em}
+    \item Demarta, S. and McNeil, A. J. (2007) The $t$ copula and related copulas. {\it International Statistical Review}, {\bf 73}, 111--129.
+    \item Huser, R. and Davison, A. C. (2014) Space-time modelling of extreme events. {\it Journal of the Royal Statistical Society: Series B (Statistical Methodology)}, {\bf 76}, 439--461.
+    \item Padoan, S. A. (2011) Multivariate extreme models based on underlying skew-$t$ and skew-normal distributions. {\it Journal of Multivariate Analysis}, {\bf 102}, 977--991.
+    \item Zhang, H. and El-Shaarawi, A. (2010) On spatial skew-Gaussian processes and applications. {\it Environmetrics}, {\bf 21}, 33--47.
+  \end{itemize}
+\end{frame}
 
 \end{document}
