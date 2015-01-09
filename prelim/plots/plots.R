@@ -79,13 +79,13 @@ lines(xplot, value.0.8, col="darkolivegreen3")
 lines(xplot, value.0.0, col="black")
 lines(xplot, value.1, col="orange3")
 axis(1, at=c(1:9))
-legend1 <- as.expression(bquote(alpha==0.0))
-legend2 <- as.expression(bquote(alpha==0.2))
+legend5 <- as.expression(bquote(alpha==0.0))
+legend4 <- as.expression(bquote(alpha==0.2))
 legend3 <- as.expression(bquote(alpha==0.5))
-legend4 <- as.expression(bquote(alpha==0.8))
-legend5 <- as.expression(bquote(alpha==1.0))
+legend2 <- as.expression(bquote(alpha==0.8))
+legend1 <- as.expression(bquote(alpha==1.0))
 legend("bottomright", legend=c(legend1, legend2, legend3, legend4, legend5), lty=1,
-       col=c("black", "firebrick3", "dodgerblue3", "darkolivegreen3", "orange3"))
+       col=c("orange3", "darkolivegreen3", "dodgerblue3", "firebrick3", "black"))
 
 
 # link functions

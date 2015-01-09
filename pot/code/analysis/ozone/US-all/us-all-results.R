@@ -18,7 +18,7 @@ phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
 load("us-all-results.RData")
-done <- c(43:50)
+done <- 26
 quant.score <- savelist[[1]]
 brier.score <- savelist[[2]]
 beta.0 <- savelist[[3]]
@@ -36,12 +36,13 @@ for (i in 1:50) {
       val.idx <- cv.lst[[d]]
       validate <- Y[val.idx, ]
       pred.d <- fit.d$yp[, , ]
-      if (i == 26) {
+      if (i == 26 && d == 1) {
         validate <- t(validate)
         pred.d <- fit.d$yp[(25001:30000), , ]
-      }
+
       quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
       brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
+    }
       if (i != 26) {
         beta.0[, d, i] <- fit.d$beta[, 1]
         beta.1[, d, i] <- fit.d$beta[, 2]
@@ -76,12 +77,12 @@ brier.score.mean <- matrix(NA, 50, length(thresholds))
 quant.score.se <- matrix(NA, 50, length(probs))
 brier.score.se <- matrix(NA, 50, length(thresholds))
 
-done <- c(1:25, 27:50)
+done <- c(1:50)
 for (i in 1:50) {
   if (i %in% done) {
-    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
+    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean, na.rm=T)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
-    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
+    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean, na.rm=T)
     brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
   }
 }
@@ -189,7 +190,11 @@ legend("center", legend=c("Skew-t, T=0", "Skew-t, T=50", "Skew-t, T=75", "Skew-t
 
 
 # best performing partition settings
-plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.755, 0.843), pch=21,
+bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
+col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
+these.probs <- 1:11
+xplot <- probs[these.probs]
+plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.755, 0.95), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
      # main="Select ozone Brier scores",
      cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
@@ -199,18 +204,20 @@ lines(xplot, bs.mean.ref.gau[9, these.probs], type="b", pch=21, col=col[3], bg=b
       cex=1.3, lty=1)
 lines(xplot, bs.mean.ref.gau[13, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
       cex=1.3, lty=1)
+lines(xplot[3:11], bs.mean.ref.gau[25, 3:11], type="b", pch=23, col=col[5], bg=bg[5],
+      cex=1.3, lty=1)
 abline(h=1, lty=2)
 legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=5, T=0", "Skew-t, K=10, T=0",
-       "Skew-t, K=15, T=0"),
-       pch=c(21, 21, 21, 21), lty=c(1, 1, 1, 1), cex=1.3,
-       pt.bg=c(bg[1], bg[2], bg[3], bg[4]),
-       col=c(col[1], col[2], col[3], col[4]))
+       "Skew-t, K=15, T=0", "Max-stable"),
+       pch=c(21, 21, 21, 21, 23), lty=c(1, 1, 1, 1, 1), cex=1.3,
+       pt.bg=c(bg[1], bg[2], bg[3], bg[4], bg[5]),
+       col=c(col[1], col[2], col[3], col[4], col[5]))
 
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
-these.probs <- 1:10
+these.probs <- 1:11
 xplot <- probs[these.probs]
-plot(xplot, bs.mean.ref.gau[32, these.probs], type="b", ylim=c(0.755, 0.843), pch=21,
+plot(xplot, bs.mean.ref.gau[32, these.probs], type="b", ylim=c(0.755, 0.95), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
      # main="Select ozone Brier scores",
      cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
@@ -356,24 +363,144 @@ S.p    <- S.p[keep.these, ]
 # load results
 threshold <- 75
 load('us-all-full-1.RData')
-np <- dim(fit$yp)[2]
-gaus.95 <- apply(fit$yp, c(2, 3), quantile, probs=0.95)
+yp <- fit$yp
+np <- dim(yp)[2]
+gaus.95 <- apply(yp, c(2), quantile, probs=0.95)
+gaus.99 <- apply(yp, c(2), quantile, probs=0.99)
 gaus.p.below <- matrix(0, np, nt)
-for (i in 1:np) {
-  gaus.p.exceed <-
+for (i in 1:np) { for (t in 1:nt) {
+  gaus.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+gaus.p.0 <- rep(0, np)
+for(i in 1:np) {
+  gaus.p.0[i] <- prod(gaus.p.below[i, ])
 }
+gaus.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  gaus.p.1[i] <- gaus.p.1[i] + prod(gaus.p.below[i, -t]) * (1 - gaus.p.below[i, t])
+} }
+gaus.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    gaus.p.2[i] <- gaus.p.2[i] + prod(gaus.p.below[i, -c(s,t)]) * prod(1 - gaus.p.below[i, c(s, t)])
+  }
+}}
+gaus.p.atleast1 <- 1 - gaus.p.0
+gaus.p.atleast2 <- 1 - (gaus.p.0 + gaus.p.1)
+gaus.p.atleast3 <- 1 - (gaus.p.0 + gaus.p.1 + gaus.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
 load('us-all-full-2.RData')
-t1.yp <- fit$yp
+yp <- fit$yp
+np <- dim(yp)[2]
+t1.95 <- apply(yp, c(2), quantile, probs=0.95)
+t1.99 <- apply(yp, c(2), quantile, probs=0.99)
+t1.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  t1.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+t1.p.0 <- rep(0, np)
+for(i in 1:np) {
+  t1.p.0[i] <- prod(t1.p.below[i, ])
+}
+t1.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  t1.p.1[i] <- t1.p.1[i] + prod(t1.p.below[i, -t]) * (1 - t1.p.below[i, t])
+} }
+t1.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    t1.p.2[i] <- t1.p.2[i] + prod(t1.p.below[i, -c(s,t)]) * prod(1 - t1.p.below[i, c(s, t)])
+  }
+}}
+t1.p.atleast1 <- 1 - t1.p.0
+t1.p.atleast2 <- 1 - (t1.p.0 + t1.p.1)
+t1.p.atleast3 <- 1 - (t1.p.0 + t1.p.1 + t1.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+
 load('us-all-full-33.RData')
-t6.yp <- fit$yp
-rm(fit)
+yp <- fit$yp
+np <- dim(yp)[2]
+t6.95 <- apply(yp, c(2), quantile, probs=0.95)
+t6.99 <- apply(yp, c(2), quantile, probs=0.99)
+t6.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  t6.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+t6.p.0 <- rep(0, np)
+for(i in 1:np) {
+  t6.p.0[i] <- prod(t6.p.below[i, ])
+}
+t6.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  t6.p.1[i] <- t6.p.1[i] + prod(t6.p.below[i, -t]) * (1 - t6.p.below[i, t])
+} }
+t6.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    t6.p.2[i] <- t6.p.2[i] + prod(t6.p.below[i, -c(s,t)]) * prod(1 - t6.p.below[i, c(s, t)])
+  }
+}}
+t6.p.atleast1 <- 1 - t6.p.0
+t6.p.atleast2 <- 1 - (t6.p.0 + t6.p.1)
+t6.p.atleast3 <- 1 - (t6.p.0 + t6.p.1 + t6.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", , zlim=c(35, 140))
+lines(borders/1000)
+
 
 # zlim=c(0, 122)
 # quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
 # lines(borders/1000)
 
 # posterior maps: 95th quantile
-gaus.95 <- apply(gaus.yp, c(2, 3), quantile, probs=0.95)
 
 # probability of exceeding 75ppb at least once
 
