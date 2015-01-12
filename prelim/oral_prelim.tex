@@ -121,7 +121,7 @@
 
 \begin{frame}{Non-spatial analysis: Block maxima}
 \begin{adjustwidth}{1em}{0em}
-  Fisher-Tippett-Gnedenko \vspace{1em}
+  Fisher-Tippett-Gnedenko theorem \vspace{1em}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item Let $X_1, \ldots, X_n$ be i.i.d.
     \item Consider the block maximum $M_n = \max(X_1, \ldots, X_n)$
@@ -227,7 +227,7 @@
 \begin{frame}{Multivariate representations}
   \begin{itemize} \setlength{\itemsep}{1em}
     \item Marginally at each site, observations follow a GEV distribution
-    \item For a finite collection of sites the multivariate representation for the GEV (mGEV) is
+    \item For a finite collection of sites the representation for the multivariate GEV (mGEV) is
     \begin{align*}
       \Pr(\bZ \le \bz)  &= G^*(\bz) = \exp[-V(\bz)]\\
             V(\bz)    &= d \int_{\Delta_d} \bigvee_{i = 1}^d \frac{w_i}{z_i} H(\ddd w)
@@ -373,7 +373,7 @@
 \begin{adjustwidth}{1em}{0em}
   \alert{Marginalizing} over $z$ and $\sigma^2$ (via MCMC),
   \begin{align*}
-    Y(\bs) \sim \text{skew-t}(\bX(\bs) \bbeta, \bOmega, \alpha, \text{df}=2a)
+    Y(\bs) \sim \text{skew-t}[\bX(\bs) \bbeta, \bOmega, \alpha, \text{df}=2a]
   \end{align*}
   where
   \begin{itemize} \setlength{\itemsep}{0.25em}
@@ -415,8 +415,9 @@
 
 \begin{frame}{Extension of the skew-$t$ distribution}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item Skew-$t$ distribution addresses two modeling concerns \vspace{0.5em}
+    \item Skew-$t$ distribution addresses three modeling concerns \vspace{0.5em}
     \begin{itemize} \setlength{\itemsep}{0.5em}
+      \item Flexible tails
       \item Extremal dependence
       \item Reasonable computing
     \end{itemize}
@@ -589,12 +590,13 @@
         \item 100 training
         \item 44 testing
       \end{itemize}
+      \item 50 days
     \end{itemize}
     \item Model parameters \vspace{0.5em}
     \begin{itemize} \setlength{\itemsep}{0.5em}
       \item Spatial range: $\rho = 1$
       \item Skew parameter: $\lambda = 3$
-      \item Degrees of freedom: 6 for $t$ distributions
+      \item Degrees of freedom: $2a = 6$
       \item Proportion of spatial variation: $\gamma = 0.9$
     \end{itemize}
   \end{itemize}
@@ -660,15 +662,15 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{Simulation study results}
-\centering
-  \begin{figure}
-    \includegraphics[width=0.45\linewidth]{./plots/pot/bs-sim-t1.pdf}
-    \includegraphics[width=0.45\linewidth]{./plots/pot/bs-sim-st1.pdf} \\
-    \includegraphics[width=0.3\linewidth, trim=2in 3.25in 2in 3in]{./plots/pot/bs-sim-legend.pdf}
-    \caption{Relative Brier score results}
-  \end{figure}
-\end{frame}
+% \begin{frame}{Simulation study results}
+% \centering
+%   \begin{figure}
+%     \includegraphics[width=0.45\linewidth]{./plots/pot/bs-sim-t1.pdf}
+%     \includegraphics[width=0.45\linewidth]{./plots/pot/bs-sim-st1.pdf} \\
+%     \includegraphics[width=0.3\linewidth, trim=2in 3.25in 2in 3in]{./plots/pot/bs-sim-legend.pdf}
+%     \caption{Relative Brier score results}
+%   \end{figure}
+% \end{frame}
 
 \begin{frame}{Simulation study results}
 \centering
@@ -744,9 +746,9 @@
       \item 4 threshold levels for $t$ marginals \vspace{0.25em}
       \begin{itemize} \setlength{\itemsep}{0.25em}
          \item $T = 0$
-         \item $T = 50$ppb, $q(0.48)$
-         \item $T = 75$ppb, $q(0.92)$
-         \item $T = 85$ppb, $q(0.97)$
+         \item $T = 50$ ppb, $q(0.48)$
+         \item $T = 75$ ppb, $q(0.92)$
+         \item $T = 85$ ppb, $q(0.97)$
       \end{itemize}
       \item Thresholded at $T = 75$ for max-stable
     \end{itemize}
@@ -775,7 +777,7 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{Probability of exceedance}
+\begin{frame}{Probability of exceedance (2 days)}
   \centering
   \begin{figure}
     \includegraphics[width=0.33\linewidth, trim=0.2in 0 0.2in 1in]{./plots/pot/ozone-p2-gaus.pdf}
@@ -785,7 +787,7 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{Quantile plots}
+\begin{frame}{Quantile plots: $\widehat{q}(0.95)$}
   \centering
   \begin{figure}
     \includegraphics[width=0.33\linewidth, trim=0.2in 0 0.2in 1in]{./plots/pot/ozone-q95-gaus.pdf}
@@ -795,7 +797,7 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{Quantile plots}
+\begin{frame}{Quantile plots: $\widehat{q}(0.99)$}
   \centering
   \begin{figure}
     \includegraphics[width=0.33\linewidth, trim=0.2in 0 0.2in 1in]{./plots/pot/ozone-q99-gaus.pdf}
@@ -989,7 +991,7 @@
 
 \begin{frame}{Rare spatial binary regression}
   \begin{itemize} \setlength{\itemsep}{1em}
-    \item We model $Y_i = I(Z_i > 0)$ where $Z_i\sim$ multivariate GEV (mGEV)  is a latent variable
+    \item We model $Y_i = I(Z_i > 0)$ where $Z_i\sim$ mGEV is a latent variable
     \item Hierarchical model for mGEV (Reich and Shaby, 2012)
     \begin{align*}
       Z(\bs) = U(\bs) \theta(\bs)
@@ -1110,10 +1112,7 @@
         \item Random effects Gaussian distribution
       \end{itemize}
     \end{itemize}
-    \item Data application: Modeling crime data \vspace{0.5em}
-    \begin{itemize}
-      \item Homicides, car theft, vandalism
-    \end{itemize}
+    \item Data application: Modeling ozone exceedances \vspace{0.5em}
   \end{itemize}
 \end{frame}
 

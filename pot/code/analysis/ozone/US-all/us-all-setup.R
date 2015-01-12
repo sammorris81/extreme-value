@@ -1,6 +1,6 @@
 library(fields)
-# library(geoR)
 library(mvtnorm)
+library(sn)
 
 rm(list=ls())
 source('../../../R/mcmc.R', chdir=T)
@@ -288,7 +288,71 @@ xplot <- (xplot - mean(xplot))
 plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1")
 abline(0, 1)
 
+# ML - Skew-t fit and diagnostics
+library(fields)
+library(mvtnorm)
+library(sn)
 
+rm(list=ls())
+source('../../../R/mcmc.R', chdir=T)
+source('../../../R/auxfunctions.R')
+
+# Setup from Brian
+load("../ozone_data.RData")
+S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ
+
+# Exclude if site is missing more than 50% of its days
+excl  <- which(rowMeans(is.na(Y)) > 0.50)
+index <- index[-excl]
+Y     <- Y[-excl, ]
+S     <- S[-excl, ]
+cmaq  <- CMAQ[index, ]
+cmaq  <- (cmaq - mean(cmaq)) / sd(cmaq)  # center and scale CMAQ data
+
+# add in intercept
+nt <- ncol(Y)
+ns <- nrow(Y)
+X  <- array(1, dim=c(nrow(cmaq), nt, 2))
+for (t in 1:nt) {
+  X[, t, 2] <- cmaq[, t]
+}
+
+S <- S / 1000
+x <- x / 1000
+y <- y / 1000
+
+# put all covariate and observations into one long sting
+y.lm <- Y[, 1]
+x.lm <- X[, 1, ]
+for (t in 2:nt) {
+  y.lm <- c(y.lm, Y[, t])
+  x.lm <- rbind(x.lm, X[, t, c(1, 2)])
+}
+
+ozone.stlm  <- selm(y.lm ~ x.lm[, 2], family="ST")  # automatically includes int
+ozone.lm    <- lm(y.lm ~ x.lm[, 2])
+ozone.res   <- residuals(ozone.stlm)
+ozone.dp    <- ozone.stlm@param$dp
+ozone.omega <- ozone.dp[3]
+ozone.alpha <- ozone.dp[4]
+ozone.nu    <- ozone.dp[5]
+
+probs <- seq(0.000001, 0.999999, length=length(ozone.res))
+ozone.quant.obs <- quantile(ozone.res, probs=probs)
+ozone.quant.the <- rep(0, length(ozone.res))
+for (i in 1:33) {
+  start <- (i - 1) * 1000 + 1
+  if (i < 32) {
+    end <- start + 999
+  } else {
+    end <- length(ozone.res)
+  }
+  print(paste("start =", start))
+  ozone.quant.the[start:end] <- qst(probs[start:end], xi=0, omega=ozone.omega,
+                                    alpha=ozone.alpha, nu=ozone.nu)
+}
+save.image(file="ozone-qq.RData")
+plot(ozone.quant.the, ozone.quant.obs, main="Q-Q plot for ozone data")
 # set.seed(2087)
 # # nw: no obs > 75
 # nw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] >= 0))
