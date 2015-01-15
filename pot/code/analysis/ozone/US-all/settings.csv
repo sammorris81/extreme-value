@@ -1,13 +1,17 @@
-setting,method,knots,threshold,
+setting,method,knots,thresh,CMAQ
 1,gaussian,1,0,
 2,skew-t,1,0,
 3,skew-t,1,50,
 4,skew-t,1,75,
+4a,skew-t,1,75,no CMAQ
 5,skew-t,1,85,
+5a,skew-t,1,85,no CMAQ
 6,skew-t,5,0,
 7,skew-t,5,50,
 8,skew-t,5,75,
+8a,skew-t,5,75,no CMAQ
 9,skew-t,5,85,
+9a,skew-t,5,85,no CMAQ
 10,skew-t,10,0,
 11,skew-t,10,50,
 12,skew-t,10,75,
