@@ -15,7 +15,9 @@ setting,method,knots,thresh,CMAQ
 10,skew-t,10,0,
 11,skew-t,10,50,
 12,skew-t,10,75,
-13,skew-t,10,75,
+12a,skew-t,10,75,no CMAQ
+13,skew-t,10,85,
+13a,skew-t,10,85,no CMAQ
 14,skew-t,15,0,
 15,skew-t,15,50,
 16,skew-t,15,75,
