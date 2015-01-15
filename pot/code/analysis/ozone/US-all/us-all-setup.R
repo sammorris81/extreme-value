@@ -1,6 +1,6 @@
 library(fields)
-# library(geoR)
 library(mvtnorm)
+library(sn)
 
 rm(list=ls())
 source('../../../R/mcmc.R', chdir=T)
@@ -19,6 +19,11 @@ S      <- S[-excl, ]
 image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - no thin AQS sites")
 points(S)       # Locations of monitoring stations
 lines(borders)  # Add state lines
+
+# for presentation
+quartz(width=8, height=6)
+plot(S, axes=F, ylab="", xlab="", ylim=c(-1600, 1300), xlim=c(-2300, 2400))
+lines(borders)
 
 #### start data preprocessing
 # only include sites from the eastern US
@@ -76,6 +81,13 @@ quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
            xaxt="n", xlim=c(-2.5, 2.5),
            yaxt="n", ylim=c(-1.65, 1.3),
            main="Ozone values on 10 July 2005")
+lines(borders/1000)
+
+# Plot a day's data - presentation
+quartz(width=8, height=6)
+quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
+           xaxt="n", xlim=c(-2.5, 2.5),
+           yaxt="n", ylim=c(-1.65, 1.3),)
 lines(borders/1000)
 
 #### 2-fold cross validation
@@ -210,18 +222,19 @@ for (thresh in 1:length(threshs)){
 
 par(mar=c(5.1, 5.1, 4.1, 2.1))
 xplot <- bins.h[-length(bins)] + 0.125
-plot(xplot, exceed.h.res[, 1], type="b", pch=1, lty=1, lwd=2,
-     xlim=c(0, 3.5), xaxt="n", xlab="bin distance (km) / 1000",
-     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(h)")),
-     main=bquote(paste(chi, "(h) for ozone residuals")),
+plot(xplot, exceed.h.res[, 1], type="b", pch=21, lty=1, lwd=2,
+     xlim=c(0, 3.75), xaxt="n", xlab="bin distance (km) / 1000",
+     ylim=c(0, 0.35), ylab=bquote(paste(hat(chi)[c], "(h)")),
+     # main=bquote(paste(chi, "(h) for ozone residuals")),
      cex.lab=1.5, cex.axis=1.5, cex.main=2
      )
 axis(1, at=bins, cex.axis=1.5)
 for (line in 2:3) {
-	lines(xplot, exceed.h.res[, line], lty=1, pch=line, type="b", lwd=2)
+	lines(xplot, exceed.h.res[, line], lty=1, pch=(20 + line), type="b", lwd=2)
 }
-abline(v=1, lty=3, lwd=2)
-legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", cex=1.5, lwd=2)
+# abline(v=1, lty=3, lwd=2)
+legend("topright", lty=1, pch=21:23, legend=c("c = q(0.90)", "c = q(0.95)", "c = q(0.99)"),
+       title="Sample quantiles", cex=1.5, lwd=2, pt.bg="white")
 
 # chi(t) plot
 max.lag <- 5
@@ -244,17 +257,18 @@ for (thresh in 1:length(threshs)){
 }
 
 xplot <- seq(1, 5, 1)
-plot(xplot, exceed.t.res[, 1], type="b", pch=1, lty=1, lwd=2,
+plot(xplot, exceed.t.res[, 1], type="b", pch=21, lty=1, lwd=2,
      xlim=c(0.5, 5.5), xaxt="n", xlab="lag",
-     ylim=c(0, 0.35), ylab=bquote(paste(chi, "(t)")),
-     main=bquote(paste(chi, "(t) for ozone residuals")),
+     ylim=c(0, 0.37), ylab=bquote(paste(hat(chi)[c], "(t)")),
+     # main=bquote(paste(chi, "(t) for ozone residuals")),
      cex.lab=1.5, cex.axis=1.5, cex.main=2
 )
 axis(1, at=xplot, cex.axis=1.5)
 for (line in 2:3) {
-	lines(xplot, exceed.t.res[, line], lty=1, pch=line, type="b", lwd=2)
+	lines(xplot, exceed.t.res[, line], lty=1, pch=(20 + line), type="b", lwd=2)
 }
-legend("topright", lty=1, pch=1:3, legend=round(probs, 2), title="sample quantiles", pt.bg="white", cex=1.5, lwd=2)
+legend("topright", lty=1, pch=21:23, legend=c("c = q(0.90)", "c = q(0.95)", "c = q(0.99)"),
+       title="Sample quantiles", pt.bg="white", cex=1.5, lwd=2)
 
 # qq plot of residuals
 library(sn)
@@ -269,12 +283,90 @@ xplot <- qt(theory.qq, 10)
 plot(xplot, res.qq)
 abline(0, 1)
 
-xplot <- qst(theory.qq, nu=8, alpha=1)
+xplot <- qst(theory.qq, nu=10, alpha=1)
 xplot <- (xplot - mean(xplot))
-plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 8 d.f. and alpha = 1")
+plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1")
 abline(0, 1)
 
+# ML - Skew-t fit and diagnostics
+library(fields)
+library(mvtnorm)
+library(sn)
 
+rm(list=ls())
+source('../../../R/mcmc.R', chdir=T)
+source('../../../R/auxfunctions.R')
+
+# Setup from Brian
+load("../ozone_data.RData")
+S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ
+
+# Exclude if site is missing more than 50% of its days
+excl  <- which(rowMeans(is.na(Y)) > 0.50)
+index <- index[-excl]
+Y     <- Y[-excl, ]
+S     <- S[-excl, ]
+cmaq  <- CMAQ[index, ]
+cmaq  <- (cmaq - mean(cmaq)) / sd(cmaq)  # center and scale CMAQ data
+
+# add in intercept
+nt <- ncol(Y)
+ns <- nrow(Y)
+X  <- array(1, dim=c(nrow(cmaq), nt, 2))
+for (t in 1:nt) {
+  X[, t, 2] <- cmaq[, t]
+}
+
+S <- S / 1000
+x <- x / 1000
+y <- y / 1000
+
+# put all covariate and observations into one long sting
+y.lm <- Y[, 1]
+x.lm <- X[, 1, ]
+for (t in 2:nt) {
+  y.lm <- c(y.lm, Y[, t])
+  x.lm <- rbind(x.lm, X[, t, c(1, 2)])
+}
+
+ozone.stlm  <- selm(y.lm ~ x.lm[, 2], family="ST")  # automatically includes int
+ozone.lm    <- lm(y.lm ~ x.lm[, 2])
+ozone.res   <- residuals(ozone.stlm)
+ozone.dp    <- ozone.stlm@param$dp
+ozone.omega <- ozone.dp[3]
+ozone.alpha <- ozone.dp[4]
+ozone.nu    <- ozone.dp[5]
+
+probs <- seq(0.000001, 0.999999, length=length(ozone.res))
+ozone.quant.obs <- quantile(ozone.res, probs=probs)
+ozone.quant.the <- rep(0, length(ozone.res))
+for (i in 1:33) {
+  start <- (i - 1) * 1000 + 1
+  if (i < 32) {
+    end <- start + 999
+  } else {
+    end <- length(ozone.res)
+  }
+  print(paste("start =", start))
+  ozone.quant.the[start:end] <- qst(probs[start:end], xi=0, omega=ozone.omega,
+                                    alpha=ozone.alpha, nu=ozone.nu)
+}
+save.image(file="ozone-qq.RData")
+
+load("ozone-qq.RData")
+plot(ozone.quant.the, ozone.quant.obs, main="Q-Q plot for ozone data")
+
+# we don't necessarily need to have all quantiles for the Q-Q plot. Just focus
+# on the tails
+quantiles <- (1:32692) / (32692 + 1)
+include <- c(1:500, 32192:32692)
+include.quant <- quantiles[c(1:500, 32192:32692)]
+ozone.quant.sub.obs <- quantile(ozone.res, probs=include.quant)
+ozone.quant.sub.the <- qst(include.quant, xi=0, omega=ozone.omega,
+                           alpha=ozone.alpha, nu=ozone.nu)
+
+plot(ozone.quant.sub.the, ozone.quant.sub.obs)
+abline(0, 1)
 # set.seed(2087)
 # # nw: no obs > 75
 # nw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] >= 0))

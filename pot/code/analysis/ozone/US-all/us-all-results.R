@@ -17,9 +17,16 @@ phi.z <- array(NA, dim=c(5000, nsets, 24))
 phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
-done <- c(1:4, 6:7, 10, 27:32)
+load("us-all-results.RData")
+done <- 26
+quant.score <- savelist[[1]]
+brier.score <- savelist[[2]]
+beta.0 <- savelist[[3]]
+beta.1 <- savelist[[4]]
+probs <- savelist[[5]]
+thresholds <- savelist[[6]]
 
-for (i in 1:32) {
+for (i in 1:50) {
   file <- paste("us-all-", i, ".RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
@@ -29,12 +36,13 @@ for (i in 1:32) {
       val.idx <- cv.lst[[d]]
       validate <- Y[val.idx, ]
       pred.d <- fit.d$yp[, , ]
-      if (i == 26) {
+      if (i == 26 && d == 1) {
         validate <- t(validate)
         pred.d <- fit.d$yp[(25001:30000), , ]
-      }
+
       quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
       brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
+    }
       if (i != 26) {
         beta.0[, d, i] <- fit.d$beta[, 1]
         beta.1[, d, i] <- fit.d$beta[, 2]
@@ -63,18 +71,18 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 32, length(probs))
-brier.score.mean <- matrix(NA, 32, length(thresholds))
+quant.score.mean <- matrix(NA, 50, length(probs))
+brier.score.mean <- matrix(NA, 50, length(thresholds))
 
-quant.score.se <- matrix(NA, 32, length(probs))
-brier.score.se <- matrix(NA, 32, length(thresholds))
+quant.score.se <- matrix(NA, 50, length(probs))
+brier.score.se <- matrix(NA, 50, length(thresholds))
 
-done <- c(1:4, 6:7, 10, 27:32)
-for (i in 1:32) {
+done <- c(1:50)
+for (i in 1:50) {
   if (i %in% done) {
-    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
+    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean, na.rm=T)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
-    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
+    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean, na.rm=T)
     brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
   }
 }
@@ -88,9 +96,9 @@ for (i in 1:length(thresholds)) {
   print(which(brier.score.mean[, i] == min(brier.score.mean[, i], na.rm=T)))
 }
 
-bs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
-qs.mean.ref.gau <- matrix(NA, nrow=31, ncol=11)
-for (i in 1:31) {
+bs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
+qs.mean.ref.gau <- matrix(NA, nrow=49, ncol=11)
+for (i in 1:49) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
@@ -179,69 +187,60 @@ plot(xplot, type="n", axes=F, ylab="", xlab="")
 legend("center", legend=c("Skew-t, T=0", "Skew-t, T=50", "Skew-t, T=75", "Skew-t, T=85", "T, T=75", "T, T=85"),
        col=c(col[1:4], col[3:4]), pch=c(rep(21, 4), rep(24, 2)), pt.bg=c(bg[1:4], bg[3:4]), cex=2.4, box.lty=0)
 
-# includes results for non-skewed methods
-plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.15), pch=21,
-     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=5,
-     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[9, 6:11], type="b", pch=24, col=col[1], bg=bg[1],
-      cex=1.3, lty=5)
-lines(xplot, bs.mean.ref.gau[17, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
-      cex=1.3, lty=3)
-lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
-      cex=1.3, lty=5)
-lines(xplot, bs.mean.ref.gau[21, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
-      cex=1.3, lty=3)
-lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
-      cex=1.3, lty=5)
-lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
-      cex=1.3, lty=1)
-abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0", "T, K=1, T=75",
-       "Skew-t, K=1, T=75", "T, K=10, T=75", "Skew-t, K=10, T=75", "Max-stable"),
-       pch=c(21, 24, 21, 21, 24, 24, 23), lty=c(5, 5, 3, 5, 3, 5, 1),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[2], bg[2], bg[5]), cex=1.3)
 
-# includes results for skewed methods only
-plot(xplot, bs.mean.ref.gau[1, 6:11], type="b", ylim=c(0.8, 1.1), pch=21,
-     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
-     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[9, 6:11], type="b", pch=24, col=col[1], bg=bg[1],
-      cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[3, 6:11], type="b", pch=21, col=col[2], bg=bg[2],
-      cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[11, 6:11], type="b", pch=24, col=col[2], bg=bg[2],
-      cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[25, 6:11], type="b", pch=23, col=col[5], bg=bg[5],
-      cex=1.3, lty=1)
-abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=10, T=0",
-       "Skew-t, K=1, T=75", "Skew-t, K=10, T=75", "Max-stable"),
-       pch=c(21, 24, 21, 24, 23), lty=c(1, 1, 1, 1, 1),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[2], bg[5]), cex=1.3)
 
-# includes knots 1 -- 5 with max-stable
+# best performing partition settings
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
 these.probs <- 1:11
 xplot <- probs[these.probs]
-plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.8, 0.89), pch=21,
+plot(xplot, bs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.755, 0.95), pch=21,
      col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
-     main="Ozone Brier scores", cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[2, these.probs], type="b", pch=22, col=col[1], bg=bg[1],
-      cex=1.3, lty=3)
-lines(xplot, bs.mean.ref.gau[26, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
+     # main="Select ozone Brier scores",
+     cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
+lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[28, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
+lines(xplot, bs.mean.ref.gau[9, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-# lines(xplot, bs.mean.ref.gau[30, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
-#       cex=1.3, lty=1)
-# lines(xplot, bs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[5], bg=bg[5],
-#        cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[13, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+      cex=1.3, lty=1)
+lines(xplot[3:11], bs.mean.ref.gau[25, 3:11], type="b", pch=23, col=col[5], bg=bg[5],
+      cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=1, T=50", "Skew-t, K=2, T=0",
-       "Skew-t, K=3, T=0"),
-       pch=c(21, 22, 21, 21, 21, 23), lty=c(1, 3, 1, 1, 1, 1),
-       pt.bg=c(bg[1], bg[1], bg[2], bg[3], bg[4], bg[5]), cex=1.3)
+legend("topleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=5, T=0", "Skew-t, K=10, T=0",
+       "Skew-t, K=15, T=0", "Max-stable"),
+       pch=c(21, 21, 21, 21, 23), lty=c(1, 1, 1, 1, 1), cex=1.3,
+       pt.bg=c(bg[1], bg[2], bg[3], bg[4], bg[5]),
+       col=c(col[1], col[2], col[3], col[4], col[5]))
+
+bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
+col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
+these.probs <- 1:11
+xplot <- probs[these.probs]
+plot(xplot, bs.mean.ref.gau[32, these.probs], type="b", ylim=c(0.755, 0.95), pch=21,
+     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
+     # main="Select ozone Brier scores",
+     cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
+lines(xplot, bs.mean.ref.gau[33, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
+      cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[34, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
+      cex=1.3, lty=1)
+lines(xplot, bs.mean.ref.gau[35, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+      cex=1.3, lty=1)
+abline(h=1, lty=2)
+legend("topleft", legend=c("Skew-t, K=6, T=0", "Skew-t, K=7, T=0", "Skew-t, K=8, T=0",
+       "Skew-t, K=9, T=0"),
+       pch=c(21, 21, 21, 21), lty=c(1, 1, 1, 1), cex=1.3,
+       pt.bg=c(bg[1], bg[2], bg[3], bg[4]),
+       col=c(col[1], col[2], col[3], col[4]))
+
+
+
+wilcox.results.gau <- matrix(NA, nrow=length(probs), ncol=4)
+part.best <- c(6, 33, 34, 35)
+for(i in 1:length(probs)) { for (k in 1:4) {
+  wilcox.results.gau[i, k] <- wilcox.test(brier.score[i, , 1], brier.score[i, , 6])$p.value
+}}
 
 bg <- c("firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4")
@@ -333,30 +332,179 @@ round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
 round(quant.score.mean, 4)
 round(brier.score.mean*1000, 4)
 
-# par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
+# posterior prediction maps
+rm(list=ls())
+library(fields)
+library(SpatialTools)
+load('us-all-setup.RData')
+# select every third CMAQ value
+S.p <- expand.grid(x, y)
+keep.these <- which((S.p[, 1] > -2.3) & (S.p[, 1] < 2.4) & S.p[, 2] > -1.6 & S.p[, 2] < 1.3)
+CMAQ.p <- CMAQ[keep.these, ]
+S.p    <- S.p[keep.these, ]
+nx <- length(unique(S.p[, 1]))
+ny <- length(unique(S.p[, 2]))
 
-# plot(probs, quant.score.mean[1, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="With CMAQ", xlab="quantile", ylab="score")
-# for (i in 2:9) {
-  # lines(probs, quant.score.mean[i, ], lty=i)
-  # points(probs, quant.score.mean[i, ], pch=i)
-# }
-# title(main="Quantile Scores - Ozone: NC, SC, GA", outer=T)
+#### Thin the rows and columns by 3
+# First, figure out what the x and y values are for the rows
+# and columns we should keep
+unique.x <- unique(S.p[, 1])
+keep.x <- unique.x[seq(1, length(unique.x), by=10)]
+nx <- length(keep.x)
+unique.y <- unique(S.p[, 2])
+keep.y <- unique.y[seq(1, length(unique(S.p[, 2])), by=10)]
+ny <- length(keep.y)
+keep.these <- which((S.p[, 1] %in% keep.x) & (S.p[, 2] %in% keep.y))
 
-# plot(probs, quant.score.mean[10, ], lty=1, type="b", ylim=c(min(quant.score.mean), max(quant.score.mean)), main="Without CMAQ", xlab="quantile", ylab="score")
-# for (i in 11:18) {
-  # lines(probs, quant.score.mean[i, ], lty=(i-9))
-  # points(probs, quant.score.mean[i, ], pch=(i-9))
-# }
+# Now select the subset from the original covariate and location information
+CMAQ.p <- CMAQ.p[keep.these, ]
+S.p    <- S.p[keep.these, ]
 
-# plot(probs, (quant.score.mean[10, ] - quant.score.mean[1, ]), lty=1, type="b", ylim=c(0, 10), main="no CMAQ - CMAQ", xlab="quantile", ylab="score")
-# for (i in 2:9) {
-  # lines(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), lty=i)
-  # points(probs, (quant.score.mean[(i+9), ] - quant.score.mean[i, ]), pch=i)
-# }
+# load results
+threshold <- 75
+load('us-all-full-1.RData')
+yp <- fit$yp
+np <- dim(yp)[2]
+gaus.95 <- apply(yp, c(2), quantile, probs=0.95)
+gaus.99 <- apply(yp, c(2), quantile, probs=0.99)
+gaus.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  gaus.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+gaus.p.0 <- rep(0, np)
+for(i in 1:np) {
+  gaus.p.0[i] <- prod(gaus.p.below[i, ])
+}
+gaus.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  gaus.p.1[i] <- gaus.p.1[i] + prod(gaus.p.below[i, -t]) * (1 - gaus.p.below[i, t])
+} }
+gaus.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    gaus.p.2[i] <- gaus.p.2[i] + prod(gaus.p.below[i, -c(s,t)]) * prod(1 - gaus.p.below[i, c(s, t)])
+  }
+}}
+gaus.p.atleast1 <- 1 - gaus.p.0
+gaus.p.atleast2 <- 1 - (gaus.p.0 + gaus.p.1)
+gaus.p.atleast3 <- 1 - (gaus.p.0 + gaus.p.1 + gaus.p.2)
 
-# plot(probs, quant.score.mean[1, ], type="n", axes=F)
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
 
-# legend("center", lty=1:9, pch=1:9, legend=c("Gaussian", "t-1 (T=0.0)", "t-1 (T=0.9)", "t-5 (T=0.0)", "t-5 (T=0.9)", "skew-t1", "skew-t1 (T=0.9)", "skew-t5", "skew-t5 (T=0.9)"))
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+load('us-all-full-2.RData')
+yp <- fit$yp
+np <- dim(yp)[2]
+t1.95 <- apply(yp, c(2), quantile, probs=0.95)
+t1.99 <- apply(yp, c(2), quantile, probs=0.99)
+t1.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  t1.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+t1.p.0 <- rep(0, np)
+for(i in 1:np) {
+  t1.p.0[i] <- prod(t1.p.below[i, ])
+}
+t1.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  t1.p.1[i] <- t1.p.1[i] + prod(t1.p.below[i, -t]) * (1 - t1.p.below[i, t])
+} }
+t1.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    t1.p.2[i] <- t1.p.2[i] + prod(t1.p.below[i, -c(s,t)]) * prod(1 - t1.p.below[i, c(s, t)])
+  }
+}}
+t1.p.atleast1 <- 1 - t1.p.0
+t1.p.atleast2 <- 1 - (t1.p.0 + t1.p.1)
+t1.p.atleast3 <- 1 - (t1.p.0 + t1.p.1 + t1.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+
+load('us-all-full-33.RData')
+yp <- fit$yp
+np <- dim(yp)[2]
+t6.95 <- apply(yp, c(2), quantile, probs=0.95)
+t6.99 <- apply(yp, c(2), quantile, probs=0.99)
+t6.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  t6.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+t6.p.0 <- rep(0, np)
+for(i in 1:np) {
+  t6.p.0[i] <- prod(t6.p.below[i, ])
+}
+t6.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  t6.p.1[i] <- t6.p.1[i] + prod(t6.p.below[i, -t]) * (1 - t6.p.below[i, t])
+} }
+t6.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    t6.p.2[i] <- t6.p.2[i] + prod(t6.p.below[i, -c(s,t)]) * prod(1 - t6.p.below[i, c(s, t)])
+  }
+}}
+t6.p.atleast1 <- 1 - t6.p.0
+t6.p.atleast2 <- 1 - (t6.p.0 + t6.p.1)
+t6.p.atleast3 <- 1 - (t6.p.0 + t6.p.1 + t6.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", , zlim=c(35, 140))
+lines(borders/1000)
+
+
+# zlim=c(0, 122)
+# quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
+# lines(borders/1000)
+
+# posterior maps: 95th quantile
+
+# probability of exceeding 75ppb at least once
+
+
 
 load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")

@@ -21,8 +21,8 @@
 #
 # OUTPUTS:
 #
-#   samples = Posterior samples of the model parameters. The 2 columns correspond to the 
-#             intercept and covariate. The five rows correspond to 
+#   samples = Posterior samples of the model parameters. The 2 columns correspond to the
+#             intercept and covariate. The five rows correspond to
 #
 #             1) probability below the threshold
 #             2) GPD scale
@@ -116,7 +116,7 @@ maxstable<-function(y, x, s, thresh, knots,
          WWW    <- FAC[, k]^(1 / alpha)
          canA   <- A[t, ] + WWW * (cana - a[t, k])
          cc     <- -canA * parts$expo + W * log(canA)
-         canlp  <- dPS(cana, alpha)             
+         canlp  <- dPS(cana, alpha)
          R <- sum(cc - ccc) +
             canlp - curlp[t, k] +
             dlognormal(a[t, k], cana, MHa[l2]) -
@@ -176,7 +176,7 @@ maxstable<-function(y, x, s, thresh, knots,
           A          <- canA
           curll      <- canll
           curlp      <- canlp
-          FAC        <- canFAC 
+          FAC        <- canFAC
        } }
       } } }
      }#end thin
@@ -197,7 +197,7 @@ maxstable<-function(y, x, s, thresh, knots,
         yp[i, t, ] <- qGPD(tau, Bp[t, , ], thresh)
       }
      }
-     
+
 
      level <- get.level(olda,cuts)
      for (j in 1:length(MHa)) {
@@ -222,26 +222,30 @@ maxstable<-function(y, x, s, thresh, knots,
      if (iterplot) { if((i %% update) == 0) {
        par(mfrow=c(5, 2), mar=c(2, 2, 2, 2))
        plot(samples[1:i, 1, 1], main="Prob0 Int", type="l")
-       abline(h=0) 
-       plot(samples[1:i, 2, 1], main="Prob0 Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 2], main="Scale Int", type="l")   
-       abline(h=0) 
-       plot(samples[1:i, 2, 2], main="Scale Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 3], main="Shape Int", type="l")   
-       abline(h=0) 
-       plot(samples[1:i, 2, 3], main="Shape Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 4], main="Alpha Int", type="l")   
-       abline(h=0) 
-       plot(samples[1:i, 2, 4], main="Alpha Slope", type="l") 
-       abline(h=0) 
-       plot(samples[1:i, 1, 5], main="BW Int", type="l")      
-       abline(h=0) 
-       plot(samples[1:i, 2, 5], main="BW Slope", type="l")    
-       abline(h=0) 
+       abline(h=0)
+       plot(samples[1:i, 2, 1], main="Prob0 Slope", type="l")
+       abline(h=0)
+       plot(samples[1:i, 1, 2], main="Scale Int", type="l")
+       abline(h=0)
+       plot(samples[1:i, 2, 2], main="Scale Slope", type="l")
+       abline(h=0)
+       plot(samples[1:i, 1, 3], main="Shape Int", type="l")
+       abline(h=0)
+       plot(samples[1:i, 2, 3], main="Shape Slope", type="l")
+       abline(h=0)
+       plot(samples[1:i, 1, 4], main="Alpha Int", type="l")
+       abline(h=0)
+       plot(samples[1:i, 2, 4], main="Alpha Slope", type="l")
+       abline(h=0)
+       plot(samples[1:i, 1, 5], main="BW Int", type="l")
+       abline(h=0)
+       plot(samples[1:i, 2, 5], main="BW Slope", type="l")
+       abline(h=0)
      } }
+
+    if ((i %% update) == 0) {
+      cat("\t iter", iter, "\n")
+    }
 
     }
 
@@ -307,15 +311,15 @@ make.B <- function(x, beta, type) {
   if (type == 5) {
     B <- make.gamma(x, beta)
   }
-  
+
   return(B)
-} 
+}
 
 loglikeparts <- function(y, A, B, thresh) {
 
   junk <- is.na(y)
   y <- ifelse(junk, thresh, y)
-   
+
   if (is.matrix(B)) {
     prob <- B[, 1]
     sig <- B[, 2]
@@ -334,7 +338,7 @@ loglikeparts <- function(y, A, B, thresh) {
   above <- y > thresh
   above <- ifelse(junk, FALSE, above)
   L1 <- L3 <- expo <- log(1 / prob)^ai
-  
+
   if (sum(above) > 0) {
     ttt <- xi * (y - thresh) / sig + 1
     ttt <- ifelse(above, ttt, 1)
@@ -351,14 +355,14 @@ loglikeparts <- function(y, A, B, thresh) {
           log(alpha) -
           log(l) -
           log(sig)
-  }          
+  }
   expo <- ifelse(above, L2, L1)
   expo <- ifelse(junk, 0, expo)
-  
+
   log <- ifelse(junk, 0, L3)
 
   results <- list(expo=expo, log=log, above=above)
-  
+
   return(results)
 }
 
@@ -407,8 +411,8 @@ loglike <- function(y, A, B, thresh) {
     lll[above] <- logpabove[above]
     lll[toohigh] <- -Inf
   }
-  lll <- ifelse(junk, 0, lll)          
-  
+  lll <- ifelse(junk, 0, lll)
+
   return(lll)
 }
 
@@ -420,14 +424,14 @@ a2A <- function(FAC, a, alpha) {
   if (length(a) == 1) {xxx <- W * a}
   if (length(a) > 1) {xxx <- W %*% a}
   return(xxx)
-}  
+}
 
 
 fac2FAC <- function(x, single=F) {
-  if (single) {x <- x / sum(x)}   
+  if (single) {x <- x / sum(x)}
   if (!single) {x <- sweep(x, 1, rowSums(x), "/")}
   return(x)
-}  
+}
 
 make.fac <- function(dw2, gamma) {
   rho2 <- exp(gamma)^2
@@ -448,11 +452,11 @@ rGPD <- function(X, B, thresh) {
     sig <- B[2]
     xi <- B[3]
   }
-  
+
   U <- exp(-1 / X)
   U2 <- 1 - (U - prob) / (1 - prob)
   Y <- thresh + ifelse(U < prob, 0, sig * (U2^(-xi) -1) / xi)
-  
+
   return(Y)
 }
 
@@ -461,7 +465,7 @@ rGEV <- function(n,mu,sig,xi) {
   x <- -1 / log(tau)
   x <- x^(xi) -1
   x <- mu + sig * x / xi
-  
+
   return(x)
 }
 
@@ -472,7 +476,7 @@ ld <- function(u, A, alpha) {
   c <- c * sin((1 - alpha) * psi) / sin(alpha * psi)
   logd <- log(alpha) - log(1 - alpha) - (1 / (1 - alpha)) * log(A) +
           log(c) - c * (1 / A^(alpha / (1 - alpha)))
-  
+
   return(exp(logd))
 }
 
@@ -494,7 +498,7 @@ ld2 <- function(u, logs, alpha, shift=0, log=T) {
 
 
 rPS <- function(n, alpha, MHA=1, iters=10, initA=NULL) {
-   
+
   A <- matrix(0, iters, n)
   accA <- attA <- 0
   if (!is.null(initA)) { logs <- log(initA) }
@@ -538,7 +542,7 @@ rtnorm <- function(mn, sd=0.2, fudge=0.001) {
   upper <- pnorm(1 - fudge, mn, sd)
   lower <- pnorm(fudge, mn, sd)
   U <- lower + (upper - lower) * runif(prod(dim(mn)))
-  
+
   return(qnorm(U, mn, sd))
 }
 
@@ -552,7 +556,7 @@ dtnorm <- function(y, mn, sd=0.2, fudge=0.001) {
 
 
 ECkern <- function(h, alpha, gamma, Lmax=50) {
-  dw2 <- rdist(c(0, h), seq(-Lmax, Lmax, 1)) 
+  dw2 <- rdist(c(0, h), seq(-Lmax, Lmax, 1))
   W <- fac2FAC(make.fac(dw2, gamma))^(1 / alpha)
   for (j in 1:length(h)) {
     h[j]<-sum((W[1, ] + W[j + 1, ])^alpha)
@@ -572,7 +576,7 @@ dPS <- function(A, alpha, npts=100) {
   if (A > 0) {
     l <- log(sum(BinWidth * ld(MidPoints, A, alpha)))
   }
-  
+
   return(l)
 }
 
