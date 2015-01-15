@@ -8,7 +8,7 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- setting
+setting <- 9
 method <- "t"
 nknots <- 5
 keep.knots <- F
