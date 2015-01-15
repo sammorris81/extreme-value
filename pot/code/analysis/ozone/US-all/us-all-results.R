@@ -217,22 +217,24 @@ bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
 these.probs <- 1:11
 xplot <- probs[these.probs]
-plot(xplot, bs.mean.ref.gau[32, these.probs], type="b", ylim=c(0.755, 0.95), pch=21,
-     col=col[1], bg=bg[1], ylab="Relative Brier score", xlab="Threshold quantile", lty=1,
+plot(xplot, qs.mean.ref.gau[1, these.probs], type="b", ylim=c(0.5, 1.1), pch=21,
+     col=col[1], bg=bg[1], ylab="Relative quantile score", xlab="Threshold quantile", lty=1,
      # main="Select ozone Brier scores",
      cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex=1.3)
-lines(xplot, bs.mean.ref.gau[33, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
+lines(xplot, qs.mean.ref.gau[5, these.probs], type="b", pch=21, col=col[2], bg=bg[2],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[34, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
+lines(xplot, qs.mean.ref.gau[9, these.probs], type="b", pch=21, col=col[3], bg=bg[3],
       cex=1.3, lty=1)
-lines(xplot, bs.mean.ref.gau[35, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+lines(xplot, qs.mean.ref.gau[13, these.probs], type="b", pch=21, col=col[4], bg=bg[4],
+      cex=1.3, lty=1)
+lines(xplot[3:11], qs.mean.ref.gau[25, 3:11], type="b", pch=23, col=col[5], bg=bg[5],
       cex=1.3, lty=1)
 abline(h=1, lty=2)
-legend("topleft", legend=c("Skew-t, K=6, T=0", "Skew-t, K=7, T=0", "Skew-t, K=8, T=0",
-       "Skew-t, K=9, T=0"),
-       pch=c(21, 21, 21, 21), lty=c(1, 1, 1, 1), cex=1.3,
-       pt.bg=c(bg[1], bg[2], bg[3], bg[4]),
-       col=c(col[1], col[2], col[3], col[4]))
+legend("bottomleft", legend=c("Skew-t, K=1, T=0", "Skew-t, K=5, T=0", "Skew-t, K=10, T=0",
+       "Skew-t, K=15, T=0", "Max-stable"),
+       pch=c(21, 21, 21, 21, 23), lty=c(1, 1, 1, 1, 1), cex=1.3,
+       pt.bg=c(bg[1], bg[2], bg[3], bg[4], bg[5]),
+       col=c(col[1], col[2], col[3], col[4], col[5]))
 
 
 
