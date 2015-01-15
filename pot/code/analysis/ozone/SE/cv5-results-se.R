@@ -19,18 +19,19 @@ thresholds <- quantile(y, probs=probs, na.rm=T)
 nsets <- 5 # Number of cv sets
 nbetas <- 4 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 18))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 18))
+quant.score <- array(NA, dim=c(length(probs), nsets, 19))
+brier.score <- array(NA, dim=c(length(thresholds), nsets, 19))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 18))
-beta.1 <- array(NA, dim=c(5000, nsets, 18))
-beta.2 <- array(NA, dim=c(5000, nsets, 18))
+beta.0 <- array(NA, dim=c(5000, nsets, 19))
+beta.1 <- array(NA, dim=c(5000, nsets, 19))
+beta.2 <- array(NA, dim=c(5000, nsets, 19))
 beta.3 <- array(NA, dim=c(5000, nsets, 9)) 
 
 # usable <- (25000+1):30000
 
-for (i in 1:18) {
+for (i in 10:19) {
   file <- paste("cv5-", i, "SE.RData", sep="")
+  cat("start file", file, "\n")
   load(file)
   for (d in 1:nsets) {
     fit.d <- fit[[d]]
@@ -46,6 +47,7 @@ for (i in 1:18) {
       beta.3[, d, i] <- fit.d$beta[, 4]
     }
   }
+  cat("finish file", file, "\n")
 }
 
 savelist <- list(quant.score, brier.score,
@@ -68,21 +70,25 @@ beta.3 <- savelist[[6]]
 probs <- savelist[[7]]
 thresholds <- savelist[[8]]
 
-quant.score.mean <- matrix(NA, 18, length(probs))
-brier.score.mean <- matrix(NA, 18, length(thresholds))
+quant.score.mean <- matrix(NA, 19, length(probs))
+brier.score.mean <- matrix(NA, 19, length(thresholds))
 
-quant.score.se <- matrix(NA, 18, length(probs))
-brier.score.se <- matrix(NA, 18, length(thresholds))
+quant.score.se <- matrix(NA, 19, length(probs))
+brier.score.se <- matrix(NA, 19, length(thresholds))
 
-for (i in 1:18) {
+for (i in 10:19) {
   quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean)
   quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(5)
   brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean)
   brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(5)
 }
 
-quant.score.mean[(10:17),c(1, 6, 9:12)]
-quant.score.se[(10:17),c(1, 6, 9:12)]
+round(quant.score.mean[c(10:13,15:19),c(6, 9:12)], 4)
+round(quant.score.se[c(10:13,15:19),c(6, 9:12)], 4)
+round(brier.score.mean[c(10:19),c(6, 9:12)]*1000, 3)
+round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
+
+quant.score.mean[c(14), c(6, 9:12)]
 
 par(mfrow=c(2, 2), oma=c(0, 0, 2, 0))
 

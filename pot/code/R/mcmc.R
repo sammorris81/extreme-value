@@ -1,44 +1,47 @@
 #########################################################################
-# MCMC 
+# MCMC
 #
 # TODO: Add in model description here
 #
 #ASSUMES x and y are in [0,1]^2
 #########################################################################
+source('condmean_cpp.R')
+source('mem_cpp.R')
+source('z_update_cpp.R')
 
-mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL, 
-                 thresh=0, thresh.quant=T, nknots=1, 
+mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
+                 thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
+                 # just to debug temporal parts.
+                 temporalw=F, temporaltau=F, temporalz=F,  # eventually change to temporal=F
                  # initial values
-                 beta.init=NULL, 
-                 tau.init=1,
-                 tau.alpha.init=0.1, 
-                 tau.beta.init=0.1,
-                 rho.init=0.5, 
-                 nu.init=0.5,
-                 alpha.init=0.5,
+                 beta.init=NULL, tau.init=2, tau.alpha.init=0.1, tau.beta.init=0.1,
+                 rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
-                 beta.m=0, beta.s=10, 
-                 tau.alpha.m=0, tau.alpha.s=1, 
+                 beta.m=0, beta.s=10,
+                 tau.alpha.m=0, tau.alpha.s=1,
                  tau.beta.a=0.1, tau.beta.b=0.1,
-                 logrho.m=-2, logrho.s=1,
-                 lognu.m=-1.2, lognu.s=1,
-                 alpha.m=0, alpha.s=1,
+                 logrho.m=0, logrho.s=10, rho.upper=NULL,
+                 lognu.m=-1.2, lognu.s=1, nu.upper=NULL,
+                 gamma.m=0, gamma.s=1,
                  # covariance model
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=1, z.alpha.init=0,
+                 z.init=1, lambda.init=0,
                  # skew priors
-                 z.alpha.m=0, z.alpha.s=2, skew=T
+                 lambda.m=0, lambda.s=10, skew=T,
+                 thresh.site.specific=F, thresh.site=NULL,
+                 # troubleshooting
+                 debug=F, fixhyper=F, tau.t, z.t
         ){
-    
-  library(geoR)
+
+  library(SpatialTools)
   library(fields)
   library(emulator)
   start.time <- proc.time()
-  
+
   ##############################################
   # Initial setup
   ##############################################
@@ -59,30 +62,56 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
   d       <- rdist(s)  # distance between sites
   diag(d) <- 0
-    
-    
+
   # store the loc/day for observed values below thresh.
-  if (thresh.quant & thresh > 0) {  # threshold based on sample quantiles
-    thresh.data <- quantile(y, thresh, na.rm=T)
+  if (thresh.quant & thresh.all > 0) {  # threshold based on sample quantiles
+    thresh.all.q <- quantile(y, thresh.all, na.rm=T)
   } else {
-    thresh.data <- thresh
+    thresh.all.q <- thresh.all
   }
-  thresh.mtx  <- matrix(thresh.data, ns, nt)  # want as a matrix for easy replacement
+  thresh.all.mtx <- matrix(thresh.all.q, ns, nt)  # want as a matrix for easy replacement
+
+  if (thresh.site.specific) {
+  	if (is.null(thresh.site)) {
+  	  warning("Warning: setting site-specific time series threshold to thresh.")
+  	  thresh.site <- thresh.all
+  	}
+  	if ((thresh.site < 0) | (thresh.site > 1)) {
+  	  stop("Error: thresh.site should be the desired site-specific quantile between 0 and 1")
+  	}
+    # if it's site specific, then we want to keep everything over the 95th quantile for the data
+    # set and the max for each site in a matrix that's ns x nt
+    thresh.site <- apply(y, 1, quantile, probs=thresh.site, na.rm=T)
+    thresh.site.mtx <- matrix(thresh.site, ns, nt)
+    thresh.mtx <- ifelse(
+      thresh.site < thresh.all.mtx,
+      thresh.site,
+      thresh.all.mtx
+    )
+  } else {  # if the mean doesn't have a site component, use the same threshold for all
+  	cat("\t no site-specific threshold set \n")
+    thresh.mtx  <- thresh.all.mtx
+  }
   thresh.obs  <- !is.na(y) & (y < thresh.mtx)
-  
+
   missing.obs <- is.na(y)
   y[missing.obs]  <- mean(y, na.rm=T)
+  y.init <- y
 
-    
   # initialize partition
-  knots_con <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
-  knots     <- pnorm(knots_con)
-    
+  x.range <- max(s[, 1]) - min(s[, 1])  # gives span of x
+  y.range <- max(s[, 2]) - min(s[, 2])  # gives span of y
+  range <- max(x.range, y.range)        # want to scale by the same amount in both directions
+  knots.con    <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
+  knots        <- pnorm(knots.con)  # in [0, 1] x [0, 1]
+  knots[, 1, ] <- knots[, 1, ] * range + min(s[, 1])  # rescaled back to size of s
+  knots[, 2, ] <- knots[, 2, ] * range + min(s[, 2])  # rescaled back to size of s
+
   # initialize parameters
   beta    <- rep(0, p)
   beta[1] <- mean(y)
   x.beta  <- matrix(beta[1], ns, nt)
-  
+
   # initialize partitioning
   if (nknots == 1) {
     g <- matrix(1, ns, nt)
@@ -92,7 +121,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       g[, t] <- mem(s, knots[, , t])
     }
   }
-  
+
   # initialize variance
   taug <- matrix(0, ns, nt)
   if (method == "gaussian") {  # single knot for all days
@@ -100,64 +129,89 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  stop("for gaussian, tau.init should be a single value")
   	}
   	tau <- matrix(tau.init, nknots, nt)
-    taug <- matrix(tau.init, ns, nt) 
+    taug <- matrix(tau.init, ns, nt)
   } else if (method == "t") {  # knots vary by day and partition
   	if (length(tau.init) == 1) {
   	  cat("\t initializing all tau terms to", tau.init, "\n")
   	}
   	tau  <- matrix(tau.init, nknots, nt)
   	for (t in 1:nt) {
-      taug[, t] <- tau[g[, t], t]   
+      taug[, t] <- tau[g[, t], t]
     }
   }
-  
+  if (debug) {
+    tau <- matrix(tau.t, nknots, nt)
+    for (t in 1:nt) {
+  	  taug[, t] <- tau[g[, t], t]
+    }
+  }
+
   zg <- matrix(0, ns, nt)
-  if (length(z.init) == 1) {
+  if (length(z.init) == 1 && skew) {
     cat("\t initializing all z terms to", z.init, "\n")
   }
   z <- matrix(z.init, nknots, nt)
   for (t in 1:nt) {
     zg[, t] <- z[g[, t], t]
   }
-  
-  if (skew) {
-    z.alpha <- z.alpha.init
-  } else {
-  	if (z.alpha.init != 0) {
-  	  warning("z.alpha.init being ignored since skew=F")
-  	}
-    z.alpha <- 0
+  if (debug) {
+    z <- matrix(z.t, nknots, nt)
+    for (t in 1:nt) {
+      zg[, t] <- z[g[, t], t]
+    }
   }
-  
+
+  if (skew) {
+    lambda <- lambda.init
+  } else {
+  	if (lambda.init != 0) {
+  	  warning("lambda.init being ignored since skew=F")
+  	}
+    lambda <- 0
+  }
+
   # easier to keep calculations in the precision scale for MCMC
   sigma2    <- 1 / tau
   sigma2g   <- 1 / taug
   tau.alpha <- tau.alpha.init
   tau.beta  <- tau.beta.init
-  
+
   # initialize spatial covariance
   rho    <- rho.init
   logrho <- log(rho)
+  if (is.null(rho.upper)) {
+    rho.upper <- Inf
+  }
   nu     <- nu.init
   lognu  <- log(nu)
-  alpha  <- alpha.init
+  if (is.null(nu.upper)) {
+    nu.upper <- Inf
+  }
+  gamma  <- gamma.init
   fixnu <- F
-  
+
   if (cov.model == "exponential") {
     nu <- 0.5
     fixnu <- T
   }
-  
+
   if (rho.prior == "cont") {
-    C <- CorFx(d=d, alpha=alpha, rho=rho, nu=nu)
-    chol.C <- chol(C)
-    prec.cor <- chol2inv(chol.C)
-    logdet.prec <- -sum(log(diag(chol.C)))  # already includes 0.5
+    C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+    CC <- tryCatch(chol.inv(C, inv=T, logdet=T),
+                   error = function(e) {
+                     eig.inv(C, inv=T, logdet=T, mtx.sqrt=T)
+                   })
+    sd.mtx <- CC$sd.mtx
+    prec.cor <- CC$prec
+    logdet.prec <- CC$logdet.prec  # already includes 0.5
   } else if (rho.prior == "disc"){  # precompute eigenvectors and eigenvalues
   	if (cov.model != "exponential") {
   	  stop('to use a discrete prior on rho, you must set cov.model = "exponential"')
   	}
-  	
+  	if (max(s) > 1) {
+  		stop('to use a discrete prior on rho, you need to scale your data to a unit square')
+  	}
+
     rhos <- seq(0.01, 1.2, 0.01)  # restricting spatial domain to [0, 1] x [0, 1]
    	C.vectors <- array(NA, dim=c(ns, ns, length(rhos)))
    	C.values  <- matrix(NA, nrow=ns, ncol=length(rhos))
@@ -169,23 +223,51 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
    	}
    	rho.idx <- which(rhos == rho)
    	C <- exp(-(d / rho))
-   	D <- 1 - alpha + alpha * C.values[, rho.idx]  # eigenvalues with alpha
+   	D <- 1 - gamma + gamma * C.values[, rho.idx]  # eigenvalues with gamma
    	prec.cor <- quad.tform(diag(1 / D), C.vectors[, , rho.idx])
    	logdet.prec <- -0.5 * sum(log(D))
   } else {
     stop("rho.prior must be cont or disc")
   }
-  
-  
+
+  # time series in the random knots/partitions
+  if (temporalw) {
+    phi.w <- 0
+    acc.phi.w <- att.phi.w <- mh.phi.w <- 1
+  }
+  if (temporaltau) {
+    phi.tau <- 0
+    acc.phi.tau <- att.phi.tau <- 1
+    mh.phi.tau <- 1
+    acc.tau.ns <- att.tau.ns <- rep(1, (ns + 1))
+    mh.tau.ns <- seq(5, 1, length=(ns + 1))
+    acc.tau.low <- acc.tau.high <- 0
+  } else {
+  	acc.tau.ns <- att.tau.ns <- rep(1, (ns + 1))
+  	mh.tau.ns <- seq(5, 1, length=(ns + 1))
+    acc.tau.low <- acc.tau.high <- 0
+  }
+  tau.trials <- nknots * nt * 3
+
+  if (temporalz) {
+  	z.star <- z  # need a place to keep track of normal values for time series
+    phi.z <- 0.5
+    acc.z <- att.z <- matrix(1, nknots, nt)
+    mh.z <- matrix(15, nknots, nt)
+    acc.phi.z <- att.phi.z <- mh.phi.z <- 1
+  }
+
+  acc.tau <- att.tau   <- matrix(1, nrow=nknots, ncol=nt)
+  mh.tau <- matrix(0.05, nknots, nt)
+  nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
+
   # MH tuning params
-  acc.w     <- att.w     <- mh.w     <- rep(0.1, nt)  # knot locations
-  acc.tau   <- att.tau   <- mh.tau   <- matrix(1, nrow=nknots, ncol=nt)
-  acc.delta <- att.delta <- mh.delta <- 0.1  
-  acc.rho   <- att.rho   <- mh.rho   <- 0.1
-  acc.nu    <- att.nu    <- mh.nu    <- 0.1
-  acc.alpha <- att.alpha <- mh.alpha <- 0.5
-  att.tau   <- acc.tau   <- mh.tau   <- rep(1,ns)    
-  
+  acc.w      <- att.w      <- mh.w     <- rep(0.1, nt)  # knot locations
+  acc.delta  <- att.delta  <- mh.delta <- 0.1
+  acc.rho    <- att.rho    <- mh.rho   <- 0.1
+  acc.nu     <- att.nu     <- mh.nu    <- 0.1
+  acc.gamma  <- att.gamma  <- mh.gamma <- 0.5
+
   # storage
   keepers.tau       <- array(NA, dim=c(iters, nknots, nt))
   keepers.beta      <- matrix(NA, nrow=iters, ncol=p)
@@ -195,125 +277,158 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   keepers.nparts    <- matrix(NA, nrow=iters, ncol=nt)
   keepers.rho       <- rep(NA, iters)
   keepers.nu        <- rep(NA, iters)
-  keepers.alpha     <- rep(NA, iters)
+  keepers.gamma     <- rep(NA, iters)
   keepers.z         <- array(NA, dim=c(iters, nknots, nt))
-  keepers.z.alpha   <- rep(NA, iters)
+  keepers.lambda   <- rep(NA, iters)
   keepers.avgparts  <- matrix(NA, nrow=iters, ncol=nt)  # avg partitions per day
+  if (keep.knots & (nknots > 1)) {
+    keepers.knots     <- array(NA, dim=c(iters, nknots, 2, nt))
+  }
+  if (temporalz) {
+    keepers.phi.z <- rep(NA, iters)
+  }
+  if (temporalw) {
+    keepers.phi.w <- rep(NA, iters)
+  }
+  if (temporaltau) {
+    keepers.phi.tau <- rep(NA, iters)
+  }
   return.iters      <- (burn + 1):iters
-  
+
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
-    
-    # impute data below threshold
-    if (thresh != 0) {
-      mu <- x.beta + z.alpha * zg
-      thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
-      y.imputed <- matrix(y, ns, nt)
-      
-      cor <- alpha * matern(u=d, phi=rho, kappa=nu)  # only for the spatial error
-      for (t in 1:nt) {
-        these.thresh.obs <- thresh.obs[, t]
-        these.missing.obs <- missing.obs[, t]
 
-        # spatial error
-        sig.t <- 1 / sqrt(taug[, t])
-        theta.t <- sig.t * t(chol(cor)) %*% rnorm(ns, 0, 1)  # generate for all sites
-        
-        # nugget error
-        # new expected value and standard deviation
-        e.y <- mu[, t] + theta.t
-        s.y <- sqrt(1 - alpha) * sig.t
-        upper.y <- thresh.mtx[, t]
-        
-        # y.impute.t <- rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y)
-        y.impute.t <- tryCatch(rTNorm(mn=e.y, sd=s.y, lower=-Inf, upper=upper.y),
-                               warning = function(e) {
-                               	cat("sig.t = ", sig.t, "\n")
-                               	cat("e.y = ", e.y, "\n")
-                               	cat("s.y = ", s.y, "\n")
-                               	cat("alpha = ", alpha, "\n")
-                               })
-       
-        # if any y.impute.t come back as -Inf, it's because P(Y < T) = 0
-        usefudge <- y.impute.t == -Inf
-        y.impute.t[usefudge] <- thresh.mtx.fudge[usefudge, t]
-        y.imputed[these.thresh.obs, t] <- y.impute.t[these.thresh.obs]
-       
-        # we already know the spatial part through the theta term
-        y.missing.t <- rnorm(n=ns, mean=e.y, sd=s.y)
-        y.imputed[these.missing.obs, t] <- y.missing.t[these.missing.obs]
+    # data imputation
+    if (thresh.all != 0) {
+      mu <- x.beta + lambda * zg
+      thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
+      y.impute <- matrix(y, ns, nt)
+
+      for (t in 1:nt) {
+      	taug.t <- sqrt(taug[, t])
+      	mu.t <- mu[, t]
+      	res.t <- y[, t] - mu[, t]
+      	impute.these <- which(thresh.obs[, t])
+
+      	# c function to find all conditional means and standard deviations
+      	impute.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t,
+      	                                taug=taug.t, include=impute.these)
+      	impute.sd <- impute.cond$cond.sd
+      	impute.e  <- impute.cond$cond.mn
+
+        u.upper    <- pnorm(thresh.mtx[impute.these, t], impute.e, impute.sd)
+        u.lower    <- pnorm(0, impute.e, impute.sd)
+        u.impute   <- runif(length(impute.these))
+        # y.impute.t <- ifelse(  # for numerical stability
+        #   u.upper < 1e-6,
+        #   thresh.mtx.fudge[impute.these, t],
+        #   impute.e + impute.sd * qnorm(u.impute * u.upper)
+        # )
+        y.impute.t <- impute.e + impute.sd *
+                      qnorm(u.impute * (u.upper - u.lower) + u.lower)
+        y.impute[impute.these, t] <- y.impute.t
+        if (any(u.upper < 0.001)) {
+          these.low <- which(u.upper < 0.001)
+          print(u.upper[these.low])
+          print(y.impute.t[these.low])
+          print(y.init[these.low, t])
+        }
+        if (any(y.impute.t < 0)) {
+          these.neg <- which(y.impute.t < 0)
+          print(paste("exp = ", impute.e[these.neg]))
+          print(paste("sd = ", impute.sd[these.neg]))
+          print(paste("imputed = ", y.impute.t[these.neg]))
+          print(paste("actual = ", y.init[these.neg, t]))
+        }
+
+        # missing values next
+        missing.these <- which(missing.obs[, t])  # gives sites that are missing on day t.
+        sig.t <- 1 / taug.t
+        y.missing.t <- mu.t + sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)
+        y.impute[missing.these, t] <- y.missing.t[missing.these]
+
       }
-      
+
       # Only the sites/days with missing/thresholded observations are different from
       # the true y in y.imputed
-      y <- y.imputed
+      y <- y.impute
 
     }
-    
+
     # update beta
-    vvv <- diag(p) / beta.s^2
-    mmm <- rep(beta.m, p)  
+    mmm <- rep(beta.m, p)
+    vvv <- diag(p) / (beta.s^2)
+
     for (t in 1:nt) {
-       x.t    <- x[, t, ]
-       g12    <- sqrt(taug[,t])
-       prec.t <- quad.form(prec.cor, diag(g12))  # faster with sweeps!
-       ttt    <- t(x.t) %*% prec.t
-       vvv    <- vvv + ttt %*% x.t
-       mmm    <- mmm + ttt %*% (y[, t] - z.alpha * zg[, t])
+      taug.t <- sqrt(taug[, t])
+      res.t  <- (y[, t] - lambda * zg[, t]) * taug.t
+      x.t    <- x[, t, ] * taug.t
+      ttt    <- t(x.t) %*% prec.cor
+      vvv    <- vvv + ttt %*% x.t
+      mmm    <- mmm + ttt %*% res.t
     }
-    
-    vvv <- chol2inv(chol(vvv))
-    beta <- vvv %*% mmm + t(chol(vvv)) %*% rnorm(p)
-      
+
+    vvv  <- chol2inv(chol(vvv))
+    mmm  <- vvv %*% mmm
+    beta <- mmm + t(chol(vvv)) %*% rnorm(p)
+    # print(mmm)
+    # print(vvv)
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
-    mu  <- x.beta + z.alpha * zg
-    
-    # update partitions
+    mu  <- x.beta + lambda * zg
     res <- y - mu
+
+    # update partitions
     if (nknots > 1) {
       avgparts <- rep(0, nt)
       for (t in 1:nt) {
-        att.w[1]      <- att.w[1] + 1
-        can_knots_con <- knots_con[, , t] + mh.w[1] * rnorm(2 * nknots)
-        can_knots     <- pnorm(can_knots_con)
-        cang          <- mem(s, can_knots)
-        cantaug       <- tau[cang, t]
-        canzg         <- z[cang, t]
-        canres        <- y - x.beta - z.alpha * canzg   
+        att.w[1] <- att.w[1] + 1
+        can.knots.con <- knots.con[, , t] + mh.w[1] * rnorm(2 * nknots)
+        can.knots     <- pnorm(can.knots.con)
+        can.knots[, 1] <- can.knots[, 1] * range + min(s[, 1])
+        can.knots[, 2] <- can.knots[, 2] * range + min(s[, 2])
+        can.g          <- mem(s, can.knots)
+        can.taug       <- tau[can.g, t]
+        can.zg         <- z[can.g, t]
+        can.res        <- y - x.beta - lambda * can.zg
 
-        R <- -0.5 * quad.form(prec.cor, sqrt(cantaug) * canres[, t]) +
+        if (temporalw & (t > 1)) {  # first day has mean 0: added for ts
+          mean <- phi.w * knots.con[, , (t - 1)]
+          sd   <- sqrt(1 - phi.w^2)
+        } else {
+          mean <- 0
+          sd   <- 1
+        }
+
+        R <- -0.5 * quad.form(prec.cor, sqrt(can.taug) * can.res[, t]) +
               0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res[, t]) +
-              0.5 * sum(log(cantaug)) -
-              0.5 * sum(log(taug[, t])) +
-              sum(dnorm(can_knots_con, log=TRUE)) -
-              sum(dnorm(knots_con[, , t], log=TRUE))
-          
+              0.5 * sum(log(can.taug)) - 0.5 * sum(log(taug[, t])) +
+              sum(dnorm(can.knots.con, mean, sd, log=T)) -  # added for ts
+              sum(dnorm(knots.con[, , t], mean, sd, log=T))  # added for ts
+
+        if (temporalw & (t < nt)) {  # the knot location on the next day is a part of the time series
+          sd.next <- sqrt(1 - phi.w^2)
+          knots.next <- knots.con[, , (t + 1)]
+          R <- R + sum(dnorm(knots.next, (phi.w * can.knots.con), sd.next, log=T)) -
+                   sum(dnorm(knots.next, (phi.w * knots.con[, , t]), sd.next, log=T))
+        }
+
         if (!is.na(R)) { if (log(runif(1)) < R) {
-          knots_con[, , t] <- can_knots_con
-          knots[, , t]     <- can_knots
-          g[, t]           <- cang
-          taug[, t]        <- cantaug
-          zg[, t]          <- canzg
+          knots.con[, , t] <- can.knots.con
+          knots[, , t]     <- can.knots
+          g[, t]           <- can.g
+          taug[, t]        <- can.taug
+          zg[, t]          <- can.zg
           acc.w[1]         <- acc.w[1] + 1
         }}
-        
-        # find the avg num of partitions per day
-        for (k in 1:nknots) {
-          if (sum(g[, t] == k) != 0) {
-            avgparts[t] <- avgparts[t] + 1
-          } 
-        }
       }
-    }
-    
-    #### Spatial correlation
-    mu <- x.beta + z.alpha * zg
-    res <- y - mu
+    }  # fi nknots > 1
 
+    # covariance parameters
+    mu <- x.beta + lambda * zg
+    res <- y - mu
     # update tau
-    curll <- rep(0,nt)
     if (method == "gaussian") {  # single random effect for all days
       rss <- 0
       for (t in 1:nt) {
@@ -323,7 +438,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       tau <- rgamma(1, ns * nt / 2 + tau.alpha, rss / 2 + tau.beta)
       tau <- matrix(tau, nknots, nt)
       taug <- matrix(tau, ns, nt)
-      
+
       # update tau.alpha and tau.beta
       a.star <- tau.beta.a + tau.alpha
       b.star <- tau.beta.b + tau[1, 1]
@@ -334,105 +449,160 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         lll[l] <- sum(dgamma(tau[1, 1], mmm[l], tau.beta, log=T))
       }
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
-    } else if (method == "t"){
-
+    } else if (method == "t") {
       if (nknots == 1) {
         for (t in 1:nt) {
           res.t <- res[, t]
           rss.t <- quad.form(prec.cor, res.t)
-          tau[1, t] <- rgamma(1, tau.alpha + 0.5 * ns, tau.beta + 0.5 * rss.t)
-          taug[, t] <- tau[1, t]
+
+          aaa <- tau.alpha + 0.5 * ns
+          bbb <- tau.beta + 0.5 * rss.t
+          if (skew) {  # tau is also in z likelihood
+            aaa <- aaa + 0.5
+            bbb <- bbb + 0.5 * z[1, t]^2
+          }
+
+          if (!temporaltau) {  # conjugate
+            tau[1, t] <- rgamma(1, aaa, bbb)
+            taug[, t] <- tau[1, t]
+          } else {  # not conjugate
+            # TODO: time series update
+          }  # fi temporaltau
         }
+      } else {  # nknots > 1
+      	for (t in 1:nt) {
+      	  res.t <- res[, t]
+      	  cur.lly <- 0.5 * sum(log(taug[, t])) -
+      	             0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res.t)
 
+      	  for (k in 1:nknots) {
+      	    these <- which(g[, t] == k)
+      	    nparts <- length(these)
+      	    nparts.tau[k, t] <- nparts
+
+      	    if (nparts == 0) {
+      	      aaa <- tau.alpha
+      	      bbb <- tau.beta
+      	      if (skew) {  # tau is also in z likelihood
+      	        aaa <- aaa + 0.5
+      	        bbb <- bbb + 0.5 * z[k, t]^2
+      	      }
+
+      	      if (!temporaltau) {
+      	        tau[k, t] <- rgamma(1, aaa, bbb)
+      	        if(tau[k, t] < 1e-6) {  # numerical stability
+      	          tau[k, t] <- 1e-6
+      	        }
+      	      } else { # tau is not conjugate
+      	        # TODO: time series update
+      	      }
+      	    } else {  # nparts > 0
+      	      att.tau.ns[(nparts + 1)] <- att.tau.ns[(nparts + 1)] + 1
+      	      att.tau[k, t] <- att.tau[k, t] + 1
+
+      	      aaa <- tau.alpha + 0.5 * nparts
+      	      bbb <- tau.beta + 0.5 * quad.form(prec.cor[these, these], res.t[these])
+
+      	      if (skew) {  # tau is also in z likelihood
+      	        aaa <- aaa + 0.5
+      	        bbb <- bbb + 0.5 * z[k, t]^2
+      	      }
+
+      	      # this posterior is conjugate when nparts -> ns
+      	      # when nparts -> 1, want a wider candidate
+      	      aaa <- aaa / mh.tau.ns[nparts + 1]
+      	      bbb <- bbb / mh.tau.ns[nparts + 1]
+      	      if(is.nan(bbb)) {
+      	        print(tau)
+      	        print(z)
+      	        print(aaa)
+      	        print(y[1:5, ])
+      	        print(res[1:5, ])
+      	        print(mu[1:5, ])
+      	        print(beta)
+      	        print(quad.form(prec.cor[these, these], res.t[these]))
+      	      }
+      	      can.tau <- tau[, t]
+      	      can.tau[k] <- rgamma(1, aaa, bbb)
+      	      if (can.tau[k] < 1e-6) {
+      	        can.tau[k] <- 1e-6
+      	      }
+
+      	      can.taug <- can.tau[g[, t]]
+
+      	      can.lly <- 0.5 * sum(log(can.taug)) -
+      	                 0.5 * quad.form(prec.cor, sqrt(can.taug) * res.t)
+
+      	      if (skew) {
+      	        cur.llz <- 0.5 * log(tau[k, t]) - 0.5 * tau[k, t] * z[k, t]^2
+      	        can.llz <- 0.5 * log(can.tau[k]) - 0.5 * can.tau[k] * z[k, t]^2
+      	      } else {
+      	        cur.llz <- can.llz <- 0
+      	      }
+
+      	      R <- can.lly - cur.lly + can.llz - cur.llz +
+      	           tryCatch({  # candidate is non-symmetric
+                     dgamma(tau[k, t], aaa, bbb, log=TRUE)},
+                     warning = function(w) {
+                     print(paste("knot", k, ", day", t))
+                     print(paste("aaa =", aaa))
+                     print(paste("bbb =", bbb))
+                     print(paste("tau[k, t] =", tau[k, t]))
+                     print(paste("g[, t] =", g[, t]))
+                     print(paste("mh.tau.ns[mh.idx] =", mh.tau.ns[mh.idx]))
+                     print(paste("tau.beta =", tau.beta))
+                   }) -
+                   dgamma(can.tau[k], aaa, bbb, log=TRUE)
+
+      	      if (!temporaltau) {
+      	        R <- R + dgamma(can.tau[k], tau.alpha, tau.beta, log=T) -
+      	                 dgamma(tau[k, t], tau.alpha, tau.beta, log=T)
+      	      } else {  # prior changes
+      	        # TODO: time series update
+      	      }
+
+      	      if (!is.na(R)) { if (log(runif(1)) < R) {
+      	        acc.tau.ns[(nparts + 1)] <- acc.tau.ns[(nparts + 1)] + 1
+      	        acc.tau[k, t] <- acc.tau[k, t] + 1
+      	        tau[, t] <- can.tau
+      	        taug[, t] <- can.taug
+      	        cur.lly <- can.lly
+      	      }}
+
+      	    }  # fi nparts
+      	  }  # end k
+      	}  # end t
+      }  # fi nknots > 1
+
+      # update hyperparameters
+      if (fixhyper) {
+        tau.alpha <- 3
+        tau.beta  <- 8
       } else {
+        a.star <- tau.beta.a + tau.alpha * nknots * nt
+        b.star <- tau.beta.b + sum(tau)
+        tau.beta <- rgamma(1, a.star, b.star)
 
-        for(t in 1:nt){
-          res.t <- res[, t]
-          curll[t] <- 0.5 * sum(log(taug[, t])) -
-                      0.5 * quad.form(prec.cor, sqrt(taug[,t]) * res.t)
-
-          for (k in 1:nknots) {
-
-            these  <- which(g[, t] == k)
-            nparts <- length(these)
-
-            if(nparts==0){
-              tau[k, t] <- rgamma(1, tau.alpha, tau.beta)
-              if (tau[k, t] < 1e-6) {
-                tau[k, t] <- 1e-6
-              }
-            }       
-            else{      
-              att.tau[nparts] <- att.tau[nparts] + 1
-              aaa <- nparts / 2 + tau.alpha
-              bbb <- quad.form(prec.cor[these, these], res.t[these]) / 2 + tau.beta
-
-              aaa <- aaa / mh.tau[nparts]
-              bbb <- bbb / mh.tau[nparts]
-
-              cantau    <- tau[, t]
-              cantau[k] <- rgamma(1, aaa, bbb)
-              if (cantau[k] < 1e-6) {
-                cantau[k] <- 1e-6
-              }
-              cantaug   <- cantau[g[, t]]
-
-              canll <- 0.5 * sum(log(cantaug)) -
-                       0.5 * quad.form(prec.cor, sqrt(cantaug) * res.t)
-
-              R    <- canll - curll[t] +
-                      dgamma(cantau[k], tau.alpha, tau.beta, log=TRUE) -
-                      dgamma(tau[k, t], tau.alpha, tau.beta, log=TRUE) +
-                      tryCatch(
-                        {dgamma(tau[k, t], aaa, bbb, log=TRUE)}, 
-                        warning = function(w) {
-                          print(paste("knot", k, ", day", t))
-                          print(paste("aaa =", aaa))
-                          print(paste("bbb =", bbb))
-                          print(paste("tau[k, t] =", tau[k, t]))
-                          print(paste("g[, t] =", g[, t]))
-                      }) -
-                      dgamma(cantau[k], aaa, bbb, log=TRUE)
-
-              if (!is.na(R)) { if (log(runif(1)) < R) {
-                acc.tau[nparts] <- acc.tau[nparts] + 1
-                tau[, t]  <- cantau
-                taug[, t] <- cantaug
-                curll[t]  <- canll
-              }}
-            }#end ifelse
-          }#end k
-        }  # end t
-      }#end t
-      
-      # update tau.alpha and tau.beta
-      a.star <- tau.beta.a + nt * nknots * tau.alpha
-      b.star <- tau.beta.b + sum(tau)
-      tau.beta <- rgamma(1, a.star, b.star)
-
-      lll <- mmm <- seq(0.5, 10, 0.1)
-      for (l in 1:length(lll)) {
-        lll[l] <- sum(dgamma(tau, mmm[l], tau.beta, log=T))
+        lll <- mmm <- seq(0.1, 10, 0.1)
+        for (l in 1:length(lll)) {
+          lll[l] <- sum(dgamma(tau, mmm[l], tau.beta, log=T))
+        }
+        tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
       }
-      tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
-    }
+    }  # fi method == t
 
-    # update rho and nu and alpha
+    mu  <- x.beta + lambda * zg
+    res <- y - mu
+    # update rho and nu and gamma
     if (rho.prior == "disc") {  # only update rho and alpha
-      mu <- x.beta + z.alpha * zg
-      res <- y - mu
       lll.rho <- rep(NA, length(rhos))
-      
-      # D <- 1 - alpha + alpha * C.values[, rho.idx]  # eigenvalues with alpha
-      # prec.cor <- quad.tform(diag(1 / D), C.vectors[, , rho.idx])
-      # logdet.prec <- -0.5 * sum(log(D))
-      
+
       # storage for possible covariance parts
       can.prec.cor <- array(NA, dim=c(ns, ns, length(rhos)))
       can.logdet.prec <- rep(NA, length(rhos))
       can.rss <- matrix(NA, nrow=length(rhos), ncol=nt)
       for (l in 1:length(rhos)) {
-      	D <- 1 - alpha + alpha * C.values[, l]  # eigenvalues with alpha
+      	D <- 1 - gamma + gamma * C.values[, l]  # eigenvalues with gamma
       	can.prec.cor[, , l] <- quad.tform(diag(1 / D), C.vectors[, , l])
       	can.logdet.prec[l] <- -0.5 * sum(log(D))
       	for (t in 1:nt) {
@@ -442,432 +612,479 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       rho.idx <- sample(length(rhos), 1, prob=exp(lll.rho - max(lll.rho)))
       rho <- rhos[rho.idx]
-      
+
       # update cov matrix
       C <- exp(-(d / rho))
       prec.cor <- can.prec.cor[, , rho.idx]
       logdet.prec <- can.logdet.prec[rho.idx]
       cur.rss <- can.rss[rho.idx, ]
-            
-      # update alpha
-      att.alpha <- att.alpha + 1
-    
-      norm.alpha <- qnorm(alpha)
-      can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
-      can.alpha <- pnorm(can.norm.alpha)
-    
-      can.C <- CorFx(d=d, alpha=can.alpha, rho=rho, nu=nu)
-      can.chol.C <- chol(can.C)
-      can.prec.cor <- chol2inv(can.chol.C)
-      can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
-    
+
+      # update gamma
+      att.gamma <- att.gamma + 1
+
+      norm.gamma <- qnorm(gamma)
+      can.norm.gamma <- rnorm(1, norm.gamma, mh.gamma)
+      can.gamma <- pnorm(can.norm.gamma)
+
+      can.C <- CorFx(d=d, gamma=can.gamma, rho=rho, nu=nu)
+      can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
+                         error = function(e) {
+                           eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T)
+                         })
+      can.sd.mtx <- can.CC$sd.mtx
+      can.prec.cor <- can.CC$prec
+      can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
+
       can.rss <- rep(NA, nt)
       for (t in 1:nt) {
         can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t])
         cur.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t])
       }
-    
-      R <- -0.5 * sum(can.rss - cur.rss) + 
+
+      R <- -0.5 * sum(can.rss - cur.rss) +
             nt * (can.logdet.prec - logdet.prec) +
-            dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-            dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
-    
+            dnorm(can.norm.gamma, mean=gamma.m, sd=gamma.s, log=T) -
+            dnorm(norm.gamma, mean=gamma.m, sd=gamma.s, log=T)
+
       if (!is.na(R)) { if (log(runif(1)) < R) {
-        alpha <- can.alpha
+        gamma <- can.gamma
         C <- can.C
-        chol.C <- can.chol.C
+        sd.mtx <- can.sd.mtx
         prec.cor <- can.prec.cor
         logdet.prec <- can.logdet.prec
         cur.rss <- can.rss
-        acc.alpha <- acc.alpha + 1
+        acc.gamma <- acc.gamma + 1
       }}
-    
-      if (att.alpha > 50) {
-        if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
-        if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
-        acc.alpha <- att.alpha <- 1
+
+      if ((att.gamma > 50) & (iter < (burn / 2))) {
+        if (acc.gamma / att.gamma < 0.25) { mh.gamma <- mh.gamma * 0.8 }
+        if (acc.gamma / att.gamma > 0.50) { mh.gamma <- mh.gamma * 1.2 }
+        acc.gamma <- att.gamma <- 0
       }
 
-    } else {
+    } else {  # using a truncated normal candidate
       att.rho <- att.rho + 1
       att.nu  <- att.nu + 1
-      att.alpha <- att.alpha + 1
-   
+
       logrho <- log(rho)
-      can.logrho <- rnorm(1, logrho, mh.rho)
-      can.rho <- exp(can.logrho)
+      if (rho.upper == Inf) {
+        upper.logrho <- 1
+      } else {
+        upper.logrho <- pnorm(log(rho.upper), logrho, mh.rho)
+      }
+      can.rho.u  <- runif(1) * upper.logrho
+      can.logrho <- logrho + mh.rho * qnorm(can.rho.u)
+      can.rho    <- exp(can.logrho)
 
       lognu  <- log(nu)
       if (!fixnu) {
-        can.lognu <- rnorm(1, lognu, mh.nu)
+        if (nu.upper == Inf) {
+          upper.lognu <- 1
+        } else {
+          upper.lognu <- pnorm(log(nu.upper), lognu, mh.nu)
+        }
+        can.nu.u  <- runif(1) * upper.lognu
+        can.lognu <- lognu + mh.nu * qnorm(can.nu.u)
       } else {
         can.lognu <- lognu
       }
       can.nu <- exp(can.lognu)
-    
-      norm.alpha <- qnorm(alpha)
-      can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
-      can.alpha <- pnorm(can.norm.alpha)
-    
-      can.C <- CorFx(d=d, alpha=can.alpha, rho=can.rho, nu=can.nu)
-      can.chol.C <- chol(can.C)
-      can.prec.cor <- chol2inv(can.chol.C)
-      can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
-    
+
+      can.C <- CorFx(d=d, gamma=gamma, rho=can.rho, nu=can.nu)
+      can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
+                         error = function(e) {
+                           tryCatch(eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T),
+                                    error = function(e) {
+                                      print(paste("can.rho =", can.rho))
+                                      print(paste("can.nu =", can.nu))
+                                    })
+                         })
+      can.sd.mtx <- can.CC$sd.mtx
+      can.prec.cor <- can.CC$prec
+      can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
+
       can.rss <- rep(NA, nt)
       cur.rss <- rep(NA, nt)
       for (t in 1:nt) {
-        can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t]) 
+        can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t])
         cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
       }
-    
-      R <- -0.5 * sum(can.rss - cur.rss) + 
-            nt * (can.logdet.prec - logdet.prec) + 
-            dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
-            dnorm(logrho, logrho.m, logrho.s, log=T) + 
-            dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
-            dnorm(lognu, lognu.m, lognu.s, log=T) +
-            dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-            dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
-    
-      if (can.nu <= 10) {  # sometimes nu gets lost in the MCMC and ends up way too big
-        if (!is.na(R)) { if (log(runif(1)) < R) {
-          rho <- can.rho
-          nu <- can.nu
-          alpha <- can.alpha
-          C <- can.C
-          chol.C <- can.chol.C
-          prec.cor <- can.prec.cor
-          logdet.prec <- can.logdet.prec
-          cur.rss <- can.rss
-          acc.rho <- acc.rho + 1
-          acc.nu  <- acc.nu + 1
-          acc.alpha <- acc.alpha + 1
-        }}
+
+      R <- -0.5 * sum(can.rss - cur.rss) +
+            nt * (can.logdet.prec - logdet.prec) +
+            dnorm(can.logrho, logrho.m, logrho.s, log=T) -
+            dnorm(logrho, logrho.m, logrho.s, log=T)
+
+      if (upper.logrho < 1) {  # candidate is not symmetric
+        R <- R + dnorm(logrho, logrho, mh.rho, log=T) -
+                 dnorm(can.logrho, logrho, mh.rho, log=T)
       }
-    
-      if (att.rho > 50) {
+
+      if (!fixnu) {
+        R <- R + dnorm(can.lognu, lognu.m, lognu.s, log=T) -
+                 dnorm(lognu, lognu.m, lognu.s, log=T)
+        if (upper.lognu < 1) {  # candidate is not symmetric
+          R <- R + dnorm(lognu, lognu, mh.nu, log=T) -
+                   dnorm(can.lognu, lognu, mh.nu, log=T)
+        }
+      }
+
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        rho <- can.rho
+        nu <- can.nu
+        C <- can.C
+        sd.mtx <- can.sd.mtx
+        prec.cor <- can.prec.cor
+        logdet.prec <- can.logdet.prec
+        cur.rss <- can.rss
+        acc.rho <- acc.rho + 1
+        acc.nu  <- acc.nu + 1
+      }}
+
+      # gamma
+      att.gamma <- att.gamma + 1
+
+      norm.gamma <- qnorm(gamma)
+      can.norm.gamma <- rnorm(1, norm.gamma, mh.gamma)
+      can.gamma <- pnorm(can.norm.gamma)
+
+      can.C <- CorFx(d=d, gamma=can.gamma, rho=rho, nu=nu)
+      can.CC <- tryCatch(chol.inv(can.C, inv=T, logdet=T),
+                         error = function(e) {
+                           tryCatch(eig.inv(can.C, inv=T, logdet=T, mtx.sqrt=T),
+                                    error = function(e) {
+                                      print(paste("can.gamma =", can.gamma))
+                                    })
+                         })
+      can.sd.mtx <- can.CC$sd.mtx
+      can.prec.cor <- can.CC$prec
+      can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
+
+      can.rss <- rep(NA, nt)
+      cur.rss <- rep(NA, nt)
+      for (t in 1:nt) {
+        can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t])
+        cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
+      }
+
+      R <- -0.5 * sum(can.rss - cur.rss) +
+            nt * (can.logdet.prec - logdet.prec) +
+            dnorm(can.norm.gamma, mean=gamma.m, sd=gamma.s, log=T) -
+            dnorm(norm.gamma, mean=gamma.m, sd=gamma.s, log=T)
+
+      if (!is.na(R)) { if (log(runif(1)) < R) {
+        acc.gamma <- acc.gamma + 1
+        gamma <- can.gamma
+        C <- can.C
+        sd.mtx <- can.sd.mtx
+        prec.cor <- can.prec.cor
+        logdet.prec <- can.logdet.prec
+        cur.rss <- can.rss
+      }}
+
+      if ((att.rho > 50) & (iter < (burn / 2))) {
         if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
         if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
-        acc.rho <- att.rho <- 1
+        acc.rho <- att.rho <- 0
       }
-    
-      if (att.nu > 50) {
+
+      if ((att.nu > 50) & (iter < (burn / 2))) {
         if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
         if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
-        acc.nu <- att.nu <- 1
+        acc.nu <- att.nu <- 0
       }
-    
-      if (att.alpha > 50) {
-        if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
-        if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
-        acc.alpha <- att.alpha <- 1
+
+      if ((att.gamma > 50) & (iter < (burn / 2))) {
+        if (acc.gamma / att.gamma < 0.25) { mh.gamma <- mh.gamma * 0.8 }
+        if (acc.gamma / att.gamma > 0.50) { mh.gamma <- mh.gamma * 1.2 }
+        acc.gamma <- att.gamma <- 0
+      }
+
+      if (fixhyper) {
+        nu <- 0.5
+        rho <- 1
+        gamma <- 0.9
       }
 
     }
-    # # update rho
-    # att.rho <- att.rho + 1
-    
-    # logrho <- log(rho)
-    # can.logrho <- rnorm(1, logrho, mh.rho)
-    # can.rho <- exp(can.logrho)
-    
-    # can.C <- CorFx(d=d, alpha=alpha, rho=can.rho, nu=nu)
-    # can.chol.C <- chol(can.C)
-    # can.prec.cor <- chol2inv(can.chol.C)
-    # can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
-    
-    # can.rss <- rep(NA, nt)
-    # cur.rss <- rep(NA, nt)
-    # for (t in 1:nt) {
-      # can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t]) 
-      # cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
-    # }
-    
-    # R <- -0.5 * sum(can.rss - cur.rss) + 
-          # nt * (can.logdet.prec - logdet.prec) + 
-          # dnorm(can.logrho, logrho.m, logrho.s, log=T) - 
-          # dnorm(logrho, logrho.m, logrho.s, log=T)
-         
-    # if (!is.na(R)) { if (log(runif(1)) < R) {
-      # rho <- can.rho
-      # C <- can.C
-      # chol.C <- can.chol.C
-      # prec.cor <- can.prec.cor
-      # logdet.prec <- can.logdet.prec
-      # cur.rss <- can.rss
-      # acc.rho <- acc.rho + 1
-    # }}
-    
-    # if (att.rho > 50) {
-      # if (acc.rho / att.rho < 0.25) { mh.rho <- mh.rho * 0.8 }
-      # if (acc.rho / att.rho > 0.50) { mh.rho <- mh.rho * 1.2 }
-      # acc.rho <- att.rho <- 1
-    # }
-    
-    # # update nu
-    # att.nu  <- att.nu + 1
-    
-    # lognu  <- log(nu)
-    # can.lognu <- rnorm(1, lognu, mh.nu)
-    # can.nu <- exp(can.lognu)
-    
-    # can.C <- CorFx(d=d, alpha=alpha, rho=rho, nu=can.nu)
-    # can.chol.C <- chol(can.C)
-    # can.prec.cor <- chol2inv(can.chol.C)
-    # can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
-    
-    # can.rss <- rep(NA, nt)
-    # cur.rss <- rep(NA, nt)
-    # for (t in 1:nt) {
-      # can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t]) 
-      # cur.rss[t] <- quad.form(prec.cor, sqrt(taug[, t]) * res[, t])
-    # }
-    
-    # R <- -0.5 * sum(can.rss - cur.rss) + 
-          # nt * (can.logdet.prec - logdet.prec) + 
-          # dnorm(can.lognu, lognu.m, lognu.s, log=T) - 
-          # dnorm(lognu, lognu.m, lognu.s, log=T)
-         
-    # if (!is.na(R)) { if (log(runif(1)) < R) {
-      # nu <- can.nu
-      # C <- can.C
-      # chol.C <- can.chol.C
-      # prec.cor <- can.prec.cor
-      # logdet.prec <- can.logdet.prec
-      # cur.rss <- can.rss
-      # acc.nu  <- acc.nu + 1
-    # }}
-    
-    # if (att.nu > 50) {
-      # if (acc.nu / att.nu < 0.25) { mh.nu <- mh.nu * 0.8 }
-      # if (acc.nu / att.nu > 0.50) { mh.nu <- mh.nu * 1.2 }
-      # acc.nu <- att.nu <- 1
-    # }
-        
-    # update rho with discrete uniform
-    # mu <- x.beta + z.alpha * zg
-    # res <- y - mu
-    # lll <- mmm <- seq(0.04, 1.20, 0.02)
-    # can.C <- array(NA, dim=c(ns, ns, length(lll)))
-    # can.prec.cor <- array(NA, dim=c(ns, ns, length(lll)))
-    # can.logdet.prec <- rep(NA, length(lll))
-    # can.rss <- matrix(NA, nrow=length(lll), ncol=nt)
-    
-    # for (l in 1:length(lll)) {
-      # can.C[, , l] <- CorFx(d=d, alpha=alpha, rho=mmm[l], nu=nu)
-      # can.chol.C <- chol(can.C[, , l])
-      # can.prec.cor[, , l] <- chol2inv(can.chol.C)
-      # can.logdet.prec[l] <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
-      # for (t in 1:nt) {
-        # can.rss[l, t] <- quad.form(can.prec.cor[, , l], sqrt(taug[, t]) * res[, t])
-      # }
-      # lll[l] <- nt * can.logdet.prec[l] - 0.5 * sum(can.rss[l, ])
-    # }
-    
-    # rho.idx <- sample(length(mmm), 1, prob=exp(lll - max(lll)))
-    # rho <- mmm[rho.idx]
-    # C <- can.C[, , rho.idx]
-    # chol.C <- chol(C)
-    # prec.cor <- can.prec.cor[, , rho.idx]
-    # logdet.prec <- can.logdet.prec[rho.idx]
-    # cur.rss <- can.rss[rho.idx, ]
-        
-    # # update alpha
-    # att.alpha <- att.alpha + 1
-    
-    # norm.alpha <- qnorm(alpha)
-    # can.norm.alpha <- rnorm(1, norm.alpha, mh.alpha)
-    # can.alpha <- pnorm(can.norm.alpha)
-    
-    # can.C <- CorFx(d=d, alpha=can.alpha, rho=rho, nu=nu)
-    # can.chol.C <- chol(can.C)
-    # can.prec.cor <- chol2inv(can.chol.C)
-    # can.logdet.prec <- -sum(log(diag(can.chol.C)))  # this is the sqrt of logdet.prec
-    
-    # can.rss <- rep(NA, nt)
-    # for (t in 1:nt) {
-      # can.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t])
-      # cur.rss[t] <- quad.form(can.prec.cor, sqrt(taug[, t]) * res[, t])
-    # }
-    
-    # R <- -0.5 * sum(can.rss - cur.rss) + 
-          # nt * (can.logdet.prec - logdet.prec) +
-          # dnorm(can.norm.alpha, mean=alpha.m, sd=alpha.s, log=T) - 
-          # dnorm(norm.alpha, mean=alpha.m, sd=alpha.s, log=T)
-    
-    # if (!is.na(R)) { if (log(runif(1)) < R) {
-      # alpha <- can.alpha
-      # C <- can.C
-      # chol.C <- can.chol.C
-      # prec.cor <- can.prec.cor
-      # logdet.prec <- can.logdet.prec
-      # cur.rss <- can.rss
-      # acc.alpha <- acc.alpha + 1
-    # }}
-    
-    # if (att.alpha > 50) {
-      # if (acc.alpha / att.alpha < 0.25) { mh.alpha <- mh.alpha * 0.8 }
-      # if (acc.alpha / att.alpha > 0.50) { mh.alpha <- mh.alpha * 1.2 }
-      # acc.alpha <- att.alpha <- 1
-    # }
-    
+
+    # update skew parameters: lambda and z
     if (skew) {
-      # Skewness parameter
-      vvv <- 1 / z.alpha.s^2
-      mmm <- z.alpha.m
-    
+      # lambda
+      mmm <- lambda.m
+      vvv <- 1 / (lambda.s^2)
+
       for (t in 1:nt) {
-        prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
-        ttt <- zg[, t] %*% prec.cov
-        vvv <- vvv + ttt %*% zg[, t]
-        mmm <- mmm + ttt %*% (y[, t] - x.beta[, t])
+        taug.t <- sqrt(taug[, t])
+        res.t  <- (y[, t] - x.beta[, t]) * taug.t
+        z.t    <- zg[, t] * taug.t
+        ttt    <- z.t %*% prec.cor
+        vvv    <- vvv + ttt %*% z.t
+        mmm    <- mmm + ttt %*% res.t
       }
-    
+
       vvv <- 1 / vvv
-      mmm <- vvv * mmm 
-    
-      z.alpha <- rnorm(1, mmm, sqrt(vvv))
-    
-      # z random effect
-      mu <- y - x.beta - z.alpha * zg
-      
-      for (t in 1:nt) {
-        prec.cov <- quad.form(prec.cor, diag(sqrt(taug[, t])))
-        for (k in 1:nknots) {
-          these <- which(g[, t] == k)
-          r.1 <- y[these, t, drop=F] - x.beta[these, t, drop=F]
-          r.2 <- y[-these, t, drop=F] - mu[-these, t, drop=F]
-          prec.11 <- prec.cov[these, these, drop=F]  # with cov
-          prec.21 <- prec.cov[-these, these, drop=F]
-          lambda.l <- z.alpha^2 * sum(prec.11) + tau[k, t]
-          
-          mu.l <- z.alpha * sum(t(r.1) %*% prec.11 + t(r.2) %*% prec.21)
-          
-          e.z <- mu.l / lambda.l
-          sd.z <- 1 / sqrt(lambda.l)
-          z.new <- rTNorm(mn=e.z, sd=sd.z, lower=0, upper=Inf)
-          if (z.new == Inf) {  # if z.new comes back Inf, then P(z > 0) = 0
-            z.new = 0.00001
+      mmm <- vvv * mmm
+      lambda <- rnorm(1, mmm, sqrt(vvv))
+
+      mu <- x.beta + lambda * zg
+      res <- y - mu
+
+      # z
+      if (!temporalz) {
+        if (nknots == 1) {
+          for (t in 1:nt) {
+          	res.t <- (y[, t] - x.beta[, t])
+            mmm <- lambda * tau[1, t] * sum(prec.cor %*% res.t)
+            vvv <- tau[1, t] + lambda^2 * tau[1, t] * sum(prec.cor)
+
+            vvv <- 1 / vvv
+            mmm <- vvv * mmm
+            z[1, t] <- abs(rnorm(1, mmm, sqrt(vvv)))
+            zg[, t] <- z[1, t]
           }
-        
-          z[k, t] <- z.new
-          zg[these, t] <- z.new
-        }
-      }
-    }    
+        } else {  # nknots > 1
+          z_update <- z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu,
+                             g=g, prec=prec.cor, lambda=lambda, zg=zg)
+          z <- z_update$z
+          zg <- z_update$zg
+
+        }  # fi nknots > 1
+      } else {
+        # TODO: time series z
+      }  # fi temporalz
+      mu <- x.beta + lambda * zg
+      res <- y - mu
+    }  # fi skew
+
   }  # end nthin
-  
+
+  mu <- x.beta + lambda * zg
+  res <- y - mu
   # predictions
   if (predictions) {
   	if (cov.model == "matern") {
-      s.11 <- alpha * matrix(matern(d11, rho, nu), np, np)
-      s.12 <- alpha * matrix(matern(d12, rho, nu), np, ns)
+  	  s.11 <- gamma * simple.cov.sp(D=d11, sp.type="matern", sp.par=c(1, rho), error.var=0,
+                                    smoothness=nu, finescale.var=0)
+      s.12 <- gamma * simple.cov.sp(D=d12, sp.type="matern", sp.par=c(1, rho), error.var=0,
+                                    smoothness=nu, finescale.var=0)
     } else {
-      s.11 <- alpha * matrix(exp(-d11 / rho), np, np)
-      s.12 <- alpha * matrix(exp(-d12 / rho), np, ns)
+      s.11 <- gamma * matrix(exp(-d11 / rho), np, np)
+      s.12 <- gamma * matrix(exp(-d12 / rho), np, ns)
     }
     diag(s.11) <- 1
     s.12.22.inv <- s.12 %*% prec.cor
     corp <- s.11 - s.12.22.inv %*% t(s.12)
-    corp <- diag(corp)
-    
+    corp.sd.mtx <- tryCatch(chol(corp),  # only want the cholesky factor
+                            error = function(e) {
+                              eig.inv(corp, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
+                            })
+
     yp <- matrix(NA, np, nt)
 
     for (t in 1:nt) {
       xp.beta  <- x.pred[, t, ] %*% beta
       if (nknots == 1) {
-        gp <- 1
+        gp <- rep(1, np)
       } else {
-        gp       <- mem(s.pred, knots[, , t])  # find the right partition
+        gp <- mem(s.pred, knots[, , t])  # find the right partition
       }
       zgp    <- z[gp, t]
-      siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's variance
+      siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
       taug.t <- sqrt(taug[, t])
+      mup <- xp.beta + lambda * zgp + siggp * s.12.22.inv %*% (taug.t * res[, t])
 
-      mup <- xp.beta + z.alpha * zgp - sqrt(siggp) * s.12.22.inv %*% (taug.t * res[, t])
-      sdp <- sqrt(siggp * corp)
-      
-      yp[, t] <- mup + sdp * rnorm(np, 0, 1)
+      yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
     }
-   
-  }
-  
-  
-  # print(iter)
-  # print("beta, tau.alpha, tau.beta")
-  # print(c(beta, tau.alpha, tau.beta))
-  # print("rho, alpha, nu")
-  # print(c(rho, alpha, nu))
 
-  # par(mfrow=c(3,2))
-  # plot(y[,id1],pch=19,col=g[,id1],main=iter,ylim=range(y))
-  # plot(y[,id2],pch=19,col=g[,id2],main=iter,ylim=range(y))
-  # plot(1/sqrt(taug[,id1]),pch=19,col=g[,id1])
-  # plot(1/sqrt(taug[,id2]),pch=19,col=g[,id2])
-  # plot(s,col=g[,id1],ylim=0:1)
-  # points(knots[,,id1],pch=19,col=1:nknots)
-  # plot(s,col=g[,id2],ylim=0:1)
-  # points(knots[,,id2],pch=19,col=1:nknots)
-  
+  }
+
+  # storage
   keepers.tau[iter, , ]   <- tau
   keepers.beta[iter, ]    <- beta
   keepers.tau.alpha[iter] <- tau.alpha
   keepers.tau.beta[iter]  <- tau.beta
   keepers.rho[iter]       <- rho
   keepers.nu[iter]        <- nu
-  keepers.alpha[iter]     <- alpha
-  
+  keepers.gamma[iter]     <- gamma
+  if (keep.knots & (nknots > 1)) {
+    keepers.knots[iter, , , ] <- knots
+  }
+
   if (predictions) {
     y.pred[iter, , ] <- yp
   }
   if (skew) {
-    keepers.z.alpha[iter] <- z.alpha
+    keepers.lambda[iter] <- lambda
     keepers.z[iter, , ]   <- z
   }
   if (nknots > 1) {
     keepers.avgparts[iter, ] <- avgparts
   }
-  
+  if (temporalw) {
+  	keepers.phi.w[iter] <- phi.w
+  }
+  if (temporalz) {
+  	keepers.phi.z[iter] <- phi.z
+  }
+  if (temporaltau) {
+  	keepers.phi.tau[iter] <- phi.tau
+  }
+
+  # update notifications for printing
   if (iter %% update == 0) {
+  	if (temporalw) {
+  	  acc.rate.phi.w <- round(acc.phi.w / att.phi.w, 3)
+  	}
+  	if (temporalz) {
+  	  acc.rate.phi.z <- round(acc.phi.z / att.phi.z, 3)
+  	  acc.rate.z <- round(acc.z / att.z, 3)
+  	}
+ 	if (temporaltau) {
+ 	  acc.rate.phi.tau <- round(acc.phi.tau / att.phi.tau, 3)
+ 	}
+
+  	acc.rate.rho <- round(acc.rho / att.rho, 3)
+  	acc.rate.nu <- round(acc.nu / att.nu, 3)
+  	acc.rate.tau <- round(acc.tau / att.tau, 3)
+  	acc.rate.gamma <- round(acc.gamma / att.gamma, 3)
+
+  	if (iter < burn) {
+  	  begin <- max(1, (iter - 2000))
+  	} else {
+  	  begin <- burn
+  	}
+
     if (iterplot) {
       if (skew) {
-        par(mfrow=c(4, 3))
+        par(mfrow=c(3, 6))
       } else {
-        par(mfrow=c(3, 3))
+        par(mfrow=c(3, 6))
       }
-      plot(keepers.beta[1:iter, 1], type="l")
-      plot(keepers.tau.alpha[1:iter], type="l")
-      plot(keepers.tau.beta[1:iter], type="l")
-      plot(keepers.rho[1:iter], type="l")
-      plot(keepers.nu[1:iter], type="l")
-      plot(keepers.alpha[1:iter], type="l")
+
+      plot(keepers.beta[begin:iter, 1], type="l")
+      if (p > 1) {
+        plot(keepers.beta[begin:iter, 2], type="l")
+      } else if (p > 2) {
+        plot(keepers.beta[begin:iter, 3], type="l")
+      }
+      if (temporalw) {
+        title.phi.w <- paste("acc =", acc.rate.phi.w)
+        plot(keepers.phi.w[begin:iter], type="l", main=title.phi.w)
+      }
+      if (temporalz) {
+        title.phi.z <- paste("acc =", acc.rate.phi.z)
+      	plot(keepers.phi.z[begin:iter], type="l", main=title.phi.z)
+      }
+      if (temporaltau) {
+        title.phi.tau <- paste("acc =", acc.rate.phi.tau)
+      	plot(keepers.phi.tau[begin:iter], type="l", main=title.phi.tau)
+      }
+
+      plot(keepers.tau.alpha[begin:iter], type="l")
+      plot(keepers.tau.beta[begin:iter], type="l")
+
+      title.rho <- paste("acc =", acc.rate.rho)
+      if (mh.rho < 0.00001) {
+      	xlab.rho <- "<0.00001"
+      } else if (mh.rho < 10000) {
+      	xlab.rho <- round(mh.rho, 5)
+      } else {
+      	xlab.rho <- "> 10000"
+      }
+      plot(keepers.rho[begin:iter], type="l", main=title.rho, xlab=xlab.rho)
+
+      title.nu <- paste("acc =", acc.rate.nu)
+      if (mh.nu < 0.00001) {
+      	xlab.nu <- "<0.00001"
+      } else if (mh.nu < 10000) {
+      	xlab.nu <- round(mh.nu, 5)
+      } else {
+      	xlab.nu <- "> 10000"
+      }
+      plot(keepers.nu[begin:iter], type="l", main=title.nu, xlab=xlab.nu)
+
+      title.gamma <- paste("acc =", acc.rate.gamma)
+      plot(keepers.gamma[begin:iter], type="l", main=title.gamma)
+
       if (skew) {
-        plot(keepers.z.alpha[1:iter], type="l")
-        plot(keepers.z[1:iter, 1, 1], type="l")
-        plot(keepers.z[1:iter, 1, 48], type="l")
+        plot(keepers.lambda[begin:iter], type="l")
+
+        if (temporalz) {
+          title.z.1 <- paste("acc =", acc.rate.z[1, 1])
+          title.z.2 <- paste("acc =", acc.rate.z[1, 10])
+          title.z.3 <- paste("acc =", acc.rate.z[1, 21])
+        } else {
+          title.z.1 <- ""
+          title.z.2 <- ""
+          title.z.3 <- ""
+        }
+        plot(keepers.z[begin:iter, 1, 1], type="l", main=title.z.1)
+        plot(keepers.z[begin:iter, 1, 10], type="l", main=title.z.2)
+        plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
       }
-      plot(keepers.tau[1:iter, 1, 1], type="l")
-      plot(keepers.tau[1:iter, 1, 10], type="l")
-      plot(keepers.tau[1:iter, 1, 48], type="l")
+
+      if (temporaltau) {
+        nparts.1 <- nparts.2 <- nparts.3 <- 1
+      } else {
+        nparts.1 <- length(which(g[, 1] == 1))
+        nparts.2 <- length(which(g[, 10] == 1))
+        nparts.3 <- length(which(g[, 21] == 1))
+      }
+      mh.disp.1 <- round(mh.tau.ns[(nparts.1 + 1)], 2)
+      mh.disp.2 <- round(mh.tau.ns[(nparts.2 + 1)], 2)
+      mh.disp.3 <- round(mh.tau.ns[(nparts.3 + 1)], 2)
+      title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
+      title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
+      title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
+      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1,
+           ylab="tau 1,1", xlab=paste(nparts.1, ", ", mh.disp.1))
+      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2,
+           ylab="tau 1, 10", xlab=paste(nparts.2, ", ", mh.disp.2))
+      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3,
+           ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
+
+      if (nknots > 1) {
+      	if (temporaltau) {
+      	  nparts.4 <- nparts.5 <- nparts.6 <- 1
+      	} else {
+      	  nparts.4 <- length(which(g[, 1] == 2))
+      	  nparts.5 <- length(which(g[, 10] == 2))
+      	  nparts.6 <- length(which(g[, 21] == 2))
+      	}
+
+        mh.disp.4 <- round(mh.tau.ns[(nparts.4 + 1)], 2)
+        mh.disp.5 <- round(mh.tau.ns[(nparts.5 + 1)], 2)
+        mh.disp.6 <- round(mh.tau.ns[(nparts.6 + 1)], 2)
+        title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
+        title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
+        title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
+        plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4,
+             ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
+        plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5,
+             ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
+        plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6,
+             ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))
+      }
+
     }
-    
-    toc <- proc.time()
+
     cat("\t iter", iter, "\n")
-    # cat("\t elapsed time", (toc - tic)[3], "\n")
-    tic <- proc.time()
-    # cat("\t nu = ", nu, "\n")
-    # cat("\t alpha = ", alpha, "\n")
-    # cat("\t rho = ", rho, "\n")
   }
-  
-  
+
+
   } #end iters
 
 if (nknots == 1) {
   keepers.avgparts <- NULL
 } else {
   keepers.avgparts <- keepers.avgparts[return.iters, ]
+}
+
+if (keep.knots & (nknots > 1)) {
+  keepers.knots <- keepers.knots[return.iters, , , ]
+} else {
+  keepers.knots <- NULL
 }
 
 if (!predictions) {
@@ -878,23 +1095,44 @@ if (!predictions) {
 
 if (!skew) {
   keepers.z <- NULL
-  keepers.z.alpha <- NULL
+  keepers.lambda <- NULL
 } else {
   keepers.z <- keepers.z[return.iters, , ]
-  keepers.z.alpha <- keepers.z.alpha[return.iters]
+  keepers.lambda <- keepers.lambda[return.iters]
 }
 
-results <- list(tau=keepers.tau[return.iters, , ], 
+if (!temporalz) {  # ts
+  keepers.phi.z <- NULL
+} else {
+  keepers.phi.z <- keepers.phi.z[return.iters]
+}
+if (!temporalw) {  # ts
+  keepers.phi.w <- NULL
+} else {
+  keepers.phi.w <- keepers.phi.w[return.iters]
+}
+if (!temporaltau) {  # ts
+  keepers.phi.tau <- NULL
+} else {
+  keepers.phi.tau <- keepers.phi.tau[return.iters]
+}
+
+results <- list(tau=keepers.tau[return.iters, , ],
                 beta=keepers.beta[return.iters, ],
                 tau.alpha=keepers.tau.alpha[return.iters],
                 tau.beta=keepers.tau.beta[return.iters],
                 rho=keepers.rho[return.iters],
                 nu=keepers.nu[return.iters],
-                alpha=keepers.alpha[return.iters],
+                gamma=keepers.gamma[return.iters],
                 yp=y.pred,
-                z.alpha=keepers.z.alpha,
+                lambda=keepers.lambda,
                 z=keepers.z,
-                avgparts=keepers.avgparts)
+                knots=keepers.knots,
+                avgparts=keepers.avgparts,
+                phi.z=keepers.phi.z,  # ts
+                phi.w=keepers.phi.w,  # ts
+                phi.tau=keepers.phi.tau  # ts
+                )
 
 return(results)
 }#end mcmc()
