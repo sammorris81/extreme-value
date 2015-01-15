@@ -352,7 +352,21 @@ for (i in 1:33) {
                                     alpha=ozone.alpha, nu=ozone.nu)
 }
 save.image(file="ozone-qq.RData")
+
+load("ozone-qq.RData")
 plot(ozone.quant.the, ozone.quant.obs, main="Q-Q plot for ozone data")
+
+# we don't necessarily need to have all quantiles for the Q-Q plot. Just focus
+# on the tails
+quantiles <- (1:32692) / (32692 + 1)
+include <- c(1:500, 32192:32692)
+include.quant <- quantiles[c(1:500, 32192:32692)]
+ozone.quant.sub.obs <- quantile(ozone.res, probs=include.quant)
+ozone.quant.sub.the <- qst(include.quant, xi=0, omega=ozone.omega,
+                           alpha=ozone.alpha, nu=ozone.nu)
+
+plot(ozone.quant.sub.the, ozone.quant.sub.obs)
+abline(0, 1)
 # set.seed(2087)
 # # nw: no obs > 75
 # nw.these.l <- which((s[-exceed.75.these, 1] < 0) & (s[-exceed.75.these, 2] >= 0))
