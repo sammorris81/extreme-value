@@ -317,36 +317,19 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	impute.e  <- impute.cond$cond.mn
 
         u.upper    <- pnorm(thresh.mtx[impute.these, t], impute.e, impute.sd)
-        u.lower    <- pnorm(0, impute.e, impute.sd)
         u.impute   <- runif(length(impute.these))
-        # y.impute.t <- ifelse(  # for numerical stability
-        #   u.upper < 1e-6,
-        #   thresh.mtx.fudge[impute.these, t],
-        #   impute.e + impute.sd * qnorm(u.impute * u.upper)
-        # )
-        y.impute.t <- impute.e + impute.sd *
-                      qnorm(u.impute * (u.upper - u.lower) + u.lower)
+        y.impute.t <- ifelse(  # for numerical stability
+          u.upper < 1e-6,
+          thresh.mtx.fudge[impute.these, t],
+          impute.e + impute.sd * qnorm(u.impute * u.upper)
+        )
         y.impute[impute.these, t] <- y.impute.t
-        if (any(u.upper < 0.001)) {
-          these.low <- which(u.upper < 0.001)
-          print(u.upper[these.low])
-          print(y.impute.t[these.low])
-          print(y.init[these.low, t])
-        }
-        if (any(y.impute.t < 0)) {
-          these.neg <- which(y.impute.t < 0)
-          print(paste("exp = ", impute.e[these.neg]))
-          print(paste("sd = ", impute.sd[these.neg]))
-          print(paste("imputed = ", y.impute.t[these.neg]))
-          print(paste("actual = ", y.init[these.neg, t]))
-        }
 
         # missing values next
         missing.these <- which(missing.obs[, t])  # gives sites that are missing on day t.
         sig.t <- 1 / taug.t
         y.missing.t <- mu.t + sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)
         y.impute[missing.these, t] <- y.missing.t[missing.these]
-
       }
 
       # Only the sites/days with missing/thresholded observations are different from
