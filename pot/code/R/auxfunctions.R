@@ -270,6 +270,29 @@ makeknotsTS <- function(nt, nknots, s, phi) {
   return(knots)
 }
 
+maketauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
+  tau.star <- matrix(NA, nrow=nknots, ncol=nt)
+  tau.star[, 1] <- rnorm(nknots, 0, 1)
+  for (t in 2:nt) {
+    tau.star[, t] <- phi * tau.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
+  }
+
+  tau <- qgamma(pnorm(tau.star), tau.alpha, tau.beta)
+  return(tau)
+}
+
+makezTS <- function(nt, nknots, tau, phi) {
+  sigma <- 1 / sqrt(tau)
+  z.star <- matrix(NA, nrow=nknots, ncol=nt)
+  z.star[, 1] <- rnorm(nknots, 0, sqrt(sigma[, 1]))
+  for (t in 2:nt) {
+    z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(sigma[, t] * (1 - phi^2)) * rnorm(nknots)
+  }
+
+  z <- abs(z.star)
+  return(z)
+}
+
 rpotspatTS <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho, phi.z, phi.w,
                        mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
 
@@ -333,6 +356,8 @@ rpotspatTS <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho, phi.z, phi.w,
 
   results <- list(y=y, tau=tau, z=z, knots=knots)
 }
+
+
 
 ################################################################
 # Arguments:

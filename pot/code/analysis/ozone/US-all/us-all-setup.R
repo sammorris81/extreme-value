@@ -354,6 +354,7 @@ for (i in 1:33) {
 save.image(file="ozone-qq.RData")
 
 load("ozone-qq.RData")
+library(sn)
 plot(ozone.quant.the, ozone.quant.obs, main="Q-Q plot for ozone data")
 
 # we don't necessarily need to have all quantiles for the Q-Q plot. Just focus
