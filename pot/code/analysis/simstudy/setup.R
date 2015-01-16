@@ -48,6 +48,7 @@ tau.alpha.t <- 3
 tau.beta.t  <- 8
 
 # covariate data
+set.seed(20)
 s         <- cbind(runif(144, 0, 10), runif(144, 0, 10))
 knots.x   <- seq(1, 9, length=12)
 knots.gev <- expand.grid(knots.x, knots.x)
@@ -74,7 +75,7 @@ for (setting in 1:nsettings) {
     z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
     knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
     for (set in 1:nsets) {
-      set.seed(setting*100 + set)
+      set.seed(setting * 100 + set)
       data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                        gau.rho=gau.rho.t[setting], t.rho=t.rho.t[setting],
                        mixprob=mixprob.t[setting], lambda=lambda.t[setting],
@@ -92,6 +93,7 @@ for (setting in 1:nsettings) {
     knots.t[[setting]] <- knots.t.setting
   } else if (setting == 6) {
   	for (set in 1:nsets) {
+      set.seed(setting * 100 + set)
   	  y[, , set, setting] <- rgevspatial(nreps=nt, S=s, knots=knots.gev, xi=0.2)
   	}
   } else if (setting == 7) {
@@ -100,7 +102,7 @@ for (setting in 1:nsettings) {
     z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
     knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
     for (set in 1:nsets) {
-      set.seed(setting*100 + set)
+      set.seed(setting * 100 + set)
       data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                        gau.rho=gau.rho.t[setting - 1], t.rho=t.rho.t[setting - 1],
                        mixprob=mixprob.t[setting - 1], lambda=lambda.t[setting - 1],
