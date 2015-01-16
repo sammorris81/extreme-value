@@ -293,8 +293,8 @@ makezTS <- function(nt, nknots, tau, phi) {
   return(z)
 }
 
-rpotspatTS <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho, phi.z, phi.w,
-                       mixprob, z.alpha, tau.alpha, tau.beta, nknots) {
+rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
+                       lambda, tau.alpha, tau.beta, nknots) {
 
   p <- dim(x)[3]
   ns <- nrow(s)
@@ -305,46 +305,27 @@ rpotspatTS <- function(nt, x, s, beta, alpha, nu, gau.rho, t.rho, phi.z, phi.w,
   g <- matrix(NA, ns, nt)
 
   d <- as.matrix(dist(s))
-  # gau is used if mixprob = 0
-  gau.C      <- CorFx(d=d, gamma=gamma, rho=gau.rho, nu=nu)
-  gau.tau    <- matrix(0.25, nrow=nknots, ncol=nt)
-  gau.sd     <- 1 / sqrt(gau.tau)
-  gau.z      <- gau.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
 
-  # t is used if mixprob = 1
-  t.C      <- CorFx(d=d, gamma=gamma, rho=t.rho, nu=nu)
-  t.tau    <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
-  t.sd     <- 1 / sqrt(t.tau)
-  t.z      <- t.sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
+  C      <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  tau    <- maketauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
+                      tau.beta=tau.beta, phi=phi.tau)
+  sd     <- 1 / sqrt(tau)
+  z      <- makezTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
 
   knots <- makeknotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
 
   for (t in 1:nt) {
     knots.t <- matrix(knots[, t, ], nknots, 2)
-    g <- mem(s, knots.t)
-
-    dist <- rbinom(1, 1, mixprob)  # 0: gaussian, 1: t
-
-    if (dist) {
-      tau[, t] <- t.tau[, t]
-      taug     <- t.tau[g, t]
-      z[, t]   <- t.z[, t]
-      zg       <- t.z[g, t]
-      C        <- t.C
-    } else {
-      tau[, t] <- gau.tau[, t]
-      taug     <- gau.tau[g, t]
-      z[, t]   <- gau.z[, t]
-      zg       <- gau.z[g, t]
-      C        <- gau.C
-    }
+    g       <- mem(s, knots.t)
+    zg      <- z[g, t]
+    taug    <- tau[g, t]
 
     sdg  <- 1 / sqrt(taug)
     C <- diag(sdg) %*% C %*% diag(sdg)
     chol.C <- chol(C)
 
     if (p == 1) {
-      x.beta <- matrix(x[, t, ], ns, 1) * beta
+      x.beta <- x[, t, , drop=F] * beta
     } else {
       x.beta <- x[, t, ] %*% beta
     }
