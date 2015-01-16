@@ -16,7 +16,7 @@ rho.t       <- 1
 lambda.t    <- c(0, 0, 3, 3)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
-phi.w.t     <- 0.8
+phi.w.t     <- 0.9
 phi.z.t     <- 0.8
 phi.tau.t   <- 0.8
 
@@ -43,7 +43,7 @@ for (setting in 1:nsettings) {
   nknots <- nknots.t[setting]
   tau.t.setting   <- array(NA, dim=c(nknots, nt, nsets))
   z.t.setting     <- array(NA, dim=c(nknots, nt, nsets))
-  knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
+  knots.t.setting <- array(NA, dim=c(nknots, nt, 2, nsets))
   for (set in 1:nsets) {
     set.seed(setting * 100 + set)
     data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t,

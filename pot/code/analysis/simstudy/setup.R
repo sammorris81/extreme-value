@@ -33,17 +33,16 @@ library(SpatialTools)
 source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
-load('simdata.RData')
 
 # data settings
 beta.t <- c(10, 0, 0)
 nu.t <- 0.5
 gamma.t <- 0.9
-mixprob.t <- c(0, 1, 1, 1, 1, 0.5)  # 0: Gaussian, 1: t
-nknots.t <- c(1, 1, 5, 1, 5, 1)
-gau.rho.t <- c(1, 1, 1, 1, 1, 1)
-t.rho.t <- c(1, 1, 1, 1, 1, 4)
-lambda.t <- c(0, 0, 0, 3, 3, 0)
+mixprob.t <- c(0, 1, 1, 1, 1)  # 0: Gaussian, 1: t
+nknots.t <- c(1, 1, 5, 1, 5)
+gau.rho.t <- c(1, 1, 1, 1, 1)
+t.rho.t <- c(1, 1, 1, 1, 1)
+lambda.t <- c(0, 0, 0, 3, 3)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
 
@@ -73,7 +72,7 @@ for (setting in 1:nsettings) {
     nknots <- nknots.t[setting]
     tau.t.setting <- array(NA, dim=c(nknots, nt, nsets))
     z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
-    knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
+    knots.t.setting <- array(NA, dim=c(nknots, nt, 2, nsets))
     for (set in 1:nsets) {
       set.seed(setting * 100 + set)
       data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -96,26 +95,6 @@ for (setting in 1:nsettings) {
       set.seed(setting * 100 + set)
   	  y[, , set, setting] <- rgevspatial(nreps=nt, S=s, knots=knots.gev, xi=0.2)
   	}
-  } else if (setting == 7) {
-    nknots <- nknots.t[setting - 1]
-    tau.t.setting <- array(NA, dim=c(nknots, nt, nsets))
-    z.t.setting <- array(NA, dim=c(nknots, nt, nsets))
-    knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
-    for (set in 1:nsets) {
-      set.seed(setting * 100 + set)
-      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
-                       gau.rho=gau.rho.t[setting - 1], t.rho=t.rho.t[setting - 1],
-                       mixprob=mixprob.t[setting - 1], lambda=lambda.t[setting - 1],
-                       tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                       nknots=nknots.t[setting - 1])
-      y[, , set, setting]        <- data$y
-      tau.t.setting[, , set]     <- data$tau
-      z.t.setting[, , set]       <- data$z
-      knots.t.setting[, , , set] <- data$knots
-    }
-    tau.t[[setting]]   <- tau.t.setting
-    z.t[[setting]]     <- z.t.setting
-    knots.t[[setting]] <- knots.t.setting
   }
 }
 
