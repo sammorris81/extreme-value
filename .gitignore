@@ -8,6 +8,7 @@
 # R data files from past sessions
 .Rdata
 *.RData
+*.RDataBak
 
 # Profiled output
 Rprof.out
