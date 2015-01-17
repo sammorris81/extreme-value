@@ -69,22 +69,23 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   d       <- rdist(s)  # distance between sites
   diag(d) <- 0
 
+  y.init <- y  # store the initial y values
+
   # store the loc/day for observed values below thresh.
   if (thresh.quant & thresh.all > 0) {  # threshold based on sample quantiles
     thresh.all.q <- quantile(y, thresh.all, na.rm=T)
   } else {
     thresh.all.q <- thresh.all
   }
-  thresh.all.mtx <- matrix(thresh.all.q, ns, nt)  # want as a matrix for easy replacement
-
+  thresh.all.mtx <- matrix(thresh.all.q, ns, nt)  # matrix for easy replacement
   if (thresh.site.specific) {
-  	if (is.null(thresh.site)) {
-  	  warning("Warning: setting site-specific time series threshold to thresh.")
-  	  thresh.site <- thresh.all
-  	}
-  	if ((thresh.site < 0) | (thresh.site > 1)) {
-  	  stop("Error: thresh.site should be the desired site-specific quantile between 0 and 1")
-  	}
+    if (is.null(thresh.site)) {
+      warning("Warning: setting site-specific time series threshold to thresh.")
+      thresh.site <- thresh.all
+    }
+    if ((thresh.site < 0) | (thresh.site > 1)) {
+      stop("Error: thresh.site should be the desired site-specific quantile between 0 and 1")
+    }
     # if it's site specific, then we want to keep everything over the 95th quantile for the data
     # set and the max for each site in a matrix that's ns x nt
     thresh.site <- apply(y, 1, quantile, probs=thresh.site, na.rm=T)
@@ -94,15 +95,24 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       thresh.site,
       thresh.all.mtx
     )
-  } else {  # if the mean doesn't have a site component, use the same threshold for all
-  	cat("\t no site-specific threshold set \n")
+  } else {  # if the mean doesn't have a site component, same threshold for all
+    cat("\t no site-specific threshold set \n")
     thresh.mtx  <- thresh.all.mtx
   }
   thresh.obs  <- !is.na(y) & (y < thresh.mtx)
+  if (sum(thresh.obs) > 0) {
+    thresholded <- T
+  } else {
+    thresholded <- F
+  }
 
   missing.obs <- is.na(y)
-  y[missing.obs]  <- mean(y, na.rm=T)
-  y.init <- y
+  if (sum(missing.obs) > 0) {
+    y[missing.obs]  <- mean(y, na.rm=T)
+    missing <- T
+  } else {
+    missing <- F
+  }
 
   # initialize partition
   x.range <- max(s[, 1]) - min(s[, 1])  # gives span of x
@@ -254,6 +264,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     acc.tau.low <- acc.tau.high <- 0
   }
   tau.trials <- nknots * nt * 3
+  acc.tau <- att.tau   <- matrix(1, nrow=nknots, ncol=nt)
+  mh.tau <- matrix(0.05, nknots, nt)
+  nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
 
   if (temporalz) {
   	z.star <- z  # need a place to keep track of normal values for time series
@@ -262,10 +275,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mh.z <- matrix(15, nknots, nt)
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
   }
-
-  acc.tau <- att.tau   <- matrix(1, nrow=nknots, ncol=nt)
-  mh.tau <- matrix(0.05, nknots, nt)
-  nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
 
   # MH tuning params
   acc.w      <- att.w      <- mh.w     <- rep(0.1, nt)  # knot locations
@@ -304,44 +313,67 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
 
+    mu  <- x.beta + lambda * zg  # make sure we've got the right mean
+    res <- y - mu
+
     # data imputation
-    if (thresh.all != 0) {
-      mu <- x.beta + lambda * zg
-      thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
+    if (thresholded) {
       y.impute <- matrix(y, ns, nt)
+      thresh.mtx.fudge <- 0.99999 * thresh.mtx  # numerical stability
 
       for (t in 1:nt) {
-      	taug.t <- sqrt(taug[, t])
-      	mu.t <- mu[, t]
-      	res.t <- y[, t] - mu[, t]
-      	impute.these <- which(thresh.obs[, t])
+        taug.t <- sqrt(taug[, t])
+        mu.t   <- mu[, t]
+        res.t  <- res[, t]
+        impute.these <- which(thresh.obs[, t])
 
-      	# c function to find all conditional means and standard deviations
-      	impute.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t,
-      	                                taug=taug.t, include=impute.these)
-      	impute.sd <- impute.cond$cond.sd
-      	impute.e  <- impute.cond$cond.mn
+        if (length(impute.these) > 0) {
+          # c function to find all conditional means and standard deviations
+          impute.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t,
+                                          taug=taug.t, include=impute.these)
+          impute.sd    <- impute.cond$cond.sd
+          impute.e     <- impute.cond$cond.mn
+          thresh.these <- thresh.mtx[impute.these, t]
 
-        u.upper    <- pnorm(thresh.mtx[impute.these, t], impute.e, impute.sd)
-        u.impute   <- runif(length(impute.these))
-        y.impute.t <- ifelse(  # for numerical stability
-          u.upper < 1e-6,
-          thresh.mtx.fudge[impute.these, t],
-          impute.e + impute.sd * qnorm(u.impute * u.upper)
-        )
-        y.impute[impute.these, t] <- y.impute.t
-
-        # missing values next
-        missing.these <- which(missing.obs[, t])  # gives sites that are missing on day t.
-        sig.t <- 1 / taug.t
-        y.missing.t <- mu.t + sig.t * t(sd.mtx) %*% rnorm(ns, 0, 1)
-        y.impute[missing.these, t] <- y.missing.t[missing.these]
+          u.upper    <- pnorm(thresh.these, impute.e, impute.sd)
+          u.impute   <- runif(length(impute.these))
+          y.impute.t <- ifelse(  # for numerical stability
+            u.upper < 1e-6,
+            thresh.mtx.fudge[impute.these, t],
+            impute.e + impute.sd * qnorm(u.impute * u.upper)
+          )
+          y.impute[impute.these, t] <- y.impute.t
+        }
       }
-
-      # Only the sites/days with missing/thresholded observations are different from
-      # the true y in y.imputed
+      # Only the sites/days with thresholded observations are different
+      # from the true y in y.imputed
       y <- y.impute
+    }
 
+    # missing values next
+    mu <- x.beta + lambda * zg  # make sure we've got the right mean
+    res <- y - mu
+    if (missing) {
+      y.missing <- matrix(y, ns, nt)
+      for (t in 1:nt) {
+        taug.t <- sqrt(taug[, t])
+        mu.t   <- mu[, t]
+        res.t  <- res[, t]
+        missing.these <- which(missing.obs[, t])  # which sites are missing
+        if (length(missing.these) > 0) {
+          missing.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t,
+                                           taug=taug.t, include=missing.these)
+          missing.sd <- missing.cond$cond.sd
+          missing.e  <- missing.cond$cond.mn
+
+          u.missing   <- runif(length(missing.these))
+          y.missing.t <- missing.e + missing.sd * qnorm(u.missing)
+          y.missing[missing.these, t] <- y.missing.t
+        }
+      }
+      # Only the sites/days with missing observations are different
+      # from the true y in y.imputed
+      y <- y.missing
     }
 
     # update beta
