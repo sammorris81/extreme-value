@@ -5,9 +5,15 @@
 #
 #ASSUMES x and y are in [0,1]^2
 #########################################################################
-source('condmean_cpp.R')
-source('mem_cpp.R')
-source('z_update_cpp.R')
+if (!exists("conditional.Rcpp")) {
+  source('condmean_cpp.R')
+}
+if (!exists("g.Rcpp")) {
+  source('mem_cpp.R')
+}
+if (!exists("z.Rcpp")) {
+  source('z_update_cpp.R')
+}
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
