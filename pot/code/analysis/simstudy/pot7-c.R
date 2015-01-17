@@ -48,6 +48,7 @@ for (g in 1:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
+    thresh <- quantile(y.d, probs=0.80)
     obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
@@ -73,7 +74,8 @@ for (g in 1:10) {
     fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=T, thresh.all=0, thresh.quant=T,
                        nknots=1, iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
+                       rho.upper=15, nu.upper=10, update=update, thin=thin,
+                       lambda.init=3)
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-1 \n")
@@ -82,9 +84,10 @@ for (g in 1:10) {
     cat("start: t-1 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=0.80, thresh.quant=T,
+                       method="t", skew=T, thresh.all=thresh, thresh.quant=F,
                        nknots=1, iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
+                       rho.upper=15, nu.upper=10, update=update, thin=thin,
+                       lambda.init=3)
     toc <- proc.time()
     cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
     cat("  end: t-1 (T=0.80) \n")
