@@ -18,7 +18,7 @@
 #  4 - skew t-5
 #  5 - t-5 (T = 0.80)
 #  6 - max-stable
-#	
+#
 #########################################################################
 
 library(fields)
@@ -59,7 +59,7 @@ for (g in 1:10) {
     cat("  start: skew t-5 - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=0, thresh.quant=T,
+                       method="t", skew=F, thresh.all=0, thresh.quant=T,
                        nknots=5, iterplot=F, iters=iters, burn=burn,
                        update=update, thin=thin)
     toc <- proc.time()
@@ -69,7 +69,7 @@ for (g in 1:10) {
 
     save(fit.1, file=outputfile)
   }
-  
+
   rm(fit.1)
   gc()
 }

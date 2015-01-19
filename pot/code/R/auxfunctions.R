@@ -189,16 +189,16 @@ rpotspat <- function(nt, x, s, beta, gamma, nu, rho, dist, lambda,
   sd <- 1 / sqrt(tau)
   z  <- sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
 
-  knots  <- array(NA, dim=c(nknots, nt, 2))
+  knots  <- array(NA, dim=c(nknots, 2, nt))
   min.s1 <- min(s[, 1])
   max.s1 <- max(s[, 1])
   min.s2 <- min(s[, 2])
   max.s2 <- max(s[, 2])
 
   for (t in 1:nt) {
-    knots[, t, 1] <- runif(nknots, min.s1, max.s1)
-    knots[, t, 2] <- runif(nknots, min.s2, max.s2)
-    knots.t       <- matrix(knots[, t, ], nknots, 2)
+    knots[, 1, t] <- runif(nknots, min.s1, max.s1)
+    knots[, 2, t] <- runif(nknots, min.s2, max.s2)
+    knots.t       <- matrix(knots[, , t], nknots, 2)
 
     g    <- mem(s, knots.t)
     taug <- tau[g, t]
@@ -222,7 +222,7 @@ rpotspat <- function(nt, x, s, beta, gamma, nu, rho, dist, lambda,
 }
 
 makeknotsTS <- function(nt, nknots, s, phi) {
-  knots <- array(NA, dim=c(nknots, nt, 2))
+  knots <- array(NA, dim=c(nknots, 2, nt))
   min.s1 <- min(s[, 1])
   max.s1 <- max(s[, 1])
   range.s1 <- max.s1 - min.s1
@@ -232,22 +232,22 @@ makeknotsTS <- function(nt, nknots, s, phi) {
 
   # starting point is uniform over the space
   knots[, 1, 1] <- runif(nknots, min.s1, max.s1)
-  knots[, 1, 2] <- runif(nknots, min.s2, max.s2)
+  knots[, 2, 1] <- runif(nknots, min.s2, max.s2)
 
   for (t in 2:nt) {
     # transform the previous day's knots to (0, 1)
-    knots.u.lag1 <- (knots[, (t - 1), 1] - min.s1) / range.s1
+    knots.u.lag1 <- (knots[, 1, (t - 1)] - min.s1) / range.s1
     knots.star.lag1 <- qnorm(knots.u.lag1)
-    knots.u.lag2 <- (knots[, (t - 1), 2] - min.s2) / range.s2
+    knots.u.lag2 <- (knots[, 2, (t - 1)] - min.s2) / range.s2
     knots.star.lag2 <- qnorm(knots.u.lag2)
 
     # draw the new set of knots using the time series
     knots.star.1  <- phi * knots.star.lag1 + sqrt(1 - phi^2) * rnorm(nknots)
     knots.u.1     <- pnorm(knots.star.1)
-    knots[, t, 1] <- knots.u.1 * range.s1 + min.s1
+    knots[, 1, t] <- knots.u.1 * range.s1 + min.s1
     knots.star.2  <- phi * knots.star.lag2 + sqrt(1 - phi^2) * rnorm(nknots)
     knots.u.2     <- pnorm(knots.star.2)
-    knots[, t, 2] <- knots.u.2 * range.s2 + min.s2
+    knots[, 2, t] <- knots.u.2 * range.s2 + min.s2
   }
 
   return(knots)
@@ -298,7 +298,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
   knots <- makeknotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
 
   for (t in 1:nt) {
-    knots.t <- matrix(knots[, t, ], nknots, 2)
+    knots.t <- matrix(knots[, , t], nknots, 2)
     g       <- mem(s, knots.t)
     zg      <- z[g, t]
     taug    <- tau[g, t]

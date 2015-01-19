@@ -43,7 +43,7 @@ for (setting in 1:nsettings) {
   nknots <- nknots.t[setting]
   tau.t.setting   <- array(NA, dim=c(nknots, nt, nsets))
   z.t.setting     <- array(NA, dim=c(nknots, nt, nsets))
-  knots.t.setting <- array(NA, dim=c(nknots, nt, 2, nsets))
+  knots.t.setting <- array(NA, dim=c(nknots, 2, nt, nsets))
   for (set in 1:nsets) {
     set.seed(setting * 100 + set)
     data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t,
