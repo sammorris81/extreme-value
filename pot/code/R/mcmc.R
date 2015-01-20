@@ -1,10 +1,10 @@
-#########################################################################
+################################################################################
 # MCMC
 #
 # TODO: Add in model description here
 #
 #ASSUMES x and y are in [0,1]^2
-#########################################################################
+################################################################################
 if (!exists("conditional.Rcpp")) {
   source('condmean_cpp.R')
 }
@@ -16,15 +16,17 @@ if (!exists("z.Rcpp")) {
 }
 source('ts_knots.R')
 source('ts_tau.R')
+source('ts_z.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
-                 # just to debug temporal parts.
-                 temporalw=F, temporaltau=F, temporalz=F,  # eventually change to temporal=F
+                 # just to debug temporal parts. eventually change to temporal=F
+                 temporalw=F, temporaltau=F, temporalz=F,
                  # initial values
-                 beta.init=NULL, tau.init=2, tau.alpha.init=0.1, tau.beta.init=0.1,
+                 beta.init=NULL, tau.init=2, t
+                 au.alpha.init=0.1, tau.beta.init=0.1,
                  rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
                  beta.m=0, beta.s=10,
@@ -37,7 +39,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=1, lambda.init=0,
+                 z.init=0, lambda.init=0,
                  # skew priors
                  lambda.m=0, lambda.s=10, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
@@ -86,10 +88,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       thresh.site <- thresh.all
     }
     if ((thresh.site < 0) | (thresh.site > 1)) {
-      stop("Error: thresh.site should be the desired site-specific quantile between 0 and 1")
+      stop("Error: thresh.site should be the desired site-specific quantile
+            between 0 and 1")
     }
-    # if it's site specific, then we want to keep everything over the 95th quantile for the data
-    # set and the max for each site in a matrix that's ns x nt
+    # if it's site specific, then we want to keep everything over the 95th
+    # quantile for the data set and the max for each site in a matrix that's
+    # ns x nt
     thresh.site <- apply(y, 1, quantile, probs=thresh.site, na.rm=T)
     thresh.site.mtx <- matrix(thresh.site, ns, nt)
     thresh.mtx <- ifelse(
@@ -119,11 +123,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize partition
   x.range <- max(s[, 1]) - min(s[, 1])  # gives span of x
   y.range <- max(s[, 2]) - min(s[, 2])  # gives span of y
-  s.range <- max(x.range, y.range)        # want to scale by the same amount in both directions
+  s.range <- max(x.range, y.range)      # want to scale by the same in both ways
   knots.con    <- array(rnorm(nknots * nt * 2), c(nknots, 2, nt))
   knots        <- pnorm(knots.con)  # in [0, 1] x [0, 1]
-  knots[, 1, ] <- knots[, 1, ] * s.range + min(s[, 1])  # rescaled back to size of s
-  knots[, 2, ] <- knots[, 2, ] * s.range + min(s[, 2])  # rescaled back to size of s
+  knots[, 1, ] <- knots[, 1, ] * s.range + min(s[, 1])  # rescaled back to s
+  knots[, 2, ] <- knots[, 2, ] * s.range + min(s[, 2])  # rescaled back to s
 
   # initialize parameters
   beta    <- rep(0, p)
@@ -224,13 +228,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     logdet.prec <- CC$logdet.prec  # already includes 0.5
   } else if (rho.prior == "disc"){  # precompute eigenvectors and eigenvalues
   	if (cov.model != "exponential") {
-  	  stop('to use a discrete prior on rho, you must set cov.model = "exponential"')
+  	  stop('to use a discrete prior on rho, you must set
+            cov.model = "exponential"')
   	}
   	if (max(s) > 1) {
-  		stop('to use a discrete prior on rho, you need to scale your data to a unit square')
+  		stop('to use a discrete prior on rho, you need to scale your data to a
+            unit square')
   	}
 
-    rhos <- seq(0.01, 1.2, 0.01)  # restricting spatial domain to [0, 1] x [0, 1]
+    rhos <- seq(0.01, 1.2, 0.01)  # restricting space to [0, 1] x [0, 1]
    	C.vectors <- array(NA, dim=c(ns, ns, length(rhos)))
    	C.values  <- matrix(NA, nrow=ns, ncol=length(rhos))
    	for (i in 1:length(rhos)) {
@@ -502,7 +508,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       	can.prec.cor[, , l] <- quad.tform(diag(1 / D), C.vectors[, , l])
       	can.logdet.prec[l]  <- -0.5 * sum(log(D))
       	for (t in 1:nt) {
-      	  can.rss[l, t] <- quad.form(can.prec.cor[, , l], sqrt(taug[, t]) * res[, t])
+      	  can.rss[l, t] <- quad.form(can.prec.cor[, , l],
+                                     sqrt(taug[, t]) * res[, t])
       	}
       	lll.rho[l] <- nt * can.logdet.prec[l] - 0.5 * sum(can.rss[l, ])
       }
@@ -747,7 +754,37 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
         }  # fi nknots > 1
       } else {
-        # TODO: time series z
+        z.update <- updateZTS(z.star=z.star, zg=zg, y=y, lambda=lambda,
+                              x.beta=x.beta, phi=phi.z, taug=taug, g=g,
+                              prec=prec.cor, acc=acc.z, att=att.z, mh=mh.z,
+                              acc.phi=acc.phi.z, att.phi=att.phi.z,
+                              mh.phi=mh.phi.z)
+        z.star <- z.update$z.star
+        z      <- abs(z.star)
+        zg     <- z.update$zg
+        att.z  <- z.update$att
+        acc.z  <- z.update$acc
+        phi.z  <- z.update$phi
+        att.phi.z <- z.update$att.phi
+        acc.phi.z <- z.update$acc.phi
+
+        for (t in 1:nt) { for (k in 1:nknots) {
+          if ((att.z[k, t] > 50) & (iter < (burn / 2))) {
+            if (acc.z[k, t] / att.z[k, t] < 0.25) {
+              mh.z[k, t] <- mh.z[k, t] * 0.8
+            }
+            if (acc.z[k, t] / att.z[k, t] > 0.50) {
+              mh.z[k, t] <- mh.z[k, t] * 1.2
+            }
+            acc.z[k, t] <- att.z[k, t] <- 0
+          }
+        }}
+
+        if ((att.phi.z > 50) & (iter < (burn / 2))) {
+          if (acc.phi.z / att.phi.z < 0.25) { mh.phi.z <- mh.phi.z * 0.8 }
+          if (acc.phi.z / att.phi.z > 0.50) { mh.phi.z <- mh.phi.z * 1.2 }
+        }
+
       }  # fi temporalz
       mu <- x.beta + lambda * zg
       res <- y - mu
@@ -755,44 +792,49 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
   }  # end nthin
 
-  mu <- x.beta + lambda * zg
-  res <- y - mu
-  # predictions
-  if (predictions) {
-  	if (cov.model == "matern") {
-  	  s.11 <- gamma * simple.cov.sp(D=d11, sp.type="matern", sp.par=c(1, rho), error.var=0,
-                                    smoothness=nu, finescale.var=0)
-      s.12 <- gamma * simple.cov.sp(D=d12, sp.type="matern", sp.par=c(1, rho), error.var=0,
-                                    smoothness=nu, finescale.var=0)
-    } else {
-      s.11 <- gamma * matrix(exp(-d11 / rho), np, np)
-      s.12 <- gamma * matrix(exp(-d12 / rho), np, ns)
-    }
-    diag(s.11) <- 1
-    s.12.22.inv <- s.12 %*% prec.cor
-    corp <- s.11 - s.12.22.inv %*% t(s.12)
-    corp.sd.mtx <- tryCatch(chol(corp),  # only want the cholesky factor
-                            error = function(e) {
-                              eig.inv(corp, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
-                            })
-
-    yp <- matrix(NA, np, nt)
-
-    for (t in 1:nt) {
-      xp.beta  <- x.pred[, t, ] %*% beta
-      if (nknots == 1) {
-        gp <- rep(1, np)
+  if (iter > burn) {
+    mu <- x.beta + lambda * zg
+    res <- y - mu
+    # predictions
+    if (predictions) {
+    	if (cov.model == "matern") {
+    	  s.11 <- gamma * simple.cov.sp(D=d11, sp.type="matern", sp.par=c(1, rho),
+                                      error.var=0, smoothness=nu,
+                                      finescale.var=0)
+        s.12 <- gamma * simple.cov.sp(D=d12, sp.type="matern", sp.par=c(1, rho),
+                                      error.var=0, smoothness=nu,
+                                      finescale.var=0)
       } else {
-        gp <- mem(s.pred, knots[, , t])  # find the right partition
+        s.11 <- gamma * matrix(exp(-d11 / rho), np, np)
+        s.12 <- gamma * matrix(exp(-d12 / rho), np, ns)
       }
-      zgp    <- z[gp, t]
-      siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
-      taug.t <- sqrt(taug[, t])
-      mup <- xp.beta + lambda * zgp + siggp * s.12.22.inv %*% (taug.t * res[, t])
+      diag(s.11) <- 1
+      s.12.22.inv <- s.12 %*% prec.cor
+      corp <- s.11 - s.12.22.inv %*% t(s.12)
+      corp.sd.mtx <- tryCatch(chol(corp),  # only want the cholesky factor
+                        error = function(e) {
+                          eig.inv(corp, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
+                        })
 
-      yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
+      yp <- matrix(NA, np, nt)
+
+      for (t in 1:nt) {
+        xp.beta  <- x.pred[, t, ] %*% beta
+        if (nknots == 1) {
+          gp <- rep(1, np)
+        } else {
+          gp <- mem(s.pred, knots[, , t])  # find the right partition
+        }
+        zgp    <- z[gp, t]
+        siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
+        taug.t <- sqrt(taug[, t])
+        mup <- xp.beta + lambda * zgp + siggp *
+               s.12.22.inv %*% (taug.t * res[, t])
+
+        yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
+      }
+
     }
-
   }
 
   # storage

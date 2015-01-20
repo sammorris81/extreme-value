@@ -1,23 +1,23 @@
-ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
-                        phi, acc.phi, att.phi, mh.phi,
-                        y, z.alpha, x.beta, tau, taug, g, prec.cor) {
+updateZTS <- function(z.star, zg, y, lambda, x.beta,
+                      phi, tau, taug, g, prec,
+                      acc, att, mh, acc.phi, att.phi, mh.phi) {
   nt <- ncol(y)
   nknots <- nrow(z.star)
   for (t in 1:nt) {
-  	cur.res   <- y[, t] - x.beta[, t] + z.alpha * zg[, t]
-    cur.rss   <- quad.form(prec.cor, sqrt(taug[, t]) * cur.res)
-    
+  	cur.res   <- y[, t] - x.beta[, t] + lambda * zg[, t]
+    cur.rss   <- quad.form(prec, sqrt(taug[, t]) * cur.res)
+
     for (k in 1:nknots) {
-      att.z[k, t]   <- att.z[k, t] + 1
-      can.z.star    <- z.star[, t]
-      can.z.star[k] <- rnorm(1, z.star[k, t], mh.z[k, t])  # will be nknots long
+      att[k, t]     <- att[k, t] + 1
+      can.z.star    <- z.star[, t] # will be nknots long
+      can.z.star[k] <- rnorm(1, z.star[k, t], mh[k, t])
       can.z         <- abs(can.z.star)
       can.zg        <- can.z[g[, t]]  # will be ns long
-    
-      can.res <- y[, t] - x.beta[, t] + z.alpha * can.zg
-      can.rss <- quad.form(prec.cor, sqrt(taug[, t]) * can.res)
-      
-      # prior 
+
+      can.res <- y[, t] - x.beta[, t] + lambda * can.zg
+      can.rss <- quad.form(prec, sqrt(taug[, t]) * can.res)
+
+      # prior
       if (t == 1) {
         mean <- 0
         sd   <- sqrt(1 / tau[k, t])
@@ -25,19 +25,22 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
         mean <- phi * z.star[k, (t - 1)]
         sd   <- sqrt((1 - phi^2) / tau[k, t])
       }
-    
-      R <- -0.5 * sum(can.rss - cur.rss) + 
+
+      R <- -0.5 * sum(can.rss - cur.rss) +
             dnorm(can.z.star[k], mean, sd, log=T) -
             dnorm(z.star[k, t], mean, sd, log=T)
-      
+
       if (t < nt) {
-      	sd.next <- sqrt((1 - phi^2) / tau[k, (t + 1)])
-      	R <- R + dnorm(z.star[k, (t + 1)], (phi * can.z.star[k]), sd.next, log=T) -
-                 dnorm(z.star[k, (t + 1)], (phi * z.star[k, t]), sd.next, log=T)
+      	sd <- sqrt((1 - phi^2) / tau[k, (t + 1)])
+        can.mean <- phi * can.z.star[k]
+        cur.mean <- phi * z.star[k, t]
+        z.star.lag1 <- z.star[k, t + 1]
+      	R <- R + dnorm(z.star.lag1, can.mean, sd, log=T) -
+                 dnorm(z.star.lag1, cur.mean, sd, log=T)
       }
 
       if (!is.na(R)) { if (log(runif(1)) < R) {
-        acc.z[k, t]  <- acc.z[k, t] + 1
+        acc[k, t]    <- acc[k, t] + 1
         z.star[k, t] <- can.z.star[k]
         zg[, t]      <- can.zg
         cur.res      <- can.res
@@ -45,12 +48,13 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
       } }
     }
   }
-  
+
   # phi.z
   att.phi  <- att.phi + 1
   z.lag1   <- z.star[, -nt]  # For the mean, we don't need the last day
   cur.mean <- phi * z.lag1
-  
+  cur.sd   <- sqrt((1 - phi^2) / tau[, -1])  # day 1 not impacted by phi
+
   phi.con     <- qnorm(phi)  # transform to R
   can.phi.con <- rnorm(1, phi.con, mh.phi)  # draw candidate
   can.phi     <- pnorm(can.phi.con)  # transform back to (0, 1)
@@ -60,16 +64,21 @@ ts.sample.z <- function(z.star, acc.z, att.z, mh.z, zg,
   	can.phi <- 0.999999
   }
   can.mean <- can.phi * z.lag1  # will be nknots x nt
-  R <- sum(dnorm(z.star[, -1], can.mean, sqrt((1 - can.phi^2)/tau), log=T)) -  # tau is inv var
-       sum(dnorm(z.star[, -1], cur.mean, sqrt((1 - phi^2)/tau), log=T)) +
+  can.sd   <- sqrt((1 - phi^2) / tau[, -1])  # day 1 not impacted by phi
+
+  R <- sum(dnorm(z.star[, -1], can.mean, can.sd, log=T)) -
+       sum(dnorm(z.star[, -1], cur.mean, can.sd, log=T)) +
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
     acc.phi <- acc.phi + 1
     phi     <- can.phi
   } }
-    
-  results <- list(z.star=z.star, acc.z=acc.z, att.z=att.z, zg=zg,
+
+  results <- list(z.star=z.star, acc=acc, att=att, zg=zg,
                   phi=phi, att.phi=att.phi, acc.phi=acc.phi)
+
+  # results <- list(phi=phi, att.phi=att.phi, acc.phi=acc.phi)
+
   return(results)
 }

@@ -20,10 +20,10 @@ updateKnotsTS <- function(phi, knots, knots.con, g, ts, tau, taug,
     can.knots[, 2] <- can.knots[, 2] * s.range + min(s[, 2])
 
     # recreate the partition
-    can.g          <- mem(s, can.knots)
-    can.taug       <- tau[can.g, t]
-    can.zg         <- z[can.g, t]
-    can.res        <- y[, t] - x.beta[, t] - lambda * can.zg
+    can.g    <- mem(s, can.knots)
+    can.taug <- tau[can.g, t]
+    can.zg   <- z[can.g, t]
+    can.res  <- y[, t] - x.beta[, t] - lambda * can.zg
 
     R <- -0.5 * quad.form(prec, sqrt(can.taug) * can.res) +
           0.5 * quad.form(prec, sqrt(taug[, t]) * res[, t]) +
@@ -86,6 +86,8 @@ updateKnotsTS <- function(phi, knots, knots.con, g, ts, tau, taug,
 
   results <- list(knots.con=knots.con, knots=knots, g=g, taug=taug, zg=zg,
                   acc=acc, att=att, phi=phi, acc.phi=acc.phi, att.phi=att.phi)
+
+  # results <- list(phi=phi, acc.phi=acc.phi, att.phi=att.phi)
 
   return(results)
 }

@@ -264,7 +264,7 @@ maketauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
   return(tau)
 }
 
-makezTS <- function(nt, nknots, tau, phi) {
+makezTS <- function(nt, nknots, tau, phi, zstar=FALSE) {
   sigma <- 1 / sqrt(tau)
   z.star <- matrix(NA, nrow=nknots, ncol=nt)
   z.star[, 1] <- rnorm(nknots, 0, sqrt(sigma[, 1]))
@@ -273,7 +273,11 @@ makezTS <- function(nt, nknots, tau, phi) {
   }
 
   z <- abs(z.star)
-  return(z)
+  if (zstar) {
+    return(z.star)
+  } else {
+    return(z)
+  }
 }
 
 rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,

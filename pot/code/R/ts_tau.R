@@ -39,7 +39,7 @@ updateTauTS <- function(phi, ts, tau, taug, g, res, nparts.tau, prec, z,
         can.tau.star  <- rnorm(1, tau.star[1, t], mh)
 
         # transform back to R+
-        can.tau  <- qgamma(pnorm(can.tau.star), tau.alpha, tau.beta)
+        can.tau <- qgamma(pnorm(can.tau.star), tau.alpha, tau.beta)
 
         can.lly <- 0.5 * ns * (log(can.tau)) -
                    0.5 * can.tau * quad.form(prec, res.t)
@@ -164,12 +164,9 @@ updateTauTS <- function(phi, ts, tau, taug, g, res, nparts.tau, prec, z,
                     }) -
                  dgamma(can.tau[k], aaa, bbb, log=T)
 
-            if (!ts) {
-              R <- R + dgamma(can.tau[k], tau.alpha, tau.beta, log=T) -
-                       dgamma(tau[k, t], tau.alpha, tau.beta, log=T)
-            } else {  # prior changes
-              # TODO: time series prior
-            }
+            R <- R + dgamma(can.tau[k], tau.alpha, tau.beta, log=T) -
+                     dgamma(tau[k, t], tau.alpha, tau.beta, log=T)
+
 
             if (!is.na(R)) { if (log(runif(1)) < R) {
               acc[nparts + 1] <- acc[nparts + 1] + 1
@@ -271,4 +268,6 @@ updateTauTS <- function(phi, ts, tau, taug, g, res, nparts.tau, prec, z,
   results <- list(tau=tau, taug=taug, phi=phi, acc=acc, att=att,
                   acc.tau=acc.tau, att.tau=att.tau,
                   acc.phi=acc.phi, att.phi=att.phi)
+
+  # results <- list(phi=phi, acc.phi=acc.phi, att.phi=att.phi)
 }
