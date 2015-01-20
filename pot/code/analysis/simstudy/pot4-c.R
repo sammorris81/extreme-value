@@ -18,7 +18,7 @@
 #  4 - skew t-3
 #  5 - skew t-3 (T = 0.80)
 #  6 - max-stable
-#	
+#
 #########################################################################
 
 library(fields)
@@ -55,30 +55,30 @@ for (g in 1:10) {
     y.validate[, , d] <- y.d[!obs, ]
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
-    
+
     # cat("  start: gaussian - Set", dataset, "\n")
     # tic <- proc.time()
     # fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       # method="gaussian", skew=F, thresh.all=0, thresh.quant=T, 
+                       # method="gaussian", skew=F, thresh.all=0, thresh.quant=T,
                        # nknots=1, iterplot=F, iters=iters, burn=burn,
                        # update=update, thin=thin)
     # toc <- proc.time()
     # cat("  gaussian took:", (toc - tic)[3], "\n")
     # cat("  end: gaussian \n")
     # cat("------------------\n")
-    
-    # cat("  start: skew t-1 - Set", dataset, "\n")
-    # tic <- proc.time()
-    # fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       # method="t", skew=T, thresh.all=0, thresh.quant=T, 
-                       # nknots=1, iterplot=F, iters=iters, burn=burn,
-                       # update=update, thin=thin)
 
-    # toc <- proc.time()
-    # cat("  skew t-1 took:", (toc - tic)[3], "\n")
-    # cat("  end: skew t-1 \n")
-    # cat("------------------\n")
-        
+    cat("  start: skew t-1 - Set", dataset, "\n")
+    tic <- proc.time()
+    fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=T, thresh.all=0, thresh.quant=T,
+                       nknots=1, iterplot=T, iters=iters, burn=burn,
+                       update=100, thin=thin)
+
+    toc <- proc.time()
+    cat("  skew t-1 took:", (toc - tic)[3], "\n")
+    cat("  end: skew t-1 \n")
+    cat("------------------\n")
+
     cat("start: t-1 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
@@ -93,7 +93,7 @@ for (g in 1:10) {
 
     save(fit.1, fit.2, fit.3, file=outputfile)
   }
-  
+
   rm(fit.1, fit.2, fit.3)
   gc()
 }
