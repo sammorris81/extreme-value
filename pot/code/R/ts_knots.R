@@ -30,7 +30,7 @@ updateKnotsTS <- function(phi, knots, knots.con, g, ts, tau, taug,
           0.5 * sum(log(can.taug)) - 0.5 * sum(log(taug[, t]))
 
     # remember, when not a TS, phi = 0
-    if (t > 1) {
+    if (ts & (t > 1)) {
       mean <- phi * knots.con[, , (t - 1)]
       sd   <- sqrt(1 - phi^2)
     } else {
@@ -63,7 +63,7 @@ updateKnotsTS <- function(phi, knots, knots.con, g, ts, tau, taug,
 
   if (ts) {
     att.phi        <- att.phi + 1
-    knots.con.lag1 <- knots.con[, , -nt]  # don't need the last day
+    knots.con.lag1 <- knots.con[, , -nt]       # don't need the last day
     cur.mean       <- phi * knots.con.lag1
     cur.sd         <- sqrt(1 - phi^2)
 
@@ -81,7 +81,7 @@ updateKnotsTS <- function(phi, knots, knots.con, g, ts, tau, taug,
     if (!is.na(R)) { if (log(runif(1)) < R) {
       acc.phi <- acc.phi + 1
       phi     <- can.phi
-    }}
+    } }
   }
 
   results <- list(knots.con=knots.con, knots=knots, g=g, taug=taug, zg=zg,

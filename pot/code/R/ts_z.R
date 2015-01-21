@@ -1,8 +1,13 @@
-updateZTS <- function(z.star, zg, y, lambda, x.beta,
+updateZTS <- function(z, zg, y, lambda, x.beta,
                       phi, tau, taug, g, prec,
                       acc, att, mh, acc.phi, att.phi, mh.phi) {
   nt <- ncol(y)
-  nknots <- nrow(z.star)
+  nknots <- nrow(z)
+
+  # transform via copula to normal
+  sd     <- 1 / sqrt(tau)
+  z.star <- qnorm(2 * pnorm(z, 0, sd) - 1)
+
   for (t in 1:nt) {
   	cur.res   <- y[, t] - x.beta[, t] + lambda * zg[, t]
     cur.rss   <- quad.form(prec, sqrt(taug[, t]) * cur.res)
@@ -11,19 +16,19 @@ updateZTS <- function(z.star, zg, y, lambda, x.beta,
       att[k, t]     <- att[k, t] + 1
       can.z.star    <- z.star[, t] # will be nknots long
       can.z.star[k] <- rnorm(1, z.star[k, t], mh[k, t])
-      can.z         <- abs(can.z.star)
+      can.z         <- qnorm((pnorm(can.z.star[k]) + 1) / 2, 0, sd[k, t])
       can.zg        <- can.z[g[, t]]  # will be ns long
 
       can.res <- y[, t] - x.beta[, t] + lambda * can.zg
       can.rss <- quad.form(prec, sqrt(taug[, t]) * can.res)
 
       # prior
-      if (t == 1) {
-        mean <- 0
-        sd   <- sqrt(1 / tau[k, t])
-      } else {
+      if (t > 1) {
         mean <- phi * z.star[k, (t - 1)]
-        sd   <- sqrt((1 - phi^2) / tau[k, t])
+        sd   <- sqrt(1 - phi^2)
+      } else {
+        mean <- 0
+        sd   <- 1
       }
 
       R <- -0.5 * sum(can.rss - cur.rss) +
@@ -31,7 +36,7 @@ updateZTS <- function(z.star, zg, y, lambda, x.beta,
             dnorm(z.star[k, t], mean, sd, log=T)
 
       if (t < nt) {
-      	sd <- sqrt((1 - phi^2) / tau[k, (t + 1)])
+      	sd <- sqrt(1 - phi^2)
         can.mean <- phi * can.z.star[k]
         cur.mean <- phi * z.star[k, t]
         z.star.lag1 <- z.star[k, t + 1]
@@ -50,24 +55,20 @@ updateZTS <- function(z.star, zg, y, lambda, x.beta,
   }
 
   # phi.z
-  att.phi  <- att.phi + 1
-  z.lag1   <- z.star[, -nt]  # For the mean, we don't need the last day
-  cur.mean <- phi * z.lag1
-  cur.sd   <- sqrt((1 - phi^2) / tau[, -1])  # day 1 not impacted by phi
+  att.phi     <- att.phi + 1
+  z.lag1      <- z.star[, -nt]               # don't need the last day
+  cur.mean    <- phi * z.lag1
+  cur.sd      <- sqrt(1 - phi^2)
 
-  phi.con     <- qnorm(phi)  # transform to R
-  can.phi.con <- rnorm(1, phi.con, mh.phi)  # draw candidate
-  can.phi     <- pnorm(can.phi.con)  # transform back to (0, 1)
-  if (can.phi == 0) {  # numerical stability
-  	can.phi <- 0.000001
-  } else if (can.phi == 1) {
-  	can.phi <- 0.999999
-  }
-  can.mean <- can.phi * z.lag1  # will be nknots x nt
-  can.sd   <- sqrt((1 - phi^2) / tau[, -1])  # day 1 not impacted by phi
+  phi.con     <- qnorm((phi + 1) / 2)        # transform to R
+  can.phi.con <- rnorm(1, phi.con, mh.phi)   # draw candidate
+  can.phi     <- 2 * pnorm(can.phi.con) - 1  # transform back to (-1, 1)
+  can.mean    <- can.phi * z.lag1
+  can.sd      <- sqrt(1 - can.phi^2)
 
+  # likelihood impacted by phi.z does not include first day
   R <- sum(dnorm(z.star[, -1], can.mean, can.sd, log=T)) -
-       sum(dnorm(z.star[, -1], cur.mean, can.sd, log=T)) +
+       sum(dnorm(z.star[, -1], cur.mean, cur.sd, log=T)) +
        dnorm(can.phi.con, log=T) - dnorm(phi.con, log=T)
 
   if (!is.na(R)) { if (log(runif(1)) < R) {

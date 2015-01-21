@@ -265,14 +265,14 @@ maketauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
 }
 
 makezTS <- function(nt, nknots, tau, phi, zstar=FALSE) {
-  sigma <- 1 / sqrt(tau)
   z.star <- matrix(NA, nrow=nknots, ncol=nt)
-  z.star[, 1] <- rnorm(nknots, 0, sqrt(sigma[, 1]))
+  z.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
-    z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(sigma[, t] * (1 - phi^2)) * rnorm(nknots)
+    z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
   }
 
-  z <- abs(z.star)
+  sd <- 1 / sqrt(tau)
+  z  <- qnorm((pnorm(z.star) + 1) / 2, 0, sd)
   if (zstar) {
     return(z.star)
   } else {
@@ -293,11 +293,11 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 
   d <- as.matrix(dist(s))
 
-  C      <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
-  tau    <- maketauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
+  C    <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  tau  <- maketauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
                       tau.beta=tau.beta, phi=phi.tau)
-  sd     <- 1 / sqrt(tau)
-  z      <- makezTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
+  sd   <- 1 / sqrt(tau)
+  z    <- makezTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
 
   knots <- makeknotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
 
@@ -307,9 +307,9 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     zg      <- z[g, t]
     taug    <- tau[g, t]
 
-    sdg  <- 1 / sqrt(taug)
-    C <- diag(sdg) %*% C %*% diag(sdg)
-    chol.C <- chol(C)
+    sdg    <- 1 / sqrt(taug)
+    C.t    <- diag(sdg) %*% C %*% diag(sdg)
+    chol.C <- chol(C.t)
 
     if (p == 1) {
       x.beta <- x[, t, , drop=F] * beta
@@ -318,7 +318,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     }
     mu <- x.beta + lambda * zg
 
-    y.t <- mu + t(chol.C) %*% matrix(rnorm(ns), ns, 1)
+    y.t    <- mu + t(chol.C) %*% matrix(rnorm(ns), ns, 1)
     y[, t] <- y.t
   }
 

@@ -16,6 +16,7 @@ if (!exists("z.Rcpp")) {
 }
 source('ts_knots.R')
 source('ts_tau.R')
+source('reg_tau.R')
 source('ts_z.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
@@ -25,8 +26,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # just to debug temporal parts. eventually change to temporal=F
                  temporalw=F, temporaltau=F, temporalz=F,
                  # initial values
-                 beta.init=NULL, tau.init=2, t
-                 au.alpha.init=0.1, tau.beta.init=0.1,
+                 beta.init=NULL, tau.init=2,
+                 tau.alpha.init=0.1, tau.beta.init=0.1,
                  rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
                  beta.m=0, beta.s=10,
@@ -261,23 +262,20 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
   if (temporaltau) {
     phi.tau <- 0
-    acc.phi.tau <- att.phi.tau <- 1
-    mh.phi.tau <- 1
-    acc.tau.ns <- att.tau.ns <- rep(1, (ns + 1))
-    mh.tau.ns <- seq(5, 1, length=(ns + 1))
-    acc.tau.low <- acc.tau.high <- 0
+    acc.phi.tau <- att.phi.tau <- mh.phi.tau <- 1
+    acc.tau.ns <- att.tau.ns <- mh.tau.ns <- matrix(1, nrow=nknots, ncol=nt)
   } else {
   	acc.tau.ns <- att.tau.ns <- rep(1, (ns + 1))
   	mh.tau.ns <- seq(5, 1, length=(ns + 1))
     acc.tau.low <- acc.tau.high <- 0
+    tau.trials <- nknots * nt * 3
   }
-  tau.trials <- nknots * nt * 3
+
   acc.tau <- att.tau   <- matrix(1, nrow=nknots, ncol=nt)
   mh.tau <- matrix(0.05, nknots, nt)
   nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
 
   if (temporalz) {
-  	z.star <- z  # need a place to keep track of normal values for time series
     phi.z <- 0.5
     acc.z <- att.z <- matrix(1, nknots, nt)
     mh.z <- matrix(15, nknots, nt)
@@ -410,32 +408,69 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     if (nknots > 1) {
       avgparts <- rep(0, nt)
 
-      knots.update <- updateKnotsTS(phi=phi.w, knots=knots, knots.con=knots.con,
-                                    g=g, ts=temporalw, tau=tau, taug=taug, z=z,
-                                    zg=zg, s=s, s.range=s.range, x.beta=x.beta,
-                                    lambda=lambda, y=y, res=res, prec=prec.cor,
-                                    att=att.w, acc=acc.w, mh=mh.w)
-      knots.con <- knots.update$knots.con
-      knots     <- knots.update$knots
-      g         <- knots.update$g
-      taug      <- knots.update$taug
-      zg        <- knots.update$zg
-      acc.w     <- knots.update$acc
-      att.w     <- knots.update$att
-      phi.w     <- knots.update$phi
-      acc.phi.w <- knots.update$acc.phi
-      att.phi.w <- knots.update$att.phi
+      for (t in 1:nt) {
+        att.w[1] <- att.w[1] + 1
+        can.knots.con <- knots.con[, , t] + mh.w[1] * rnorm(2 * nknots)
+        can.knots     <- pnorm(can.knots.con)
+        can.knots[, 1] <- can.knots[, 1] * s.range + min(s[, 1])
+        can.knots[, 2] <- can.knots[, 2] * s.range + min(s[, 2])
+        can.g          <- mem(s, can.knots)
+        can.taug       <- tau[can.g, t]
+        can.zg         <- z[can.g, t]
+        can.res        <- y - x.beta - lambda * can.zg
+
+        if (temporalw & (t > 1)) {  # first day has mean 0: added for ts
+          mean <- phi.w * knots.con[, , (t - 1)]
+          sd   <- sqrt(1 - phi.w^2)
+        } else {
+          mean <- 0
+          sd   <- 1
+        }
+
+        R <- -0.5 * quad.form(prec.cor, sqrt(can.taug) * can.res[, t]) +
+              0.5 * quad.form(prec.cor, sqrt(taug[, t]) * res[, t]) +
+              0.5 * sum(log(can.taug)) - 0.5 * sum(log(taug[, t])) +
+              sum(dnorm(can.knots.con, mean, sd, log=T)) -  # added for ts
+              sum(dnorm(knots.con[, , t], mean, sd, log=T))  # added for ts
+
+        if (temporalw & (t < nt)) {  # the knot location on the next day is a part of the time series
+          sd.next <- sqrt(1 - phi.w^2)
+          knots.next <- knots.con[, , (t + 1)]
+          R <- R + sum(dnorm(knots.next, (phi.w * can.knots.con), sd.next, log=T)) -
+                   sum(dnorm(knots.next, (phi.w * knots.con[, , t]), sd.next, log=T))
+        }
+
+        if (!is.na(R)) { if (log(runif(1)) < R) {
+          knots.con[, , t] <- can.knots.con
+          knots[, , t]     <- can.knots
+          g[, t]           <- can.g
+          taug[, t]        <- can.taug
+          zg[, t]          <- can.zg
+          acc.w[1]         <- acc.w[1] + 1
+        }}
+      }
+
+      # knots.update <- updateKnotsTS(phi=phi.w, knots=knots, knots.con=knots.con,
+      #                               g=g, ts=temporalw, tau=tau, taug=taug, z=z,
+      #                               zg=zg, s=s, s.range=s.range, x.beta=x.beta,
+      #                               lambda=lambda, y=y, res=res, prec=prec.cor,
+      #                               att=att.w, acc=acc.w, mh=mh.w)
+      # knots.con <- knots.update$knots.con
+      # knots     <- knots.update$knots
+      # g         <- knots.update$g
+      # taug      <- knots.update$taug
+      # zg        <- knots.update$zg
+      # acc.w     <- knots.update$acc
+      # att.w     <- knots.update$att
+      # phi.w     <- knots.update$phi
+      # acc.phi.w <- knots.update$acc.phi
+      # att.phi.w <- knots.update$att.phi
     }  # fi nknots > 1
 
     # covariance parameters
     mu <- x.beta + lambda * zg
     res <- y - mu
 
-    if (iter == 10) {
-      set.seed(10)
-      tau.old <- tau
-      taug.old <- taug
-    }
     # update tau
     if (method == "gaussian") {  # single random effect for all days
       rss <- 0
@@ -458,23 +493,80 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       tau.alpha <- sample(mmm, 1, prob=exp(lll - max(lll)))
     } else if (method == "t") {
-      tau.update <- updateTauTS(phi=phi.tau, ts=temporaltau, tau=tau, taug=taug,
-                                g=g, res=res, nparts.tau=nparts.tau,
-                                prec=prec.cor, z=z, tau.alpha=tau.alpha,
-                                tau.beta=tau.beta, skew=skew,
-                                att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
-                                att.tau=att.tau, acc.tau=acc.tau,
-                                att.phi=att.phi, acc.phi=acc.phi, mh.phi=mh.phi)
+      if (!temporaltau) {
+        tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
+                                nparts.tau=nparts.tau, prec=prec.cor, z=z,
+                                tau.alpha=tau.alpha, tau.beta=tau.beta,
+                                skew=skew, att=att.tau.ns, acc=acc.tau.ns,
+                                mh=mh.tau.ns, att.tau=att.tau, acc.tau=acc.tau)
+        tau          <- tau.update$tau
+        taug         <- tau.update$taug
+        acc.tau.ns   <- tau.update$acc
+        att.tau.ns   <- tau.update$att
+        acc.tau      <- tau.update$acc.tau
+        att.tau      <- tau.update$att.tau
 
-        tau        <- tau.update$tau
-        taug       <- tau.update$taug
-        phi.tau    <- tau.update$phi
-        acc.tau.ns <- tau.update$acc
-        att.tau.ns <- tau.update$att
-        acc.tau    <- tau.update$acc.tau
-        att.tau    <- tau.update$att.tau
-        acc.phi    <- tau.update$acc.phi
-        att.phi    <- tau.update$att.phi
+        # update mh for acceptance ratios
+        for (i in 1:length(mh.tau.ns)) {
+          if ((att.tau.ns[i] > 50) & (iter < (burn / 2))) {
+            if (acc.tau.ns[i] / att.tau.ns[i] < 0.25) {
+              acc.tau.low <- acc.tau.low + 1
+            }
+            if (acc.tau.ns[i] / att.tau.ns[i] > 50) {
+              acc.tau.high <- acc.tau.high + 1
+            }
+            acc.tau.ns[i] <- att.tau.ns[i] <- 0
+          }
+        }
+
+        if ((acc.tau.high + acc.tau.low > tau.trials) & (iter < (burn / 2))) {
+          if (acc.tau.low < acc.tau.high) {
+            mh.seq.start <- mh.tau.ns[1] * 1.2
+            mh.tau.ns <- seq(mh.seq.start, 1, length=(ns + 1))
+          } else {
+            mh.seq.start <- mh.tau.ns[1] * 0.8
+            mh.tau.ns <- seq(mh.seq.start, 1, length(ns + 1))
+          }
+          acc.tau.low <- acc.tau.high <- 0
+        }
+      } else {
+        tau.update <- updateTauTS(phi=phi.tau, tau=tau, taug=taug,
+                                  g=g, res=res, nparts.tau=nparts.tau,
+                                  prec=prec.cor, z=z, tau.alpha=tau.alpha,
+                                  tau.beta=tau.beta, skew=skew,
+                                  att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
+                                  att.tau=att.tau, acc.tau=acc.tau,
+                                  att.phi=att.phi.tau, acc.phi=acc.phi.tau,
+                                  mh.phi=mh.phi.tau)
+
+          tau         <- tau.update$tau
+          taug        <- tau.update$taug
+          phi.tau     <- tau.update$phi
+          acc.tau.ns  <- tau.update$acc
+          att.tau.ns  <- tau.update$att
+          acc.tau     <- tau.update$acc.tau
+          att.tau     <- tau.update$att.tau
+          acc.phi.tau <- tau.update$acc.phi
+          att.phi.tau <- tau.update$att.phi
+
+          for (t in 1:nt) { for (k in 1:nknots) {
+            if ((att.tau.ns[k, t] > 50) & (iter < (burn / 2))) {
+              if (acc.tau.ns[k, t] / att.tau.ns[k, t] < 0.25) {
+                mh.tau.ns[k, t] <- mh.tau.ns[k, t] * 0.8
+              } else if (acc.tau.ns[k, t] / att.tau.ns[k, t] > 0.5) {
+                mh.tau.ns[k, t] <- mh.tau.ns[k, t] * 1.2
+              }
+            }
+          }}
+
+          if ((att.phi.tau > 50) & (iter < (burn / 2))) {
+            if (acc.phi.tau / att.phi.tau < 0.25) {
+              mh.phi.tau <- mh.phi.tau * 0.8
+            } else if (acc.phi.tau / att.phi.tau > 0.50) {
+              mh.phi.tau <- mh.phi.tau * 1.2
+            }
+          }
+      }
 
       # update hyperparameters
       if (fixhyper) {
@@ -754,13 +846,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
         }  # fi nknots > 1
       } else {
-        z.update <- updateZTS(z.star=z.star, zg=zg, y=y, lambda=lambda,
-                              x.beta=x.beta, phi=phi.z, taug=taug, g=g,
+        z.update <- updateZTS(z=z, zg=zg, y=y, lambda=lambda,
+                              x.beta=x.beta, phi=phi.z, tau=tau, taug=taug, g=g,
                               prec=prec.cor, acc=acc.z, att=att.z, mh=mh.z,
                               acc.phi=acc.phi.z, att.phi=att.phi.z,
                               mh.phi=mh.phi.z)
-        z.star <- z.update$z.star
-        z      <- abs(z.star)
+        z      <- z.update$z
         zg     <- z.update$zg
         att.z  <- z.update$att
         acc.z  <- z.update$acc
@@ -849,8 +940,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     keepers.knots[iter, , , ] <- knots
   }
 
-  if (predictions) {
-    y.pred[iter, , ] <- yp
+  if (predictions & iter > burn) {
+    y.pred[(iter - burn), , ] <- yp
   }
   if (skew) {
     keepers.lambda[iter] <- lambda
@@ -878,13 +969,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  acc.rate.phi.z <- round(acc.phi.z / att.phi.z, 3)
   	  acc.rate.z <- round(acc.z / att.z, 3)
   	}
- 	if (temporaltau) {
- 	  acc.rate.phi.tau <- round(acc.phi.tau / att.phi.tau, 3)
- 	}
+   	if (temporaltau) {
+   	  acc.rate.phi.tau <- round(acc.phi.tau / att.phi.tau, 3)
+      acc.rate.tau     <- round(acc.tau.ns / att.tau.ns, 3)
+   	} else {
+      acc.rate.tau <- round(acc.tau / att.tau, 3)
+    }
 
   	acc.rate.rho <- round(acc.rho / att.rho, 3)
   	acc.rate.nu <- round(acc.nu / att.nu, 3)
-  	acc.rate.tau <- round(acc.tau / att.tau, 3)
   	acc.rate.gamma <- round(acc.gamma / att.gamma, 3)
 
   	if (iter < burn) {
@@ -908,15 +1001,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
       if (temporalw) {
         title.phi.w <- paste("acc =", acc.rate.phi.w)
-        plot(keepers.phi.w[begin:iter], type="l", main=title.phi.w)
+        plot(keepers.phi.w[begin:iter], type="l",
+             main=title.phi.w, xlab=round(mh.phi.w, 3))
       }
       if (temporalz) {
         title.phi.z <- paste("acc =", acc.rate.phi.z)
-      	plot(keepers.phi.z[begin:iter], type="l", main=title.phi.z)
+      	plot(keepers.phi.z[begin:iter], type="l",
+             main=title.phi.z, xlab=round(mh.phi.z, 3))
       }
       if (temporaltau) {
         title.phi.tau <- paste("acc =", acc.rate.phi.tau)
-      	plot(keepers.phi.tau[begin:iter], type="l", main=title.phi.tau)
+      	plot(keepers.phi.tau[begin:iter], type="l",
+             main=title.phi.tau, xlab=round(mh.phi.tau, 3))
       }
 
       plot(keepers.tau.alpha[begin:iter], type="l")
@@ -962,19 +1058,25 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
       }
 
+      nparts.1 <- length(which(g[, 1] == 1))
+      nparts.2 <- length(which(g[, 10] == 1))
+      nparts.3 <- length(which(g[, 21] == 1))
       if (temporaltau) {
-        nparts.1 <- nparts.2 <- nparts.3 <- 1
+        mh.disp.1 <- round(mh.tau.ns[1, 1], 2)
+        mh.disp.2 <- round(mh.tau.ns[1, 10], 2)
+        mh.disp.3 <- round(mh.tau.ns[1, 21], 2)
+        title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
+        title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
+        title.tau.3 <- paste("acc = ", acc.rate.tau[1, 11])
       } else {
-        nparts.1 <- length(which(g[, 1] == 1))
-        nparts.2 <- length(which(g[, 10] == 1))
-        nparts.3 <- length(which(g[, 21] == 1))
+        mh.disp.1 <- round(mh.tau.ns[(nparts.1 + 1)], 2)
+        mh.disp.2 <- round(mh.tau.ns[(nparts.2 + 1)], 2)
+        mh.disp.3 <- round(mh.tau.ns[(nparts.3 + 1)], 2)
+        title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
+        title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
+        title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
       }
-      mh.disp.1 <- round(mh.tau.ns[(nparts.1 + 1)], 2)
-      mh.disp.2 <- round(mh.tau.ns[(nparts.2 + 1)], 2)
-      mh.disp.3 <- round(mh.tau.ns[(nparts.3 + 1)], 2)
-      title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
-      title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
-      title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
+
       plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1,
            ylab="tau 1,1", xlab=paste(nparts.1, ", ", mh.disp.1))
       plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2,
@@ -983,20 +1085,25 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
            ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
 
       if (nknots > 1) {
+        nparts.4 <- length(which(g[, 1] == 2))
+        nparts.5 <- length(which(g[, 10] == 2))
+        nparts.6 <- length(which(g[, 21] == 2))
       	if (temporaltau) {
-      	  nparts.4 <- nparts.5 <- nparts.6 <- 1
+          mh.disp.4 <- round(mh.tau.ns[2, 1], 2)
+          mh.disp.5 <- round(mh.tau.ns[2, 10], 2)
+          mh.disp.6 <- round(mh.tau.ns[2, 21], 2)
+          title.tau.4 <- paste("acc = ", acc.rate.tau[1, 1])
+          title.tau.5 <- paste("acc = ", acc.rate.tau[1, 10])
+          title.tau.6 <- paste("acc = ", acc.rate.tau[1, 11])
       	} else {
-      	  nparts.4 <- length(which(g[, 1] == 2))
-      	  nparts.5 <- length(which(g[, 10] == 2))
-      	  nparts.6 <- length(which(g[, 21] == 2))
+          mh.disp.4 <- round(mh.tau.ns[(nparts.4 + 1)], 2)
+          mh.disp.5 <- round(mh.tau.ns[(nparts.5 + 1)], 2)
+          mh.disp.6 <- round(mh.tau.ns[(nparts.6 + 1)], 2)
+          title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
+          title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
+          title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
       	}
 
-        mh.disp.4 <- round(mh.tau.ns[(nparts.4 + 1)], 2)
-        mh.disp.5 <- round(mh.tau.ns[(nparts.5 + 1)], 2)
-        mh.disp.6 <- round(mh.tau.ns[(nparts.6 + 1)], 2)
-        title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
-        title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
-        title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
         plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4,
              ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
         plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5,
@@ -1027,8 +1134,6 @@ if (keep.knots & (nknots > 1)) {
 
 if (!predictions) {
   y.pred <- NULL
-} else {
-  y.pred <- y.pred[return.iters, , ]
 }
 
 if (!skew) {
