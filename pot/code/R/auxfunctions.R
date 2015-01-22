@@ -264,7 +264,7 @@ maketauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
   return(tau)
 }
 
-makezTS <- function(nt, nknots, tau, phi, zstar=FALSE) {
+makezTS <- function(nt, nknots, tau, phi) {
   z.star <- matrix(NA, nrow=nknots, ncol=nt)
   z.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
@@ -272,12 +272,9 @@ makezTS <- function(nt, nknots, tau, phi, zstar=FALSE) {
   }
 
   sd <- 1 / sqrt(tau)
-  z  <- qnorm((pnorm(z.star) + 1) / 2, 0, sd)
-  if (zstar) {
-    return(z.star)
-  } else {
-    return(z)
-  }
+  z  <- sd * qnorm(0.5 * (pnorm(z.star) + 1))
+
+  return(z)
 }
 
 rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
@@ -295,7 +292,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 
   C    <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
   tau  <- maketauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
-                      tau.beta=tau.beta, phi=phi.tau)
+                    tau.beta=tau.beta, phi=phi.tau)
   sd   <- 1 / sqrt(tau)
   z    <- makezTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
 

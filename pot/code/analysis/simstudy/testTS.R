@@ -98,6 +98,7 @@ for (t in 1:nt) {
 }
 
 # test non-skew with time series on tau
+options(warn=2)
 source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 phi.w.t     <- 0.9
@@ -117,12 +118,13 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
             rho.upper=15, nu.upper=10, tau.init=0.375,
             nknots=1, skew=FALSE, temporaltau=TRUE)
 
-# test time series on z with no time series on tau
+# test non-skew with time series on tau
+options(warn=2)
 source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 phi.w.t     <- 0.9
-phi.z.t     <- 0.7
-phi.tau.t   <- 0.0
+phi.z.t     <- 0.0
+phi.tau.t   <- 0.7
 set.seed(20)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, phi.z=phi.z.t, phi.w=phi.w.t, phi.tau=phi.tau.t,
@@ -130,9 +132,30 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    lambda=3, nknots=1)
 plot(data$knots[, 1, ], data$knots[, 2, ], type="l",
      ylim=c(0, 10), xlim=c(0, 10))
-hist(data$y)
+hist(data$z)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
             iterplot=T, iters=iters, burn=burn, update=100, thin=thin,
             rho.upper=15, nu.upper=10, tau.init=0.375,
-            nknots=1, skew=TRUE, temporalz=FALSE)
+            nknots=1, skew=TRUE, temporaltau=TRUE)
+
+# test time series on z with no time series on tau
+options(warn=2)
+source('../../R/mcmc.R', chdir=T)
+source('../../R/auxfunctions.R')
+phi.w.t     <- 0.9
+phi.z.t     <- 0.7
+phi.tau.t   <- 0
+set.seed(20)
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, phi.z=phi.z.t, phi.w=phi.w.t, phi.tau=phi.tau.t,
+                   tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   lambda=3, nknots=1)
+plot(data$z[1, ], type="l")
+hist(data$z)
+
+
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
+            iterplot=T, iters=iters, burn=burn, update=100, thin=thin,
+            rho.upper=15, nu.upper=10, tau.init=0.375,
+            nknots=1, skew=TRUE, temporalz=TRUE, lambda.init=5)

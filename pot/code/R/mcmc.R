@@ -40,7 +40,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=0, lambda.init=0,
+                 z.init=1, lambda.init=0,
                  # skew priors
                  lambda.m=0, lambda.s=10, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
@@ -276,9 +276,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   nparts.tau <- matrix(1, nrow=nknots, ncol=nt)
 
   if (temporalz) {
-    phi.z <- 0.5
-    acc.z <- att.z <- matrix(1, nknots, nt)
-    mh.z <- matrix(15, nknots, nt)
+    phi.z <- 0
+    acc.z <- att.z <- mh.z <- matrix(1, nknots, nt)
     acc.phi.z <- att.phi.z <- mh.phi.z <- 1
   }
 
@@ -846,8 +845,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
         }  # fi nknots > 1
       } else {
-        z.update <- updateZTS(z=z, zg=zg, y=y, lambda=lambda,
-                              x.beta=x.beta, phi=phi.z, tau=tau, taug=taug, g=g,
+        z.update <- updateZTS(z=z, zg=zg, y=y, lambda=lambda, x.beta=x.beta,
+                              phi=phi.z, tau=tau, taug=taug, g=g,
                               prec=prec.cor, acc=acc.z, att=att.z, mh=mh.z,
                               acc.phi=acc.phi.z, att.phi=att.phi.z,
                               mh.phi=mh.phi.z)
