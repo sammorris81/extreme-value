@@ -25,13 +25,13 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 ngroups <- 10
-done.groups <- c(1:6)
+done.groups <- c(1:10)
 done.sets <- rep(NA, length(done.groups) * nsets)
 for (i in 1:length(done.groups)){
   idx <- (i - 1) * 5 + seq(1:5)
   done.sets[idx] <- (done.groups[i] - 1) * 5 + seq(1:5)
 }
-nsettings <- 6
+nsettings <- 7
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
 
@@ -99,7 +99,7 @@ rm(quant.score.all, brier.score.all, beta.0.all, beta.1.all, beta.2.all,
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
-nsettings <- 6
+nsettings <- 7
 nmethods <- 5
 
 # get single brier scores and quantile scores for each setting x method x quantile
@@ -177,7 +177,7 @@ for (j in 1:4) {
 }
 
 
-setting.title <- c("Gaussian", "Symmetric-t (K = 1)", "Symmetric-t (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable")
+setting.title <- c("Gaussian", "Symmetric-t (K = 1)", "Symmetric-t (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable", "transform below T")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Skew-t, K = 1, T = q(0.8)", "Skew-t, K = 5, T = q(0.0)", "Skew-t, K = 5, T = q(0.8)")
 bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
@@ -269,6 +269,19 @@ for (i in 2:(nmethods - 1)) {
   abline(h=1, lty=2)
 }
 
+setting <- 7
+ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
+ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
+plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
+     lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
+     ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]),
+     ylab="Relative Brier score", xlab="Threshold quantile")
+
+for (i in 2:(nmethods - 1)) {
+  lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
+  points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+  abline(h=1, lty=2)
+}
 
 plot(1, 1, type='n', axes=F, ylab="", xlab="")
 legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)

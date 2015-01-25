@@ -139,12 +139,12 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
             rho.upper=15, nu.upper=10, tau.init=0.375,
             nknots=1, skew=TRUE, temporaltau=TRUE)
 
-# test time series on z with no time series on tau
+# checking block update for lambda with 1 knot
 options(warn=2)
 source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
-phi.w.t     <- 0.9
-phi.z.t     <- 0.7
+phi.w.t     <- 0
+phi.z.t     <- 0
 phi.tau.t   <- 0
 set.seed(20)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -153,7 +153,49 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    lambda=3, nknots=1)
 plot(data$z[1, ], type="l")
 hist(data$z)
+hist(data$y)
 
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
+            iterplot=T, iters=iters, burn=burn, update=100, thin=thin,
+            rho.upper=15, nu.upper=10, tau.init=0.375,
+            nknots=1, skew=TRUE)
+
+# checking block update for lambda with 5 knot
+options(warn=2)
+source('../../R/mcmc.R', chdir=T)
+source('../../R/auxfunctions.R')
+phi.w.t     <- 0
+phi.z.t     <- 0
+phi.tau.t   <- 0
+set.seed(20)
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, phi.z=phi.z.t, phi.w=phi.w.t, phi.tau=phi.tau.t,
+                   tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   lambda=3, nknots=1)
+plot(data$z[1, ], type="l")
+hist(data$z)
+hist(data$y)
+
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
+            iterplot=T, iters=iters, burn=burn, update=100, thin=thin,
+            rho.upper=15, nu.upper=10, tau.init=0.375,
+            nknots=1, skew=TRUE)
+
+# test time series on z with no time series on tau
+options(warn=2)
+source('../../R/mcmc.R', chdir=T)
+source('../../R/auxfunctions.R')
+phi.w.t     <- 0.9
+phi.z.t     <- 0.8
+phi.tau.t   <- 0
+set.seed(20)
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, phi.z=phi.z.t, phi.w=phi.w.t, phi.tau=phi.tau.t,
+                   tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   lambda=3, nknots=1)
+plot(data$z[1, ], type="l")
+hist(data$z)
+hist(data$y)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.all=0, thresh.quant=T,
             iterplot=T, iters=iters, burn=burn, update=100, thin=thin,

@@ -1,3 +1,47 @@
+################################################################################
+# Useful densities
+################################################################################
+
+#################################################################
+# Half normal: Z* = |Z| is HN(0, sig) when Z ~ N(0, sig)
+# Note: the location parameter must be 0
+#################################################################
+phn <- function(x, sig=1, lower.tail=TRUE) {
+  p.val <- 2 * pnorm(x, 0, sig) - 1
+  if (!lower.tail) {
+    p.val <- 1 - p.val
+  }
+  return(p.val)
+}
+
+qhn <- function(p, sig=1, lower.tail=TRUE) {  # for the half normal density, mu = 0
+  if (!lower.tail) {
+    p <- 1 - p
+  }
+  quant <- qnorm((0.5 * p + 0.5), 0, sig)
+  return(quant)
+}
+
+################################################################################
+# Common data transformations
+################################################################################
+transform <- list(
+  logit = function(x) log(x / (1 - x)),
+  inv.logit = function(x) exp(x) / (1 + exp(x)),
+  probit = function(x) qnorm(x),
+  inv.probit = function(x) pnorm(x),
+  log = function(x) log(x),
+  exp = function(x) exp(x),
+  copula = function(dens) {
+    this.dens <- paste("p", dens, sep="")
+    function(x, ...) qnorm(do.call(this.dens, args=list(x, ...)))
+  },
+  inv.copula = function(dens) {
+    this.dens <- paste("q", dens, sep="")
+    function(x, ...) do.call(this.dens, args=list(pnorm(x), ...))
+  }
+)
+
 #########################################################################
 # Arguments:
 #   mn(nt): mean
@@ -52,11 +96,6 @@ CorFx <- function(d, gamma, rho, nu) {
   return(cor)
 }
 
-dfoldnorm <- function(x, mu, sig) {
-  d <- dnorm(x, mu, sig) + dnorm(x, -mu, sig)
-  return(d)
-}
-
 eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
   cor.inv <- NULL
   logdet.prec <- NULL
@@ -94,66 +133,11 @@ mem <- function(s, knots) {
   return(g$g)
 }
 
-#### Go from normal to Gamma(alpha, beta)
-# Arguments:
-#   tau.star(nknots, nt): copula terms for each knot / day
-#   phi(1): AR(1) coefficient
-#   alpha(1): gamma shape parameter
-#   beta(1): gamma rate parameter
-cop.IG <- function(tau.star, phi, alpha, beta) {
-
-  if (!is.matrix(tau.star)) {
-    stop("Error cop.IG: Must have a matrix for the tau.star terms")
-  }
-
-  nt <- ncol(tau.star)
-  nknots <- nrow(tau.star)
-
-  mean <- matrix(0, nknots, nt)  # first day is mean 0
-  for (t in 2:nt) {
-    mean[, t] <- phi * tau.star[, (t-1)]
-  }
-
-  sd <- sqrt(1 - phi^2)
-  res.std <- (tau.star - mean) / sd
-  tau <- qgamma(pnorm(res.std), shape=alpha, rate=beta)
-
-  return(tau)
-}
-
 get.tau.mh.idx <- function(nparts, ns, mh.tau.parts) {
   idx <- max(which((nparts / ns) >= mh.tau.parts))
   return(idx)
 }
 
-#### Go from Gamma(alpha, beta) to normal
-# Arguments:
-#   tau(nknots, nt): variance terms for each knot / day
-#   phi(1): AR(1) coefficient
-#   alpha(1): gamma shape parameter
-#   beta(1): gamma rate parameter
-cop.inv.IG <- function(tau, phi, alpha, beta) {
-
-  if (!is.matrix(tau)) {
-    stop("Error cop.inv.IG: Must have a matrix for the tau terms")
-  }
-
-  nt <- ncol(tau)
-  nknots <- nrow(tau)
-
-  tau.star <- matrix(0, nknots, nt)
-  for (t in 1:nt) {
-    if (t == 1) {
-      mean <- 0
-    } else {
-      mean <- phi * tau.star[, (t - 1)]
-    }
-    sd <- sqrt(1 - phi^2)
-    tau.star[, t] <- qnorm(pgamma(tau[, t], shape=alpha, rate=beta), mean=mean, sd=sd)
-  }
-
-  return(tau.star)
-}
 
 #########################################################################
 # Arguments:

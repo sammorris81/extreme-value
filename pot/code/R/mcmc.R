@@ -186,11 +186,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
   if (skew) {
     lambda <- lambda.init
+    x.temp <- array(NA, dim=c(ns, nt, p + 1))  # block update lambda with beta
+    for (t in 1:nt) {
+      x.temp[, t, ] <- cbind(x[, t, ], zg[, t])
+    }
+    x.beta.update <- x.temp
   } else {
   	if (lambda.init != 0) {
   	  warning("lambda.init being ignored since skew=F")
   	}
     lambda <- 0
+    x.beta.update <- x
   }
 
   # easier to keep calculations in the precision scale for MCMC
@@ -382,21 +388,38 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
 
     # update beta
-    mmm <- rep(beta.m, p)
-    vvv <- diag(p) / (beta.s^2)
+    if (!skew) {
+      beta.update <- beta
+      mmm         <- rep(beta.m, p)
+      vvv         <- diag(p) / (beta.s^2)
+    } else {
+      # adding in a new coefficient for lambda terms
+      lambda.old  <- lambda
+      beta.update <- c(beta, lambda)
+      mmm         <- c(rep(beta.m, p), lambda.m)
+      vvv         <- diag(p + 1) / (beta.s^2)
+      vvv[p + 1, p + 1] <- 1 / lambda.s^2
+    }
 
-    for (t in 1:nt) {
+    for (t in 1:nt) {  # x.beta.update[, , p + 1] is updated when zg is updated
       taug.t <- sqrt(taug[, t])
-      res.t  <- (y[, t] - lambda * zg[, t]) * taug.t
-      x.t    <- x[, t, ] * taug.t
+      x.t    <- x.beta.update[, t, ] * taug.t
+      y.t    <- y[, t] * taug.t
       ttt    <- t(x.t) %*% prec.cor
       vvv    <- vvv + ttt %*% x.t
-      mmm    <- mmm + ttt %*% res.t
+      mmm    <- mmm + ttt %*% y.t
     }
 
     vvv  <- chol2inv(chol(vvv))
     mmm  <- vvv %*% mmm
-    beta <- mmm + t(chol(vvv)) %*% rnorm(p)
+    beta.update <- mmm + t(chol(vvv)) %*% rnorm(length(mmm))
+    if (!skew) {
+      beta <- beta.update
+    } else {  # we're also drawing lambda
+      beta   <- beta.update[1:p]
+      lambda <- beta.update[p + 1]
+    }
+
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
@@ -804,33 +827,35 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     # update skew parameters: lambda and z
     if (skew) {
-      # lambda
-      mmm <- lambda.m
-      vvv <- 1 / (lambda.s^2)
+      # # moving lambda update to the beta update for block update
+      # # lambda
+      # lambda.old <- lambda
+      # mmm <- lambda.m
+      # vvv <- 1 / (lambda.s^2)
 
-      for (t in 1:nt) {
-        taug.t <- sqrt(taug[, t])
-        res.t  <- (y[, t] - x.beta[, t]) * taug.t
-        z.t    <- zg[, t] * taug.t
-        ttt    <- z.t %*% prec.cor
-        vvv    <- vvv + ttt %*% z.t
-        mmm    <- mmm + ttt %*% res.t
-      }
+      # for (t in 1:nt) {
+      #   taug.t <- sqrt(taug[, t])
+      #   res.t  <- (y[, t] - x.beta[, t]) * taug.t
+      #   z.t    <- zg[, t] * taug.t
+      #   ttt    <- z.t %*% prec.cor
+      #   vvv    <- vvv + ttt %*% z.t
+      #   mmm    <- mmm + ttt %*% res.t
+      # }
 
-      vvv <- 1 / vvv
-      mmm <- vvv * mmm
-      lambda <- rnorm(1, mmm, sqrt(vvv))
+      # vvv <- 1 / vvv
+      # mmm <- vvv * mmm
+      # lambda <- rnorm(1, mmm, sqrt(vvv))
 
-      mu  <- x.beta + lambda * zg
-      res <- y - mu
+      # mu  <- x.beta + lambda * zg
+      # res <- y - mu
 
       # z
       if (!temporalz) {
         if (nknots == 1) {
           for (t in 1:nt) {
           	res.t <- (y[, t] - x.beta[, t])
-            mmm   <- lambda * tau[1, t] * sum(prec.cor %*% res.t)
-            vvv   <- tau[1, t] + lambda^2 * tau[1, t] * sum(prec.cor)
+            mmm   <- lambda.old * tau[1, t] * sum(prec.cor %*% res.t)
+            vvv   <- tau[1, t] + lambda.old^2 * tau[1, t] * sum(prec.cor)
 
             vvv <- 1 / vvv
             mmm <- vvv * mmm
@@ -839,13 +864,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           }
         } else {  # nknots > 1
           z.update <- z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu,
-                             g=g, prec=prec.cor, lambda=lambda, zg=zg)
+                             g=g, prec=prec.cor, lambda=lambda.old, zg=zg)
           z  <- z.update$z
           zg <- z.update$zg
 
         }  # fi nknots > 1
       } else {
-        z.update <- updateZTS(z=z, zg=zg, y=y, lambda=lambda, x.beta=x.beta,
+        z.update <- updateZTS(z=z, zg=zg, y=y, lambda=lambda.old, x.beta=x.beta,
                               phi=phi.z, tau=tau, taug=taug, g=g,
                               prec=prec.cor, acc=acc.z, att=att.z, mh=mh.z,
                               acc.phi=acc.phi.z, att.phi=att.phi.z,
@@ -876,6 +901,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         }
 
       }  # fi temporalz
+
+      for (t in 1:nt) {  # used in the update for beta
+        x.beta.update[, t, (p + 1)] <- zg[, t]
+      }
       mu <- x.beta + lambda * zg
       res <- y - mu
     }  # fi skew

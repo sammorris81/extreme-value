@@ -7,6 +7,11 @@ updateZTS <- function(z, zg, y, lambda, x.beta,
   # transform via copula to normal
   z.star <- qnorm(2 * pnorm(z * sqrt(tau)) - 1)  # nknots x nt
 
+  # storage for block update
+  z.new      <- z
+  z.star.new <- z.star
+  zg.new     <- zg
+
   for (t in 1:nt) {
   	taug.t  <- sqrt(taug[, t])
     mu.t    <- x.beta[, t] + lambda * zg[, t]
@@ -19,7 +24,8 @@ updateZTS <- function(z, zg, y, lambda, x.beta,
       can.z.star    <- rnorm(1, z.star[k, t], mh[k, t])
       can.z         <- z[, t]
       can.z[k]      <- qnorm(0.5 * pnorm(can.z.star) + 0.5) / sqrt(tau[k, t])
-      can.zg        <- can.z[g[, t]]  # ns long
+      can.zg        <- zg[, t]  # ns long
+      can.zg[these] <- can.z[k]
 
       can.mu.t <- x.beta[, t] + lambda * can.zg
       can.res <- y[, t] - can.mu.t
@@ -48,17 +54,20 @@ updateZTS <- function(z, zg, y, lambda, x.beta,
       }
 
       if (!is.na(R)) { if (log(runif(1)) < R) {
-        acc[k, t]    <- acc[k, t] + 1
-        z[k, t]      <- can.z[k]
-        zg[these, t] <- can.zg[these]
-        z.star[k, t] <- can.z.star
-        cur.res      <- can.res
-        cur.rss      <- can.rss
+        acc[k, t]        <- acc[k, t] + 1
+        z.new[k, t]      <- can.z[k]
+        zg.new[these, t] <- can.z[k]
+        z.star.new[k, t] <- can.z.star
+        cur.res          <- can.res
+        cur.rss          <- can.rss
       } }
     }
   }
 
+  zg     <- zg.new
+  z      <- z.new
   z.star <- qnorm(2 * pnorm(z * sqrt(tau)) - 1)
+
   # phi.z
   att.phi     <- att.phi + 1
   z.star.lag1 <- z.star[, -nt]               # don't need the last day
