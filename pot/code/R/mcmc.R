@@ -42,7 +42,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # skew inits
                  z.init=1, lambda.init=0,
                  # skew priors
-                 lambda.m=0, lambda.s=10, skew=T,
+                 lambda.a=3, lambda.b=8, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
                  # troubleshooting
                  debug=F, fixhyper=F, tau.t, z.t
@@ -186,17 +186,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
   if (skew) {
     lambda <- lambda.init
-    x.temp <- array(NA, dim=c(ns, nt, p + 1))  # block update lambda with beta
-    for (t in 1:nt) {
-      x.temp[, t, ] <- cbind(x[, t, ], zg[, t])
+    if (lambda < 0) {
+      lambda.1 <- -1
+    } else {
+      lambda.1 <- 1
     }
-    x.beta.update <- x.temp
+    lambda.2 <- lambda.1 * lambda
   } else {
   	if (lambda.init != 0) {
   	  warning("lambda.init being ignored since skew=F")
   	}
     lambda <- 0
-    x.beta.update <- x
   }
 
   # easier to keep calculations in the precision scale for MCMC
@@ -324,7 +324,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
 
-    mu  <- x.beta + lambda * zg  # make sure we've got the right mean
+    mu  <- x.beta + lambda.1 * zg  # make sure we've got the right mean
     res <- y - mu
 
     # data imputation
@@ -362,7 +362,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
 
     # missing values next
-    mu <- x.beta + lambda * zg  # make sure we've got the right mean
+    mu <- x.beta + lambda.1 * zg  # make sure we've got the right mean
     res <- y - mu
     if (missing) {
       y.missing <- matrix(y, ns, nt)
@@ -388,22 +388,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
 
     # update beta
-    if (!skew) {
-      beta.update <- beta
-      mmm         <- rep(beta.m, p)
-      vvv         <- diag(p) / (beta.s^2)
-    } else {
-      # adding in a new coefficient for lambda terms
-      lambda.old  <- lambda
-      beta.update <- c(beta, lambda)
-      mmm         <- c(rep(beta.m, p), lambda.m)
-      vvv         <- diag(p + 1) / (beta.s^2)
-      vvv[p + 1, p + 1] <- 1 / lambda.s^2
-    }
+    beta.update <- beta
+    mmm         <- rep(beta.m, p)
+    vvv         <- diag(p) / (beta.s^2)
 
     for (t in 1:nt) {  # x.beta.update[, , p + 1] is updated when zg is updated
       taug.t <- sqrt(taug[, t])
-      x.t    <- x.beta.update[, t, ] * taug.t
+      x.t    <- x.beta[, t, ] * taug.t
       y.t    <- y[, t] * taug.t
       ttt    <- t(x.t) %*% prec.cor
       vvv    <- vvv + ttt %*% x.t
@@ -412,18 +403,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     vvv  <- chol2inv(chol(vvv))
     mmm  <- vvv %*% mmm
-    beta.update <- mmm + t(chol(vvv)) %*% rnorm(length(mmm))
-    if (!skew) {
-      beta <- beta.update
-    } else {  # we're also drawing lambda
-      beta   <- beta.update[1:p]
-      lambda <- beta.update[p + 1]
-    }
+    beta <- mmm + t(chol(vvv)) %*% rnorm(length(mmm))
 
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
-    mu  <- x.beta + lambda * zg
+    mu  <- x.beta + lambda.1 * zg
     res <- y - mu
 
     # update partitions
@@ -439,7 +424,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         can.g          <- mem(s, can.knots)
         can.taug       <- tau[can.g, t]
         can.zg         <- z[can.g, t]
-        can.res        <- y - x.beta - lambda * can.zg
+        can.res        <- y - x.beta - lambda.1 * can.zg
 
         if (temporalw & (t > 1)) {  # first day has mean 0: added for ts
           mean <- phi.w * knots.con[, , (t - 1)]
@@ -475,7 +460,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       # knots.update <- updateKnotsTS(phi=phi.w, knots=knots, knots.con=knots.con,
       #                               g=g, ts=temporalw, tau=tau, taug=taug, z=z,
       #                               zg=zg, s=s, s.range=s.range, x.beta=x.beta,
-      #                               lambda=lambda, y=y, res=res, prec=prec.cor,
+      #                               lambda.1=lambda.1, y=y, res=res, prec=prec.cor,
       #                               att=att.w, acc=acc.w, mh=mh.w)
       # knots.con <- knots.update$knots.con
       # knots     <- knots.update$knots
@@ -490,7 +475,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }  # fi nknots > 1
 
     # covariance parameters
-    mu <- x.beta + lambda * zg
+    mu <- x.beta + lambda.1 * zg
     res <- y - mu
 
     # update tau
@@ -607,7 +592,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }  # fi method == t
 
-    mu  <- x.beta + lambda * zg
+    mu  <- x.beta + lambda.1 * zg
     res <- y - mu
     # update rho and nu and gamma
     if (rho.prior == "disc") {  # only update rho and alpha
@@ -827,35 +812,29 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     # update skew parameters: lambda and z
     if (skew) {
-      # # moving lambda update to the beta update for block update
-      # # lambda
-      # lambda.old <- lambda
-      # mmm <- lambda.m
-      # vvv <- 1 / (lambda.s^2)
+      # lambda.1 - discrete
+      lll <- c(0, 0)
+      mmm <- c(-1, 1)
+      for (l in 1:length(lll)) {
+        mu.l  <- x.beta + mmm[l] * zg
+        res.l <- y - mu.l
+        lll   <- -0.5 * sum(rss(prec, y=sqrt(taug) * res.l))
+      }
+      lambda.1 <- sample(mmm, 1, prob=exp(lll - max(lll)))
 
-      # for (t in 1:nt) {
-      #   taug.t <- sqrt(taug[, t])
-      #   res.t  <- (y[, t] - x.beta[, t]) * taug.t
-      #   z.t    <- zg[, t] * taug.t
-      #   ttt    <- z.t %*% prec.cor
-      #   vvv    <- vvv + ttt %*% z.t
-      #   mmm    <- mmm + ttt %*% res.t
-      # }
+      # lambda.2 - IG
+      aaa <- lambda.a + nknots * nt
+      bbb <- lambda.b + 0.5 * sum(zg^2 * taug)
+      lambda.2 <- 1 / rgamma(1, aaa, bbb)
 
-      # vvv <- 1 / vvv
-      # mmm <- vvv * mmm
-      # lambda <- rnorm(1, mmm, sqrt(vvv))
+      lambda <- lambda.1 * lambda.2
 
-      # mu  <- x.beta + lambda * zg
-      # res <- y - mu
-
-      # z
       if (!temporalz) {
         if (nknots == 1) {
           for (t in 1:nt) {
-          	res.t <- (y[, t] - x.beta[, t])
-            mmm   <- lambda.old * tau[1, t] * sum(prec.cor %*% res.t)
-            vvv   <- tau[1, t] + lambda.old^2 * tau[1, t] * sum(prec.cor)
+          	res.t <- y[, t] - x.beta[, t]
+            mmm   <- lambda.1 * tau[1, t] * sum(prec.cor %*% res.t)
+            vvv   <- tau[1, t] / lambda.2^2 + tau[1, t] * sum(prec.cor)
 
             vvv <- 1 / vvv
             mmm <- vvv * mmm
@@ -864,13 +843,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           }
         } else {  # nknots > 1
           z.update <- z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu,
-                             g=g, prec=prec.cor, lambda=lambda.old, zg=zg)
+                             g=g, prec=prec.cor, lambda_1=lambda.1, zg=zg)
           z  <- z.update$z
           zg <- z.update$zg
 
         }  # fi nknots > 1
       } else {
-        z.update <- updateZTS(z=z, zg=zg, y=y, lambda=lambda.old, x.beta=x.beta,
+        z.update <- updateZTS(z=z, zg=zg, y=y, lambda_1=lambda.1, x.beta=x.beta,
                               phi=phi.z, tau=tau, taug=taug, g=g,
                               prec=prec.cor, acc=acc.z, att=att.z, mh=mh.z,
                               acc.phi=acc.phi.z, att.phi=att.phi.z,
@@ -905,14 +884,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       for (t in 1:nt) {  # used in the update for beta
         x.beta.update[, t, (p + 1)] <- zg[, t]
       }
-      mu <- x.beta + lambda * zg
+      mu <- x.beta + lambda.1 * zg
       res <- y - mu
     }  # fi skew
 
   }  # end nthin
 
   if (iter > burn) {
-    mu <- x.beta + lambda * zg
+    mu <- x.beta + lambda.1* zg
     res <- y - mu
     # predictions
     if (predictions) {
@@ -947,7 +926,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         zgp    <- z[gp, t]
         siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
         taug.t <- sqrt(taug[, t])
-        mup <- xp.beta + lambda * zgp + siggp *
+        mup <- xp.beta + lambda.1 * zgp + siggp *
                s.12.22.inv %*% (taug.t * res[, t])
 
         yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
