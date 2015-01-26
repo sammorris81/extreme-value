@@ -6,7 +6,23 @@
 # Half normal: Z* = |Z| is HN(0, sig) when Z ~ N(0, sig)
 # Note: the location parameter must be 0
 #################################################################
+dhn <- function(x, sig=1, log=FALSE) {
+  if (sum(x < 0) > 0) {
+    stop("x must be non-negative")
+  }
+  density <- dnorm(x, 0, sig) / 2
+
+  if (!log) {
+    return(density)
+  } else {
+    return(log(density))
+  }
+}
+
 phn <- function(x, sig=1, lower.tail=TRUE) {
+  if (sum(x < 0) > 0) {
+    stop("x must be non-negative")
+  }
   p.val <- 2 * pnorm(x, 0, sig) - 1
   if (!lower.tail) {
     p.val <- 1 - p.val
@@ -41,6 +57,48 @@ transform <- list(
     function(x, ...) do.call(this.dens, args=list(pnorm(x), ...))
   }
 )
+
+################################################################################
+# MCMC Metropolis SD update
+################################################################################
+
+#################################################################
+# Description:
+#   Function to handle all updates for the MH sds.
+#
+# Arguments:
+#   acc: current number of acceptances
+#   att: current number of attempts
+#   mh: current mh sd
+#
+# Returns:
+#   mh: updated mh sd
+#################################################################
+mhupdate <- function(acc, att, mh) {
+  acc.rate   <- acc / att
+  these.low  <- acc.rate < 0.25
+  these.high <- acc.rate > 0.50
+
+  mh[these.low]  <- mh[these.low] * 0.8
+  mh[these.high] <- mh[these.high] * 1.2
+
+  return(mh)
+}
+
+# Function to return y' %*% prec %*% y
+rss <- function(prec, y) {
+  if (is.null(dim(y))) {
+    nt <- 1
+    y  <- matrix(y, ncol=1)
+  } else {
+    nt <- ncol(y)
+  }
+  results <- rep(0, nt)
+  for (t in 1:nt) {  # benchmarking suggests loop is as fast as apply
+    results[t] <- quad.form(prec, y[, t])
+  }
+  return(results)
+}
 
 #########################################################################
 # Arguments:
