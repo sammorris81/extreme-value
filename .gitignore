@@ -24,3 +24,6 @@ Rprof.out
 *.log
 *.synctex.gz
 *.fls
+binary/code/Ebirds4Sam/cat_eg_sand_data.txt
+
+binary/code/Ebirds4Sam/core-covariates.csv
