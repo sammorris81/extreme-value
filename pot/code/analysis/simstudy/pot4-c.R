@@ -40,6 +40,7 @@ for (g in 1:10) {
   fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
+
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
@@ -66,6 +67,7 @@ for (g in 1:10) {
     # cat("  end: gaussian \n")
     # cat("------------------\n")
 
+    source('../../R/mcmc.R', chdir=T)
     cat("  start: skew t-1 - Set", dataset, "\n")
     tic <- proc.time()
     fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,

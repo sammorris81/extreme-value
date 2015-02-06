@@ -1,4 +1,36 @@
 ################################################################################
+# Common data transformations
+################################################################################
+transform <- list(
+  logit = function(x, lower=0, upper=1) {
+    x <- (x - lower) / (upper - lower)
+    log(x / (1 - x))
+  },
+  inv.logit = function(x, lower=0, upper=1) {
+    p <- exp(x) / (1 + exp(x))
+    p <- p * (upper - lower) + lower
+  },
+  probit = function(x, lower=0, upper=1) {
+    x <- (x - lower) / (upper - lower)
+    qnorm(x)
+  },
+  inv.probit = function(x, lower=0, upper=1) {
+    p <- pnorm(x)
+    p <- p * (upper - lower) + lower
+  },
+  log = function(x) log(x),
+  exp = function(x) exp(x),
+  copula = function(dens) {
+    this.dens <- paste("p", dens, sep="")
+    function(x, ...) qnorm(do.call(this.dens, args=list(x, ...)))
+  },
+  inv.copula = function(dens) {
+    this.dens <- paste("q", dens, sep="")
+    function(x, ...) do.call(this.dens, args=list(pnorm(x), ...))
+  }
+)
+
+################################################################################
 # Useful densities
 ################################################################################
 
@@ -39,24 +71,12 @@ qhn <- function(p, sig=1, lower.tail=TRUE) {  # for the half normal density, mu 
 }
 
 ################################################################################
-# Common data transformations
+# Useful copulas
 ################################################################################
-transform <- list(
-  logit = function(x) log(x / (1 - x)),
-  inv.logit = function(x) exp(x) / (1 + exp(x)),
-  probit = function(x) qnorm(x),
-  inv.probit = function(x) pnorm(x),
-  log = function(x) log(x),
-  exp = function(x) exp(x),
-  copula = function(dens) {
-    this.dens <- paste("p", dens, sep="")
-    function(x, ...) qnorm(do.call(this.dens, args=list(x, ...)))
-  },
-  inv.copula = function(dens) {
-    this.dens <- paste("q", dens, sep="")
-    function(x, ...) do.call(this.dens, args=list(pnorm(x), ...))
-  }
-)
+gamma.cop    <- transform$copula(dens="gamma")
+gamma.invcop <- transform$inv.copula(dens="gamma")
+hn.cop    <- transform$copula(dens="hn")
+hn.invcop <- transform$inv.copula(dens="hn")
 
 ################################################################################
 # MCMC Metropolis SD update
@@ -74,15 +94,20 @@ transform <- list(
 # Returns:
 #   mh: updated mh sd
 #################################################################
-mhupdate <- function(acc, att, mh) {
-  acc.rate   <- acc / att
-  these.low  <- acc.rate < 0.25
-  these.high <- acc.rate > 0.50
+mhupdate <- function(acc, att, mh, nattempts=50, lower=0.8, higher=1.2) {
+  acc.rate     <- acc / att
+  these.update <- att > nattempts
+  these.low    <- (acc.rate < 0.25) & these.update
+  these.high   <- (acc.rate > 0.50) & these.update
 
-  mh[these.low]  <- mh[these.low] * 0.8
-  mh[these.high] <- mh[these.high] * 1.2
+  mh[these.low]  <- mh[these.low] * lower
+  mh[these.high] <- mh[these.high] * higher
 
-  return(mh)
+  acc[these.update] <- 0
+  att[these.update] <- 0
+
+  results <- list(acc=acc, att=att, mh=mh)
+  return(results)
 }
 
 # Function to return y' %*% prec %*% y
@@ -263,8 +288,8 @@ rpotspat <- function(nt, x, s, beta, gamma, nu, rho, dist, lambda,
   results <- list(y=y, tau=tau, z=z, knots=knots)
 }
 
-makeknotsTS <- function(nt, nknots, s, phi) {
-  knots <- array(NA, dim=c(nknots, 2, nt))
+makeKnotsTS <- function(nt, nknots, s, phi) {
+  knots.star <- knots <- array(NA, dim=c(nknots, 2, nt))
   min.s1 <- min(s[, 1])
   max.s1 <- max(s[, 1])
   range.s1 <- max.s1 - min.s1
@@ -273,54 +298,50 @@ makeknotsTS <- function(nt, nknots, s, phi) {
   range.s2 <- max.s2 - min.s2
 
   # starting point is uniform over the space
-  knots[, 1, 1] <- runif(nknots, min.s1, max.s1)
-  knots[, 2, 1] <- runif(nknots, min.s2, max.s2)
+  knots.star[, 1, 1] <- rnorm(nknots)
+  knots.star[, 2, 1] <- rnorm(nknots)
 
   for (t in 2:nt) {
-    # transform the previous day's knots to (0, 1)
-    knots.u.lag1 <- (knots[, 1, (t - 1)] - min.s1) / range.s1
-    knots.star.lag1 <- qnorm(knots.u.lag1)
-    knots.u.lag2 <- (knots[, 2, (t - 1)] - min.s2) / range.s2
-    knots.star.lag2 <- qnorm(knots.u.lag2)
-
     # draw the new set of knots using the time series
-    knots.star.1  <- phi * knots.star.lag1 + sqrt(1 - phi^2) * rnorm(nknots)
-    knots.u.1     <- pnorm(knots.star.1)
-    knots[, 1, t] <- knots.u.1 * range.s1 + min.s1
-    knots.star.2  <- phi * knots.star.lag2 + sqrt(1 - phi^2) * rnorm(nknots)
-    knots.u.2     <- pnorm(knots.star.2)
-    knots[, 2, t] <- knots.u.2 * range.s2 + min.s2
+    knots.star[, 1, t] <- phi * knots.star[, 1, (t - 1)] +
+                          sqrt(1 - phi^2) * rnorm(nknots)
+    knots.star[, 2, t] <- phi * knots.star[, 2, (t - 1)] +
+                          sqrt(1 - phi^2) * rnorm(nknots)
   }
+  knots[, 1, ] <- transform$inv.probit(knots.star[, 1, ], lower=min.s1,
+                                       upper=max.s1)
+  knots[, 2, ] <- transform$inv.probit(knots.star[, 2, ], lower=min.s2,
+                                       upper=max.s2)
 
   return(knots)
 }
 
-maketauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
+makeTauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
   tau.star <- matrix(NA, nrow=nknots, ncol=nt)
   tau.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
     tau.star[, t] <- phi * tau.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
   }
 
-  tau <- qgamma(pnorm(tau.star), tau.alpha, tau.beta)
+  tau <- gamma.invcop(x=tau.star, tau.alpha, tau.beta)
   return(tau)
 }
 
-makezTS <- function(nt, nknots, tau, phi) {
+makeZTS <- function(nt, nknots, tau, phi, lambda.1, lambda.2) {
   z.star <- matrix(NA, nrow=nknots, ncol=nt)
   z.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
     z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
   }
 
-  sd <- 1 / sqrt(tau)
-  z  <- sd * qnorm(0.5 * (pnorm(z.star) + 1))
+  sd <- 1 / sqrt(tau * lambda.2)
+  z  <- hn.invcop(x=z.star, sig=sd)
 
   return(z)
 }
 
 rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
-                       lambda, tau.alpha, tau.beta, nknots) {
+                       lambda, tau.alpha, tau.beta, nknots, dist) {
 
   p <- dim(x)[3]
   ns <- nrow(s)
@@ -332,13 +353,32 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 
   d <- as.matrix(dist(s))
 
-  C    <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
-  tau  <- maketauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
-                    tau.beta=tau.beta, phi=phi.tau)
-  sd   <- 1 / sqrt(tau)
-  z    <- makezTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
+  if (lambda == 0) {
+    skew     <- FALSE
+    lambda.1 <- 0
+  } else {
+    skew     <- TRUE
+    lambda.1 <- sign(lambda)
+    lambda.2 <- 1 / lambda^2
+  }
 
-  knots <- makeknotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
+  C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  if (dist == "t") {
+    tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
+                      tau.beta=tau.beta, phi=phi.tau)
+  } else if (dist == "gaus") {
+    tau <- matrix(0.25, nknots, nt)
+  }
+  sd <- 1 / sqrt(tau)
+
+  if (skew) {
+    z <- makeZTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z,
+                 lambda.1=lambda.1, lambda.2=lambda.2)
+  } else {
+    z <- matrix(0, nrow=nknots, ncol=nt)
+  }
+
+  knots <- makeKnotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
 
   for (t in 1:nt) {
     knots.t <- matrix(knots[, , t], nknots, 2)
@@ -355,7 +395,8 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     } else {
       x.beta <- x[, t, ] %*% beta
     }
-    mu <- x.beta + lambda * zg
+
+    mu <- x.beta + lambda.1 * zg
 
     y.t    <- mu + t(chol.C) %*% matrix(rnorm(ns), ns, 1)
     y[, t] <- y.t
