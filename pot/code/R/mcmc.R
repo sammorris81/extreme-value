@@ -22,9 +22,10 @@ source('updateLambda.R')
 source('updatePhi.R')
 source('updateTau.R')
 source('updateZ.R')
+source('predictY.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
-                 min.s=c(0, 0), max.s=c(1, 1),
+                 min.s, max.s,  # don't want to specify defaults
                  thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
@@ -133,9 +134,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize partition
   if (!fixknots) {
     if (is.null(knots.init)) {
+      # constrain the initial draw to be near the middle for stability
+      lower.1 <- min.s[1] + (max.s[1] - min.s[1]) / 3
+      upper.1 <- min.s[1] + 2 * (max.s[1] - min.s[1]) / 3
+      lower.2 <- min.s[2] + (max.s[2] - min.s[2]) / 3
+      upper.2 <- min.s[2] + 2 * (max.s[2] - min.s[2]) / 3
       knots <- array(NA, dim=c(nknots, 2, nt))
-      knots[, 1, ] <- runif(nknots * nt, min.s[1], max.s[1])
-      knots[, 2, ] <- runif(nknots * nt, min.s[2], max.s[2])
+      knots[, 1, ] <- runif(nknots * nt, lower.1, upper.1)
+      knots[, 2, ] <- runif(nknots * nt, lower.2, upper.2)
     } else {
       knots <- array(knots.init, dim=c(nknots, 2, nt))
     }
@@ -345,8 +351,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update partitions
     if ((nknots > 1) & (!fixknots)) {
       avgparts <- rep(0, nt)
-      mu <- x.beta + lambda.1 * zg
-      res <- y - mu
       knots.update <- updateKnotsTS(phi=phi.w, knots=knots, g=g, ts=temporalw,
                                     tau=tau, z=z, s=s, min.s=min.s, max.s=max.s,
                                     x.beta=x.beta, lambda.1=lambda.1, y=y,
@@ -366,7 +370,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
       # update metropolis sds
       if (iter < (burn / 2)) {
-        mh.update  <- mhupdate(acc=acc.w, att=att.w, mh=mh.w)
+        mh.update  <- mhupdate(acc=acc.w, att=att.w, mh=mh.w,
+                               nattempts=nknots * nt)
         acc.w      <- mh.update$acc
         att.w      <- mh.update$att
         mh.w       <- mh.update$mh
@@ -444,13 +449,12 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
 
       # update tau.alpha and tau.beta
+      tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
+      tau.beta  <- updateTauBeta(tau=tau, tau.alpha=tau.alpha,
+                                 tau.beta.a=tau.beta.a, tau.beta.b=tau.beta.b)
       if (fixhyper) {
         tau.alpha <- 3
         tau.beta  <- 8
-      } else {
-        tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
-        tau.beta  <- updateTauBeta(tau=tau, tau.alpha=tau.alpha,
-                                   tau.beta.a=tau.beta.a, tau.beta.b=tau.beta.b)
       }
     }  # fi method == t
 
@@ -569,42 +573,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     res <- y - mu
     # predictions
     if (predictions) {
-    	if (cov.model == "matern") {
-    	  s.11 <- gamma * simple.cov.sp(D=d11, sp.type="matern", sp.par=c(1, rho),
-                                      error.var=0, smoothness=nu,
-                                      finescale.var=0)
-        s.12 <- gamma * simple.cov.sp(D=d12, sp.type="matern", sp.par=c(1, rho),
-                                      error.var=0, smoothness=nu,
-                                      finescale.var=0)
-      } else {
-        s.11 <- gamma * matrix(exp(-d11 / rho), np, np)
-        s.12 <- gamma * matrix(exp(-d12 / rho), np, ns)
-      }
-      diag(s.11) <- 1
-      s.12.22.inv <- s.12 %*% prec
-      corp <- s.11 - s.12.22.inv %*% t(s.12)
-      corp.sd.mtx <- tryCatch(chol(corp),  # only want the cholesky factor
-                        error = function(e) {
-                          eig.inv(corp, inv=F, logdet=F, mtx.sqrt=T)$sd.mtx
-                        })
-
-      yp <- matrix(NA, np, nt)
-
-      for (t in 1:nt) {
-        xp.beta  <- x.pred[, t, ] %*% beta
-        if (nknots == 1) {
-          gp <- rep(1, np)
-        } else {
-          gp <- mem(s.pred, knots[, , t])  # find the right partition
-        }
-        zgp    <- z[gp, t]
-        siggp  <- 1 / sqrt(tau[gp, t])  # get the partition's standard deviation
-        taug.t <- sqrt(taug[, t])
-        mup <- xp.beta + lambda.1 * zgp + siggp *
-               s.12.22.inv %*% (taug.t * res[, t])
-
-        yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
-      }
+    	yp <- predictY(d11=d11, d12=d12, cov.model=cov.model, rho=rho, nu=nu,
+                     gamma=gamma, res=res, beta=beta, tau=tau, taug=taug, z=z,
+                     prec=prec, lambda.1=lambda.1, s.pred=s.pred, x.pred=x.pred,
+                     knots=knots)
 
     }
   }
@@ -669,133 +641,123 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   	  begin <- burn
   	}
 
+    # what all should be plotted (at most 18 plots)
+    # always: beta, rho, nu, gamma, tau.alpha, tau.beta and a few tau terms
+    # if multiple knots: 2 knots worth
+    # if ts: phi.w, phi.tau, phi.z
+    # if skew: lambda, a few z terms
     if (iterplot) {
       if (skew) {
         par(mfrow=c(3, 6))
       } else {
-        par(mfrow=c(3, 6))
+        par(mfrow=c(2, 6))
       }
 
-      plot(keepers.beta[begin:iter, 1], type="l")
+      plot(keepers.beta[begin:iter, 1], type="l", main="beta 0",
+           xlab="", ylab="")
       if (p > 1) {
-        plot(keepers.beta[begin:iter, 2], type="l")
-      } else if (p > 2) {
-        plot(keepers.beta[begin:iter, 3], type="l")
+        plot(keepers.beta[begin:iter, 2], type="l", main="beta 1",
+           xlab="", ylab="")
       }
-      if (temporalw) {
-        title.phi.w <- paste("acc =", acc.rate.phi.w)
-        plot(keepers.phi.w[begin:iter], type="l",
-             main=title.phi.w, xlab=round(mh.phi.w, 3))
-      }
-      if (temporalz) {
-        title.phi.z <- paste("acc =", acc.rate.phi.z)
-      	plot(keepers.phi.z[begin:iter], type="l",
-             main=title.phi.z, xlab=round(mh.phi.z, 3))
-      }
-      if (temporaltau) {
-        title.phi.tau <- paste("acc =", acc.rate.phi.tau)
-      	plot(keepers.phi.tau[begin:iter], type="l",
-             main=title.phi.tau, xlab=round(mh.phi.tau, 3))
+      if (p > 2) {
+        plot(keepers.beta[begin:iter, 3], type="l", main="beta 2",
+           xlab="", ylab="")
       }
 
-      plot(keepers.tau.alpha[begin:iter], type="l")
-      plot(keepers.tau.beta[begin:iter], type="l")
-
-      title.rho <- paste("acc =", acc.rate.rho)
+      ylab.rho <- paste("acc =", acc.rate.rho)
       if (mh.rho < 0.00001) {
-      	xlab.rho <- "<0.00001"
+        xlab.rho <- "mh < 0.00001"
       } else if (mh.rho < 10000) {
-      	xlab.rho <- round(mh.rho, 5)
+        xlab.rho <- paste("mh =", round(mh.rho, 5))
       } else {
-      	xlab.rho <- "> 10000"
+        xlab.rho <- "mn > 10000"
       }
-      plot(keepers.rho[begin:iter], type="l", main=title.rho, xlab=xlab.rho)
+      plot(keepers.rho[begin:iter], type="l", main="rho",
+           xlab=xlab.rho, ylab=ylab.rho)
 
-      title.nu <- paste("acc =", acc.rate.nu)
+      ylab.nu <- paste("acc =", acc.rate.nu)
       if (mh.nu < 0.00001) {
-      	xlab.nu <- "<0.00001"
+        xlab.nu <- "mh < 0.00001"
       } else if (mh.nu < 10000) {
-      	xlab.nu <- round(mh.nu, 5)
+        xlab.nu <- paste("mh =", round(mh.nu, 5))
       } else {
-      	xlab.nu <- "> 10000"
+        xlab.nu <- "mh > 10000"
       }
-      plot(keepers.nu[begin:iter], type="l", main=title.nu, xlab=xlab.nu)
+      plot(keepers.nu[begin:iter], type="l", main="nu",
+           xlab=xlab.nu, ylab=ylab.nu)
 
-      title.gamma <- paste("acc =", acc.rate.gamma)
-      plot(keepers.gamma[begin:iter], type="l", main=title.gamma)
-
-      if (skew) {
-        plot(keepers.lambda[begin:iter], type="l")
-        plot(keepers.lambda.1[begin:iter], type="l")
-        plot(keepers.lambda.2[begin:iter], type="l")
-
-        if (temporalz) {
-          title.z.1 <- paste("acc =", acc.rate.z[1, 1])
-          title.z.2 <- paste("acc =", acc.rate.z[1, 10])
-          title.z.3 <- paste("acc =", acc.rate.z[1, 21])
-        } else {
-          title.z.1 <- ""
-          title.z.2 <- ""
-          title.z.3 <- ""
-        }
-        plot(keepers.z[begin:iter, 1, 1], type="l", main=title.z.1)
-        plot(keepers.z[begin:iter, 1, 10], type="l", main=title.z.2)
-        # plot(keepers.z[begin:iter, 1, 21], type="l", main=title.z.3)
+      ylab.gamma <- paste("acc =", acc.rate.gamma)
+      if (mh.gamma < 0.00001) {
+        xlab.gamma <- "mh < 0.0001"
+      } else if (mh.gamma < 10000) {
+        xlab.gamma <- paste("mh =", round(mh.gamma, 5))
+      } else {
+        xlab.gamma <- "mh > 10000"
       }
+      plot(keepers.gamma[begin:iter], type="l", main="gamma",
+           xlab=xlab.gamma, ylab=ylab.gamma)
 
       nparts.1 <- length(which(g[, 1] == 1))
       nparts.2 <- length(which(g[, 10] == 1))
       nparts.3 <- length(which(g[, 21] == 1))
-      if (temporaltau) {
-        mh.disp.1 <- round(mh.tau[1, 1], 2)
-        mh.disp.2 <- round(mh.tau[1, 10], 2)
-        mh.disp.3 <- round(mh.tau[1, 21], 2)
-        title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
-        title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
-        title.tau.3 <- paste("acc = ", acc.rate.tau[1, 11])
-      } else {
-        mh.disp.1 <- round(mh.tau[(nparts.1 + 1)], 2)
-        mh.disp.2 <- round(mh.tau[(nparts.2 + 1)], 2)
-        mh.disp.3 <- round(mh.tau[(nparts.3 + 1)], 2)
-        title.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
-        title.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
-        title.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
+      mh.disp.1 <- round(mh.tau[(nparts.1 + 1)], 2)
+      mh.disp.2 <- round(mh.tau[(nparts.2 + 1)], 2)
+      mh.disp.3 <- round(mh.tau[(nparts.3 + 1)], 2)
+      ylab.tau.1 <- paste("acc = ", acc.rate.tau[1, 1])
+      ylab.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
+      ylab.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
+
+      plot(keepers.tau[begin:iter, 1, 1], type="l", main="tau 1,1",
+           xlab=paste(nparts.1, ", ", mh.disp.1), ylab=ylab.tau.1)
+      plot(keepers.tau[begin:iter, 1, 10], type="l", main="tau 1, 10",
+           xlab=paste(nparts.2, ", ", mh.disp.2), ylab=ylab.tau.2)
+      plot(keepers.tau[begin:iter, 1, 21], type="l", main="tau 1, 21",
+           xlab=paste(nparts.3, ", ", mh.disp.3), ylab=ylab.tau.3)
+
+      plot(keepers.tau.alpha[begin:iter], type="l", main="tau.alpha",
+           xlab="", ylab="")
+      plot(keepers.tau.beta[begin:iter], type="l", main="tau.beta",
+           xlab="", ylab="")
+
+      if (skew) {
+        plot(keepers.lambda[begin:iter], type="l", main="lambda",
+             xlab="", ylab="")
+
+        if (temporalz) {
+          ylab.z.1 <- paste("acc =", acc.rate.z[1, 1])
+          ylab.z.2 <- paste("acc =", acc.rate.z[1, 10])
+          ylab.z.3 <- paste("acc =", acc.rate.z[1, 21])
+        } else {
+          ylab.z.1 <- ""
+          ylab.z.2 <- ""
+          ylab.z.3 <- ""
+        }
+        plot(keepers.z[begin:iter, 1, 1], type="l", main="z 1, 1",
+             xlab="", ylab=ylab.z.1)
+        plot(keepers.z[begin:iter, 1, 10], type="l", main="z 1, 10",
+             xlab="", ylab=ylab.z.2)
+        plot(keepers.z[begin:iter, 1, 21], type="l", main="z 1, 21",
+             xlab="", ylab=ylab.z.3)
       }
 
-      plot(keepers.tau[begin:iter, 1, 1], type="l", main=title.tau.1,
-           ylab="tau 1,1", xlab=paste(nparts.1, ", ", mh.disp.1))
-      plot(keepers.tau[begin:iter, 1, 10], type="l", main=title.tau.2,
-           ylab="tau 1, 10", xlab=paste(nparts.2, ", ", mh.disp.2))
-      plot(keepers.tau[begin:iter, 1, 21], type="l", main=title.tau.3,
-           ylab="tau 1, 21", xlab=paste(nparts.3, ", ", mh.disp.3))
-
-      # if (nknots > 1) {
-      #   nparts.4 <- length(which(g[, 1] == 2))
-      #   nparts.5 <- length(which(g[, 10] == 2))
-      #   nparts.6 <- length(which(g[, 21] == 2))
-      # 	if (temporaltau) {
-      #     mh.disp.4 <- round(mh.tau[2, 1], 2)
-      #     mh.disp.5 <- round(mh.tau[2, 10], 2)
-      #     mh.disp.6 <- round(mh.tau[2, 21], 2)
-      #     title.tau.4 <- paste("acc = ", acc.rate.tau[1, 1])
-      #     title.tau.5 <- paste("acc = ", acc.rate.tau[1, 10])
-      #     title.tau.6 <- paste("acc = ", acc.rate.tau[1, 11])
-      # 	} else {
-      #     mh.disp.4 <- round(mh.tau[(nparts.4 + 1)], 2)
-      #     mh.disp.5 <- round(mh.tau[(nparts.5 + 1)], 2)
-      #     mh.disp.6 <- round(mh.tau[(nparts.6 + 1)], 2)
-      #     title.tau.4 <- paste("acc = ", acc.rate.tau[2, 1])
-      #     title.tau.5 <- paste("acc = ", acc.rate.tau[2, 10])
-      #     title.tau.6 <- paste("acc = ", acc.rate.tau[2, 21])
-      # 	}
-
-      #   plot(keepers.tau[begin:iter, 2, 1], type="l", main=title.tau.4,
-      #        ylab="tau 2, 1", xlab=paste(nparts.4, ", ", mh.disp.4))
-      #   plot(keepers.tau[begin:iter, 2, 10], type="l", main=title.tau.5,
-      #        ylab="tau 2, 10", xlab=paste(nparts.5, ", ", mh.disp.5))
-      #   plot(keepers.tau[begin:iter, 2, 21], type="l", main=title.tau.6,
-      #        ylab="tau 2, 21", xlab=paste(nparts.6, ", ", mh.disp.6))
-      # }
+      if (temporalw) {
+        ylab.phi.w <- paste("acc =", acc.rate.phi.w)
+        plot(keepers.phi.w[begin:iter], type="l",
+             main="phi.w",
+             xlab=paste("mh =", round(mh.phi.w, 3)), ylab=ylab.phi.w)
+      }
+      if (temporalz) {
+        ylab.phi.z <- paste("acc =", acc.rate.phi.z)
+      	plot(keepers.phi.z[begin:iter], type="l",
+             main="phi.z",
+             xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
+      }
+      if (temporaltau) {
+        ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
+      	plot(keepers.phi.tau[begin:iter], type="l",
+             main="phi.tau",
+             xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
+      }
 
     }
 

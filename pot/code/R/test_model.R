@@ -53,14 +53,15 @@ logdet.prec.t <- CC$logdet.prec
 # Test 1: No-skew, 1 knot, no time series
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-set.seed(20)
+set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                    dist="t", nknots=1, lambda=0, phi.z=0, phi.w=0, phi.tau=0)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
-            iterplot=T, iters=7000, burn=5000, update=100,
+            iterplot=T, iters=10000, burn=5000, update=100,
             thresh.all=0, skew=FALSE, nknots=1,
+            min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS
 
@@ -74,8 +75,9 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 # z1: 3.764, z10=3.784, z21=3.67
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
-            iterplot=T, iters=7000, burn=5000, update=100,
+            iterplot=T, iters=10000, burn=5000, update=100,
             thresh.all=0, skew=TRUE, nknots=1,
+            min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS
 
@@ -89,9 +91,9 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100,
-            thresh.all=0, skew=FALSE,
-            nknots=3, fixknots=TRUE, knots.init=data$knots,
-            temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+            thresh.all=0, skew=FALSE, # fixknots=TRUE, knots.init=data$knots,
+            min.s=c(0, 0), max.s=c(10, 10),
+            nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS
 
 # Test 4: Skew, 3 knots, no time series
@@ -104,9 +106,17 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100, tau.init=0.375,
-            thresh.all=0, skew=TRUE,
+            thresh.all=0, skew=TRUE, # knots.init=data$knots, fixknots=TRUE,
+            min.s=c(0, 0), max.s=c(10, 10),
             nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
-# RESULTS: PASS
+# RESULTS: PASS (as long you specify a reasonable bounding box for s)
+# Although it eventually starts to get near the right values for most of the
+# parameters, it can take upwards of 5000 - 6000 iterations
+# Another minor tweak to the MCMC, and it would appear that starting the knots
+# in the center of the space tends to stabilize a bit more quickly (2000-3000
+# iterations)
+# Can't tell for sure, but it looks like it may be a slight improvement to
+# adjust the MH standard deviation a little less often
 
 # Test 5: Non-skew, 1 knots, time series on tau
 source('./mcmc.R', chdir=T)
@@ -119,6 +129,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100,
             thresh.all=0, skew=FALSE, nknots=1,
+            min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=TRUE, temporalz=FALSE)
 # RESULTS: PASS
 
@@ -133,6 +144,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100,
             thresh.all=0, skew=TRUE, nknots=1,
+            min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=TRUE)
 # RESULTS: PASS
 
@@ -148,6 +160,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100,
             thresh.all=0, skew=TRUE, nknots=1,
+            min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=TRUE, temporalz=TRUE)
 # RESULTS: PASS
 
@@ -163,6 +176,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100,
             thresh.all=0, skew=FALSE, nknots=3,
+            min.s=c(0, 0), max.s=c(10, 10),
             temporalw=TRUE, temporaltau=TRUE, temporalz=FALSE)
 # RESULTS: PASS
 
@@ -172,15 +186,20 @@ source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                   dist="t", nknots=3, lambda=2, phi.z=0.8, phi.w=0.9,
+                   dist="t", nknots=3, lambda=5, phi.z=0.8, phi.w=0.9,
                    phi.tau=0)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100,
-            min.s=c(0, 0), max.s=c(10, 10), fixknots=TRUE,
-            thresh.all=0, skew=TRUE, nknots=3, knots.init=data$knots,
-            temporalw=TRUE, temporaltau=FALSE, temporalz=TRUE)
-# RESULTS:
+            thresh.all=0, skew=TRUE, # fixknots=TRUE, knots.init=data$knots,
+            min.s=c(0, 0), max.s=c(10, 10),
+            nknots=3, temporalw=TRUE, temporaltau=FALSE, temporalz=TRUE)
+# RESULTS: PASS (as long as knots start out close to the middle).
+# Note: The time series parameters don't appear to get exactly to the correct
+# spot, but the rest of the parameters do reasonably well.
+# I think this may be related to lack of identifiability within a partition.
+# Rho, nu, gamma and lambda also are in the correct neighborhood,
+# but not exactly right
 
 # Test 10: Skew, 3 knots, time series on z, knots, and tau
 source('./mcmc.R', chdir=T)
@@ -191,11 +210,132 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    dist="t", nknots=3, lambda=2, phi.z=0.8, phi.w=0.9,
                    phi.tau=0.8)
 
-fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
-            iterplot=T, iters=7000, burn=5000, update=100, fixknots=TRUE,
-            thresh.all=0, skew=TRUE, nknots=3, knots.init=data$knots,
-            temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
-# RESULTS:
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE, iterplot=T,
+            iters=7000, burn=5000, update=100, thresh.all=0, skew=TRUE,
+            min.s=c(0, 0), max.s=c(10, 10),
+            nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
+# RESULTS: PASS
+
+# Test 11: Predictions
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+
+# storage for predictions
+fit.1 <- fit.2 <- data <- vector("list", length=5)
+set.seed(10)
+data[[1]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                        rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                        dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
+                        phi.tau=0.8)
+
+s.o <- s[1:100, ]
+x.o <- x[1:100, , ]
+y.o <- data[[1]]$y[1:100, ]
+s.p <- s[101:144, ]
+x.p <- x[101:144, , ]
+y.p <- data[[1]]$y[101:144, ]
+
+fit.1[[1]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+
+fit.2[[1]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
+
+set.seed(15)
+data[[2]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                        rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                        dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
+                        phi.tau=0.8)
+
+s.o <- s[1:100, ]
+x.o <- x[1:100, , ]
+y.o <- data[[2]]$y[1:100, ]
+s.p <- s[101:144, ]
+x.p <- x[101:144, , ]
+y.p <- data[[2]]$y[101:144, ]
+
+fit.1[[2]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+
+fit.2[[2]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
+
+set.seed(20)
+data[[3]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                        rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                        dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
+                        phi.tau=0.8)
+
+s.o <- s[1:100, ]
+x.o <- x[1:100, , ]
+y.o <- data[[3]]$y[1:100, ]
+s.p <- s[101:144, ]
+x.p <- x[101:144, , ]
+y.p <- data[[3]]$y[101:144, ]
+
+fit.1[[3]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+
+fit.2[[3]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
+
+set.seed(25)
+data[[4]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                        rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                        dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
+                        phi.tau=0.8)
+
+s.o <- s[1:100, ]
+x.o <- x[1:100, , ]
+y.o <- data[[4]]$y[1:100, ]
+s.p <- s[101:144, ]
+x.p <- x[101:144, , ]
+y.p <- data[[4]]$y[101:144, ]
+
+fit.1[[4]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+
+fit.2[[4]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
+
+set.seed(30)
+data[[5]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                        rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                        dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
+                        phi.tau=0.8)
+
+s.o <- s[1:100, ]
+x.o <- x[1:100, , ]
+y.o <- data[[5]]$y[1:100, ]
+s.p <- s[101:144, ]
+x.p <- x[101:144, , ]
+y.p <- data[[5]]$y[101:144, ]
+
+fit.1[[5]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+
+fit.2[[5]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
+              thresh.quant=TRUE, iterplot=T, iters=10000, burn=7000, update=100,
+              thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+              nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
 
 # Troubleshooting
 # Test 1 - Debugging covariance parameters
@@ -566,6 +706,10 @@ for (i in 1:nknots) {
 # z and lambda updates together
 lambda.1.keep <- lambda.2.keep <- rep(NA, nreps)
 z.keep <- array(NA, dim=c(nreps, nknots, nt))
+z <- matrix(1, nknots, nt)
+zg <- matrix(1, ns, nt)
+lambda.1 <- 1
+lambda.2 <- 0.5
 par(mfrow=c(nknots, 5))
 for (i in 1:nreps) {
   lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=data$y, prec=prec.t,
