@@ -11,14 +11,11 @@ source('../../../R/auxfunctions.R')
 setting <- 46
 method <- "t"
 nknots <- 9
-keep.knots <- F
+keep.knots <- FALSE
 threshold <- 75
 tau.init <- 0.05
-thresh.quant <- F
-skew <- T
-temporalw <- F
-temporalz <- F
-temporaltau <- F
+thresh.quant <- FALSE
+skew <- TRUE
 outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
@@ -39,16 +36,17 @@ for(val in 1:2){
 	X.p <- X[val.idx, , ]
 	S.p <- S[val.idx,]
 
-	tic.set <- proc.time()
-	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-                     temporalw, temporalz, temporaltau,
+  tic.set <- proc.time()
+  fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
+                     temporalw=FALSE, temporalz=FALSE, temporaltau=FALSE,
                      method=method, skew=skew, keep.knots=keep.knots,
                      thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-                     iters=30000, burn=25000, update=500, iterplot=F,
+                     iters=30000, burn=25000, update=500, iterplot=FALSE,
                      beta.init=beta.init, tau.init=tau.init, gamma.init=0.5,
-                     rho.init=1, rho.upper=5, nu.init=0.5, nu.upper=10)
-	toc.set <- proc.time()
-	time.set <- (toc.set - tic.set)[3]
+                     rho.init=1, rho.upper=5, nu.init=0.5, nu.upper=10,
+                     min.s=c(-2.25, -1.55), max.s=c(2.35, 1.30))
+  toc.set <- proc.time()
+  time.set <- (toc.set - tic.set)[3]
 
 	elap.time.val <- (proc.time() - start)[3]
 	avg.time.val <- elap.time.val / val
