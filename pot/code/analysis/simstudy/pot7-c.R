@@ -62,8 +62,8 @@ for (g in 1:10) {
     cat("  start: gaussian - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="gaussian", skew=TRUE, thresh.all=0,
-                       thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+                       method="gaussian", skew=FALSE, thresh.all=0,
+                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
                        temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
     toc <- proc.time()
@@ -75,7 +75,7 @@ for (g in 1:10) {
     tic <- proc.time()
     fit.2[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
                        method="t", skew=TRUE, thresh.all=0,
-                       thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
                        temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
     toc <- proc.time()

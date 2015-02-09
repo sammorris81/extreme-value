@@ -4,11 +4,12 @@
 # mu is mean
 # obs is which observations need to be imputed
 
-imputeY <- function(y, taug, mu, obs, thresh.mtx=NULL) {
+imputeY <- function(y, taug, mu, obs, prec, thresh.mtx=NULL) {
   ns <- nrow(y)
   nt <- ncol(y)
 
   y.impute <- matrix(y, ns, nt)
+  res <- y - mu
 
   for (t in 1:nt) {
     taug.t <- sqrt(taug[, t])
@@ -18,7 +19,7 @@ imputeY <- function(y, taug, mu, obs, thresh.mtx=NULL) {
 
     if (length(impute.these) > 0) {
       # c function to find all conditional means and standard deviations
-      impute.cond <- conditional.mean(mn=mu.t, prec=prec.cor, res=res.t,
+      impute.cond <- conditional.mean(mn=mu.t, prec=prec, res=res.t,
                                       taug=taug.t, include=impute.these)
       impute.sd    <- impute.cond$cond.sd
       impute.e     <- impute.cond$cond.mn

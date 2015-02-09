@@ -337,6 +337,29 @@ fit.2[[5]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p, method="t",
               thresh.all=0, skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
               nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
 
+# come up with quantile and brier scores
+probs <- seq(0.90, 0.99, by=0.01)
+quant.scores.ts  <- brier.scores.ts  <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.nts <- brier.scores.nts <- matrix(NA, nrow=5, ncol=length(probs))
+for (i in 1:5) {
+  threshs <- quantile(data[[i]]$y, probs=probs)
+  quant.scores.ts[i, ]  <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.nts[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.ts[i, ]  <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.nts[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+}
+
+# one bs and qs for each method
+quant.score <- brier.score <- matrix(NA, nrow=2, ncol=length(probs))
+quant.score[1, ] <- apply(quant.scores.ts, 2, mean)
+quant.score[2, ] <- apply(quant.scores.nts, 2, mean)
+brier.score[1, ] <- apply(brier.scores.ts, 2, mean)
+brier.score[2, ] <- apply(brier.scores.nts, 2, mean)
+
 # Troubleshooting
 # Test 1 - Debugging covariance parameters
 set.seed(20)

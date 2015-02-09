@@ -332,13 +332,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # data imputation
     if (thresholded) {  # do data imputation and store as y
       mu <- x.beta + lambda.1 * zg
-      y  <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, thresh.mtx)
+      y  <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, prec=prec,
+                    thresh.mtx)
     }
 
     # missing values
     if (missing) {
       mu <- x.beta + lambda.1 * zg
-      y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs)
+      y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, prec=prec)
     }
 
     # update beta
