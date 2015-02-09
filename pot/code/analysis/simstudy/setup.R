@@ -10,7 +10,9 @@
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
-#   7 - 1/2 Gaussian (range = 1), 1/2 t (range = 4)
+#   7 - x = setting 4, set T = q(0.80)
+#       y = x,              x > T
+#       y = T * exp(x - T), x <= T
 #
 # analysis methods:
 #  1 - Gaussian
@@ -38,10 +40,9 @@ source('./max-stab/Bayes_GEV.R')
 beta.t <- c(10, 0, 0)
 nu.t <- 0.5
 gamma.t <- 0.9
-mixprob.t <- c(0, 1, 1, 1, 1)  # 0: Gaussian, 1: t
+dist.t <- c("gaussian", "t", "t", "t", "t")
 nknots.t <- c(1, 1, 5, 1, 5)
-gau.rho.t <- c(1, 1, 1, 1, 1)
-t.rho.t <- c(1, 1, 1, 1, 1)
+rho.t <- c(1, 1, 1, 1, 1)
 lambda.t <- c(0, 0, 0, 3, 3)
 tau.alpha.t <- 3
 tau.beta.t  <- 8
@@ -76,10 +77,9 @@ for (setting in 1:nsettings) {
     for (set in 1:nsets) {
       set.seed(setting * 100 + set)
       data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
-                       gau.rho=gau.rho.t[setting], t.rho=t.rho.t[setting],
-                       mixprob=mixprob.t[setting], lambda=lambda.t[setting],
-                       tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                       nknots=nknots.t[setting])
+                       rho=rho.t[setting], dist=dist.t[setting],
+                       lambda=lambda.t[setting], tau.alpha=tau.alpha.t,
+                       tau.beta=tau.beta.t, nknots=nknots.t[setting])
 
       y[, , set, setting]        <- data$y
       tau.t.setting[, , set]     <- data$tau
@@ -91,10 +91,33 @@ for (setting in 1:nsettings) {
     z.t[[setting]]     <- z.t.setting
     knots.t[[setting]] <- knots.t.setting
   } else if (setting == 6) {
-  	for (set in 1:nsets) {
+    for (set in 1:nsets) {
       set.seed(setting * 100 + set)
-  	  y[, , set, setting] <- rgevspatial(nreps=nt, S=s, knots=knots.gev, xi=0.2)
-  	}
+      y[, , set, setting] <- rgevspatial(nreps=nt, S=s, knots=knots.gev, xi=0.2)
+    }
+  } else if (setting == 7) {
+    for (set in 1:nsets) {
+      set.seed(setting * 100 + set)
+      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                       rho=rho.t[4], dist=dist.t[4],
+                       lambda=lambda.t[4], tau.alpha=tau.alpha.t,
+                       tau.beta=tau.beta.t, nknots=nknots.t[4])
+      y.set   <- data$y
+      y.quant <- quantile(y.set, probs=0.80)
+      y.set   <- ifelse(
+                    y.set < y.quant,
+                    y.quant * exp((y.set - y.quant)/3),
+                    y.set
+                 )
+      y[, , set, setting] <- y.set
+
+      tau.t.setting[, , set]     <- data$tau
+      z.t.setting[, , set]       <- data$z
+      knots.t.setting[, , , set] <- data$knots
+    }
+    tau.t[[setting]]   <- tau.t.setting
+    z.t[[setting]]     <- z.t.setting
+    knots.t[[setting]] <- knots.t.setting
   }
 }
 

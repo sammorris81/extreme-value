@@ -10,7 +10,9 @@
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
-#   7 - 1/2 Gaussian (range = 1), 1/2 t (range = 4)
+#   7 - x = setting 4, set T = q(0.80)
+#       y = x,              x > T
+#       y = T * exp(x - T), x <= T
 #
 # analysis methods:
 #  1 - Gaussian
@@ -48,7 +50,6 @@ for (g in 1:10) {
     cat("start dataset", dataset, "\n")
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
-    thresh <- quantile(y.d, probs=0.80)
     obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
@@ -60,10 +61,11 @@ for (g in 1:10) {
 
     cat("  start: gaussian - Set", dataset, "\n")
     tic <- proc.time()
-    fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="gaussian", skew=F, thresh.all=0, thresh.quant=T,
-                       nknots=1, iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
+    fit.1[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+                       method="gaussian", skew=TRUE, thresh.all=0,
+                       thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
     toc <- proc.time()
     cat("  gaussian took:", (toc - tic)[3], "\n")
     cat("  end: gaussian \n")
@@ -71,11 +73,11 @@ for (g in 1:10) {
 
     cat("  start: skew t-1 - Set", dataset, "\n")
     tic <- proc.time()
-    fit.2[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=0, thresh.quant=T,
-                       nknots=1, iterplot=F, iters=iters, burn=burn,
-                       rho.upper=15, nu.upper=10, update=update, thin=thin,
-                       lambda.init=3)
+    fit.2[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=TRUE, thresh.all=0,
+                       thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-1 \n")
@@ -83,11 +85,11 @@ for (g in 1:10) {
 
     cat("start: t-1 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
-    fit.3[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=T, thresh.all=thresh, thresh.quant=F,
-                       nknots=1, iterplot=F, iters=iters, burn=burn,
-                       rho.upper=15, nu.upper=10, update=update, thin=thin,
-                       lambda.init=3)
+    fit.3[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=TRUE, thresh.all=0.80,
+                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
+                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
     toc <- proc.time()
     cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
     cat("  end: t-1 (T=0.80) \n")
