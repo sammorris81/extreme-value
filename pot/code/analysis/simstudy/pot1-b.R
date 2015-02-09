@@ -10,13 +10,16 @@
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
+#   7 - x = setting 4, set T = q(0.80)
+#       y = x,              x > T
+#       y = T * exp(x - T), x <= T
 #
 # analysis methods:
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - t-1 (T = 0.80)
-#  4 - skew t-5
-#  5 - t-5 (T = 0.80)
+#  4 - skew t-3
+#  5 - t-3 (T = 0.80)
 #  6 - max-stable
 #
 #########################################################################
@@ -58,10 +61,11 @@ for (g in 1:10) {
 
     cat("  start: skew t-5 - Set", dataset, "\n")
     tic <- proc.time()
-    fit.1[[d]] <- mcmc(y=y.o, s=s.o, x=x.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=F, thresh.all=0, thresh.quant=T,
-                       nknots=5, iterplot=F, iters=iters, burn=burn,
-                       update=update, thin=thin)
+    fit.1[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+                       method="t", skew=TRUE, thresh.all=0,
+                       thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
     toc <- proc.time()
     cat("  skew t-5 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-5 \n")
