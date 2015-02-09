@@ -65,7 +65,8 @@ for (g in 1:10) {
                        method="t", skew=TRUE, thresh.all=0.80,
                        thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                       rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  t-5 (T=0.80) took:", (toc - tic)[3], "\n")
     cat("  end: t-5 (T=0.80) \n")

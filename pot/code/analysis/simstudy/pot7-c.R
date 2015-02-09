@@ -65,7 +65,8 @@ for (g in 1:10) {
                        method="gaussian", skew=FALSE, thresh.all=0,
                        thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                       rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  gaussian took:", (toc - tic)[3], "\n")
     cat("  end: gaussian \n")
@@ -77,7 +78,8 @@ for (g in 1:10) {
                        method="t", skew=TRUE, thresh.all=0,
                        thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                       rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-1 \n")
@@ -89,7 +91,8 @@ for (g in 1:10) {
                        method="t", skew=TRUE, thresh.all=0.80,
                        thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                       rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
     cat("  end: t-1 (T=0.80) \n")
