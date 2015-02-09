@@ -8,11 +8,11 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 12
+setting <- 9
 method <- "t"
-nknots <- 10
+nknots <- 5
 keep.knots <- F
-threshold <- 75
+threshold <- 85
 tau.init <- 0.05
 thresh.quant <- F
 skew <- T

@@ -7,42 +7,34 @@ rm(list=ls())
 load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
+source('../max-stab/gen_data.R')
+source('../max-stab/MCMC4MaxStable.R')
 
-setting <- 2
-method <- "t"
-nknots <- 1
-keep.knots <- F
-threshold <- 0
-tau.init <- 0.05
-thresh.quant <- F
-skew <- T
+setting <- 26
 outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
-
+thresh <- 75
 fit <- vector(mode="list", length=2)
 
 for(val in 1:2){
 
-	set.seed(setting*100 + val)
+	set.seed(setting * 100 + val)
 
 	cat("CV", val, "started \n")
 	val.idx <- cv.lst[[val]]
-	y.o <- Y[-val.idx,]
-	X.o <- X[-val.idx, , ]
+	y.o <- t(Y[-val.idx,])
+	X.o <- t(X[-val.idx, ,2])
 	S.o <- S[-val.idx,]
+	knots <- S.o
 
-	y.p <- Y[val.idx,]
-	X.p <- X[val.idx, , ]
+	y.p <- t(Y[val.idx,])
+	X.p <- t(X[val.idx, , 2])
 	S.p <- S[val.idx,]
 
 	tic.set <- proc.time()
-	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
-	                   method=method, skew=skew, keep.knots=keep.knots,
-	                   thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-                       iters=30000, burn=25000, update=500, iterplot=F,
-                       beta.init=beta.init, tau.init=tau.init, gamma.init=0.5,
-                       rho.init=1, rho.upper=5, nu.init=0.5, nu.upper=10)
+	fit[[val]] <- maxstable(y=y.o, x=X.o, s=S.o, sp=S.p, xp=X.p, thresh=thresh,
+	                        knots=knots, iters=30000, burn=25000, update=500, thin=1)
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 

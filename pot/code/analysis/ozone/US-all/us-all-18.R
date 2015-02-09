@@ -8,14 +8,14 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 18
+setting <- 17
 method <- "t"
-nknots <- 1
+nknots <- 15
 keep.knots <- F
-threshold <- 75
+threshold <- 85
 tau.init <- 0.05
 thresh.quant <- F
-skew <- F
+skew <- T
 outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
@@ -51,4 +51,3 @@ for(val in 1:2){
 	cat("CV", val, "finished", round(avg.time.val, 2), "per dataset \n")
 	save(fit, file=outputfile)
 }
-

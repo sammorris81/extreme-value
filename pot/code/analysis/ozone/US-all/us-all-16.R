@@ -8,11 +8,11 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 16
+setting <- 15
 method <- "t"
 nknots <- 15
 keep.knots <- F
-threshold <- 75
+threshold <- 50
 tau.init <- 0.05
 thresh.quant <- F
 skew <- T
@@ -51,3 +51,4 @@ for(val in 1:2){
 	cat("CV", val, "finished", round(avg.time.val, 2), "per dataset \n")
 	save(fit, file=outputfile)
 }
+
