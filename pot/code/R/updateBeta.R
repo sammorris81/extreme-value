@@ -6,7 +6,7 @@
 # prec is inverse correlation matrix
 updateBeta <- function(beta.m, beta.s, x, y, zg, lambda.1, taug, prec) {
   p <- dim(x)[3]
-  t <- ncol(y)
+  nt <- ncol(y)
 
   if (length(beta.m != p)) {
     mmm <- rep(beta.m, p)

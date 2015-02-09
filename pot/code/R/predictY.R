@@ -2,6 +2,7 @@ predictY <- function(d11, d12, cov.model, rho, nu, gamma, res, beta, tau, taug,
                      z, prec, lambda.1, s.pred, x.pred, knots) {
   np <- nrow(d11)
   nt <- ncol(res)
+  ns <- nrow(res)
   nknots <- nrow(tau)
   yp <- matrix(NA, np, nt)
 
@@ -36,7 +37,7 @@ predictY <- function(d11, d12, cov.model, rho, nu, gamma, res, beta, tau, taug,
     taug.t <- sqrt(taug[, t])
     mup <- xp.beta + lambda.1 * zgp + siggp *
       s.12.22.inv %*% (taug.t * res[, t])
-    
+
     yp[, t] <- mup + siggp * t(corp.sd.mtx) %*% rnorm(np, 0, 1)
   }
 

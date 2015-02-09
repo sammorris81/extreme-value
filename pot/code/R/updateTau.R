@@ -1,4 +1,7 @@
 updateTauGaus <- function(res, prec, tau.alpha, tau.beta) {
+  ns <- nrow(res)
+  nt <- ncol(res)
+
   this.rss <- sum(rss(prec=prec, y=res))
   aaa <- tau.alpha + 0.5 * ns * nt
   bbb <- tau.beta + 0.5 * this.rss

@@ -8,14 +8,14 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 25
+setting <- 68
 method <- "t"
-nknots <- 15
-keep.knots <- F
+nknots <- 9
+keep.knots <- FALSE
 threshold <- 75
 tau.init <- 0.05
-thresh.quant <- F
-skew <- F
+thresh.quant <- FALSE
+skew <- TRUE
 outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
@@ -39,10 +39,12 @@ for(val in 1:2){
 	tic.set <- proc.time()
 	fit[[val]] <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
 	                   method=method, skew=skew, keep.knots=keep.knots,
-	                   thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-                       iters=30000, burn=25000, update=500, iterplot=F,
-                       beta.init=beta.init, tau.init=tau.init, gamma.init=0.5,
-                       rho.init=1, rho.upper=5, nu.init=0.5, nu.upper=10)
+	                   thresh.all=threshold, thresh.quant=thresh.quant,
+	                   nknots=nknots, iters=30000, burn=25000, update=500,
+	                   iterplot=FALSE, beta.init=beta.init, tau.init=tau.init,
+	                   gamma.init=0.5, rho.init=1, rho.upper=5, nu.init=0.5,
+	                   temporaltau=TRUE, temporalw=TRUE, temporalz=TRUE,
+	                   nu.upper=10, min.s=c(-2.25, -1.55), max.s=c(2.35, 1.30))
 	toc.set <- proc.time()
 	time.set <- (toc.set - tic.set)[3]
 
@@ -51,4 +53,3 @@ for(val in 1:2){
 	cat("CV", val, "finished", round(avg.time.val, 2), "per dataset \n")
 	save(fit, file=outputfile)
 }
-

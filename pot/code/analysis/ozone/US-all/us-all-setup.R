@@ -100,7 +100,7 @@ cv.lst <- list(cv.1=cv.1, cv.2=cv.2)
 beta.init <- 0
 tau.init <- 1
 
-save.image(file="cv-setup-us-all.RData")
+save(Y, X, S, beta.init, tau.init, cv.lst, file="us-all-setup.RData")
 
 # Remove non-US locations (for making maps - not done yet)
 east <- s.p[, 1] > 2350

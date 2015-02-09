@@ -10,7 +10,7 @@ source('../../../R/auxfunctions.R')
 source('../max-stab/gen_data.R')
 source('../max-stab/MCMC4MaxStable.R')
 
-setting <- 26
+setting <- 2
 outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()

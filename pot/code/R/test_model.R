@@ -4156,3 +4156,64 @@ for (i in 1:nknots) {
 }
 # seed(10) coverage is at 99%
 # seed(20) coverage is at 98%
+
+
+
+# Checks a function for use of global variables
+# Returns TRUE if ok, FALSE if globals were found.
+checkStrict <- function(f, silent=FALSE) {
+    vars <- codetools::findGlobals(f)
+    found <- !vapply(vars, exists, logical(1), envir=as.environment(2))
+    names <- names(found)[found]
+
+    if ((length(names) > 0)) {
+      sum.nfncs <- 0
+      for (i in 1:length(names)) {
+        if(!is.function(eval(parse(text=names[i])))) {sum.nfncs <- sum.nfncs + 1}
+      }
+      if (sum.nfncs > 0) {
+        warning("global variables used: ", paste(names(found)[found], collapse=', '))
+        return(invisible(FALSE))
+      }
+    }
+
+    !any(found)
+}
+
+checkStrict(updateBeta)
+checkStrict(updateRhoNu)
+checkStrict(updateGamma)
+checkStrict(updateRhoNuGamma)
+checkStrict(updateKnotsTS)
+checkStrict(updateLambda1)
+checkStrict(updateLambda2)
+checkStrict(updatePhiTS)
+checkStrict(updateTauGaus)
+checkStrict(updateTau)
+checkStrict(updateTauTS)
+checkStrict(updateZ)
+checkStrict(updateZTS)
+checkStrict(mcmc)
+checkStrict(predictY)
+checkStrict(transform$logit)
+checkStrict(transform$inv.logit)
+checkStrict(transform$probit)
+checkStrict(transform$inv.probit)
+checkStrict(transform$copula)
+checkStrict(transform$inv.copula)
+checkStrict(dhn)
+checkStrict(phn)
+checkStrict(qhn)
+checkStrict(mhupdate)
+checkStrict(rss)
+checkStrict(rTNorm)
+checkStrict(CorFx)
+checkStrict(eig.inv)
+checkStrict(chol.inv)
+checkStrict(mem)
+checkStrict(makeKnotsTS)
+checkStrict(makeTauTS)
+checkStrict(makeZTS)
+checkStrict(rpotspatTS)
+checkStrict(QuantScore)
+checkStrict(BrierScore)

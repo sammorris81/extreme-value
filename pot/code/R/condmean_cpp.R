@@ -36,5 +36,6 @@ conditional.mean <- function(mn, prec, res, taug=NULL, include=NULL) {
     include <- 1:length(mn)
   }
 
-  results <- conditional.Rcpp(mn=mn, prec=prec, res=res, taug=taug, include=include)
+  results <- conditional.Rcpp(mn=mn, prec=prec, res=res, taug=taug,
+                              include=include)
 }

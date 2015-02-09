@@ -2,6 +2,7 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
                         d, gamma, res, taug, prec, cor, logdet.prec, cur.rss,
                         rho.upper=Inf, nu.upper=Inf,
                         att.rho, acc.rho, mh.rho, att.nu, acc.nu, mh.nu) {
+  nt <- ncol(res)
   att.rho <- att.rho + 1
   att.nu  <- att.nu + 1
 
@@ -91,6 +92,7 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
 
 updateGamma <- function(gamma, gamma.m, gamma.s, d, rho, nu, taug, res, prec,
                         cor, logdet.prec, cur.rss, att, acc, mh) {
+  nt <- ncol(res)
   att <- att + 1
 
   gamma.star     <- transform$probit(gamma)
@@ -134,6 +136,7 @@ updateRhoNuGamma <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m,
                              att.rho, acc.rho, mh.rho,
                              att.nu, acc.nu, mh.nu,
                              att.gamma, acc.gamma, mh.gamma) {
+  nt <- ncol(res)
   att.rho <- att.rho + 1
   att.nu  <- att.nu + 1
   att.gamma <- att.gamma + 1
