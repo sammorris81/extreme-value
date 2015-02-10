@@ -398,11 +398,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     } else if (method == "t") {
       if (!temporaltau) {
-        tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
+        tau.update <- updateTau(tau=tau, taug=taug, y=y, mu=mu, g=g, res=res,
                                 nparts.tau=nparts.tau, prec=prec,
                                 z=z, lambda.2=lambda.2,
                                 tau.alpha=tau.alpha, tau.beta=tau.beta,
-                                skew=skew, att=att.tau, acc=acc.tau, mh=mh.tau)
+                                skew=skew, obs=thresh.obs,
+                                thresh.mtx=thresh.mtx,
+                                att=att.tau, acc=acc.tau, mh=mh.tau)
         tau          <- tau.update$tau
         taug         <- tau.update$taug
         acc.tau      <- tau.update$acc
@@ -471,6 +473,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                                 res=res, taug=taug, prec=prec, cor=cor,
                                 logdet.prec=logdet.prec, cur.rss=cur.rss,
                                 rho.upper=rho.upper, nu.upper=nu.upper,
+                                y=y, mu=mu, obs=thresh.obs,
+                                thresh.mtx=thresh.mtx,
                                 att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
                                 att.nu=att.nu, acc.nu=acc.nu, mh.nu=mh.nu)
     rho         <- rhonu.update$rho
@@ -487,7 +491,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # gamma - make sure the cor argument does not include gamma
     gamma.update <- updateGamma(gamma=gamma, gamma.m=gamma.m, gamma.s=gamma.s,
                                 d=d, rho=rho, nu=nu, taug=taug, res=res,
-                                prec=prec, cor=cor, logdet.prec=logdet.prec,
+                                prec=prec, y=y, mu=mu, obs=thresh.obs,
+                                thresh.mtx=thresh.mtx,
+                                cor=cor, logdet.prec=logdet.prec,
                                 cur.rss=cur.rss, att=att.gamma, acc=acc.gamma,
                                 mh=mh.gamma)
     gamma       <- gamma.update$gamma

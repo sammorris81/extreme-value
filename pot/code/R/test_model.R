@@ -4640,11 +4640,117 @@ tau <- matrix(0.375, nknots, nt)
 taug <- matrix(0.375, ns, nt)
 
 for (i in 1:nreps) {
-  mu <- x.beta + lambda.1 * zg
+  mu <- x.beta + lambda.1.t * zg
+  res <- y - mu
+  tau.update <- updateTauNew(tau=tau, taug=taug, g=g, y=y, mu=mu, res=res,
+                          nparts.tau=nparts.tau, prec=prec.t, z=data$z,
+                          lambda.2=lambda.2.t, tau.alpha=tau.alpha.t,
+                          tau.beta=tau.beta.t, skew=TRUE, obs=impute.obs,
+                          thresh.mtx=thresh.mtx,
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
+  tau  <- tau.update$tau
+  taug <- tau.update$taug
+  acc.tau <- tau.update$acc
+  att.tau <- tau.update$att
+
+  tau.keep[i, , ] <- tau
+
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+               thresh.mtx=thresh.mtx)
+  y.keep[i, , ] <- y
+
+  if (i %% 100 == 0) {
+    par(mfrow=c(nknots, 5))
+    if (i > 4000) {
+      start <- i - 4000
+    } else {
+      start <- 1
+    }
+    par(mfrow=c(3, 5))
+    plot(y.keep[start:i, 2, 1], type="l", main="y 2, 1",
+         xlab=paste("pct thresh =", round(pct.below[1], 3)),
+         ylab=paste("true =", round(data$y[2, 1], 2)))
+    plot(y.keep[start:i, 2, 7], type="l", main="y 2, 7",
+         xlab=paste("pct thresh =", round(pct.below[7], 3)),
+         ylab=paste("true =", round(data$y[2, 7], 2)))
+    plot(y.keep[start:i, 1, 39], type="l", main="y 1, 39",
+         xlab=paste("pct thresh =", round(pct.below[39], 3)),
+         ylab=paste("true =", round(data$y[1, 39], 2)))
+    plot(y.keep[start:i, 1, 45], type="l", main="y 1, 45",
+         xlab=paste("pct thresh =", round(pct.below[45], 3)),
+         ylab=paste("true =", round(data$y[1, 45], 2)))
+    plot(tau.keep[start:i, 1, 1], type="l", main="tau 1, 1",
+         xlab=paste("true =", round(data$tau[1, 1], 3)), ylab="")
+    hist.1.range <- range(y.keep[i, , 1], data$y[, 1])
+    hist.2.range <- range(y.keep[i, , 7], data$y[, 7])
+    hist.3.range <- range(y.keep[i, , 39], data$y[, 39])
+    hist.4.range <- range(y.keep[i, , 45], data$y[, 45])
+    hist(y.keep[i, , 1], main="imputed day 1", xlim=hist.1.range)
+    hist(y.keep[i, , 7], main="imputed day 7", xlim=hist.2.range)
+    hist(y.keep[i, , 39], main="imputed day 39", xlim=hist.3.range)
+    hist(y.keep[i, , 45], main="imputed day 45", xlim=hist.4.range)
+    plot(tau.keep[start:i, 1, 39], type="l", main="tau 1, 39",
+         xlab=paste("true =", round(data$tau[1, 39], 3)), ylab="")
+    hist(data$y[ , 1], main="actual day 1", xlim=hist.1.range)
+    hist(data$y[ , 7], main="actual day 2", xlim=hist.2.range)
+    hist(data$y[ , 39], main="actual day 8", xlim=hist.3.range)
+    hist(data$y[ , 45], main="actual day 45", xlim=hist.4.range)
+    plot(tau.keep[start:i, 1, 45], type="l", main="tau 1, 45",
+         xlab=paste("true =", round(data$tau[1, 45], 3)), ylab="")
+    print(paste("iter", i))
+  }
+}
+
+# checking data imputation with tau
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+lambda <- 2
+lambda.1.t <- sign(lambda)
+lambda.2.t <- 1 / lambda^2
+nknots <- 1
+set.seed(25)
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   dist="t", nknots=nknots, lambda=lambda,
+                   phi.z=0, phi.w=0, phi.tau=0)
+
+nreps <- 6000
+nparts.tau <- matrix(NA, nknots, nt)
+data$z <- matrix(data$z, 1, nt)
+g <- zg <- matrix(NA, ns, nt)
+
+for (t in 1:nt) {
+  g[, t]    <- 1
+  zg[, t]   <- data$z[g[, t], t]
+}
+x.beta   <- matrix(10, ns, nt)
+mu <- x.beta + lambda.1.t * zg
+
+# storage
+y.keep <- array(NA, dim=c(nreps, ns, nt))
+tau.keep <- array(NA, dim=c(nreps, nknots, nt))
+
+# mh adjustments
+att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
+
+# initialize testing variables
+thresh.mtx <- matrix(quantile(data$y, probs=0.60), ns, nt)
+y <- ifelse(
+  data$y < thresh.mtx,
+  thresh.mtx,
+  data$y
+)
+impute.obs <- y <= thresh.mtx
+pct.below <- apply(impute.obs, 2, mean)
+tau <- matrix(0.375, nknots, nt)
+taug <- matrix(0.375, ns, nt)
+
+for (i in 1:nreps) {
+  mu <- x.beta + lambda.1.t * zg
   res <- y - mu
   tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
                           nparts.tau=nparts.tau, prec=prec.t, z=data$z,
-                          lambda.2=lambda.2, tau.alpha=tau.alpha.t,
+                          lambda.2=lambda.2.t, tau.alpha=tau.alpha.t,
                           tau.beta=tau.beta.t, skew=TRUE,
                           att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
@@ -4658,22 +4764,28 @@ for (i in 1:nreps) {
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
-  if (i %% 50 == 0) {
+  if (i %% 100 == 0) {
     par(mfrow=c(nknots, 5))
     if (i > 4000) {
       start <- i - 4000
     } else {
       start <- 1
     }
-    par(mfrow=c(3, 4))
-    plot(y.keep[start:i, 30, 1], type="l", main="y 30, 1",
-         xlab=round(pct.below[1], 3), ylab=round(data$y[30, 1], 2))
-    plot(y.keep[start:i, 3, 7], type="l", main="y 3, 7",
-         xlab=round(pct.below[7], 3), ylab=round(data$y[3, 7], 2))
-    plot(y.keep[start:i, 2, 39], type="l", main="y 2, 39",
-         xlab=round(pct.below[39], 3), ylab=round(data$y[2, 39], 2))
-    plot(y.keep[start:i, 4, 45], type="l", main="y 4, 45",
-         xlab=round(pct.below[45], 3), ylab=round(data$y[4, 45], 2))
+    par(mfrow=c(3, 5))
+    plot(y.keep[start:i, 2, 1], type="l", main="y 2, 1",
+         xlab=paste("pct thresh =", round(pct.below[1], 3)),
+         ylab=paste("true =", round(data$y[2, 1], 2)))
+    plot(y.keep[start:i, 2, 7], type="l", main="y 2, 7",
+         xlab=paste("pct thresh =", round(pct.below[7], 3)),
+         ylab=paste("true =", round(data$y[2, 7], 2)))
+    plot(y.keep[start:i, 1, 39], type="l", main="y 1, 39",
+         xlab=paste("pct thresh =", round(pct.below[39], 3)),
+         ylab=paste("true =", round(data$y[1, 39], 2)))
+    plot(y.keep[start:i, 1, 45], type="l", main="y 1, 45",
+         xlab=paste("pct thresh =", round(pct.below[45], 3)),
+         ylab=paste("true =", round(data$y[1, 45], 2)))
+    plot(tau.keep[start:i, 1, 1], type="l", main="tau 1, 1",
+         xlab=paste("true =", round(data$tau[1, 1], 3)), ylab="")
     hist.1.range <- range(y.keep[i, , 1], data$y[, 1])
     hist.2.range <- range(y.keep[i, , 7], data$y[, 7])
     hist.3.range <- range(y.keep[i, , 39], data$y[, 39])
@@ -4682,13 +4794,18 @@ for (i in 1:nreps) {
     hist(y.keep[i, , 7], main="imputed day 7", xlim=hist.2.range)
     hist(y.keep[i, , 39], main="imputed day 39", xlim=hist.3.range)
     hist(y.keep[i, , 45], main="imputed day 45", xlim=hist.4.range)
+    plot(tau.keep[start:i, 1, 39], type="l", main="tau 1, 39",
+         xlab=paste("true =", round(data$tau[1, 39], 3)), ylab="")
     hist(data$y[ , 1], main="actual day 1", xlim=hist.1.range)
     hist(data$y[ , 7], main="actual day 2", xlim=hist.2.range)
     hist(data$y[ , 39], main="actual day 8", xlim=hist.3.range)
     hist(data$y[ , 45], main="actual day 45", xlim=hist.4.range)
+    plot(tau.keep[start:i, 1, 45], type="l", main="tau 1, 45",
+         xlab=paste("true =", round(data$tau[1, 45], 3)), ylab="")
     print(paste("iter", i))
   }
 }
+
 
 # checking data imputation with tau (3 knots)
 source('./mcmc.R', chdir=T)

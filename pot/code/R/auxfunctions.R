@@ -110,6 +110,43 @@ mhupdate <- function(acc, att, mh, nattempts=50, lower=0.8, higher=1.2) {
   return(results)
 }
 
+loglikeY <- function(y, taug, mu, obs, prec, thresh.mtx) {
+
+  if (is.null(dim(y))) {
+    ns <- length(y)
+    nt <- 1
+  } else {
+    ns <- nrow(y)
+    nt <- ncol(y)
+  }
+
+  y.ll <- ifelse(
+    y <= thresh.mtx,
+    thresh.mtx,
+    y
+  )
+  y.ll <- matrix(y.ll, ns, nt)
+  mu   <- matrix(mu, ns, nt)
+  obs  <- matrix(obs, ns, nt)
+  ll <- matrix(NA, ns, nt)
+
+  for (t in 1:nt) {
+    taug.t <- sqrt(taug[, t])
+    mu.t   <- mu[, t]
+    res.t  <- y.ll[, t] - mu.t
+
+    cond <- conditional.mean(mn=mu.t, prec=prec, res=res.t,
+                                    taug=taug.t)
+    cond.sd <- cond$cond.sd
+    cond.e  <- cond$cond.mn
+
+    ll[, t] <- obs[, t] * pnorm(y.ll[, t], cond.e, cond.sd, log=TRUE) +
+               !obs[, t] * dnorm(y.ll[, t], cond.e, cond.sd, log=TRUE)
+  }
+
+  loglike.y <- sum(ll)
+}
+
 # Function to return y' %*% prec %*% y
 rss <- function(prec, y) {
   if (is.null(dim(y))) {
@@ -462,41 +499,3 @@ BrierScore <- function(preds, thresholds, validate) {
 
   return(scores)
 }
-
-
-# QuantScore <- function(preds, probs, validate){
-  # nt <- ncol(validate)
-  # np <- nrow(validate)
-  # nprobs <- length(probs)
-
-  # # apply gives nprobs x nsites. looking to find each site's quantile over all
-  # # of the days.
-  # pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
-
-  # scores.sites <- array(NA, dim=c(nprobs, np, nt))
-
-  # for (q in 1:nprobs) {
-    # diff <- pred.quants[q, ] - validate
-    # i <- ifelse(diff >= 0, 1, 0)
-    # scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
-  # }
-
-  # scores <- apply(scores.sites, 1, mean, na.rm=T)
-
-  # return(scores)
-# }
-
-
-# BrierScore <- function(preds, probs, validate){
-  # nthreshs <- length(probs)
-  # thresholds <- quantile(validate, probs=probs, na.rm=T)
-
-  # scores <- rep(NA, nthreshs)
-  # for (b in 1:nthreshs) {
-    # pat <- apply((preds > thresholds[b]), c(2, 3), mean)
-    # ind <- validate < thresholds[b]
-    # scores[b] <- mean((ind - pat)^2, na.rm=T)
-  # }
-
-  # return(scores)
-# }

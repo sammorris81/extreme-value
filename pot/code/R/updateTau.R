@@ -10,7 +10,7 @@ updateTauGaus <- function(res, prec, tau.alpha, tau.beta) {
   return(tau)
 }
 
-updateTau <- function(tau, taug, g, res, nparts.tau, prec, z, lambda.2,
+updateTauOld <- function(tau, taug, g, res, nparts.tau, prec, z, lambda.2,
                       tau.alpha, tau.beta, skew,
                       att, acc, mh) {
   ns <- nrow(res)
@@ -30,6 +30,9 @@ updateTau <- function(tau, taug, g, res, nparts.tau, prec, z, lambda.2,
       }
 
       tau[1, t] <- rgamma(1, aaa, bbb)
+      if (tau[1, t] < 1e-6) {
+        tau[1, t] <- 1e-6
+      }
       taug[, t] <- tau[1, t]
     }
   } else {  # nknots > 1
@@ -124,6 +127,106 @@ updateTau <- function(tau, taug, g, res, nparts.tau, prec, z, lambda.2,
   results <- list(tau=tau, taug=taug, acc=acc, att=att)
 
 }
+
+updateTau <- function(tau, taug, g, y, mu, res, nparts.tau, prec, z,
+                         lambda.2, tau.alpha, tau.beta, skew, obs, thresh.mtx,
+                         att, acc, mh) {
+  ns <- nrow(res)
+  nt <- ncol(res)
+  nknots <- nrow(tau)
+
+  for (t in 1:nt) {
+    res.t <- res[, t]
+    cur.lly <- loglikeY(y=y[, t, drop=F], taug=taug[, t, drop=F],
+                        mu=mu[, t, drop=F], obs=obs[, t, drop=F], prec=prec,
+                        thresh.mtx=thresh.mtx[, t])
+
+    for (k in 1:nknots) {
+      these  <- which(g[, t] == k)
+      nparts <- length(these)
+      nparts.tau[k, t] <- nparts
+
+      if (nparts == 0) {  # tau update is from prior
+        aaa <- tau.alpha
+        bbb <- tau.beta
+        if (skew) {
+          aaa <- aaa + 0.5
+          bbb <- bbb + 0.5 * z[k, t]^2 * lambda.2
+        }
+
+        tau[k, t] <- rgamma(1, aaa, bbb)
+        if (tau[k, t] < 1e-6) {
+          tau[k, t] <- 1e-6
+        }
+      } else if (nparts == ns) {
+        aaa <- tau.alpha + 0.5 * nparts
+        bbb <- tau.beta + 0.5 * quad.form(prec, res.t)
+
+        if (skew) {
+          aaa <- aaa + 0.5
+          bbb <- bbb + 0.5 * z[k, t]^2 * lambda.2
+        }
+
+        tau[k, t] <- rgamma(1, aaa, bbb)
+        taug[, t] <- tau[k, t]
+
+      } else {  # nparts > 0
+        taug.t    <- sqrt(taug[, t])
+        att[k, t] <- att[k, t] + 1
+
+        aaa <- 0.5 * nparts
+        bbb <- 0.5 * quad.form(prec[these, these], res.t[these])
+
+        if (skew) {
+          aaa <- aaa + 0.5
+          bbb <- bbb + 0.5 * z[k, t]^2 * lambda.2
+        }
+
+        # the posterior is conjugate when nparts = ns
+        # as nparts -> 1, want a wider candidate
+        # wider candidate means aaa and bbb decrease
+        aaa <- tau.alpha + aaa * nparts / ns
+        bbb <- tau.beta + bbb * nparts / ns
+        can.tau    <- tau[, t]
+        can.tau[k] <- rgamma(1, aaa, bbb)
+        if (can.tau[k] < 1e-6) {
+          can.tau[k] <- 1e-6
+        }
+        can.taug   <- can.tau[g[, t]]
+
+        can.lly <- loglikeY(y=y[, t], taug=can.taug, mu=mu[, t], obs=obs[, t],
+                            prec=prec, thresh.mtx=thresh.mtx[, t])
+
+        if (skew) {
+          cur.llz <- 0.5 * log(tau[k, t]) -
+                     0.5 * tau[k, t] * z[k, t]^2 * lambda.2
+          can.llz <- 0.5 * log(can.tau[k]) -
+                     0.5 * can.tau[k] * z[k, t]^2 * lambda.2
+        } else {
+          cur.llz <- can.llz <- 0
+        }
+
+        R <- can.lly - cur.lly + can.llz - cur.llz +
+             dgamma(can.tau[k], tau.alpha, tau.beta, log=T) -
+             dgamma(tau[k, t], tau.alpha, tau.beta, log=T) +
+             dgamma(tau[k, t], aaa, bbb, log=T) -
+             dgamma(can.tau[k], aaa, bbb, log=T)
+
+
+        if (!is.na(R)) { if (log(runif(1)) < R) {
+          acc[k, t]      <- acc[k, t] + 1
+          tau[k, t]      <- can.tau[k]
+          taug[these, t] <- can.tau[k]
+          cur.lly        <- can.lly
+        }}
+      }  # fi nparts
+    }  # end k
+  }  # end t
+
+  results <- list(tau=tau, taug=taug, acc=acc, att=att)
+
+}
+
 
 updateTauTS <- function(phi, tau, taug, g, res, nparts.tau, prec, z, lambda.2,
                         tau.alpha, tau.beta, skew, att, acc, mh,

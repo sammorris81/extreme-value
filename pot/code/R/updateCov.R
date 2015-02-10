@@ -1,10 +1,12 @@
 updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
                         d, gamma, res, taug, prec, cor, logdet.prec, cur.rss,
-                        rho.upper=Inf, nu.upper=Inf,
+                        rho.upper=Inf, nu.upper=Inf, y, mu, obs, thresh.mtx,
                         att.rho, acc.rho, mh.rho, att.nu, acc.nu, mh.nu) {
   nt <- ncol(res)
   att.rho <- att.rho + 1
   att.nu  <- att.nu + 1
+  cur.lly <- loglikeY(y=y, taug=taug, mu=mu, obs=obs, prec=prec,
+                      thresh.mtx=thresh.mtx)
 
   logrho <- log(rho)
   if (rho.upper == Inf) {
@@ -50,10 +52,12 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
 
   can.rss <- sum(rss(prec=can.prec, y=sqrt(taug) * res))
 
-  R <- -0.5 * (can.rss - cur.rss) +
-        nt * (can.logdet.prec - logdet.prec) +
-        dnorm(can.logrho, logrho.m, logrho.s, log=T) -
-        dnorm(logrho, logrho.m, logrho.s, log=T)
+  can.lly <- loglikeY(y=y, taug=taug, mu=mu, obs=obs, prec=can.prec,
+                      thresh.mtx=thresh.mtx)
+
+  R <- can.lly - cur.lly +
+       dnorm(can.logrho, logrho.m, logrho.s, log=T) -
+       dnorm(logrho, logrho.m, logrho.s, log=T)
 
   if (upper.logrho < 1) {  # candidate is not symmetric
     R <- R + dnorm(logrho, can.logrho, mh.rho, log=T) -
@@ -91,9 +95,12 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
 
 
 updateGamma <- function(gamma, gamma.m, gamma.s, d, rho, nu, taug, res, prec,
+                        y, mu, obs, thresh.mtx,
                         cor, logdet.prec, cur.rss, att, acc, mh) {
   nt <- ncol(res)
   att <- att + 1
+  cur.lly <- loglikeY(y=y, taug=taug, mu=mu, obs=obs, prec=prec,
+                      thresh.mtx=thresh.mtx)
 
   gamma.star     <- transform$probit(gamma)
   can.gamma.star <- rnorm(1, gamma.star, mh)
@@ -113,8 +120,11 @@ updateGamma <- function(gamma, gamma.m, gamma.s, d, rho, nu, taug, res, prec,
 
   can.rss <- sum(rss(prec=can.prec, y=sqrt(taug) * res))
 
-  R <- -0.5 * (can.rss - cur.rss) + nt * (can.logdet.prec - logdet.prec) +
-        dnorm(can.gamma.star, log=T) - dnorm(gamma.star, log=T)
+  can.lly <- loglikeY(y=y, taug=taug, mu=mu, obs=obs, prec=can.prec,
+                      thresh.mtx=thresh.mtx)
+
+  R <- can.lly - cur.lly +
+       dnorm(can.gamma.star, log=T) - dnorm(gamma.star, log=T)
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
     acc         <- acc + 1
