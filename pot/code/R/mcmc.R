@@ -161,7 +161,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize parameters
   if (is.null(beta.init)) {
     beta    <- rep(0, p)
-    beta[1] <- mean(y)
+    # beta[1] <- mean(y)
   } else {
     beta <- beta.init
   }
