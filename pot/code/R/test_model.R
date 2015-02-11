@@ -40,9 +40,11 @@ for (t in 1:nt) {
 
 d <- rdist(s)
 diag(d) <- 0
-cor.t <- gamma.t * simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho.t),
-                           error.var=0, smoothness=nu.t, finescale.var=0)
-CC <- chol.inv(cor.t, inv=TRUE, logdet=TRUE)
+cor.t <- simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho.t),
+                       error.var=0, smoothness=nu.t, finescale.var=0)
+C <- gamma.t * cor.t
+diag(C) <- 1
+CC <- chol.inv(C, inv=TRUE, logdet=TRUE)
 prec.t <- CC$prec
 logdet.prec.t <- CC$logdet.prec
 
@@ -359,6 +361,24 @@ quant.score[1, ] <- apply(quant.scores.ts, 2, mean)
 quant.score[2, ] <- apply(quant.scores.nts, 2, mean)
 brier.score[1, ] <- apply(brier.scores.ts, 2, mean)
 brier.score[2, ] <- apply(brier.scores.nts, 2, mean)
+
+# Test 12: Skew, 3 knots, time series on z, knots, and tau with thresholding
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+set.seed(10)
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   dist="t", nknots=3, lambda=2, phi.z=0.8, phi.w=0.9,
+                   phi.tau=0.8)
+
+Rprof(filename="rprof.out", memory.profiling=TRUE, line.profiling=TRUE)
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE, iterplot=TRUE,
+            iters=1000, burn=900, update=100, thresh.all=0.80, skew=TRUE,
+            min.s=c(0, 0), max.s=c(10, 10),
+            nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
+# RESULTS:
+Rprof(NULL)
+summaryRprof(filename="rprof.out", memory="both", lines="show")
 
 # Troubleshooting
 # Test 1 - Debugging covariance parameters
@@ -4193,11 +4213,11 @@ y[impute.obs] <- thresh.mtx[impute.obs]
 pct.below <- apply(impute.obs, 2, mean)
 
 for (i in 1:nreps) {
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
-  if (i %% 500 == 0) {
+  if (i %% 100 == 0) {
     par(mfrow=c(nknots, 5))
     if (i > 4000) {
       start <- i - 4000
@@ -4277,7 +4297,7 @@ for (i in 1:nreps) {
   }
   mu <- x.beta + lambda.1.t * zg
 
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
@@ -4363,7 +4383,7 @@ for (i in 1:nreps) {
 
   mu <- x.beta + lambda.1.t * zg
 
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
@@ -4453,7 +4473,7 @@ for (i in 1:nreps) {
 
   mu <- x.beta + lambda.1 * zg
 
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
@@ -4557,7 +4577,7 @@ for (i in 1:nreps) {
 
   mu <- x.beta + lambda.1 * zg
 
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
@@ -4628,7 +4648,7 @@ tau.keep <- array(NA, dim=c(nreps, nknots, nt))
 att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
 
 # initialize testing variables
-thresh.mtx <- matrix(quantile(data$y, probs=0.30), ns, nt)
+thresh.mtx <- matrix(quantile(data$y, probs=0.70), ns, nt)
 y <- ifelse(
   data$y < thresh.mtx,
   thresh.mtx,
@@ -4640,11 +4660,11 @@ tau <- matrix(0.375, nknots, nt)
 taug <- matrix(0.375, ns, nt)
 
 for (i in 1:nreps) {
-  mu <- x.beta + lambda.1 * zg
+  mu <- x.beta + lambda.1.t * zg
   res <- y - mu
   tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
                           nparts.tau=nparts.tau, prec=prec.t, z=data$z,
-                          lambda.2=lambda.2, tau.alpha=tau.alpha.t,
+                          lambda.2=lambda.2.t, tau.alpha=tau.alpha.t,
                           tau.beta=tau.beta.t, skew=TRUE,
                           att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
@@ -4654,7 +4674,7 @@ for (i in 1:nreps) {
 
   tau.keep[i, , ] <- tau
 
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
@@ -4733,11 +4753,11 @@ tau <- matrix(0.375, nknots, nt)
 taug <- matrix(0.375, ns, nt)
 
 for (i in 1:nreps) {
-  mu <- x.beta + lambda.1 * zg
+  mu <- x.beta + lambda.1.t * zg
   res <- y - mu
   tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
                           nparts.tau=nparts.tau, prec=prec.t, z=data$z,
-                          lambda.2=lambda.2, tau.alpha=tau.alpha.t,
+                          lambda.2=lambda.2.t, tau.alpha=tau.alpha.t,
                           tau.beta=tau.beta.t, skew=TRUE,
                           att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
@@ -4745,7 +4765,7 @@ for (i in 1:nreps) {
   acc.tau <- tau.update$acc
   att.tau <- tau.update$att
 
-  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, prec=prec.t,
+  y <- imputeY(y=y, taug=taug, mu=mu, obs=impute.obs, cor=cor.t, gamma=gamma.t,
                thresh.mtx=thresh.mtx)
   y.keep[i, , ] <- y
 
@@ -4926,7 +4946,6 @@ checkStrict <- function(f, silent=FALSE) {
 }
 
 checkStrict(imputeY)
-checkStrict(imputeYTest)
 checkStrict(updateBeta)
 checkStrict(updateRhoNu)
 checkStrict(updateGamma)
