@@ -32,7 +32,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # just to debug temporal parts. eventually change to temporal=F
                  temporalw=F, temporaltau=F, temporalz=F,
                  # initial values
-                 beta.init=NULL, tau.init=2,
+                 beta.init=NULL, tau.init=1,
                  tau.alpha.init=0.1, tau.beta.init=0.1,
                  rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
@@ -75,7 +75,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     d12 <- rdist(s.pred, s)
     d11 <- rdist(s.pred, s.pred)
     diag(d11) <- 0
-    y.pred <- array(0, c(iters, np, nt))
+    y.pred <- array(0, c((iters-burn), np, nt))
   }
 
   d       <- rdist(s)  # distance between sites
@@ -122,6 +122,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else {
     thresholded <- F
   }
+  y[thresh.obs] <- thresh.mtx[thresh.obs]
 
   missing.obs <- is.na(y)
   if (sum(missing.obs) > 0) {
@@ -332,14 +333,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # data imputation
     if (thresholded) {  # do data imputation and store as y
       mu <- x.beta + lambda.1 * zg
-      y  <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, prec=prec,
-                    thresh.mtx)
+      y <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, cor=cor,
+                   gamma=gamma, thresh.mtx=thresh.mtx)
     }
 
     # missing values
     if (missing) {
       mu <- x.beta + lambda.1 * zg
-      y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, prec=prec)
+      y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, cor=cor,
+                   gamma=gamma)
     }
 
     # update beta
