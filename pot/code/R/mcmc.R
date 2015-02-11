@@ -461,65 +461,68 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }  # fi method == t
 
-    # update rho and nu and gamma
-    # update rss with new residuals and taug
-    mu <- x.beta + lambda.1 * zg
-    res <- y - mu
-    cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
-    # rho and nu
-    rhonu.update <- updateRhoNu(rho=rho, logrho.m=logrho.m, logrho.s=logrho.s,
-                                fixnu=fixnu, nu=nu, lognu.m=lognu.m,
-                                lognu.s=lognu.s, d=d, gamma=gamma,
-                                res=res, taug=taug, prec=prec, cor=cor,
-                                logdet.prec=logdet.prec, cur.rss=cur.rss,
-                                rho.upper=rho.upper, nu.upper=nu.upper,
-                                att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
-                                att.nu=att.nu, acc.nu=acc.nu, mh.nu=mh.nu)
-    rho         <- rhonu.update$rho
-    nu          <- rhonu.update$nu
-    prec        <- rhonu.update$prec
-    cor         <- rhonu.update$cor
-    logdet.prec <- rhonu.update$logdet.prec
-    cur.rss     <- rhonu.update$cur.rss
-    att.rho     <- rhonu.update$att.rho
-    acc.rho     <- rhonu.update$acc.rho
-    att.nu      <- rhonu.update$att.nu
-    acc.nu      <- rhonu.update$acc.nu
+    # let the model burnin a little before adding in covariance terms
+    if (iter > (burn / 10)) {
+      # update rho and nu and gamma
+      # update rss with new residuals and taug
+      mu <- x.beta + lambda.1 * zg
+      res <- y - mu
+      cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
+      # rho and nu
+      rhonu.update <- updateRhoNu(rho=rho, logrho.m=logrho.m, logrho.s=logrho.s,
+                                  fixnu=fixnu, nu=nu, lognu.m=lognu.m,
+                                  lognu.s=lognu.s, d=d, gamma=gamma,
+                                  res=res, taug=taug, prec=prec, cor=cor,
+                                  logdet.prec=logdet.prec, cur.rss=cur.rss,
+                                  rho.upper=rho.upper, nu.upper=nu.upper,
+                                  att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
+                                  att.nu=att.nu, acc.nu=acc.nu, mh.nu=mh.nu)
+      rho         <- rhonu.update$rho
+      nu          <- rhonu.update$nu
+      prec        <- rhonu.update$prec
+      cor         <- rhonu.update$cor
+      logdet.prec <- rhonu.update$logdet.prec
+      cur.rss     <- rhonu.update$cur.rss
+      att.rho     <- rhonu.update$att.rho
+      acc.rho     <- rhonu.update$acc.rho
+      att.nu      <- rhonu.update$att.nu
+      acc.nu      <- rhonu.update$acc.nu
 
-    # gamma - make sure the cor argument does not include gamma
-    gamma.update <- updateGamma(gamma=gamma, gamma.m=gamma.m, gamma.s=gamma.s,
-                                d=d, rho=rho, nu=nu, taug=taug, res=res,
-                                prec=prec, cor=cor, logdet.prec=logdet.prec,
-                                cur.rss=cur.rss, att=att.gamma, acc=acc.gamma,
-                                mh=mh.gamma)
-    gamma       <- gamma.update$gamma
-    prec        <- gamma.update$prec
-    logdet.prec <- gamma.update$logdet.prec
-    cur.rss     <- gamma.update$cur.rss
-    acc.gamma   <- gamma.update$acc
-    att.gamma   <- gamma.update$att
+      # gamma - make sure the cor argument does not include gamma
+      gamma.update <- updateGamma(gamma=gamma, gamma.m=gamma.m, gamma.s=gamma.s,
+                                  d=d, rho=rho, nu=nu, taug=taug, res=res,
+                                  prec=prec, cor=cor, logdet.prec=logdet.prec,
+                                  cur.rss=cur.rss, att=att.gamma, acc=acc.gamma,
+                                  mh=mh.gamma)
+      gamma       <- gamma.update$gamma
+      prec        <- gamma.update$prec
+      logdet.prec <- gamma.update$logdet.prec
+      cur.rss     <- gamma.update$cur.rss
+      acc.gamma   <- gamma.update$acc
+      att.gamma   <- gamma.update$att
 
-    if (iter < (burn / 2)) {
-      mh.update <- mhupdate(acc=acc.rho, att=att.rho, mh=mh.rho)
-      acc.rho   <- mh.update$acc
-      att.rho   <- mh.update$att
-      mh.rho    <- mh.update$mh
+      if (iter < (burn / 2)) {
+        mh.update <- mhupdate(acc=acc.rho, att=att.rho, mh=mh.rho)
+        acc.rho   <- mh.update$acc
+        att.rho   <- mh.update$att
+        mh.rho    <- mh.update$mh
 
-      mh.update <- mhupdate(acc=acc.nu, att=att.nu, mh=mh.nu)
-      acc.nu    <- mh.update$acc
-      att.nu    <- mh.update$att
-      mh.nu     <- mh.update$mh
+        mh.update <- mhupdate(acc=acc.nu, att=att.nu, mh=mh.nu)
+        acc.nu    <- mh.update$acc
+        att.nu    <- mh.update$att
+        mh.nu     <- mh.update$mh
 
-      mh.update <- mhupdate(acc=acc.gamma, att=att.gamma, mh=mh.gamma)
-      acc.gamma <- mh.update$acc
-      att.gamma <- mh.update$att
-      mh.gamma  <- mh.update$mh
-    }
+        mh.update <- mhupdate(acc=acc.gamma, att=att.gamma, mh=mh.gamma)
+        acc.gamma <- mh.update$acc
+        att.gamma <- mh.update$att
+        mh.gamma  <- mh.update$mh
+      }
 
-    if (fixhyper) {
-      nu    <- 0.5
-      rho   <- 1
-      gamma <- 0.9
+      if (fixhyper) {
+        nu    <- 0.5
+        rho   <- 1
+        gamma <- 0.9
+      }
     }
 
     # update skew parameters: lambda and z
@@ -761,6 +764,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
              main="phi.tau",
              xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
       }
+      # hist(y.init, main="true y")
+      # hist(y, main="imputed y")
 
     }
 
