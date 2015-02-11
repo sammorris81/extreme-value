@@ -142,6 +142,9 @@ updateTauTS <- function(phi, tau, taug, g, res, nparts.tau, prec, z, lambda.2,
 
       # transform back to R+
       can.tau <- gamma.invcop(can.tau.star, tau.alpha, tau.beta)
+      if (can.tau < 1e-6) {  # numerical stability
+        can.tau <- 1e-6
+      }
 
       can.lly <- 0.5 * ns * log(can.tau) -
                  0.5 * can.tau * quad.form(prec, res[, t])
@@ -203,6 +206,9 @@ updateTauTS <- function(phi, tau, taug, g, res, nparts.tau, prec, z, lambda.2,
 
         # transform back to R+
         can.tau  <- qgamma(pnorm(can.tau.star), tau.alpha, tau.beta)
+        if (can.tau[k] < 1e-6) {  # numerical stability
+          can.tau[k] <- 1e-6
+        }
         can.taug <- can.tau[g[, t]]
 
         can.lly <- 0.5 * sum(log(can.taug)) -

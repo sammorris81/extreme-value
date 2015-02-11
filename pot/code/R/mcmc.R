@@ -39,7 +39,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  beta.m=0, beta.s=10,
                  tau.alpha.m=0, tau.alpha.s=1,
                  tau.beta.a=1, tau.beta.b=1,
-                 logrho.m=0, logrho.s=10, rho.upper=NULL,
+                 logrho.m=0, logrho.s=1, rho.upper=NULL,
                  lognu.m=-1.2, lognu.s=1, nu.upper=NULL,
                  gamma.m=0, gamma.s=1,
                  # covariance model
@@ -461,68 +461,66 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       }
     }  # fi method == t
 
-    # let the model burnin a little before adding in covariance terms
-    if (iter > (burn / 10)) {
-      # update rho and nu and gamma
-      # update rss with new residuals and taug
-      mu <- x.beta + lambda.1 * zg
-      res <- y - mu
-      cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
-      # rho and nu
-      rhonu.update <- updateRhoNu(rho=rho, logrho.m=logrho.m, logrho.s=logrho.s,
-                                  fixnu=fixnu, nu=nu, lognu.m=lognu.m,
-                                  lognu.s=lognu.s, d=d, gamma=gamma,
-                                  res=res, taug=taug, prec=prec, cor=cor,
-                                  logdet.prec=logdet.prec, cur.rss=cur.rss,
-                                  rho.upper=rho.upper, nu.upper=nu.upper,
-                                  att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
-                                  att.nu=att.nu, acc.nu=acc.nu, mh.nu=mh.nu)
-      rho         <- rhonu.update$rho
-      nu          <- rhonu.update$nu
-      prec        <- rhonu.update$prec
-      cor         <- rhonu.update$cor
-      logdet.prec <- rhonu.update$logdet.prec
-      cur.rss     <- rhonu.update$cur.rss
-      att.rho     <- rhonu.update$att.rho
-      acc.rho     <- rhonu.update$acc.rho
-      att.nu      <- rhonu.update$att.nu
-      acc.nu      <- rhonu.update$acc.nu
+    # update rho and nu and gamma
+    # update rss with new residuals and taug
+    mu <- x.beta + lambda.1 * zg
+    res <- y - mu
+    cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
 
-      # gamma - make sure the cor argument does not include gamma
-      gamma.update <- updateGamma(gamma=gamma, gamma.m=gamma.m, gamma.s=gamma.s,
-                                  d=d, rho=rho, nu=nu, taug=taug, res=res,
-                                  prec=prec, cor=cor, logdet.prec=logdet.prec,
-                                  cur.rss=cur.rss, att=att.gamma, acc=acc.gamma,
-                                  mh=mh.gamma)
-      gamma       <- gamma.update$gamma
-      prec        <- gamma.update$prec
-      logdet.prec <- gamma.update$logdet.prec
-      cur.rss     <- gamma.update$cur.rss
-      acc.gamma   <- gamma.update$acc
-      att.gamma   <- gamma.update$att
+    # rho and nu
+    rhonu.update <- updateRhoNu(rho=rho, logrho.m=logrho.m, logrho.s=logrho.s,
+                                fixnu=fixnu, nu=nu, lognu.m=lognu.m,
+                                lognu.s=lognu.s, d=d, gamma=gamma,
+                                res=res, taug=taug, prec=prec, cor=cor,
+                                logdet.prec=logdet.prec, cur.rss=cur.rss,
+                                rho.upper=rho.upper, nu.upper=nu.upper,
+                                att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
+                                att.nu=att.nu, acc.nu=acc.nu, mh.nu=mh.nu)
+    rho         <- rhonu.update$rho
+    nu          <- rhonu.update$nu
+    prec        <- rhonu.update$prec
+    cor         <- rhonu.update$cor
+    logdet.prec <- rhonu.update$logdet.prec
+    cur.rss     <- rhonu.update$cur.rss
+    att.rho     <- rhonu.update$att.rho
+    acc.rho     <- rhonu.update$acc.rho
+    att.nu      <- rhonu.update$att.nu
+    acc.nu      <- rhonu.update$acc.nu
 
-      if (iter < (burn / 2)) {
-        mh.update <- mhupdate(acc=acc.rho, att=att.rho, mh=mh.rho)
-        acc.rho   <- mh.update$acc
-        att.rho   <- mh.update$att
-        mh.rho    <- mh.update$mh
+    # gamma - make sure the cor argument does not include gamma
+    gamma.update <- updateGamma(gamma=gamma, gamma.m=gamma.m, gamma.s=gamma.s,
+                                d=d, rho=rho, nu=nu, taug=taug, res=res,
+                                prec=prec, cor=cor, logdet.prec=logdet.prec,
+                                cur.rss=cur.rss, att=att.gamma, acc=acc.gamma,
+                                mh=mh.gamma)
+    gamma       <- gamma.update$gamma
+    prec        <- gamma.update$prec
+    logdet.prec <- gamma.update$logdet.prec
+    cur.rss     <- gamma.update$cur.rss
+    acc.gamma   <- gamma.update$acc
+    att.gamma   <- gamma.update$att
 
-        mh.update <- mhupdate(acc=acc.nu, att=att.nu, mh=mh.nu)
-        acc.nu    <- mh.update$acc
-        att.nu    <- mh.update$att
-        mh.nu     <- mh.update$mh
+    if (iter < (burn / 2)) {
+      mh.update <- mhupdate(acc=acc.rho, att=att.rho, mh=mh.rho)
+      acc.rho   <- mh.update$acc
+      att.rho   <- mh.update$att
+      mh.rho    <- mh.update$mh
 
-        mh.update <- mhupdate(acc=acc.gamma, att=att.gamma, mh=mh.gamma)
-        acc.gamma <- mh.update$acc
-        att.gamma <- mh.update$att
-        mh.gamma  <- mh.update$mh
-      }
+      mh.update <- mhupdate(acc=acc.nu, att=att.nu, mh=mh.nu)
+      acc.nu    <- mh.update$acc
+      att.nu    <- mh.update$att
+      mh.nu     <- mh.update$mh
 
-      if (fixhyper) {
-        nu    <- 0.5
-        rho   <- 1
-        gamma <- 0.9
-      }
+      mh.update <- mhupdate(acc=acc.gamma, att=att.gamma, mh=mh.gamma)
+      acc.gamma <- mh.update$acc
+      att.gamma <- mh.update$att
+      mh.gamma  <- mh.update$mh
+    }
+
+    if (fixhyper) {
+      nu    <- 0.5
+      rho   <- 1
+      gamma <- 0.9
     }
 
     # update skew parameters: lambda and z
@@ -713,12 +711,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       ylab.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
       ylab.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
 
-      plot(keepers.tau[begin:iter, 1, 1], type="l", main="tau 1,1",
-           xlab=paste(nparts.1, ", ", mh.disp.1), ylab=ylab.tau.1)
-      plot(keepers.tau[begin:iter, 1, 10], type="l", main="tau 1, 10",
-           xlab=paste(nparts.2, ", ", mh.disp.2), ylab=ylab.tau.2)
-      plot(keepers.tau[begin:iter, 1, 21], type="l", main="tau 1, 21",
-           xlab=paste(nparts.3, ", ", mh.disp.3), ylab=ylab.tau.3)
+      plot(tau[1, ], type="l", main="tau 1 (all days)")
+      if (nknots >= 3) {
+        plot(tau[2, ], type="l", main="tau 2 (all days)")
+        plot(tau[3, ], type="l", main="tau 3 (all days)")
+      }
+      # plot(keepers.tau[begin:iter, 1, 1], type="l", main="tau 1,1",
+      #      xlab=paste(nparts.1, ", ", mh.disp.1), ylab=ylab.tau.1)
+      # plot(keepers.tau[begin:iter, 1, 10], type="l", main="tau 1, 10",
+      #      xlab=paste(nparts.2, ", ", mh.disp.2), ylab=ylab.tau.2)
+      # plot(keepers.tau[begin:iter, 1, 21], type="l", main="tau 1, 21",
+      #      xlab=paste(nparts.3, ", ", mh.disp.3), ylab=ylab.tau.3)
 
       plot(keepers.tau.alpha[begin:iter], type="l", main="tau.alpha",
            xlab="", ylab="")
@@ -738,34 +741,39 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           ylab.z.2 <- ""
           ylab.z.3 <- ""
         }
-        plot(keepers.z[begin:iter, 1, 1], type="l", main="z 1, 1",
-             xlab="", ylab=ylab.z.1)
-        plot(keepers.z[begin:iter, 1, 10], type="l", main="z 1, 10",
-             xlab="", ylab=ylab.z.2)
-        plot(keepers.z[begin:iter, 1, 21], type="l", main="z 1, 21",
-             xlab="", ylab=ylab.z.3)
+        plot(z[1, ], type="l", main="z 1 (all days)")
+        if (nknots >= 3) {
+          plot(z[2, ], type="l", main="z 2 (all days)")
+          plot(z[3, ], type="l", main="z 3 (all days)")
+        }
+        # plot(keepers.z[begin:iter, 1, 1], type="l", main="z 1, 1",
+        #      xlab="", ylab=ylab.z.1)
+        # plot(keepers.z[begin:iter, 1, 10], type="l", main="z 1, 10",
+        #      xlab="", ylab=ylab.z.2)
+        # plot(keepers.z[begin:iter, 1, 21], type="l", main="z 1, 21",
+        #      xlab="", ylab=ylab.z.3)
       }
 
-      if (temporalw) {
-        ylab.phi.w <- paste("acc =", acc.rate.phi.w)
-        plot(keepers.phi.w[begin:iter], type="l",
-             main="phi.w",
-             xlab=paste("mh =", round(mh.phi.w, 3)), ylab=ylab.phi.w)
-      }
-      if (temporalz) {
-        ylab.phi.z <- paste("acc =", acc.rate.phi.z)
-      	plot(keepers.phi.z[begin:iter], type="l",
-             main="phi.z",
-             xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
-      }
-      if (temporaltau) {
-        ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
-      	plot(keepers.phi.tau[begin:iter], type="l",
-             main="phi.tau",
-             xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
-      }
-      # hist(y.init, main="true y")
-      # hist(y, main="imputed y")
+      # if (temporalw) {
+      #   ylab.phi.w <- paste("acc =", acc.rate.phi.w)
+      #   plot(keepers.phi.w[begin:iter], type="l",
+      #        main="phi.w",
+      #        xlab=paste("mh =", round(mh.phi.w, 3)), ylab=ylab.phi.w)
+      # }
+      # if (temporalz) {
+      #   ylab.phi.z <- paste("acc =", acc.rate.phi.z)
+      # 	plot(keepers.phi.z[begin:iter], type="l",
+      #        main="phi.z",
+      #        xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
+      # }
+      # if (temporaltau) {
+      #   ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
+      # 	plot(keepers.phi.tau[begin:iter], type="l",
+      #        main="phi.tau",
+      #        xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
+      # }
+      hist(y.init, main="true y")
+      hist(y, main="imputed y")
 
     }
 

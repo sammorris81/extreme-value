@@ -3,28 +3,34 @@ library(SpatialTools)
 library(fields)
 library(microbenchmark)
 #generate new z matrix
-z.R <- function(taug, tau, y, x.beta, mu, g, prec, lambda, zg) {
+z.R <- function(taug, tau, y, x.beta, mu, g, prec, lambda.1, lambda.2, zg) {
   z <- matrix(NA, nknots, nt)
   mmm <- matrix(NA, nknots, nt)
   vvv <- matrix(NA, nknots, nt)
   for (t in 1:nt) {
     taug.t <- sqrt(taug[, t])
+    y.t <- y[, t]
+    x.beta.t <- x.beta[, t]
+    mu.t <- mu[, t]
     for (k in 1:nknots) {
       these <- which(g[, t] == k)
-      r.1 <- (y[these, t] - x.beta[these, t]) * taug.t[these]
-      r.2 <- (y[-these, t] - mu[-these, t]) * taug.t[-these]
+
+      r.1 <- (y.t[these] - x.beta.t[these]) * taug.t[these]
+      r.2 <- (y.t[-these] - mu.t[-these]) * taug.t[-these]
 
       prec.11 <- prec[these, these, drop=F]
       prec.21 <- prec[-these, these, drop=F]
 
-      mmmkt <- lambda * sqrt(tau[k, t]) * sum(r.1 %*% prec.11 + r.2 %*% prec.21)
-      vvvkt <- tau[k, t] + lambda^2 * tau[k, t] * sum(prec.11)
+      mmmkt <- lambda.1 * sqrt(tau[k, t]) *
+               sum(r.1 %*% prec.11 + r.2 %*% prec.21)
+      vvvkt <- tau[k, t] * lambda.2 + tau[k, t] * sum(prec.11)
 
       vvv[k, t] <- 1 / vvvkt
       mmm[k, t] <- vvv[k, t] * mmmkt
       z[k, t] <- abs(rnorm(1, mmm[k, t], sqrt(vvv[k, t])))
       zg[these, t] <- z[k, t]
-      mu[, t] <- x.beta[, t] + lambda * zg[, t]
+      mu.t <- x.beta.t + lambda.1 * zg[, t]
+
     }
   }
   results <- list(z=z, mmm=mmm, vvv=vvv)
@@ -41,7 +47,8 @@ code <- '
   arma::mat g_c = Rcpp::as<arma::mat>(g);
   arma::mat prec_c = Rcpp::as<arma::mat>(prec);
   arma::mat prec_11; arma::mat prec_21;
-  double lambda_c = Rcpp::as<double>(lambda);
+  double lambda_1_c = Rcpp::as<double>(lambda_1);
+  double lambda_2_c = Rcpp::as<double>(lambda_2);
   arma::mat zg_c = Rcpp::as<arma::mat>(zg);
   int nknots = tau_c.n_rows; int nt = tau_c.n_cols; int ns = tau_g_c.n_rows;
   int nparts;
@@ -51,44 +58,49 @@ code <- '
   arma::vec y_t(ns); arma::vec xbeta_t(ns); arma::vec mu_t(ns);
   arma::mat mmm(nknots, nt); arma::mat vvv(nknots, nt);
   double mmmkt; double vvvkt; double zkt;
-  
+
   for (int t = 0; t < nt; t++) {
+    // extract the current values for day t
     tau_g_t = sqrt(tau_g_c.col(t));
     y_t = y_c.col(t); xbeta_t = xbeta_c.col(t); mu_t = mu_c.col(t);
+
     for (int k = 0; k < nknots; k++) {
-      these = find(g_c.col(t) == (k+1));
+      these  = find(g_c.col(t) == (k+1));
+      nthese = find(g_c.col(t) != (k+1));  // nthese is "not these"
       nparts = these.n_elem;
-      nthese = find(g_c.col(t) != (k+1));
-      
+
+      // recompute the mean for the day to account for updates to other knots
+      mu_t = xbeta_t + lambda_1_c * zg_c.col(t);
+
       r_1 = (y_t(these) - xbeta_t(these)) % tau_g_t(these);
       r_2 = (y_t(nthese) - mu_t(nthese)) % tau_g_t(nthese);
-      
+
       prec_11 = prec_c(these, these); prec_21 = prec_c(nthese, these);
 
-      mmmkt = lambda_c * sqrt(tau_c(k, t)) * sum(r_1.t() * prec_11 + r_2.t() * prec_21);
-      vvvkt = tau_c(k, t) + pow(lambda_c, 2) * tau_c(k, t) * accu(prec_11);
-      
+      mmmkt = lambda_1_c * sqrt(tau_c(k, t)) *
+              sum(r_1.t() * prec_11 + r_2.t() * prec_21);
+      vvvkt = tau_c(k, t) * lambda_2_c + tau_c(k, t) * accu(prec_11);
+
       vvvkt = 1 / vvvkt;
       vvv(k, t) = vvvkt;
       mmmkt = vvvkt * mmmkt;
       mmm(k, t) = mmmkt;
       zkt = (rnorm(1, mmmkt, sqrt(vvvkt)))(0);  // vector of length 1
-      zkt = std::abs(zkt);                      // std is needed to give absolute value
+      zkt = std::abs(zkt);                      // needs to have std::
       z(k, t) = zkt;
-      
+
+      // update the zg matrix
       for (int p = 0; p < nparts; p++) {
         zg_c(these(p), t) = zkt;
       }
-      mu_t = xbeta_t + lambda_c * zg_c.col(t);
-      
     }
-    
-    mu_c.col(t) = mu_t;
+
+    mu_c.col(t) = mu_t;  // update mu
   }
 
   return Rcpp::List::create(
     Rcpp::Named("z") = z,
-    // Rcpp::Named("zg") = zg_c,
+    Rcpp::Named("zg") = zg_c,
     Rcpp::Named("mmm") = mmm,
     Rcpp::Named("vvv") = vvv
   );
@@ -97,8 +109,9 @@ code <- '
 z.Rcpp <- cxxfunction(signature(taug="numeric", tau="numeric",
                                 y="numeric", x_beta="numeric",
                                 mu="numeric", g="numeric", prec="numeric",
-                                lambda="numeric", zg="numeric"), 
-                      code, plugin="RcppArmadillo")
+                                lambda_1="numeric", lambda_2="numeric",
+                                zg="numeric"),
+                                code, plugin="RcppArmadillo")
 
 set.seed(5)
 ns <- 100
@@ -106,16 +119,18 @@ nknots <- 5
 nt <- 10
 s.temp <- cbind(runif(ns, 0, 10), runif(ns, 0, 10))
 d.temp <- rdist(s.temp)
-prec.temp <- simple.cov.sp(D=d.temp, sp.type="matern", sp.par=c(1, 1), error.var=0, 
-                           smoothness=0.5, finescale.var=0)
+prec.temp <- simple.cov.sp(D=d.temp, sp.type="matern", sp.par=c(1, 1),
+                           error.var=0, smoothness=0.5, finescale.var=0)
 y <- matrix(rnorm(ns*nt, 0, 1), ns, nt)
-mu <- matrix(rnorm(ns*nt, 0, 1), ns, nt)
+
 x.beta <- matrix(rnorm(ns*nt, 0, 1), ns, nt)
 g <- matrix(0, ns, nt)
 for (t in 1:nt) {
   g[, t] <- sample(1:nknots, ns, replace=T)
 }
 lambda <- 2
+lambda.1 <- 1
+lambda.2 <- 1 / lambda^2
 z <- matrix(abs(rnorm(nknots * nt)), nknots, nt)
 zg <- matrix(0, ns, nt)
 for (t in 1:nt) {
@@ -126,15 +141,21 @@ taug <- matrix(0, ns, nt)
 for (t in 1:nt) {
   taug[, t] <- tau[g[, t], t]
 }
+mu <- x.beta + lambda.1 * zg
 
 set.seed(10)
-test.r <- z.R(taug=taug, tau=tau, y=y, x.beta=x.beta, mu=mu, g=g, prec=prec.temp, lambda=lambda, zg=zg)
+test.r <- z.R(taug=taug, tau=tau, y=y, x.beta=x.beta, mu=mu, g=g,
+              prec=prec.temp, lambda.1=lambda.1, lambda.2=lambda.2, zg=zg)
 
 set.seed(10)
-test.cpp <- z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu, g=g, prec=prec.temp, lambda=lambda, zg=zg)
+test.cpp <- z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu, g=g,
+                   prec=prec.temp, lambda_1=lambda.1, lambda_2=lambda.2, zg=zg)
 
 print(test.cpp$vvv / test.r$vvv)
 print(test.cpp$mmm / test.r$mmm)
 
-microbenchmark(z.R(taug=taug, tau=tau, y=y, x.beta=x.beta, mu=mu, g=g, prec=prec.temp, lambda=lambda, zg=zg),
-               z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu, g=g, prec=prec.temp, lambda=lambda, zg=zg), times=100)
+microbenchmark(z.R(taug=taug, tau=tau, y=y, x.beta=x.beta, mu=mu, g=g,
+                   prec=prec.temp, lambda.1=lambda.1, lambda.2=lambda.2, zg=zg),
+               z.Rcpp(taug=taug, tau=tau, y=y, x_beta=x.beta, mu=mu, g=g,
+                   prec=prec.temp, lambda_1=lambda.1, lambda_2=lambda.2, zg=zg),
+               times=100)
