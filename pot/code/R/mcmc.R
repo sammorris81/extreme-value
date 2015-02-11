@@ -122,7 +122,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else {
     thresholded <- F
   }
-  y[thresh.obs] <- thresh.mtx[thresh.obs] / 2
+  # y[thresh.obs] <- thresh.mtx[thresh.obs] / 2
 
   missing.obs <- is.na(y)
   if (sum(missing.obs) > 0) {

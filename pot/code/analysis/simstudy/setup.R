@@ -6,9 +6,9 @@
 # data settings:
 #   1 - Gaussian
 #   2 - t-1
-#   3 - t-5
+#   3 - t-3
 #   4 - skew t-1 (alpha = 3)
-#   5 - skew t-5 w/partition (alpha = 3)
+#   5 - skew t-3 w/partition (alpha = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
@@ -41,7 +41,7 @@ beta.t <- c(10, 0, 0)
 nu.t <- 0.5
 gamma.t <- 0.9
 dist.t <- c("gaussian", "t", "t", "t", "t")
-nknots.t <- c(1, 1, 5, 1, 5)
+nknots.t <- c(1, 1, 3, 1, 3)
 rho.t <- c(1, 1, 1, 1, 1)
 lambda.t <- c(0, 0, 0, 3, 3)
 tau.alpha.t <- 3
