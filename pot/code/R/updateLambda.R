@@ -1,8 +1,9 @@
 updateLambda1 <- function(x.beta, zg, y, prec, taug) {
   lll <- c(0, 0)
   mmm <- c(-1, 1)
-  res.l <- y - (x.beta + mmm * zg)
+
   for (l in 1:length(lll)) {
+    res.l  <- y - x.beta - mmm[l] * zg
     lll[l] <- -0.5 * sum(rss(prec, y=sqrt(taug) * res.l[l]))
   }
   lambda.1 <- sample(mmm, 1, prob=exp(lll - max(lll)))

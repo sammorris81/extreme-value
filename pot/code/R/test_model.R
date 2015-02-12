@@ -1480,8 +1480,7 @@ for (i in 1:nreps) {
                           nparts.tau=nparts.tau, prec=prec, z=data$z,
                           lambda.2=lambda.2.t, tau.alpha=tau.alpha,
                           tau.beta=tau.beta, skew=TRUE,
-                          att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
-                          att.tau=att.tau, acc.tau=acc.tau, mh.tau=mh.tau)
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
   taug <- tau.update$taug
   acc.tau.ns <- tau.update$acc
@@ -1593,14 +1592,21 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 nreps <- 6000
 nparts.tau <- matrix(NA, nknots, nt)
-zg <- g <- matrix(NA, ns, nt)
+g <- matrix(NA, ns, nt)
 for (t in 1:nt) {
   g[, t] <- mem(s, data$knots[, , t])
-  zg[, t]    <- data$z[g[, t], t]
 }
 
 x.beta   <- matrix(10, ns, nt)
-mu <- x.beta + lambda.1.t * zg
+z <- matrix(1, nknots, nt)
+zg <- matrix(NA, ns, nt)
+for (t in 1:nt) {
+  zg[, t]    <- data$z[g[, t], t]
+}
+
+lambda.1 <- 1
+lambda.2 <- 0.5
+mu <- x.beta + lambda.1 * zg
 res <- data$y - mu
 
 tau.alpha <- tau.alpha.t
@@ -1632,8 +1638,7 @@ for (i in 1:nreps) {
                           nparts.tau=nparts.tau, prec=prec.t, z=z,
                           lambda.2=lambda.2, tau.alpha=tau.alpha,
                           tau.beta=tau.beta, skew=TRUE,
-                          att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
-                          att.tau=att.tau, acc.tau=acc.tau, mh.tau=mh.tau)
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
   taug <- tau.update$taug
   acc.tau.ns <- tau.update$acc
