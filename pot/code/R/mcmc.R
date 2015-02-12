@@ -714,7 +714,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       plot(tau[1, ], type="l", main="tau 1 (all days)")
       if (nknots >= 3) {
         plot(tau[2, ], type="l", main="tau 2 (all days)")
-        plot(tau[3, ], type="l", main="tau 3 (all days)")
+        #plot(tau[3, ], type="l", main="tau 3 (all days)")
       }
       # plot(keepers.tau[begin:iter, 1, 1], type="l", main="tau 1,1",
       #      xlab=paste(nparts.1, ", ", mh.disp.1), ylab=ylab.tau.1)

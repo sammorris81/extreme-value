@@ -6,15 +6,18 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
   att.rho <- att.rho + 1
   att.nu  <- att.nu + 1
 
-  logrho <- log(rho)
-  if (rho.upper == Inf) {
-    upper.logrho <- 1
-  } else {
-    upper.logrho <- pnorm(log(rho.upper), logrho, mh.rho)
-  }
-  can.rho.u  <- runif(1) * upper.logrho
-  can.logrho <- logrho + mh.rho * qnorm(can.rho.u)
-  can.rho    <- exp(can.logrho)
+  # logrho <- log(rho)
+  # if (rho.upper == Inf) {
+  #   upper.logrho <- 1
+  # } else {
+  #   upper.logrho <- pnorm(log(rho.upper), logrho, mh.rho)
+  # }
+  # can.rho.u  <- runif(1) * upper.logrho
+  # can.logrho <- logrho + mh.rho * qnorm(can.rho.u)
+  # can.rho    <- exp(can.logrho)
+  rho.star <- logit(rho, lower=0, upper=rho.upper)
+  can.rho.star <- rnorm(1, rho.star, mh.rho)
+  can.rho <- inv.logit(can.rho.star, lower=0, upper=rho.upper)
 
   lognu  <- log(nu)
   if (!fixnu) {
@@ -52,15 +55,16 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
 
   R <- -0.5 * (can.rss - cur.rss) +
         nt * (can.logdet.prec - logdet.prec) +
-        dnorm(can.logrho, logrho.m, logrho.s, log=T) -
-        dnorm(logrho, logrho.m, logrho.s, log=T)
+        # dnorm(can.logrho, logrho.m, logrho.s, log=T) -
+        # dnorm(logrho, logrho.m, logrho.s, log=T)
+        dnorm(can.rho.star, lot=TRUE) - dnorm(rho.star, log=TRUE)
 
-  if (upper.logrho < 1) {  # candidate is not symmetric
-    R <- R + dnorm(logrho, can.logrho, mh.rho, log=T) -
-             pnorm(upper.logrho, can.logrho, mh.rho, log.p=T) -
-             dnorm(can.logrho, logrho, mh.rho, log=T) +
-             pnorm(upper.logrho, logrho, mh.rho, log.p=T)
-  }
+  # if (upper.logrho < 1) {  # candidate is not symmetric
+  #   R <- R + dnorm(logrho, can.logrho, mh.rho, log=T) -
+  #            pnorm(upper.logrho, can.logrho, mh.rho, log.p=T) -
+  #            dnorm(can.logrho, logrho, mh.rho, log=T) +
+  #            pnorm(upper.logrho, logrho, mh.rho, log.p=T)
+  # }
 
   if (!fixnu) {
     R <- R + dnorm(can.lognu, lognu.m, lognu.s, log=T) -
