@@ -40,8 +40,8 @@ updateZTS <- function(z, zg, y, lambda.1, lambda.2, x.beta,
   z.star <- hn.cop(x=z, sig=sig)
 
   # storage for block update
-  z.new      <- z
-  zg.new     <- zg
+  # z.new      <- z
+  # zg.new     <- zg
 
   for (t in 1:nt) {
   	taug.t  <- sqrt(taug[, t])
@@ -89,17 +89,17 @@ updateZTS <- function(z, zg, y, lambda.1, lambda.2, x.beta,
       }
 
       if (!is.na(R)) { if (log(runif(1)) < R) {
-        acc[k, t]        <- acc[k, t] + 1
-        z.new[k, t]      <- can.z[k]
-        zg.new[these, t] <- can.z[k]
-        z.star[k, t]     <- can.z.star[k]
-        cur.lly          <- can.lly
+        acc[k, t]    <- acc[k, t] + 1
+        z[k, t]      <- can.z[k]
+        zg[these, t] <- can.z[k]
+        z.star[k, t] <- can.z.star[k]
+        cur.lly      <- can.lly
       } }
     }
   }
 
-  zg     <- zg.new
-  z      <- z.new
+  # zg     <- zg.new
+  # z      <- z.new
 
   # phi.z
   phi.update <- updatePhiTS(data=z.star, phi=phi, day.mar=2,

@@ -62,7 +62,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=10000, burn=5000, update=100,
-            thresh.all=0, skew=FALSE, nknots=1,
+            thresh.all=0.80, skew=FALSE, nknots=1,
             min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS
@@ -368,17 +368,15 @@ source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                   dist="t", nknots=3, lambda=2, phi.z=0.8, phi.w=0.9,
-                   phi.tau=0.8)
+                   dist="t", nknots=3, lambda=2, phi.z=0, phi.w=0,
+                   phi.tau=0)
 
-Rprof(filename="rprof.out", memory.profiling=TRUE, line.profiling=TRUE)
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE, iterplot=TRUE,
             iters=1000, burn=900, update=100, thresh.all=0.80, skew=TRUE,
             min.s=c(0, 0), max.s=c(10, 10),
             nknots=3, temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE)
 # RESULTS:
-Rprof(NULL)
-summaryRprof(filename="rprof.out", memory="both", lines="show")
+
 
 # Troubleshooting
 # Test 1 - Debugging covariance parameters

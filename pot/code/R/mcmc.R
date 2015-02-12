@@ -744,7 +744,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         plot(z[1, ], type="l", main="z 1 (all days)")
         if (nknots >= 3) {
           plot(z[2, ], type="l", main="z 2 (all days)")
-          plot(z[3, ], type="l", main="z 3 (all days)")
+          #plot(z[3, ], type="l", main="z 3 (all days)")
         }
         # plot(keepers.z[begin:iter, 1, 1], type="l", main="z 1, 1",
         #      xlab="", ylab=ylab.z.1)
@@ -760,18 +760,18 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       #        main="phi.w",
       #        xlab=paste("mh =", round(mh.phi.w, 3)), ylab=ylab.phi.w)
       # }
-      # if (temporalz) {
-      #   ylab.phi.z <- paste("acc =", acc.rate.phi.z)
-      # 	plot(keepers.phi.z[begin:iter], type="l",
-      #        main="phi.z",
-      #        xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
-      # }
-      # if (temporaltau) {
-      #   ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
-      # 	plot(keepers.phi.tau[begin:iter], type="l",
-      #        main="phi.tau",
-      #        xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
-      # }
+      if (temporalz) {
+        ylab.phi.z <- paste("acc =", acc.rate.phi.z)
+      	plot(keepers.phi.z[begin:iter], type="l",
+             main="phi.z",
+             xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
+      }
+      if (temporaltau) {
+        ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
+      	plot(keepers.phi.tau[begin:iter], type="l",
+             main="phi.tau",
+             xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
+      }
       hist(y.init, main="true y")
       hist(y, main="imputed y")
 
