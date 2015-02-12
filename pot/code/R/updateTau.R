@@ -205,7 +205,7 @@ updateTauTS <- function(phi, tau, taug, g, res, nparts.tau, prec, z, lambda.2,
         can.tau.star[k] <- rnorm(1, tau.star[k, t], mh[k, t])
 
         # transform back to R+
-        can.tau  <- qgamma(pnorm(can.tau.star), tau.alpha, tau.beta)
+        can.tau  <- gamma.invcop(can.tau.star, tau.alpha, tau.beta)
         if (can.tau[k] < 1e-6) {  # numerical stability
           can.tau[k] <- 1e-6
         }
