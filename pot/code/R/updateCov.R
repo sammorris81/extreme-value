@@ -15,9 +15,9 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
   # can.rho.u  <- runif(1) * upper.logrho
   # can.logrho <- logrho + mh.rho * qnorm(can.rho.u)
   # can.rho    <- exp(can.logrho)
-  rho.star <- logit(rho, lower=0, upper=rho.upper)
+  rho.star <- transform$logit(rho, lower=0, upper=rho.upper)
   can.rho.star <- rnorm(1, rho.star, mh.rho)
-  can.rho <- inv.logit(can.rho.star, lower=0, upper=rho.upper)
+  can.rho <- transform$inv.logit(can.rho.star, lower=0, upper=rho.upper)
 
   lognu  <- log(nu)
   if (!fixnu) {
