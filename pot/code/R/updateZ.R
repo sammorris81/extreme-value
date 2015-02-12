@@ -57,6 +57,9 @@ updateZTS <- function(z, zg, y, lambda.1, lambda.2, x.beta,
 
       # transform back to R+
       can.z  <- hn.invcop(x=can.z.star, sig=sig[, t])
+      if (can.z[k] < 1e-6) {  # numerical stability
+        can.z[k] <- 1e-6
+      }
       can.zg <- can.z[g[, t]]  # ns long
 
       can.mu.t <- x.beta[, t] + lambda.1 * can.zg

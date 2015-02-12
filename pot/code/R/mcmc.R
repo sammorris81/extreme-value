@@ -32,14 +32,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # just to debug temporal parts. eventually change to temporal=F
                  temporalw=F, temporaltau=F, temporalz=F,
                  # initial values
-                 beta.init=NULL, tau.init=2,
+                 beta.init=NULL, tau.init=1,
                  tau.alpha.init=0.1, tau.beta.init=0.1,
                  rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
                  beta.m=0, beta.s=10,
                  tau.alpha.m=0, tau.alpha.s=1,
                  tau.beta.a=1, tau.beta.b=1,
-                 logrho.m=0, logrho.s=10, rho.upper=NULL,
+                 logrho.m=0, logrho.s=1, rho.upper=NULL,
                  lognu.m=-1.2, lognu.s=1, nu.upper=NULL,
                  gamma.m=0, gamma.s=1,
                  # covariance model
@@ -75,7 +75,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     d12 <- rdist(s.pred, s)
     d11 <- rdist(s.pred, s.pred)
     diag(d11) <- 0
-    y.pred <- array(0, c(iters, np, nt))
+    y.pred <- array(0, c((iters-burn), np, nt))
   }
 
   d       <- rdist(s)  # distance between sites
@@ -122,6 +122,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else {
     thresholded <- F
   }
+  # y[thresh.obs] <- thresh.mtx[thresh.obs] / 2
 
   missing.obs <- is.na(y)
   if (sum(missing.obs) > 0) {
@@ -160,7 +161,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize parameters
   if (is.null(beta.init)) {
     beta    <- rep(0, p)
-    beta[1] <- mean(y)
+    # beta[1] <- mean(y)
   } else {
     beta <- beta.init
   }
@@ -332,14 +333,15 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # data imputation
     if (thresholded) {  # do data imputation and store as y
       mu <- x.beta + lambda.1 * zg
-      y  <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, prec=prec,
-                    thresh.mtx)
+      y <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, cor=cor,
+                   gamma=gamma, thresh.mtx=thresh.mtx)
     }
 
     # missing values
     if (missing) {
       mu <- x.beta + lambda.1 * zg
-      y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, prec=prec)
+      y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, cor=cor,
+                   gamma=gamma)
     }
 
     # update beta
@@ -466,6 +468,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     mu <- x.beta + lambda.1 * zg
     res <- y - mu
     cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
+
     # rho and nu
     rhonu.update <- updateRhoNu(rho=rho, logrho.m=logrho.m, logrho.s=logrho.s,
                                 fixnu=fixnu, nu=nu, lognu.m=lognu.m,
@@ -714,12 +717,17 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       ylab.tau.2 <- paste("acc = ", acc.rate.tau[1, 10])
       ylab.tau.3 <- paste("acc = ", acc.rate.tau[1, 21])
 
-      plot(keepers.tau[begin:iter, 1, 1], type="l", main="tau 1,1",
-           xlab=paste(nparts.1, ", ", mh.disp.1), ylab=ylab.tau.1)
-      plot(keepers.tau[begin:iter, 1, 10], type="l", main="tau 1, 10",
-           xlab=paste(nparts.2, ", ", mh.disp.2), ylab=ylab.tau.2)
-      plot(keepers.tau[begin:iter, 1, 21], type="l", main="tau 1, 21",
-           xlab=paste(nparts.3, ", ", mh.disp.3), ylab=ylab.tau.3)
+      plot(tau[1, ], type="l", main="tau 1 (all days)")
+      if (nknots >= 3) {
+        plot(tau[2, ], type="l", main="tau 2 (all days)")
+        plot(tau[3, ], type="l", main="tau 3 (all days)")
+      }
+      # plot(keepers.tau[begin:iter, 1, 1], type="l", main="tau 1,1",
+      #      xlab=paste(nparts.1, ", ", mh.disp.1), ylab=ylab.tau.1)
+      # plot(keepers.tau[begin:iter, 1, 10], type="l", main="tau 1, 10",
+      #      xlab=paste(nparts.2, ", ", mh.disp.2), ylab=ylab.tau.2)
+      # plot(keepers.tau[begin:iter, 1, 21], type="l", main="tau 1, 21",
+      #      xlab=paste(nparts.3, ", ", mh.disp.3), ylab=ylab.tau.3)
 
       plot(keepers.tau.alpha[begin:iter], type="l", main="tau.alpha",
            xlab="", ylab="")
@@ -739,32 +747,39 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
           ylab.z.2 <- ""
           ylab.z.3 <- ""
         }
-        plot(keepers.z[begin:iter, 1, 1], type="l", main="z 1, 1",
-             xlab="", ylab=ylab.z.1)
-        plot(keepers.z[begin:iter, 1, 10], type="l", main="z 1, 10",
-             xlab="", ylab=ylab.z.2)
-        plot(keepers.z[begin:iter, 1, 21], type="l", main="z 1, 21",
-             xlab="", ylab=ylab.z.3)
+        plot(z[1, ], type="l", main="z 1 (all days)")
+        if (nknots >= 3) {
+          plot(z[2, ], type="l", main="z 2 (all days)")
+          plot(z[3, ], type="l", main="z 3 (all days)")
+        }
+        # plot(keepers.z[begin:iter, 1, 1], type="l", main="z 1, 1",
+        #      xlab="", ylab=ylab.z.1)
+        # plot(keepers.z[begin:iter, 1, 10], type="l", main="z 1, 10",
+        #      xlab="", ylab=ylab.z.2)
+        # plot(keepers.z[begin:iter, 1, 21], type="l", main="z 1, 21",
+        #      xlab="", ylab=ylab.z.3)
       }
 
-      if (temporalw) {
-        ylab.phi.w <- paste("acc =", acc.rate.phi.w)
-        plot(keepers.phi.w[begin:iter], type="l",
-             main="phi.w",
-             xlab=paste("mh =", round(mh.phi.w, 3)), ylab=ylab.phi.w)
-      }
-      if (temporalz) {
-        ylab.phi.z <- paste("acc =", acc.rate.phi.z)
-      	plot(keepers.phi.z[begin:iter], type="l",
-             main="phi.z",
-             xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
-      }
-      if (temporaltau) {
-        ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
-      	plot(keepers.phi.tau[begin:iter], type="l",
-             main="phi.tau",
-             xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
-      }
+      # if (temporalw) {
+      #   ylab.phi.w <- paste("acc =", acc.rate.phi.w)
+      #   plot(keepers.phi.w[begin:iter], type="l",
+      #        main="phi.w",
+      #        xlab=paste("mh =", round(mh.phi.w, 3)), ylab=ylab.phi.w)
+      # }
+      # if (temporalz) {
+      #   ylab.phi.z <- paste("acc =", acc.rate.phi.z)
+      # 	plot(keepers.phi.z[begin:iter], type="l",
+      #        main="phi.z",
+      #        xlab=paste("mh =", round(mh.phi.z, 3)), ylab=ylab.phi.z)
+      # }
+      # if (temporaltau) {
+      #   ylab.phi.tau <- paste("acc =", acc.rate.phi.tau)
+      # 	plot(keepers.phi.tau[begin:iter], type="l",
+      #        main="phi.tau",
+      #        xlab=paste("mh =", round(mh.phi.tau, 3)), ylab=ylab.phi.tau)
+      # }
+      hist(y.init, main="true y")
+      hist(y, main="imputed y")
 
     }
 

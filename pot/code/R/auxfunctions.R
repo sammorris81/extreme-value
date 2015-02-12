@@ -364,7 +364,7 @@ makeTauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
   return(tau)
 }
 
-makeZTS <- function(nt, nknots, tau, phi, lambda.1, lambda.2) {
+makeZTS <- function(nt, nknots, tau, phi, lambda.2) {
   z.star <- matrix(NA, nrow=nknots, ncol=nt)
   z.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
@@ -402,15 +402,14 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
   C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
   if (dist == "t") {
     tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
-                      tau.beta=tau.beta, phi=phi.tau)
+                     tau.beta=tau.beta, phi=phi.tau)
   } else if (dist == "gaus") {
     tau <- matrix(0.25, nknots, nt)
   }
   sd <- 1 / sqrt(tau)
 
   if (skew) {
-    z <- makeZTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z,
-                 lambda.1=lambda.1, lambda.2=lambda.2)
+    z <- makeZTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z, lambda.2=lambda.2)
   } else {
     z <- matrix(0, nrow=nknots, ncol=nt)
   }
