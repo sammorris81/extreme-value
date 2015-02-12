@@ -62,7 +62,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=10000, burn=5000, update=100,
-            thresh.all=0.80, skew=FALSE, nknots=1,
+            thresh.all=0, skew=FALSE, nknots=1, rho.upper=15, nu.upper=10,
             min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS

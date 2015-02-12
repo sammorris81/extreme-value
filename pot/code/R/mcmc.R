@@ -294,7 +294,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # MH tuning params
   acc.w      <- att.w      <- mh.w     <- matrix(0.15, nknots, nt)  # knot locs
   acc.delta  <- att.delta  <- mh.delta <- 0.1
-  acc.rho    <- att.rho    <- mh.rho   <- 0.1
+  acc.rho    <- att.rho    <- mh.rho   <- 1
   acc.nu     <- att.nu     <- mh.nu    <- 0.1
   acc.gamma  <- att.gamma  <- mh.gamma <- 1
 

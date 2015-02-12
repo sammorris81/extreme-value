@@ -87,10 +87,10 @@ for (g in 1:10) {
     cat("start: t-1 (T=0.80) - Set", dataset, "\n")
     tic <- proc.time()
     fit.3[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=TRUE, thresh.all=0.80,
+                       method="t", skew=FALSE, thresh.all=0.80,
                        thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=TRUE, temporaltau=TRUE, temporalz=TRUE,
+                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
                        rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
