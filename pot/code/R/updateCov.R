@@ -57,7 +57,7 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
         nt * (can.logdet.prec - logdet.prec) +
         # dnorm(can.logrho, logrho.m, logrho.s, log=T) -
         # dnorm(logrho, logrho.m, logrho.s, log=T)
-        dnorm(can.rho.star, lot=TRUE) - dnorm(rho.star, log=TRUE)
+        dnorm(can.rho.star, log=TRUE) - dnorm(rho.star, log=TRUE)
 
   # if (upper.logrho < 1) {  # candidate is not symmetric
   #   R <- R + dnorm(logrho, can.logrho, mh.rho, log=T) -
