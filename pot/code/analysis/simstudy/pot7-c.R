@@ -100,8 +100,7 @@ for (g in 1:10) {
                        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
                        temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
                        rho.upper=15, nu.upper=10, cov.model="exponential")
-                  }
-                  )
+                  })
     toc <- proc.time()
     cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
     cat("  end: t-1 (T=0.80) \n")
