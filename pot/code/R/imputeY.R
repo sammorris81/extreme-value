@@ -40,6 +40,7 @@ imputeY <- function(y, taug, mu, obs, cor, gamma, thresh.mtx=NULL) {
       impute.sd    <- sqrt(1 - gamma) / taug.t[impute.these]
 
       if (is.null(thresh.mtx)) {
+        thresh.these <- Inf
         u.upper <- rep(1, length(impute.these))
       } else {
         thresh.these <- thresh.mtx[impute.these, t]
@@ -48,7 +49,9 @@ imputeY <- function(y, taug, mu, obs, cor, gamma, thresh.mtx=NULL) {
 
       u.impute   <- runif(length(impute.these))
       y.impute.t <- impute.e + impute.sd * qnorm(u.impute * u.upper)
-      y.impute.t[(u.upper < 1e-6)] <- 0.99999 * thresh.these[(u.upper < 1e-6)]
+      if (sum(u.upper < 1e-6) > 0) {
+        y.impute.t[(u.upper < 1e-6)] <- 0.99999 * thresh.these[(u.upper < 1e-6)]
+      }
       # y.impute.t <- ifelse(  # for numerical stability
       #   u.upper < 1e-6,
       #   thresh.mtx.fudge[impute.these, t],
