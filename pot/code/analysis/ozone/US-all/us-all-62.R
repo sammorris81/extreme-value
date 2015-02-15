@@ -15,7 +15,7 @@ keep.knots <- FALSE
 threshold <- 75
 tau.init <- 0.05
 thresh.quant <- FALSE
-skew <- TRUE
+skew <- FALSE
 outputfile <- paste("us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
