@@ -636,7 +636,7 @@ for (i in 1:5) {
   x.p <- x[101:144, , ]
   y.p <- data[[i]]$y[101:144, ]
   
-  cat("Test 15 - fit.1 \n")
+  cat("Test 16 - fit.1 \n")
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
@@ -644,7 +644,7 @@ for (i in 1:5) {
                      skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
   
-  cat("Test 15 - fit.2 \n")
+  cat("Test 16 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,                     
@@ -652,7 +652,7 @@ for (i in 1:5) {
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
   
-  cat("Test 15 - fit.3 \n")
+  cat("Test 16 - fit.3 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
