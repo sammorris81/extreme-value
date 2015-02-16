@@ -396,25 +396,61 @@ for (i in 1:5) {
   s.p <- s[101:144, ]
   x.p <- x[101:144, , ]
   y.p <- data[[i]]$y[101:144, ]
-
+  
+  cat("Test 13 - fit.1 \n")
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
                      skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     rho.upper=15, nu.upper=10,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
-
+  
+  cat("Test 13 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     rho.upper=15, nu.upper=10,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
+  cat("Test 13 - fit.3 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
+                     rho.upper=15, nu.upper=10,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
+
+# come up with quantile and brier scores
+probs <- seq(0.90, 0.99, by=0.01)
+quant.scores.gau <- brier.scores.gau <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.1st <- brier.scores.1st <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.3st <- brier.scores.3st <- matrix(NA, nrow=5, ncol=length(probs))
+for (i in 1:5) {
+  threshs <- quantile(data[[i]]$y, probs=probs)
+  quant.scores.gau[i, ] <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.1st[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.3st[i, ] <- QuantScore(preds=fit.3[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.gau[i, ] <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.1st[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.3st[i, ] <- BrierScore(preds=fit.3[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+}
+
+# one bs and qs for each method
+quant.score <- brier.score <- matrix(NA, nrow=3, ncol=length(probs))
+quant.score[1, ] <- apply(quant.scores.gau, 2, mean)
+quant.score[2, ] <- apply(quant.scores.1st, 2, mean)
+quant.score[3, ] <- apply(quant.scores.3st, 2, mean)
+brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
+brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
+brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
 # Test 14: Predictions - 5 knots, skew
 source('./mcmc.R', chdir=T)
@@ -436,47 +472,135 @@ for (i in 1:5) {
   x.p <- x[101:144, , ]
   y.p <- data[[i]]$y[101:144, ]
 
+  cat("Test 14 - fit.1 \n")
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
                      skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     rho.upper=15, nu.upper=10,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
+  cat("Test 14 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     rho.upper=15, nu.upper=10,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
+  cat("Test 14 - fit.1 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
-                     iters=15000, burn=71000, update=100, thresh.all=0,
+                     iters=15000, burn=10000, update=100, thresh.all=0,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
+                     rho.upper=15, nu.upper=10,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
 
 # come up with quantile and brier scores
 probs <- seq(0.90, 0.99, by=0.01)
-quant.scores.ts  <- brier.scores.ts  <- matrix(NA, nrow=5, ncol=length(probs))
-quant.scores.nts <- brier.scores.nts <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.gau <- brier.scores.gau <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.1st <- brier.scores.1st <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.3st <- brier.scores.3st <- matrix(NA, nrow=5, ncol=length(probs))
 for (i in 1:5) {
   threshs <- quantile(data[[i]]$y, probs=probs)
-  quant.scores.ts[i, ]  <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
+  quant.scores.gau[i, ] <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
                                       validate=data[[i]]$y[101:144, ])
-  quant.scores.nts[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
+  quant.scores.1st[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
                                       validate=data[[i]]$y[101:144, ])
-  brier.scores.ts[i, ]  <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+  quant.scores.3st[i, ] <- QuantScore(preds=fit.3[[i]]$yp, probs=probs,
                                       validate=data[[i]]$y[101:144, ])
-  brier.scores.nts[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+  brier.scores.gau[i, ] <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.1st[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.3st[i, ] <- BrierScore(preds=fit.3[[i]]$yp, thresholds=threshs,
                                       validate=data[[i]]$y[101:144, ])
 }
 
 # one bs and qs for each method
-quant.score <- brier.score <- matrix(NA, nrow=2, ncol=length(probs))
-quant.score[1, ] <- apply(quant.scores.ts, 2, mean)
-quant.score[2, ] <- apply(quant.scores.nts, 2, mean)
-brier.score[1, ] <- apply(brier.scores.ts, 2, mean)
-brier.score[2, ] <- apply(brier.scores.nts, 2, mean)
+quant.score <- brier.score <- matrix(NA, nrow=3, ncol=length(probs))
+quant.score[1, ] <- apply(quant.scores.gau, 2, mean)
+quant.score[2, ] <- apply(quant.scores.1st, 2, mean)
+quant.score[3, ] <- apply(quant.scores.3st, 2, mean)
+brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
+brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
+brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
+
+# Test 15: Predictions - 1 knot, gaussian
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+
+# storage for predictions
+fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=5)
+for (i in 1:5) {
+  set.seed(i)
+  data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                          rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                          dist="gaussian", nknots=1, lambda=0, phi.z=0, phi.w=0,
+                          phi.tau=0)
+  
+  s.o <- s[1:100, ]
+  x.o <- x[1:100, , ]
+  y.o <- data[[i]]$y[1:100, ]
+  s.p <- s[101:144, ]
+  x.p <- x[101:144, , ]
+  y.p <- data[[i]]$y[101:144, ]
+  
+  cat("Test 15 - fit.1 \n")
+  fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="gaussian", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=10000, update=100, thresh.all=0,
+                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     rho.upper=15, nu.upper=10,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+  
+  cat("Test 15 - fit.2 \n")
+  fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="t", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=10000, update=100, thresh.all=0,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     rho.upper=15, nu.upper=10,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+  
+  cat("Test 15 - fit.3 \n")
+  fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="t", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=10000, update=100, thresh.all=0,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
+                     rho.upper=15, nu.upper=10,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+}
+
+# come up with quantile and brier scores
+probs <- seq(0.90, 0.99, by=0.01)
+quant.scores.gau <- brier.scores.gau <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.1st <- brier.scores.1st <- matrix(NA, nrow=5, ncol=length(probs))
+quant.scores.3st <- brier.scores.3st <- matrix(NA, nrow=5, ncol=length(probs))
+for (i in 1:5) {
+  threshs <- quantile(data[[i]]$y, probs=probs)
+  quant.scores.gau[i, ] <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.1st[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.3st[i, ] <- QuantScore(preds=fit.3[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.gau[i, ] <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.1st[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.3st[i, ] <- BrierScore(preds=fit.3[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+}
+
+# one bs and qs for each method
+quant.score <- brier.score <- matrix(NA, nrow=3, ncol=length(probs))
+quant.score[1, ] <- apply(quant.scores.gau, 2, mean)
+quant.score[2, ] <- apply(quant.scores.1st, 2, mean)
+quant.score[3, ] <- apply(quant.scores.3st, 2, mean)
+brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
+brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
+brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
 
 # Troubleshooting

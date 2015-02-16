@@ -368,7 +368,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
   if (dist == "t") {
     tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
                      tau.beta=tau.beta, phi=phi.tau)
-  } else if (dist == "gaus") {
+  } else if (dist == "gaussian") {
     tau <- matrix(0.25, nknots, nt)
   }
   sd <- 1 / sqrt(tau)
