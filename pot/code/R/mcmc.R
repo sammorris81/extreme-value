@@ -39,16 +39,16 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  beta.m=0, beta.s=10,
                  tau.alpha.m=0, tau.alpha.s=1,
                  tau.beta.a=1, tau.beta.b=1,
-                 logrho.m=0, logrho.s=1, rho.upper=NULL,
+                 logrho.m=0, logrho.s=10, rho.upper=NULL,
                  lognu.m=-1.2, lognu.s=1, nu.upper=NULL,
                  gamma.m=0, gamma.s=1,
                  # covariance model
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=1, lambda.init=0.5,
+                 z.init=1, lambda.init=0,
                  # skew priors
-                 lambda.a=1, lambda.b=1, skew=T,
+                 lambda.a=0.01, lambda.b=0.01, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
                  # troubleshooting
                  debug=F, fixhyper=F, tau.t, z.t, fixknots=F, knots.init=NULL,
@@ -218,12 +218,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
   if (skew) {
     lambda <- lambda.init
-    if (lambda < 0) {
-      lambda.1 <- -1
+    if (lambda == 0) {
+      lambda.1 <- 0
+      lambda.2 <- 1
     } else {
-      lambda.1 <- 1
+      lambda.1 <- sign(lambda)
+      lambda.2 <- 1 / (lambda)^2
     }
-    lambda.2 <- 1 / (lambda)^2
   } else {
     lambda <- lambda.1 <- 0
     lambda.2 <- 0
@@ -329,10 +330,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
 
-
     # data imputation
     if (thresholded) {  # do data imputation and store as y
       mu <- x.beta + lambda.1 * zg
+      res <- y - mu
       y <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, cor=cor,
                    gamma=gamma, thresh.mtx=thresh.mtx)
     }
@@ -340,17 +341,21 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # missing values
     if (missing) {
       mu <- x.beta + lambda.1 * zg
+      res <- y - mu
       y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, cor=cor,
                    gamma=gamma)
     }
 
     # update beta
+    mu <- x.beta + lambda.1 * zg
+    res <- y - mu
     beta <- updateBeta(beta.m=beta.m, beta.s=beta.s, x=x, y=y, zg=zg,
                        lambda.1=lambda.1, taug=taug, prec=prec)
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
-
+    mu <- x.beta + lambda.1 * zg
+    res <- y - mu
     # update partitions
     if ((nknots > 1) & (!fixknots)) {
       avgparts <- rep(0, nt)
@@ -524,10 +529,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
 
     # update skew parameters: lambda and z
-    if (skew) {
+    if (skew & (iter > burn/20)) {
+      mu <- x.beta + lambda.1 * zg
+      res <- y - mu
       lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=y, prec=prec,
                                 taug=taug)
-      lambda.1 <- 1
       lambda.2 <- updateLambda2(lambda.a=lambda.a, lambda.b=lambda.b,
                                 z=z, tau=tau)
       lambda <- lambda.1 / sqrt(lambda.2)

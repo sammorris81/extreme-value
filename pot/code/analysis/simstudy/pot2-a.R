@@ -38,6 +38,7 @@ analysis <- "a"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
+
 for (g in 1:3) {
   fit.1 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
