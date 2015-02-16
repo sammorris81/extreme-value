@@ -363,6 +363,8 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
   }
 
   C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  chol.C <- chol(C)
+  t.chol.C <- t(chol.C)
   if (dist == "t") {
     tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
                      tau.beta=tau.beta, phi=phi.tau)
@@ -384,10 +386,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     g       <- mem(s, knots.t)
     zg      <- z[g, t]
     taug    <- tau[g, t]
-
     sdg    <- 1 / sqrt(taug)
-    C.t    <- diag(sdg) %*% C %*% diag(sdg)
-    chol.C <- chol(C.t)
 
     if (p == 1) {
       x.beta <- x[, t, , drop=F] * beta
@@ -397,7 +396,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 
     mu <- x.beta + lambda.1 * zg
 
-    y.t    <- mu + t(chol.C) %*% matrix(rnorm(ns), ns, 1)
+    y.t    <- mu + t.chol.C %*% matrix(rnorm(ns, 0, sdg), ns, 1)
     y[, t] <- y.t
   }
 
