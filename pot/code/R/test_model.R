@@ -52,7 +52,7 @@ logdet.prec.t <- CC$logdet.prec
 # MCMC Tests
 ################################################################################
 
-# Test 1: No-skew, 1 knot, no time series
+# Test 1a: No-skew, 1 knot, no time series
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
@@ -66,6 +66,20 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS
+
+# Test 1b: No-skew, 1 knot, no time series
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+set.seed(10)
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   dist="t", nknots=1, lambda=0, phi.z=0, phi.w=0, phi.tau=0)
+
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
+            iterplot=T, iters=10000, burn=5000, update=100, lambda.init=1,
+            thresh.all=0, skew=TRUE, nknots=1, rho.upper=15, nu.upper=10,
+            min.s=c(0, 0), max.s=c(10, 10),
+            temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
 # Test 2: Skew, 1 knot, no time series
 source('./mcmc.R', chdir=T)
@@ -382,8 +396,8 @@ source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
 
 # storage for predictions
-fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=5)
-for (i in 1:5) {
+fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=3)
+for (i in 1:3) {
   set.seed(i)
   data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
@@ -400,18 +414,21 @@ for (i in 1:5) {
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
+                     rho.upper=15, nu.upper=10,
                      skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
+                     rho.upper=15, nu.upper=10, lambda.init=1,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
@@ -439,18 +456,21 @@ for (i in 1:5) {
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
+                     rho.upper=15, nu.upper=10,
                      skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=100, thresh.all=0,
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
-                     iters=15000, burn=71000, update=100, thresh.all=0,
+                     iters=15000, burn=10000, update=100, thresh.all=0,
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
@@ -768,7 +788,7 @@ for (i in 1:nreps) {
 # Lambda.1, Lambda.2, and z
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -890,7 +910,7 @@ for (i in 1:nreps) {
 }
 
 plot(lambda.1.keep, type="l")
-plot(lambda.2.keep, type="l", main=lambda.2.t)
+plot(lambda.2.keep[1000:6000], type="l", main=lambda.2.t)
 
 cover <- 0
 for (i in 1:nknots) {
@@ -904,7 +924,7 @@ for (i in 1:nknots) {
 # Beta
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -946,7 +966,7 @@ for (i in 1:nreps) {
 # beta, z, and lambda terms
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -1094,7 +1114,7 @@ par(mfrow=c(1, 2))
 set.seed(50)
 for (i in 1:nreps) {
   rhonu.update <- updateRhoNu(rho=rho, logrho.m=0, logrho.s=10, fixnu=FALSE,
-                              nu=nu, lognu.m=-1.2, lognu.s=1, d=d,
+                              nu=nu, lognu.m=-1.2, lognu.s=1, d=d, rho.upper=15, nu.upper=10,
                               gamma=gamma.t, res=res, taug=taug, prec=prec,
                               cor=cor, logdet.prec=logdet.prec, cur.rss=cur.rss,
                               att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
@@ -1175,7 +1195,7 @@ for (i in 1:nreps) {
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -1219,6 +1239,7 @@ par(mfrow=c(1, 3))
 for (i in 1:nreps) {
   rhonu.update <- updateRhoNu(rho=rho, logrho.m=0, logrho.s=10, fixnu=FALSE,
                               nu=nu, lognu.m=-1.2, lognu.s=1, d=d,
+                              rho.upper=15, nu.upper=10,
                               gamma=gamma, res=res, taug=taug, prec=prec,
                               cor=cor, logdet.prec=logdet.prec, cur.rss=cur.rss,
                               att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
@@ -1234,7 +1255,7 @@ for (i in 1:nreps) {
   att.nu      <- rhonu.update$att.nu
   acc.nu      <- rhonu.update$acc.nu
 
-  gamma.update <- updateGamma(gamma=gamma, gamma.m=0, gamma.s=1,
+  gamma.update <- updateGamma(gamma=gamma, gamma.m=0, gamma.s=1, 
                               d=d, rho=rho, nu=nu, taug=taug, res=res,
                               prec=prec, cor=cor, logdet.prec=logdet.prec,
                               cur.rss=cur.rss, att=att.gamma, acc=acc.gamma,
@@ -1284,7 +1305,7 @@ for (i in 1:nreps) {
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -1334,6 +1355,7 @@ for (i in 1:nreps) {
   cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
   rhonu.update <- updateRhoNu(rho=rho, logrho.m=0, logrho.s=10, fixnu=FALSE,
                               nu=nu, lognu.m=-1.2, lognu.s=1, d=d,
+                              rho.upper=15, nu.upper=10,
                               gamma=gamma, res=res, taug=taug, prec=prec,
                               cor=cor, logdet.prec=logdet.prec, cur.rss=cur.rss,
                               att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
@@ -1437,7 +1459,7 @@ for (i in 1:nknots) {
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -1448,32 +1470,30 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 nreps <- 6000
 nparts.tau <- matrix(NA, nknots, nt)
-zg <- g <- matrix(NA, ns, nt)
+g <- zg <- matrix(NA, ns, nt)
 for (t in 1:nt) {
   g[, t] <- mem(s, data$knots[, , t])
-  zg[, t]    <- data$z[g[, t], t]
+  zg[, t] <- data$z[g[, t], t]
 }
-
 x.beta   <- matrix(10, ns, nt)
-mu <- x.beta + lambda.1.t * zg
-res <- data$y - mu
 
+# storage
 tau.keep <- array(NA, dim=c(nreps, nknots, nt))
-tau <- matrix(tau.alpha.t / tau.beta.t, nknots, nt)
-taug <- matrix(NA, ns, nt)
-for (t in 1:nt) {
-  taug[, t] <- tau[g[, t], t]
-}
-nparts.tau <- matrix(0, nknots, nt)
-att.tau.ns <- acc.tau.ns <- mh.tau.ns <- rep(1, ns)
-att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
+
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+
+# initialize testing variables
+tau <- matrix(0.375, nrow=nknots, ncol=nt)
+taug <- matrix(0.375, nrow=ns, ncol=nt)
+res <- data$y - x.beta - lambda.1.t * zg
+
 for (i in 1:nreps) {
   tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
                           nparts.tau=nparts.tau, prec=prec.t, z=data$z,
                           lambda.2=lambda.2.t, tau.alpha=tau.alpha.t,
                           tau.beta=tau.beta.t, skew=TRUE,
-                          att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
-                          att.tau=att.tau, acc.tau=acc.tau, mh.tau=mh.tau)
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
   taug <- tau.update$taug
   acc.tau.ns <- tau.update$acc
@@ -1517,7 +1537,7 @@ for (i in 1:nknots) {
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -1528,29 +1548,33 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 nreps <- 6000
 nparts.tau <- matrix(NA, nknots, nt)
-zg <- g <- matrix(NA, ns, nt)
+g <- zg <- matrix(NA, ns, nt)
 for (t in 1:nt) {
   g[, t] <- mem(s, data$knots[, , t])
-  zg[, t]    <- data$z[g[, t], t]
+  zg[, t] <- data$z[g[, t], t]
 }
-
 x.beta   <- matrix(10, ns, nt)
-mu <- x.beta + lambda.1.t * zg
-res <- data$y - mu
 
+# storage
+tau.keep <- array(NA, dim=c(nreps, nknots, nt))
+tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
+rho.keep   <- rep(NA, nreps)
+nu.keep    <- rep(NA, nreps)
+gamma.keep <- rep(NA, nreps)
+
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+att.rho   <- acc.rho   <- mh.rho   <- 0.1
+att.nu    <- acc.nu    <- mh.nu    <- 0.1
+att.gamma <- acc.gamma <- mh.gamma <- 1
+
+# initialize testing variables
 tau.alpha <- tau.alpha.t
 tau.beta  <- tau.beta.t
-tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
-tau.keep <- array(NA, dim=c(nreps, nknots, nt))
-tau <- matrix(tau.alpha.t / tau.beta.t, nknots, nt)
-taug <- matrix(NA, ns, nt)
-for (t in 1:nt) {
-  taug[, t] <- tau[g[, t], t]
-}
-nparts.tau <- matrix(0, nknots, nt)
-att.tau.ns <- acc.tau.ns <- mh.tau.ns <- rep(1, ns)
-att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
-
+tau <- matrix(0.375, nrow=nknots, ncol=nt)
+taug <- matrix(0.375, nrow=ns, ncol=nt) 
+mu <- x.beta + lambda.1.t * zg
+res <- data$y - mu
 gamma <- 0.5
 rho   <- 5
 nu    <- 1
@@ -1562,12 +1586,6 @@ CC <- chol.inv(C, inv=TRUE, logdet=TRUE)
 prec <- CC$prec
 logdet.prec <- CC$logdet.prec
 cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
-att.rho   <- acc.rho   <- mh.rho   <- 0.1
-att.nu    <- acc.nu    <- mh.nu    <- 0.1
-att.gamma <- acc.gamma <- mh.gamma <- 1
-rho.keep   <- rep(NA, nreps)
-nu.keep    <- rep(NA, nreps)
-gamma.keep <- rep(NA, nreps)
 
 for (i in 1:nreps) {
   tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
@@ -1596,6 +1614,7 @@ for (i in 1:nreps) {
   cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
   rhonu.update <- updateRhoNu(rho=rho, logrho.m=0, logrho.s=10, fixnu=FALSE,
                               nu=nu, lognu.m=-1.2, lognu.s=1, d=d,
+                              rho.upper=15, nu.upper=10,
                               gamma=gamma, res=res, taug=taug, prec=prec,
                               cor=cor, logdet.prec=logdet.prec, cur.rss=cur.rss,
                               att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
@@ -1678,14 +1697,186 @@ for (i in 1:nknots) {
   }
 }
 
+# tau.alpha, tau.beta with lambdas
+set.seed(20)
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+lambda <- -5
+lambda.1.t <- sign(lambda)
+lambda.2.t <- 1 / lambda^2
+nknots <- 2
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   dist="t", nknots=nknots, lambda=lambda,
+                   phi.z=0, phi.w=0, phi.tau=0)
+
+nreps <- 6000
+nparts.tau <- matrix(NA, nknots, nt)
+g <- zg <- taug <- matrix(NA, ns, nt)
+for (t in 1:nt) {
+  g[, t] <- mem(s, data$knots[, , t])
+  zg[, t] <- data$z[g[, t], t]
+  taug[, t] <- data$tau[g[, t], t]
+}
+x.beta   <- matrix(10, ns, nt)
+
+# storage
+lambda.1.keep <- rep(NA, nreps)
+lambda.2.keep <- rep(NA, nreps)
+tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
+
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+
+# initialize testing variables
+tau.alpha <- 1
+tau.beta <- 1
+lambda.1 <- 0
+lambda.2 <- 1
+res <- data$y - x.beta - lambda.1 * zg
+
+for (i in 1:nreps) {
+  tau.alpha <- updateTauAlpha(tau=data$tau, tau.beta=tau.beta)
+  tau.alpha.keep[i] <- tau.alpha
+  
+  tau.beta  <- updateTauBeta(tau=data$tau, tau.alpha=tau.alpha,
+                             tau.beta.a=1, tau.beta.b=1)
+  tau.beta.keep[i] <- tau.beta
+  
+  lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=data$y, prec=prec.t,
+                            taug=taug)
+  lambda.1.keep[i] <- lambda.1
+  
+  lambda.2 <- updateLambda2(lambda.a=1, lambda.b=1, z=data$z, tau=data$tau)
+  lambda.2.keep[i] <- lambda.2
+  
+  mu <- x.beta + lambda.1 * zg
+  
+  if (i < 4000) {
+    start <- 1
+  } else {
+    start <- i - 4000
+  }
+  if (i %% 500 == 0) {
+    par(mfrow=c(2, 2))
+    plot(tau.alpha.keep[start:i], type="l")
+    plot(tau.beta.keep[start:i], type="l")
+    plot(lambda.1.keep[start:i], type="l")
+    plot(lambda.2.keep[start:i], type="l", main=lambda.2.t)
+    print(paste("iter", i))
+  }
+}
+
+# Variance terms with lambdas
+set.seed(20)
+source('./mcmc.R', chdir=T)
+source('./auxfunctions.R')
+lambda <- -5
+lambda.1.t <- sign(lambda)
+lambda.2.t <- 1 / lambda^2
+nknots <- 1
+data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   dist="t", nknots=nknots, lambda=lambda,
+                   phi.z=0, phi.w=0, phi.tau=0)
+
+nreps <- 6000
+nparts.tau <- matrix(NA, nknots, nt)
+g <- zg <- matrix(NA, ns, nt)
+for (t in 1:nt) {
+  g[, t] <- mem(s, matrix(data$knots[, , t], 1, 2))
+  zg[, t] <- data$z[g[, t], t]
+}
+x.beta   <- matrix(10, ns, nt)
+
+# storage
+lambda.1.keep <- rep(NA, nreps)
+lambda.2.keep <- rep(NA, nreps)
+tau.keep <- array(NA, dim=c(nreps, nknots, nt))
+tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
+
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+
+# initialize testing variables
+tau.alpha <- 1
+tau.beta <- 1
+tau <- matrix(0.375, nrow=nknots, ncol=nt)
+taug <- matrix(0.375, nrow=ns, ncol=nt)
+lambda.1 <- 0
+lambda.2 <- 1
+res <- data$y - x.beta - lambda.1 * zg
+
+for (i in 1:nreps) {
+  tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
+  tau.alpha.keep[i] <- tau.alpha
+  
+  tau.beta  <- updateTauBeta(tau=tau, tau.alpha=tau.alpha,
+                             tau.beta.a=1, tau.beta.b=1)
+  tau.beta.keep[i] <- tau.beta
+  
+  res <- data$y - mu
+  tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
+                          nparts.tau=nparts.tau, prec=prec.t, z=data$z,
+                          lambda.2=lambda.2, tau.alpha=tau.alpha,
+                          tau.beta=tau.beta, skew=TRUE,
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
+  tau  <- tau.update$tau
+  taug <- tau.update$taug
+  acc.tau <- tau.update$acc
+  att.tau <- tau.update$att
+  tau.keep[i, , ] <- tau
+  
+  lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=data$y, prec=prec.t,
+                            taug=taug)
+  lambda.1.keep[i] <- lambda.1
+  
+  lambda.2 <- updateLambda2(lambda.a=0.1, lambda.b=0.1, z=data$z, tau=tau)
+  lambda.2.keep[i] <- lambda.2
+  
+  mu <- x.beta + lambda.1 * zg
+  
+  if (i < 4000) {
+    start <- 1
+  } else {
+    start <- i - 4000
+  }
+  if (i %% 500 == 0) {
+    par(mfrow=c(2, 5))
+    for (j in 1) {
+      for (k in 1:5) {
+        nparts <- length(which(g[, k * 10] == j))
+        plot(tau.keep[start:i, j, k*10], type="l",
+             main=round(data$tau[j, k*10], 3), xlab=nparts)
+        bounds <- quantile(tau.keep[1:i, j, k*10], probs=c(0.025, 0.975))
+        abline(h=bounds)
+      }
+    }
+    plot(tau.alpha.keep[start:i], type="l")
+    plot(tau.beta.keep[start:i], type="l")
+    plot(lambda.1.keep[start:i], type="l")
+    plot(lambda.2.keep[start:i], type="l", main=lambda.2.t)
+    print(paste("iter", i))
+  }
+}
+
+cover.tau <- 0
+for (i in 1:nknots) {
+  for (j in 1:nt) {
+    this.tau <- data$tau[i, j]
+    bounds <- quantile(tau.keep[5001:6000, i, j], probs=c(0.025, 0.975))
+    cover.tau <- cover.tau + ((this.tau > bounds[1]) & (this.tau < bounds[2])) / (nknots * nt)
+  }
+}
+
 # Variance terms with z
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -0.01
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
-nknots <- 3
+nknots <- 2
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                    dist="t", nknots=nknots, lambda=lambda,
@@ -1697,35 +1888,29 @@ g <- matrix(NA, ns, nt)
 for (t in 1:nt) {
   g[, t] <- mem(s, data$knots[, , t])
 }
-
 x.beta   <- matrix(10, ns, nt)
-z <- matrix(1, nknots, nt)
-zg <- matrix(NA, ns, nt)
-for (t in 1:nt) {
-  zg[, t]    <- data$z[g[, t], t]
-}
 
-lambda.1 <- 1
-lambda.2 <- 0.5
+# storage
+lambda.1.keep <- rep(NA, nreps)
+lambda.2.keep <- rep(NA, nreps)
+tau.keep <- z.keep <- array(NA, dim=c(nreps, nknots, nt))
+tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
+
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+
+# initialize testing variables
+tau.alpha <- 1
+tau.beta <- 1
+tau <- matrix(0.375, nrow=nknots, ncol=nt)
+taug <- matrix(0.375, nrow=ns, ncol=nt)
+lambda.1 <- 0
+lambda.2 <- 1
+z <- matrix(1, nknots, nt)
+zg <- matrix(1, ns, nt)
 mu <- x.beta + lambda.1 * zg
 res <- data$y - mu
 
-tau.alpha <- tau.alpha.t
-tau.beta  <- tau.beta.t
-tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
-
-tau.keep <- array(NA, dim=c(nreps, nknots, nt))
-tau <- matrix(tau.alpha.t / tau.beta.t, nknots, nt)
-taug <- matrix(NA, ns, nt)
-for (t in 1:nt) {
-  taug[, t] <- tau[g[, t], t]
-}
-nparts.tau <- matrix(0, nknots, nt)
-att.tau.ns <- acc.tau.ns <- mh.tau.ns <- rep(1, ns)
-att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
-
-lambda.1.keep <- lambda.2.keep <- rep(NA, nreps)
-z.keep <- array(NA, dim=c(nreps, nknots, nt))
 
 for (i in 1:nreps) {
   tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
@@ -1734,7 +1919,8 @@ for (i in 1:nreps) {
   tau.beta  <- updateTauBeta(tau=tau, tau.alpha=tau.alpha,
                              tau.beta.a=1, tau.beta.b=1)
   tau.beta.keep[i] <- tau.beta
-
+  
+  res <- data$y - mu
   tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
                           nparts.tau=nparts.tau, prec=prec.t, z=z,
                           lambda.2=lambda.2, tau.alpha=tau.alpha,
@@ -1742,10 +1928,8 @@ for (i in 1:nreps) {
                           att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
   taug <- tau.update$taug
-  acc.tau.ns <- tau.update$acc
-  att.tau.ns <- tau.update$att
-  acc.tau <- tau.update$acc.tau
-  att.tau <- tau.update$att.tau
+  acc.tau <- tau.update$acc
+  att.tau <- tau.update$att
   tau.keep[i, , ] <- tau
 
   lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=data$y, prec=prec.t,
@@ -1763,13 +1947,13 @@ for (i in 1:nreps) {
   zg <- z.update$zg
   z.keep[i, , ] <- z
 
-  if (i < 4000) {
+  if (i < 1000) {
     start <- 1
   } else {
-    start <- i - 4000
+    start <- i - 1000
   }
   if (i %% 500 == 0) {
-    par(mfrow=c(nknots, 5))
+    par(mfrow=c(3, 5))
     for (j in 1) {
       for (k in 1:5) {
         nparts <- length(which(g[, k * 10] == j))
@@ -1818,7 +2002,7 @@ for (i in 1:nknots) {
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -1829,32 +2013,38 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 nreps <- 6000
 nparts.tau <- matrix(NA, nknots, nt)
-zg <- g <- matrix(NA, ns, nt)
+g <- matrix(NA, ns, nt)
 for (t in 1:nt) {
   g[, t] <- mem(s, data$knots[, , t])
-  zg[, t]    <- data$z[g[, t], t]
 }
-
 x.beta   <- matrix(10, ns, nt)
-mu <- x.beta + lambda.1.t * zg
-res <- data$y - mu
 
-tau.alpha <- tau.alpha.t
-tau.beta  <- tau.beta.t
+# storage
+lambda.1.keep <- rep(NA, nreps)
+lambda.2.keep <- rep(NA, nreps)
+tau.keep <- z.keep <- array(NA, dim=c(nreps, nknots, nt))
 tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
+rho.keep   <- rep(NA, nreps)
+nu.keep    <- rep(NA, nreps)
+gamma.keep <- rep(NA, nreps)
 
-tau.keep <- array(NA, dim=c(nreps, nknots, nt))
-tau <- matrix(tau.alpha.t / tau.beta.t, nknots, nt)
-taug <- matrix(NA, ns, nt)
-for (t in 1:nt) {
-  taug[, t] <- tau[g[, t], t]
-}
-nparts.tau <- matrix(0, nknots, nt)
-att.tau.ns <- acc.tau.ns <- mh.tau.ns <- rep(1, ns)
-att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+att.rho   <- acc.rho   <- mh.rho   <- 0.1
+att.nu    <- acc.nu    <- mh.nu    <- 0.1
+att.gamma <- acc.gamma <- mh.gamma <- 1
 
-lambda.1.keep <- lambda.2.keep <- rep(NA, nreps)
-z.keep <- array(NA, dim=c(nreps, nknots, nt))
+# initialize testing variables
+tau.alpha <- 1
+tau.beta <- 1
+tau <- matrix(0.375, nrow=nknots, ncol=nt)
+taug <- matrix(0.375, nrow=ns, ncol=nt)
+lambda.1 <- 0
+lambda.2 <- 1
+z <- matrix(1, nknots, nt)
+zg <- matrix(1, ns, nt)
+mu <- x.beta + lambda.1 * zg
+res <- data$y - mu
 
 gamma <- 0.5
 rho   <- 5
@@ -1867,12 +2057,6 @@ CC <- chol.inv(C, inv=TRUE, logdet=TRUE)
 prec <- CC$prec
 logdet.prec <- CC$logdet.prec
 cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
-att.rho   <- acc.rho   <- mh.rho   <- 0.1
-att.nu    <- acc.nu    <- mh.nu    <- 0.1
-att.gamma <- acc.gamma <- mh.gamma <- 1
-rho.keep   <- rep(NA, nreps)
-nu.keep    <- rep(NA, nreps)
-gamma.keep <- rep(NA, nreps)
 
 for (i in 1:nreps) {
   tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
@@ -1881,19 +2065,18 @@ for (i in 1:nreps) {
   tau.beta  <- updateTauBeta(tau=tau, tau.alpha=tau.alpha,
                              tau.beta.a=1, tau.beta.b=1)
   tau.beta.keep[i] <- tau.beta
-
+  
+  mu <- x.beta + lambda.1.t * zg
+  res <- data$y - mu
   tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
                           nparts.tau=nparts.tau, prec=prec, z=z,
                           lambda.2=lambda.2, tau.alpha=tau.alpha,
                           tau.beta=tau.beta, skew=TRUE,
-                          att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
-                          att.tau=att.tau, acc.tau=acc.tau, mh.tau=mh.tau)
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
   taug <- tau.update$taug
-  acc.tau.ns <- tau.update$acc
-  att.tau.ns <- tau.update$att
-  acc.tau <- tau.update$acc.tau
-  att.tau <- tau.update$att.tau
+  acc.tau <- tau.update$acc
+  att.tau <- tau.update$att
   tau.keep[i, , ] <- tau
 
   mu <- x.beta + lambda.1.t * zg
@@ -1902,6 +2085,7 @@ for (i in 1:nreps) {
   rhonu.update <- updateRhoNu(rho=rho, logrho.m=0, logrho.s=10, fixnu=FALSE,
                               nu=nu, lognu.m=-1.2, lognu.s=1, d=d,
                               gamma=gamma, res=res, taug=taug, prec=prec,
+                              rho.upper=15, nu.upper=10,
                               cor=cor, logdet.prec=logdet.prec, cur.rss=cur.rss,
                               att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
                               att.nu=att.nu, acc.nu=acc.nu, mh.nu=mh.nu)
@@ -2022,7 +2206,7 @@ for (i in 1:nknots) {
 set.seed(20)
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- -5
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
@@ -2033,33 +2217,39 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
 
 nreps <- 6000
 nparts.tau <- matrix(NA, nknots, nt)
-zg <- g <- matrix(NA, ns, nt)
+g <- matrix(NA, ns, nt)
 for (t in 1:nt) {
   g[, t] <- mem(s, data$knots[, , t])
-  zg[, t]    <- data$z[g[, t], t]
 }
-
 x.beta   <- matrix(10, ns, nt)
-mu <- x.beta + lambda.1.t * zg
-res <- data$y - mu
 
-tau.alpha <- tau.alpha.t
-tau.beta  <- tau.beta.t
+# storage
+lambda.1.keep <- rep(NA, nreps)
+lambda.2.keep <- rep(NA, nreps)
+tau.keep <- z.keep <- array(NA, dim=c(nreps, nknots, nt))
 tau.alpha.keep <- tau.beta.keep <- rep(NA, nreps)
+rho.keep   <- rep(NA, nreps)
+nu.keep    <- rep(NA, nreps)
+gamma.keep <- rep(NA, nreps)
+beta.keep  <- matrix(NA, nreps, 3)
 
-tau.keep <- array(NA, dim=c(nreps, nknots, nt))
-tau <- matrix(tau.alpha.t / tau.beta.t, nknots, nt)
-taug <- matrix(NA, ns, nt)
-for (t in 1:nt) {
-  taug[, t] <- tau[g[, t], t]
-}
-nparts.tau <- matrix(0, nknots, nt)
-att.tau.ns <- acc.tau.ns <- mh.tau.ns <- rep(1, ns)
-att.tau <- acc.tau <- mh.tau <- matrix(1, nknots, nt)
+# mh stuff
+acc.tau <- att.tau <- mh.tau <- matrix(1, nrow=nknots, ncol=nt)
+att.rho   <- acc.rho   <- mh.rho   <- 0.1
+att.nu    <- acc.nu    <- mh.nu    <- 0.1
+att.gamma <- acc.gamma <- mh.gamma <- 1
 
-lambda.1.keep <- lambda.2.keep <- rep(NA, nreps)
-z.keep <- array(NA, dim=c(nreps, nknots, nt))
-
+# initialize testing variables
+tau.alpha <- 1
+tau.beta <- 1
+tau <- matrix(0.375, nrow=nknots, ncol=nt)
+taug <- matrix(0.375, nrow=ns, ncol=nt)
+lambda.1 <- 0
+lambda.2 <- 1
+z <- matrix(1, nknots, nt)
+zg <- matrix(1, ns, nt)
+mu <- x.beta + lambda.1 * zg
+res <- data$y - mu
 gamma <- 0.5
 rho   <- 5
 nu    <- 1
@@ -2071,14 +2261,7 @@ CC <- chol.inv(C, inv=TRUE, logdet=TRUE)
 prec <- CC$prec
 logdet.prec <- CC$logdet.prec
 cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
-att.rho   <- acc.rho   <- mh.rho   <- 0.1
-att.nu    <- acc.nu    <- mh.nu    <- 0.1
-att.gamma <- acc.gamma <- mh.gamma <- 1
-rho.keep   <- rep(NA, nreps)
-nu.keep    <- rep(NA, nreps)
-gamma.keep <- rep(NA, nreps)
 
-beta.keep  <- matrix(NA, nreps, 3)
 
 for (i in 1:nreps) {
   tau.alpha <- updateTauAlpha(tau=tau, tau.beta=tau.beta)
@@ -2093,14 +2276,11 @@ for (i in 1:nreps) {
                           nparts.tau=nparts.tau, prec=prec, z=z,
                           lambda.2=lambda.2, tau.alpha=tau.alpha,
                           tau.beta=tau.beta, skew=TRUE,
-                          att=att.tau.ns, acc=acc.tau.ns, mh=mh.tau.ns,
-                          att.tau=att.tau, acc.tau=acc.tau, mh.tau=mh.tau)
+                          att=att.tau, acc=acc.tau, mh=mh.tau)
   tau  <- tau.update$tau
   taug <- tau.update$taug
-  acc.tau.ns <- tau.update$acc
-  att.tau.ns <- tau.update$att
-  acc.tau <- tau.update$acc.tau
-  att.tau <- tau.update$att.tau
+  acc.tau <- tau.update$acc
+  att.tau <- tau.update$att
   tau.keep[i, , ] <- tau
 
   mu <- x.beta + lambda.1 * zg
@@ -2108,6 +2288,7 @@ for (i in 1:nreps) {
   cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
   rhonu.update <- updateRhoNu(rho=rho, logrho.m=0, logrho.s=10, fixnu=FALSE,
                               nu=nu, lognu.m=-1.2, lognu.s=1, d=d,
+                              rho.upper=15, nu.upper=10,
                               gamma=gamma, res=res, taug=taug, prec=prec,
                               cor=cor, logdet.prec=logdet.prec, cur.rss=cur.rss,
                               att.rho=att.rho, acc.rho=acc.rho, mh.rho=mh.rho,
@@ -2241,7 +2422,7 @@ for (i in 1:nknots) {
 # Lambda.1, Lambda.2, z, and phi.z
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
-lambda <- 5
+lambda <- 0.01
 lambda.1.t <- sign(lambda)
 lambda.2.t <- 1 / lambda^2
 nknots <- 3
