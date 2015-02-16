@@ -177,8 +177,11 @@ for (j in 1:4) {
 }
 
 
-setting.title <- c("Gaussian", "Symmetric-t (K = 1)", "Symmetric-t (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable", "transform below T")
-methods <- c("Skew-t, K = 1, T = q(0.0)", "Skew-t, K = 1, T = q(0.8)", "Skew-t, K = 5, T = q(0.0)", "Skew-t, K = 5, T = q(0.8)")
+setting.title <- c("Gaussian", "Symmetric-t (K = 1)", "Symmetric-t (K = 5)", 
+                   "Skew-t (K = 1, lambda = 3)", "Skew-t (K = 5, lambda = 3)", 
+                   "Max-stable", "transform below T")
+methods <- c("Skew-t, K = 1, T = q(0.0)", "Skew-t, K = 1, T = q(0.8)", 
+             "Skew-t, K = 5, T = q(0.0)", "Skew-t, K = 5, T = q(0.8)")
 bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
 col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
 pch <- c(22, 22, 22, 22)
@@ -289,7 +292,7 @@ legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
 
 # Panel for paper
 quartz(width=15, height=12)
-par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+par(mfrow=c(2, 4), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in 1:nsettings) {
   if (setting == 6) {
     ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T) + 0.1
@@ -301,17 +304,23 @@ for (setting in 1:nsettings) {
 
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
-       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), ylab="Relative Brier score", xlab="Threshold quantile", cex.lab=2, cex.axis=2, cex.main=2)
+       ylim=c(ymin, ymax), main=paste("Data:", setting.title[setting]), 
+       ylab="Relative Brier score", xlab="Threshold quantile", cex.lab=2, 
+       cex.axis=2, cex.main=2)
 
   for (i in 2:(nmethods - 1)) {
     lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
-    points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i], cex=1.5)
+    points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], 
+           bg=bg[i], cex=1.5)
     abline(h=1, lty=2)
   }
-  if (setting == 6) {
-  	legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.75)
-  }
+#   if (setting == 6) {
+#   	legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.75)
+#   }
 }
+
+plot(1, 1, type='n', axes=F, ylab="", xlab="")
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.75)
 
 dev.print(file="plots/bsplots-mean.pdf", device=pdf)
 dev.off()

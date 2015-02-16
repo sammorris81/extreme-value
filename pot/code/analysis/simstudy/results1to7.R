@@ -27,17 +27,17 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 ngroups <- 10
-done.groups <- c(1:7)
+done.groups <- c(10)
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
 
-for (setting in 3:nsettings) {
+for (setting in 1:nsettings) {
   cat("start setting", setting, "\n")
   # setting <- 2
   filename <- paste("scores", setting, ".RData", sep="")
 
-  source("../../R/auxfunctions.R")	# Included for easy access if we need to change score functions
+  source("../../R/auxfunctions.R")  # Included for easy access if we need to change score functions
 
   # results should include
   #   - coverage for all parameters
@@ -66,7 +66,7 @@ for (setting in 3:nsettings) {
   avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
 
   iters <- 20000; burn <- 10000
-  # load(filename)
+  load(filename)
   for (group in done.groups) {
     # for(setting in 1:nsettings){
       dataset <- paste(setting,"-c-",group,".RData", sep="")
@@ -207,10 +207,10 @@ for (setting in 3:nsettings) {
       # gc()
 
     save(
-  	quant.score, brier.score, beta.0, beta.1, beta.2,
-  	tau.alpha, tau.beta, rho, nu, alpha, z.alpha, avgparts,
-  	probs, thresholds,
-  	file=filename
+    quant.score, brier.score, beta.0, beta.1, beta.2,
+    tau.alpha, tau.beta, rho, nu, alpha, z.alpha, avgparts,
+    probs, thresholds,
+    file=filename
     )
   }
 }
