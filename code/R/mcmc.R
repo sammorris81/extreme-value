@@ -46,9 +46,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=1, lambda.init=0,
+                 z.init=1, lambda.init=NULL,
                  # skew priors
-                 lambda.a=0.01, lambda.b=0.01, skew=T,
+                 lambda.a=0.1, lambda.b=0.1, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
                  # troubleshooting
                  debug=F, fixhyper=F, tau.t, z.t, fixknots=F, knots.init=NULL,
@@ -58,6 +58,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   library(SpatialTools)
   library(fields)
   library(emulator)
+  library(e1071)  # for skewness function to get initial lambda if not set
   start.time <- proc.time()
 
   ##############################################
@@ -217,7 +218,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
 
   if (skew) {
-    lambda <- lambda.init
+    if (is.null(lambda.init)) {
+      lambda <- skewness(y, na.rm=TRUE)
+    } else {
+      lambda <- lambda.init
+    }
     if (lambda == 0) {
       lambda.1 <- 0
       lambda.2 <- 1
