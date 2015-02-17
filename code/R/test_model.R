@@ -384,6 +384,9 @@ brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
+
 # Test 14: Predictions - 5 knots, skew
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
@@ -460,6 +463,9 @@ brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
+
 # Test 15: Predictions - 1 knot, gaussian
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
@@ -535,6 +541,9 @@ brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
+
 # Test 16: Predictions - 1 knot, gaussian
 source('./mcmc.R', chdir=T)
 source('./auxfunctions.R')
@@ -600,6 +609,9 @@ for (i in 1:5) {
   brier.scores.3st[i, ] <- BrierScore(preds=fit.3[[i]]$yp, thresholds=threshs,
                                       validate=data[[i]]$y[101:144, ])
 }
+
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
 
 # one bs and qs for each method
 quant.score <- brier.score <- matrix(NA, nrow=3, ncol=length(probs))
