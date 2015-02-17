@@ -529,7 +529,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
 
     # update skew parameters: lambda and z
-    if (skew & (iter > burn/20)) {
+    if (skew) {
       mu <- x.beta + lambda.1 * zg
       res <- y - mu
       lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=y, prec=prec,
