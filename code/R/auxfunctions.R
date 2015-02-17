@@ -340,6 +340,32 @@ makeZTS <- function(nt, nknots, tau, phi, lambda.2) {
   return(z)
 }
 
+makeZTS1 <- function(nt, nknots, tau, phi) {
+  z.star <- matrix(NA, nrow=nknots, ncol=nt)
+  z.star[, 1] <- rnorm(nknots, 0, 1)
+  for (t in 2:nt) {
+    z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
+  }
+
+  sd <- 1 / sqrt(tau)
+  z  <- hn.invcop(x=z.star, sig=sd)
+
+  return(z)
+}
+
+makeZTS2 <- function(nt, nknots, tau, phi) {
+  z.star <- matrix(NA, nrow=nknots, ncol=nt)
+  z.star[, 1] <- rnorm(nknots, 0, 1)
+  for (t in 2:nt) {
+    z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
+  }
+
+  sd <- 1 / sqrt(tau)
+  z  <- hn.invcop(x=z.star, sig=sd)
+
+  return(z)
+}
+
 rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
                        lambda, tau.alpha, tau.beta, nknots, dist) {
 
@@ -395,6 +421,74 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     }
 
     mu <- x.beta + lambda.1 * zg
+
+    y.t    <- mu + t.chol.C %*% matrix(rnorm(ns, 0, sdg), ns, 1)
+    y[, t] <- y.t
+  }
+
+  results <- list(y=y, tau=tau, z=z, knots=knots)
+}
+
+rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
+                        lambda, tau.alpha, tau.beta, nknots, dist) {
+
+  p <- dim(x)[3]
+  ns <- nrow(s)
+
+  y <- matrix(NA, ns, nt)
+  tau <- matrix(NA, nknots, nt)
+  z <- matrix(NA, nknots, nt)
+  g <- matrix(NA, ns, nt)
+
+  d <- as.matrix(dist(s))
+
+  if (lambda == 0) {
+    skew     <- FALSE
+  } else {
+    skew     <- TRUE
+  }
+
+  C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  chol.C <- chol(C)
+  t.chol.C <- t(chol.C)
+  if (dist == "t") {
+    if (phi.tau != 0) {
+      tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
+                       tau.beta=tau.beta, phi=phi.tau)
+    } else {
+      tau <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
+    }
+  } else if (dist == "gaussian") {
+    tau <- matrix(0.25, nknots, nt)
+  }
+  sd <- 1 / sqrt(tau)
+
+  if (skew) {
+    if (phi.z != 0) {
+      z <- makeZTS1(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
+    } else {
+      z <- abs(matrix(rnorm(nknots * nt, 0, sd), nknots, nt))
+    }
+  } else {
+    z <- matrix(0, nrow=nknots, ncol=nt)
+  }
+
+  knots <- makeKnotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
+
+  for (t in 1:nt) {
+    knots.t <- matrix(knots[, , t], nknots, 2)
+    g       <- mem(s, knots.t)
+    zg.t    <- z[g, t]
+    taug.t  <- sqrt(tau[g, t])
+    sdg     <- 1 / taug.t
+
+    if (p == 1) {
+      x.beta <- x[, t, , drop=F] * beta
+    } else {
+      x.beta <- x[, t, ] %*% beta
+    }
+
+    mu <- x.beta + lambda * zg.t
 
     y.t    <- mu + t.chol.C %*% matrix(rnorm(ns, 0, sdg), ns, 1)
     y[, t] <- y.t

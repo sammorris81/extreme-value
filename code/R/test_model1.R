@@ -7,7 +7,7 @@ library(SpatialTools)
 library(emulator)
 
 # necessary functions
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 
 # data settings
@@ -53,7 +53,7 @@ logdet.prec.t <- CC$logdet.prec
 ################################################################################
 
 # Test 1a: No-skew, 1 knot, no time series
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -68,7 +68,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # RESULTS: PASS
 
 # Test 1b: No-skew, 1 knot, no time series
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -82,7 +82,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
 # Test 2: Skew, 1 knot, no time series
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(20)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -98,7 +98,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # RESULTS: PASS
 
 # Test 3: Non-Skew, 3 knots, no time series
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(20)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -113,18 +113,18 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS
 
-# Test 4: Skew, 3 knots, no time series
-source('./mcmc.R', chdir=T)
+# Test 4a: Skew, 3 knots, no time series
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
-data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+data <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                   dist="t", nknots=3, lambda=5, phi.z=0, phi.w=0, phi.tau=0)
+                   dist="t", nknots=3, lambda=-2, phi.z=0, phi.w=0, phi.tau=0)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
             iterplot=T, iters=7000, burn=5000, update=100, tau.init=0.375,
             thresh.all=0, skew=TRUE, nknots=3, rho.upper=15, nu.upper=10,
-            knots.init=data$knots, fixknots=TRUE,
+            # knots.init=data$knots, fixknots=TRUE,
             min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS: PASS (as long you specify a reasonable bounding box for s)
@@ -136,8 +136,23 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # Can't tell for sure, but it looks like it may be a slight improvement to
 # adjust the MH standard deviation a little less often
 
+# Test 4b: Skew, 3 knots, no time series, thresholding at 0.80
+source('./mcmc1.R', chdir=T)
+source('./auxfunctions.R')
+set.seed(10)
+data <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                   rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                   dist="t", nknots=3, lambda=2, phi.z=0, phi.w=0, phi.tau=0)
+
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
+            iterplot=T, iters=7000, burn=5000, update=100, tau.init=0.375,
+            thresh.all=0.80, skew=FALSE, nknots=3, rho.upper=15, nu.upper=10,
+            # knots.init=data$knots, fixknots=TRUE,
+            min.s=c(0, 0), max.s=c(10, 10),
+            temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+
 # Test 5: Non-skew, 1 knots, time series on tau
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -152,7 +167,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # RESULTS: PASS
 
 # Test 6: Skew, 1 knots, time series on z, no time series on tau
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -160,14 +175,14 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    dist="t", nknots=1, lambda=2, phi.z=0.8, phi.w=0, phi.tau=0)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
-            iterplot=T, iters=7000, burn=5000, update=100,
+            iterplot=T, iters=7000, burn=5000, update=100, lambda.init=0,
             thresh.all=0, skew=TRUE, nknots=1, rho.upper=15, nu.upper=10,
             min.s=c(0, 0), max.s=c(10, 10),
             temporalw=FALSE, temporaltau=FALSE, temporalz=TRUE)
 # RESULTS: PASS
 
 # Test 7: Skew, 1 knots, time series on z and tau
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -183,7 +198,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # RESULTS: PASS
 
 # Test 8: Non-skew, 3 knots, time series on tau and knots
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -199,12 +214,12 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # RESULTS: PASS
 
 # Test 9: Skew, 3 knots, time series on z and knots, no time series on tau
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                   dist="t", nknots=3, lambda=5, phi.z=0.8, phi.w=0.9,
+                   dist="t", nknots=3, lambda=2, phi.z=0.8, phi.w=0.9,
                    phi.tau=0)
 
 fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
@@ -221,7 +236,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # but not exactly right
 
 # Test 10: Skew, 3 knots, time series on z, knots, and tau
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -237,7 +252,7 @@ fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
 # RESULTS: PASS
 
 # Test 11: Predictions
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 
 # storage for predictions
@@ -245,9 +260,9 @@ fit.1 <- fit.2 <- data <- vector("list", length=5)
 for (i in 1:5) {
   set.seed(i)
   data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
-                        rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                        dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
-                        phi.tau=0.8)
+                          rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                          dist="t", nknots=3, lambda=3, phi.z=0.8, phi.w=0.8,
+                          phi.tau=0.8)
 
   s.o <- s[1:100, ]
   x.o <- x[1:100, , ]
@@ -293,7 +308,7 @@ brier.score[1, ] <- apply(brier.scores.ts, 2, mean)
 brier.score[2, ] <- apply(brier.scores.nts, 2, mean)
 
 # Test 12: Skew, 3 knots, time series on z, knots, and tau with thresholding
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 set.seed(10)
 data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
@@ -301,15 +316,14 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    dist="t", nknots=3, lambda=2, phi.z=0, phi.w=0,
                    phi.tau=0)
 
-fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE,
-            iterplot=TRUE, iters=1000, burn=900, update=100,
-            thresh.all=0.80, skew=FALSE, nknots=3, rho.upper=15, nu.upper=10,
-            min.s=c(0, 0), max.s=c(10, 10),
-            temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+fit <- mcmc(y=data$y, s=s, x=x, method="t", thresh.quant=TRUE, iterplot=TRUE,
+            iters=1000, burn=900, update=100, thresh.all=0.80, skew=FALSE,
+            nknots=3, rho.upper=15, nu.upper=10, min.s=c(0, 0), max.s=c(10, 10),
+            nknots=3, temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 # RESULTS:
 
 # Test 13: Predictions - 1 knot, skew
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 
 # storage for predictions
@@ -332,25 +346,25 @@ for (i in 1:5) {
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 13 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 13 - fit.3 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=5, rho.upper=15, nu.upper=10,
+                     rho.upper=15, nu.upper=10,
                      #fixknots=TRUE, knots.init=data[[i]]$knots,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
 
@@ -385,7 +399,7 @@ brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
 # Test 14: Predictions - 5 knots, skew
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 
 # storage for predictions
@@ -408,25 +422,25 @@ for (i in 1:5) {
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 14 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 14 - fit.1 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=5, rho.upper=15, nu.upper=10,
+                     rho.upper=15, nu.upper=10,
                      #fixknots=TRUE, knots.init=data[[i]]$knots,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
 
@@ -461,7 +475,7 @@ brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
 # Test 15: Predictions - 1 knot, gaussian
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 
 # storage for predictions
@@ -484,24 +498,24 @@ for (i in 1:5) {
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 15 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10, lambda.init=0.01,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10, lambda.init=0.01,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 15 - fit.3 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=5, rho.upper=15, nu.upper=10, lambda.init=0.01,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10, lambda.init=0.01,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
 
@@ -536,7 +550,7 @@ brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
 # Test 16: Predictions - 1 knot, gaussian
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 
 # storage for predictions
@@ -559,24 +573,24 @@ for (i in 1:5) {
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="gaussian", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=FALSE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 16 - fit.2 \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=1, rho.upper=15, nu.upper=10,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
   cat("Set", i, "Test 16 - fit.3 \n")
   fit.3[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     nknots=5, rho.upper=15, nu.upper=10,
-                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10),
+                     rho.upper=15, nu.upper=10,
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=5,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
 
@@ -618,7 +632,7 @@ data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                    rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                    dist="t", nknots=1, lambda=0, phi.z=0, phi.w=0, phi.tau=0)
 
-source('./mcmc.R', chdir=T)
+source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
 nreps <- 6000
 mu <- matrix(10, ns, nt)
