@@ -626,7 +626,7 @@ for (i in 1:5) {
   set.seed(i)
   data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                          dist="gaussian", nknots=5, lambda=0, phi.z=0, phi.w=0,
+                          dist="t", nknots=5, lambda=0, phi.z=0, phi.w=0,
                           phi.tau=0)
   
   s.o <- s[1:100, ]
