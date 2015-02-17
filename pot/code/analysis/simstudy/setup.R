@@ -75,10 +75,11 @@ for (setting in 1:nsettings) {
     knots.t.setting <- array(NA, dim=c(nknots, nt, 2, nsets))
     for (set in 1:nsets) {
       set.seed(setting * 100 + set)
-      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
-                       rho=rho.t[setting], dist=dist.t[setting],
-                       lambda=lambda.t[setting], tau.alpha=tau.alpha.t,
-                       tau.beta=tau.beta.t, nknots=nknots.t[setting])
+      data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                         rho=rho.t[setting], phi.z=0, phi.w=0, phi.tau=0,
+                         lambda=lambda.t[setting], tau.alpha=tau.alpha.t,
+                         tau.beta=tau.beta.t, nknots=nknots.t[setting],
+                         dist=dist.t[setting])
 
       y[, , set, setting]        <- data$y
       tau.t.setting[, , set]     <- data$tau
@@ -97,10 +98,11 @@ for (setting in 1:nsettings) {
   } else if (setting == 7) {
     for (set in 1:nsets) {
       set.seed(setting * 100 + set)
-      data <- rpotspat(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
-                       rho=rho.t[4], dist=dist.t[4],
-                       lambda=lambda.t[4], tau.alpha=tau.alpha.t,
-                       tau.beta=tau.beta.t, nknots=nknots.t[4])
+      data <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                         rho=rho.t[4], phi.z=0, phi.w=0, phi.tau=0,
+                         lambda=lambda.t[4], tau.alpha=tau.alpha.t,
+                         tau.beta=tau.beta.t, nknots=nknots.t[4],
+                         dist=dist.t[4])
       y.set   <- data$y
       y.quant <- quantile(y.set, probs=0.80)
       y.set   <- ifelse(
