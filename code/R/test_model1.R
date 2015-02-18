@@ -403,6 +403,10 @@ brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
+
+
 # Test 14: Predictions - 5 knots, t
 source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
@@ -478,6 +482,9 @@ brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
+
 # Test 15: Predictions - 1 knot, skew
 source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
@@ -552,6 +559,10 @@ quant.score[3, ] <- apply(quant.scores.3st, 2, mean)
 brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
+
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
+
 
 # Test 16: Predictions - 5 knots, skew
 source('./mcmc1.R', chdir=T)
@@ -629,6 +640,8 @@ brier.score[1, ] <- apply(brier.scores.gau, 2, mean)
 brier.score[2, ] <- apply(brier.scores.1st, 2, mean)
 brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
+brier.score[2, ] / brier.score[1, ]
+brier.score[3, ] / brier.score[1, ]
 
 
 # Troubleshooting
