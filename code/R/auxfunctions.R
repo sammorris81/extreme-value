@@ -4,19 +4,21 @@
 transform <- list(
   logit = function(x, lower=0, upper=1) {
     x <- (x - lower) / (upper - lower)
-    log(x / (1 - x))
+    return(log(x / (1 - x)))
   },
   inv.logit = function(x, lower=0, upper=1) {
     p <- exp(x) / (1 + exp(x))
     p <- p * (upper - lower) + lower
+    return(p)
   },
   probit = function(x, lower=0, upper=1) {
     x <- (x - lower) / (upper - lower)
-    qnorm(x)
+    return(qnorm(x))
   },
   inv.probit = function(x, lower=0, upper=1) {
     p <- pnorm(x)
     p <- p * (upper - lower) + lower
+    return(p)
   },
   log = function(x) log(x),
   exp = function(x) exp(x),
@@ -161,11 +163,12 @@ CorFx <- function(d, gamma, rho, nu) {
   	cor <- diag(1, nrow=n)
   } else {
     if (nu == 0.5) {
-      cor <- gamma * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho), error.var=0,
-                                   smoothness=nu, finescale.var=0)
+      cor <- gamma * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho),
+                                   error.var=0, smoothness=nu, finescale.var=0)
     } else {
-      cor <- tryCatch(simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho), error.var=0,
-                                    smoothness=nu, finescale.var=0),
+      cor <- tryCatch(simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho),
+                                    error.var=0, smoothness=nu,
+                                    finescale.var=0),
                       warning=function(e) {
                         cat("rho = ", rho, "\n")
                         cat("nu = ", nu, "\n")
