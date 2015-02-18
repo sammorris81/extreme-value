@@ -19,6 +19,7 @@ updateKnotsTS <- function(phi, knots, g, ts, tau, z, s, min.s, max.s, x.beta,
   }
 
   for (t in 1:nt) {
+    att[t] <- att[t] + 1
     taug.t   <- tau[g[, t], t]
     y.t      <- y[, t]
     x.beta.t <- x.beta[, t]
@@ -27,7 +28,6 @@ updateKnotsTS <- function(phi, knots, g, ts, tau, z, s, min.s, max.s, x.beta,
     cur.lly  <- 0.5 * sum(log(taug.t)) -
                 0.5 * quad.form(prec, sqrt(taug.t) * res.t)
 
-    att[, t] <- att[, t] + 1
     can.knots.star <- cur.knots.star <- knots.star[, , t]
     for (k in 1:nknots) {
       can.knots.star[k, ] <- cur.knots.star[k, ] + mh[k, t] * rnorm(2)
@@ -70,7 +70,7 @@ updateKnotsTS <- function(phi, knots, g, ts, tau, z, s, min.s, max.s, x.beta,
     }
 
     if (!is.na(R)) { if (log(runif(1)) < R) {
-      acc[, t] <- acc[, t] + 1
+      acc[t] <- acc[t] + 1
       knots.star[, , t] <- can.knots.star
       knots[, , t] <- can.knots
       g[, t] <- can.g
@@ -220,7 +220,7 @@ updateKnotsTS1 <- function(phi, knots, g, ts, tau, z, s, min.s, max.s, x.beta,
 
     # time series also needs to adjust R to account for next day
     if (ts & (t < nt)) {
-      sd <- sqrt( 1- phi^2)
+      sd <- sqrt(1 - phi^2)
       can.mean <- phi * can.knots.star
       cur.mean <- phi * cur.knots.star
       knots.lag1 <- knots.star[, , (t + 1)]
