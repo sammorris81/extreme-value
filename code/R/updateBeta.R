@@ -14,7 +14,7 @@ updateBeta <- function(beta.m, beta.s, x, y, zg, lambda.1, taug, prec) {
     mmm <- beta.m
   }
 
-  vvv <- diag(p) / beta.s^2
+  vvv <- diag(p) / (beta.s^2)
 
   for (t in 1:nt) {
     taug.t <- sqrt(taug[, t])
@@ -49,10 +49,10 @@ updateBeta1 <- function(beta.m, beta.s, x, y, zg, taug, prec, skew,
 
   if (skew) {
     mmm <- c(mmm, lambda.m)
-    vvv <- diag(p + 1) / beta.s^2
-    vvv[p + 1, p + 1] <- 1 / lambda.s^2
+    vvv <- diag(p + 1) / (beta.s^2)
+    vvv[p + 1, p + 1] <- 1 / (lambda.s^2)
   } else {
-    vvv <- diag(p) / beta.s^2
+    vvv <- diag(p) / (beta.s^2)
   }
 
   for (t in 1:nt) {
