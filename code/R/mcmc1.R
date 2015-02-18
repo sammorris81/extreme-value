@@ -162,7 +162,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize parameters
   if (is.null(beta.init)) {
     beta    <- rep(0, p)
-    # beta[1] <- mean(y)
+    beta[1] <- median(y)
   } else {
     beta <- beta.init
   }
@@ -354,6 +354,11 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update beta
     mu <- x.beta + lambda * zg
     res <- y - mu
+    if (iter < 500) {
+      skewbeta <- FALSE
+    } else {
+      skewbeta <- skew
+    }
     beta.update <- updateBeta1(beta.m=beta.m, beta.s=beta.s, x=x, y=y, zg=zg,
                                taug=taug, prec=prec, skew=skew, lambda=lambda,
                                lambda.m=lambda.m, lambda.s=lambda.s)
@@ -365,6 +370,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
     mu <- x.beta + lambda * zg
     res <- y - mu
+    # if (iter > 500) {
+    #   print(lambda)
+    # }
 
     # update partitions
     if ((nknots > 1) & (!fixknots)) {

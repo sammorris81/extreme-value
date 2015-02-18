@@ -330,9 +330,9 @@ source('./auxfunctions.R')
 fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=5)
 for (i in 1:5) {
   set.seed(i)
-  data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+  data[[i]] <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                          dist="t", nknots=1, lambda=-3, phi.z=0, phi.w=0,
+                          dist="t", nknots=1, lambda=3, phi.z=0, phi.w=0,
                           phi.tau=0)
 
   s.o <- s[1:100, ]
@@ -354,7 +354,8 @@ for (i in 1:5) {
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=10000, update=500, thresh.all=0,
-                     rho.upper=15, nu.upper=10,
+                     rho.upper=15, nu.upper=10, lambda.init=0,
+                     tau.init=0.375,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 
@@ -406,9 +407,9 @@ source('./auxfunctions.R')
 fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=5)
 for (i in 1:5) {
   set.seed(i + 5)
-  data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+  data[[i]] <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
-                          dist="t", nknots=5, lambda=-3, phi.z=0, phi.w=0,
+                          dist="t", nknots=5, lambda=3, phi.z=0, phi.w=0,
                           phi.tau=0)
 
   s.o <- s[1:100, ]
@@ -482,7 +483,7 @@ source('./auxfunctions.R')
 fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=5)
 for (i in 1:5) {
   set.seed(i + 10)
-  data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+  data[[i]] <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                           dist="gaussian", nknots=1, lambda=0, phi.z=0, phi.w=0,
                           phi.tau=0)
@@ -557,7 +558,7 @@ source('./auxfunctions.R')
 fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=5)
 for (i in 1:5) {
   set.seed(i + 15)
-  data[[i]] <- rpotspatTS(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+  data[[i]] <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                           dist="t", nknots=5, lambda=0, phi.z=0, phi.w=0,
                           phi.tau=0)
