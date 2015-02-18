@@ -46,7 +46,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=1, lambda.init=NULL,
+                 z.init=1, lambda.init=0,
                  # skew priors
                  lambda.m=0, lambda.s=20, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
@@ -123,7 +123,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else {
     thresholded <- F
   }
-  # y[thresh.obs] <- thresh.mtx[thresh.obs] / 2
 
   missing.obs <- is.na(y)
   if (sum(missing.obs) > 0) {
@@ -137,10 +136,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (!fixknots) {
     if (is.null(knots.init)) {
       # constrain the initial draw to be near the middle for stability
-      lower.1 <- min.s[1] + (max.s[1] - min.s[1]) / 3
-      upper.1 <- min.s[1] + 2 * (max.s[1] - min.s[1]) / 3
-      lower.2 <- min.s[2] + (max.s[2] - min.s[2]) / 3
-      upper.2 <- min.s[2] + 2 * (max.s[2] - min.s[2]) / 3
+      lower.1 <- min.s[1] + (max.s[1] - min.s[1]) / 6
+      upper.1 <- max.s[1] - (max.s[1] - min.s[1]) / 6
+      lower.2 <- min.s[2] + (max.s[2] - min.s[2]) / 6
+      upper.2 <- max.s[2] - (max.s[2] - min.s[2]) / 6
       knots <- array(NA, dim=c(nknots, 2, nt))
       knots[, 1, ] <- runif(nknots * nt, lower.1, upper.1)
       knots[, 2, ] <- runif(nknots * nt, lower.2, upper.2)
@@ -162,7 +161,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize parameters
   if (is.null(beta.init)) {
     beta    <- rep(0, p)
-    beta[1] <- median(y)
+    beta[1] <- mean(y)
   } else {
     beta <- beta.init
   }
@@ -257,8 +256,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # simple.cov.sp only needs to be updated for rho and nu updates
   cor <- simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho),
                        error.var=0, smoothness=nu, finescale.var=0)
-  C <- gamma * cor
-  diag(C) <- 1
+  C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
   CC <- tryCatch(chol.inv(C, inv=T, logdet=T),
                  error = function(e) {
                    eig.inv(C, inv=T, logdet=T, mtx.sqrt=T)
@@ -290,7 +288,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
 
   # MH tuning params
-  acc.w      <- att.w      <- mh.w     <- matrix(0.15, nknots, nt)  # knot locs
+  acc.w      <- att.w      <- mh.w     <- matrix(0.1, nt)  # knot locs
   acc.delta  <- att.delta  <- mh.delta <- 0.1
   acc.rho    <- att.rho    <- mh.rho   <- 1
   acc.nu     <- att.nu     <- mh.nu    <- 0.1
@@ -529,7 +527,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       gamma <- 0.9
     }
 
-    # update skew parameters: lambda and z
+    # update z (skew random effects)
+    # Note: lambda is updated with beta terms
     if (skew) {
       mu <- x.beta + lambda * zg
       res <- y - mu
