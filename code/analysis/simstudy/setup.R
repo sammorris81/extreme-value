@@ -7,8 +7,8 @@
 #   1 - Gaussian
 #   2 - t-1
 #   3 - t-5
-#   4 - skew t-1 (alpha = 3)
-#   5 - skew t-5 w/partition (alpha = 3)
+#   4 - skew t-1 (lambda = 3)
+#   5 - skew t-5 w/partition (lambda = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
