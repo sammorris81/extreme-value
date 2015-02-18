@@ -36,7 +36,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  tau.alpha.init=0.1, tau.beta.init=0.1,
                  rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
-                 beta.m=0, beta.s=10,
+                 beta.m=0, beta.s=20,
                  tau.alpha.m=0, tau.alpha.s=1,
                  tau.beta.a=1, tau.beta.b=1,
                  logrho.m=0, logrho.s=10, rho.upper=NULL,
@@ -48,7 +48,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  # skew inits
                  z.init=1, lambda.init=NULL,
                  # skew priors
-                 lambda.m=0, lambda.s=10, skew=T,
+                 lambda.m=0, lambda.s=20, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
                  # troubleshooting
                  debug=F, fixhyper=F, tau.t, z.t, fixknots=F, knots.init=NULL,
@@ -223,16 +223,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     } else {
       lambda <- lambda.init
     }
-    if (lambda == 0) {
-      lambda.1 <- 0
-      lambda.2 <- 1
-    } else {
-      lambda.1 <- sign(lambda)
-      lambda.2 <- 1 / (lambda)^2
-    }
   } else {
-    lambda <- lambda.1 <- 0
-    lambda.2 <- 0
+    lambda <- 0
   }
 
   # easier to keep calculations in the precision scale for MCMC
@@ -354,11 +346,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     # update beta
     mu <- x.beta + lambda * zg
     res <- y - mu
-    if (iter < 500) {
-      skewbeta <- FALSE
-    } else {
-      skewbeta <- skew
-    }
     beta.update <- updateBeta1(beta.m=beta.m, beta.s=beta.s, x=x, y=y, zg=zg,
                                taug=taug, prec=prec, skew=skew, lambda=lambda,
                                lambda.m=lambda.m, lambda.s=lambda.s)
@@ -370,9 +357,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     }
     mu <- x.beta + lambda * zg
     res <- y - mu
-    # if (iter > 500) {
-    #   print(lambda)
-    # }
 
     # update partitions
     if ((nknots > 1) & (!fixknots)) {
