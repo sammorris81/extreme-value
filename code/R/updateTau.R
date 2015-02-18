@@ -1,11 +1,11 @@
 updateTauGaus <- function(res, prec, tau.alpha, tau.beta) {
   ns <- nrow(res)
   nt <- ncol(res)
-
   this.rss <- sum(rss(prec=prec, y=res))
-  aaa <- tau.alpha + 0.5 * ns * nt
-  bbb <- tau.beta + 0.5 * this.rss
-  tau <- rgamma(1, aaa, bbb)
+
+  aaa  <- tau.alpha + 0.5 * ns * nt
+  bbb  <- tau.beta + 0.5 * this.rss
+  tau  <- rgamma(1, aaa, bbb)
 
   return(tau)
 }
@@ -178,7 +178,7 @@ updateTau1 <- function(tau, taug, g, res, nparts.tau, prec, z,
           tau[k, t] <- rgamma(1, aaa, bbb)
           taug[, t] <- tau[k, t]
 
-        } else {  # nparts > 0
+        } else {  # 0 < nparts < ns
           taug.t    <- sqrt(taug[, t])
           att[k, t] <- att[k, t] + 1
 
@@ -206,10 +206,8 @@ updateTau1 <- function(tau, taug, g, res, nparts.tau, prec, z,
                      0.5 * quad.form(prec, sqrt(can.taug) * res[, t])
 
           if (skew) {
-            cur.llz <- 0.5 * log(tau[k, t]) -
-                       0.5 * tau[k, t] * z[k, t]^2
-            can.llz <- 0.5 * log(can.tau[k]) -
-                       0.5 * can.tau[k] * z[k, t]^2
+            cur.llz <- 0.5 * log(tau[k, t]) - 0.5 * tau[k, t] * z[k, t]^2
+            can.llz <- 0.5 * log(can.tau[k]) - 0.5 * can.tau[k] * z[k, t]^2
           } else {
             cur.llz <- can.llz <- 0
           }
