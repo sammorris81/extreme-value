@@ -643,6 +643,137 @@ brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 brier.score[2, ] / brier.score[1, ]
 brier.score[3, ] / brier.score[1, ]
 
+# Test 17: Lambda parameterization - symmetric
+source('./mcmc1.R', chdir=T)
+source('./auxfunctions.R')
+
+# storage for predictions
+fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=3)
+for (i in 1:3) {
+  set.seed(i + 5)
+  data[[i]] <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                           dist="t", nknots=1, lambda=0,
+                           phi.z=0, phi.w=0, phi.tau=0)
+  
+  s.o <- s[1:100, ]
+  x.o <- x[1:100, , ]
+  y.o <- data[[i]]$y[1:100, ]
+  s.p <- s[101:144, ]
+  x.p <- x[101:144, , ]
+  y.p <- data[[i]]$y[101:144, ]
+  
+  source('./mcmc.R', chdir=T)
+  cat("Set", i, "Test 17 - with lambda1, lambda2 \n")
+  fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="t", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=12000, update=500, thresh.all=0,
+                     rho.upper=15, nu.upper=10, 
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+  
+  source('./mcmc1.R', chdir=T)
+  cat("Set", i, "Test 17 - with lambda \n")
+  fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="t", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=12000, update=500, thresh.all=0,
+                     rho.upper=15, nu.upper=10, 
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+}
+
+# come up with quantile and brier scores
+probs <- seq(0.90, 0.99, by=0.01)
+quant.scores.1 <- brier.scores.1 <- matrix(NA, nrow=3, ncol=length(probs))
+quant.scores.2 <- brier.scores.2 <- matrix(NA, nrow=3, ncol=length(probs))
+
+for (i in 1:3) {
+  threshs <- quantile(data[[i]]$y, probs=probs)
+  quant.scores.1[i, ] <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.2[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.1[i, ] <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+  brier.scores.2[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+                                      validate=data[[i]]$y[101:144, ])
+}
+
+# one bs and qs for each method
+quant.score <- brier.score <- matrix(NA, nrow=2, ncol=length(probs))
+quant.score[1, ] <- apply(quant.scores.1, 2, mean)
+quant.score[2, ] <- apply(quant.scores.2, 2, mean)
+brier.score[1, ] <- apply(brier.scores.1, 2, mean)
+brier.score[2, ] <- apply(brier.scores.2, 2, mean)
+
+round(brier.score[2, ] / brier.score[1, ], 3)
+# [1] 1.000 1.000 1.000 1.000 1.000 1.000 1.001 1.002 0.998 0.997
+
+# Test 18: Lambda parameterization - skew
+source('./mcmc1.R', chdir=T)
+source('./auxfunctions.R')
+
+# storage for predictions
+fit.1 <- fit.2 <- fit.3 <- data <- vector("list", length=3)
+for (i in 1:3) {
+  set.seed(i + 5)
+  data[[i]] <- rpotspatTS1(nt=nt, x=x, s=s, beta=beta.t, gamma=gamma.t, nu=nu.t,
+                           rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
+                           dist="t", nknots=1, lambda=3,
+                           phi.z=0, phi.w=0, phi.tau=0)
+  
+  s.o <- s[1:100, ]
+  x.o <- x[1:100, , ]
+  y.o <- data[[i]]$y[1:100, ]
+  s.p <- s[101:144, ]
+  x.p <- x[101:144, , ]
+  y.p <- data[[i]]$y[101:144, ]
+  
+  source('./mcmc.R', chdir=T)
+  cat("Set", i, "Test 18 - with lambda1, lambda2 \n")
+  fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="t", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=12000, update=500, thresh.all=0,
+                     rho.upper=15, nu.upper=10, 
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+  
+  source('./mcmc1.R', chdir=T)
+  cat("Set", i, "Test 18 - with lambda \n")
+  fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
+                     method="t", thresh.quant=TRUE, iterplot=T,
+                     iters=15000, burn=12000, update=500, thresh.all=0,
+                     rho.upper=15, nu.upper=10, 
+                     skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
+                     temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
+}
+
+# come up with quantile and brier scores
+probs <- seq(0.90, 0.99, by=0.01)
+quant.scores.1 <- brier.scores.1 <- matrix(NA, nrow=3, ncol=length(probs))
+quant.scores.2 <- brier.scores.2 <- matrix(NA, nrow=3, ncol=length(probs))
+
+for (i in 1:3) {
+  threshs <- quantile(data[[i]]$y, probs=probs)
+  quant.scores.1[i, ] <- QuantScore(preds=fit.1[[i]]$yp, probs=probs,
+                                      validate=data[[i]]$y[101:144, ])
+  quant.scores.2[i, ] <- QuantScore(preds=fit.2[[i]]$yp, probs=probs,
+                                    validate=data[[i]]$y[101:144, ])
+  brier.scores.1[i, ] <- BrierScore(preds=fit.1[[i]]$yp, thresholds=threshs,
+                                    validate=data[[i]]$y[101:144, ])
+  brier.scores.2[i, ] <- BrierScore(preds=fit.2[[i]]$yp, thresholds=threshs,
+                                    validate=data[[i]]$y[101:144, ])
+}
+
+# one bs and qs for each method
+quant.score <- brier.score <- matrix(NA, nrow=2, ncol=length(probs))
+quant.score[1, ] <- apply(quant.scores.1, 2, mean)
+quant.score[2, ] <- apply(quant.scores.2, 2, mean)
+brier.score[1, ] <- apply(brier.scores.1, 2, mean)
+brier.score[2, ] <- apply(brier.scores.2, 2, mean)
+
+round(brier.score[2, ] / brier.score[1, ], 3)
+# [1] 1.000 1.001 1.005 1.006 1.002 1.005 1.000 1.000 0.994 0.997
 
 # Troubleshooting
 # Test 1 - Debugging covariance parameters
