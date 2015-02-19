@@ -405,7 +405,10 @@ brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 
 brier.score[2, ] / brier.score[1, ]
 brier.score[3, ] / brier.score[1, ]
-
+# > brier.score[2, ] / brier.score[1, ]
+# [1] 1.001080 1.000795 1.001512 1.001759 1.002206 1.002486 1.003202 1.003027 1.004381 1.002580
+# > brier.score[3, ] / brier.score[1, ]
+# [1] 1.000468 1.000461 1.000692 1.001471 1.001800 1.002340 1.002516 1.002290 1.004551 1.001741
 
 # Test 14: Predictions - 5 knots, t
 source('./mcmc1.R', chdir=T)
@@ -485,6 +488,13 @@ brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 brier.score[2, ] / brier.score[1, ]
 brier.score[3, ] / brier.score[1, ]
 
+# > brier.score[2, ] / brier.score[1, ]
+# [1] 0.9965478 0.9981022 0.9975954 0.9979574 0.9975774 0.9993015 0.9983307 0.9981293 0.9957973
+# [10] 0.9894997
+# > brier.score[3, ] / brier.score[1, ]
+# [1] 0.9784360 0.9803406 0.9796191 0.9815996 0.9821391 0.9857233 0.9868824 0.9900264 0.9883621
+# [10] 0.9786191
+
 # Test 15: Predictions - 1 knot, skew
 source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
@@ -563,6 +573,12 @@ brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 brier.score[2, ] / brier.score[1, ]
 brier.score[3, ] / brier.score[1, ]
 
+# > brier.score[2, ] / brier.score[1, ]
+# [1] 0.9811451 0.9843242 0.9881765 0.9880915 0.9852510 0.9753128 0.9785200 0.9546310 0.9499911
+# [10] 0.9351125
+# > brier.score[3, ] / brier.score[1, ]
+# [1] 0.9995715 1.0028595 1.0053746 1.0032116 1.0070147 1.0037045 1.0043071 0.9689299 0.9705613
+# [10] 0.9458941
 
 # Test 16: Predictions - 5 knots, skew
 source('./mcmc1.R', chdir=T)
@@ -643,6 +659,13 @@ brier.score[3, ] <- apply(brier.scores.3st, 2, mean)
 brier.score[2, ] / brier.score[1, ]
 brier.score[3, ] / brier.score[1, ]
 
+# > brier.score[2, ] / brier.score[1, ]
+# [1] 0.9970212 0.9970451 1.0018909 1.0012535 0.9964686 0.9878235 0.9822214 0.9741460 0.9800224
+# [10] 0.9359178
+# > brier.score[3, ] / brier.score[1, ]
+# [1] 0.9234367 0.9217260 0.9183544 0.9100464 0.9044424 0.8823678 0.8784970 0.8801734 0.8787496
+# [10] 0.9087017
+
 # Test 17: Lambda parameterization - symmetric
 source('./mcmc1.R', chdir=T)
 source('./auxfunctions.R')
@@ -655,29 +678,29 @@ for (i in 1:3) {
                            rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                            dist="t", nknots=1, lambda=0,
                            phi.z=0, phi.w=0, phi.tau=0)
-  
+
   s.o <- s[1:100, ]
   x.o <- x[1:100, , ]
   y.o <- data[[i]]$y[1:100, ]
   s.p <- s[101:144, ]
   x.p <- x[101:144, , ]
   y.p <- data[[i]]$y[101:144, ]
-  
+
   source('./mcmc.R', chdir=T)
   cat("Set", i, "Test 17 - with lambda1, lambda2 \n")
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=12000, update=500, thresh.all=0,
-                     rho.upper=15, nu.upper=10, 
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
-  
+
   source('./mcmc1.R', chdir=T)
   cat("Set", i, "Test 17 - with lambda \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=12000, update=500, thresh.all=0,
-                     rho.upper=15, nu.upper=10, 
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
@@ -721,29 +744,29 @@ for (i in 1:3) {
                            rho=rho.t, tau.alpha=tau.alpha.t, tau.beta=tau.beta.t,
                            dist="t", nknots=1, lambda=3,
                            phi.z=0, phi.w=0, phi.tau=0)
-  
+
   s.o <- s[1:100, ]
   x.o <- x[1:100, , ]
   y.o <- data[[i]]$y[1:100, ]
   s.p <- s[101:144, ]
   x.p <- x[101:144, , ]
   y.p <- data[[i]]$y[101:144, ]
-  
+
   source('./mcmc.R', chdir=T)
   cat("Set", i, "Test 18 - with lambda1, lambda2 \n")
   fit.1[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=12000, update=500, thresh.all=0,
-                     rho.upper=15, nu.upper=10, 
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
-  
+
   source('./mcmc1.R', chdir=T)
   cat("Set", i, "Test 18 - with lambda \n")
   fit.2[[i]] <- mcmc(y=y.o, s=s.o, x=x.o, x.pred=x.p, s.pred=s.p,
                      method="t", thresh.quant=TRUE, iterplot=T,
                      iters=15000, burn=12000, update=500, thresh.all=0,
-                     rho.upper=15, nu.upper=10, 
+                     rho.upper=15, nu.upper=10,
                      skew=TRUE, min.s=c(0, 0), max.s=c(10, 10), nknots=1,
                      temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE)
 }
@@ -774,6 +797,7 @@ brier.score[2, ] <- apply(brier.scores.2, 2, mean)
 
 round(brier.score[2, ] / brier.score[1, ], 3)
 # [1] 1.000 1.001 1.005 1.006 1.002 1.005 1.000 1.000 0.994 0.997
+
 
 # Troubleshooting
 # Test 1 - Debugging covariance parameters
