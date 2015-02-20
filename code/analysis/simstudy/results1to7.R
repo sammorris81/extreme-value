@@ -27,7 +27,7 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 ngroups <- 10
-done.groups <- c(10)
+done.groups <- c(1:9)
 nsettings <- dim(y)[4]
 nmethods <- 5
 obs <- c(rep(T, 100), rep(F, 44))
@@ -66,7 +66,7 @@ for (setting in 1:nsettings) {
   avgparts <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
 
   iters <- 20000; burn <- 10000
-  load(filename)
+  # load(filename)
   for (group in done.groups) {
     # for(setting in 1:nsettings){
       dataset <- paste(setting,"-c-",group,".RData", sep="")
