@@ -38,7 +38,6 @@ for (i in 1:74) {
       pred.d <- fit.d$yp[, , ]
       quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
       brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
-    }
       if (i != 2) {
         beta.0[, d, i] <- fit.d$beta[, 1]
         beta.1[, d, i] <- fit.d$beta[, 2]
@@ -67,14 +66,14 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-quant.score.mean <- matrix(NA, 50, length(probs))
-brier.score.mean <- matrix(NA, 50, length(thresholds))
+quant.score.mean <- matrix(NA, 74, length(probs))
+brier.score.mean <- matrix(NA, 74, length(thresholds))
 
-quant.score.se <- matrix(NA, 50, length(probs))
-brier.score.se <- matrix(NA, 50, length(thresholds))
+quant.score.se <- matrix(NA, 74, length(probs))
+brier.score.se <- matrix(NA, 74, length(thresholds))
 
-done <- c(1:50)
-for (i in 1:50) {
+done <- c(1:5, 7:9, 11:13, 15:17, 33:36, 38:41, 43:46, 51:74)
+for (i in 1:74) {
   if (i %in% done) {
     quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean, na.rm=T)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
