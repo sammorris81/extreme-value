@@ -18,7 +18,7 @@ phi.w <- array(NA, dim=c(5000, nsets, 24))
 phi.tau <- array(NA, dim=c(5000, nsets, 24))
 
 load("us-all-results.RData")
-done <- 26
+done <- c(1:5, 7:9, 11:13, 15:17, 33:36, 38:41, 43:46, 51:74)
 quant.score <- savelist[[1]]
 brier.score <- savelist[[2]]
 beta.0 <- savelist[[3]]
@@ -26,7 +26,7 @@ beta.1 <- savelist[[4]]
 probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
-for (i in 1:50) {
+for (i in 1:74) {
   file <- paste("us-all-", i, ".RData", sep="")
   cat("start file", file, "\n")
   if (i %in% done) {
