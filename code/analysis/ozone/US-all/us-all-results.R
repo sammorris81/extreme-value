@@ -7,17 +7,17 @@ thresholds <- quantile(Y, probs=probs, na.rm=T)
 nsets <- 2 # Number of cv sets
 nbetas <- 2 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 50))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 50))
+quant.score <- array(NA, dim=c(length(probs), nsets, 74))
+brier.score <- array(NA, dim=c(length(thresholds), nsets, 74))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 50))
-beta.1 <- array(NA, dim=c(5000, nsets, 50))
+beta.0 <- array(NA, dim=c(5000, nsets, 74))
+beta.1 <- array(NA, dim=c(5000, nsets, 74))
 
-phi.z <- array(NA, dim=c(5000, nsets, 24))
-phi.w <- array(NA, dim=c(5000, nsets, 24))
-phi.tau <- array(NA, dim=c(5000, nsets, 24))
+phi.z <- array(NA, dim=c(5000, nsets, 74))
+phi.w <- array(NA, dim=c(5000, nsets, 74))
+phi.tau <- array(NA, dim=c(5000, nsets, 74))
 
-load("us-all-results.RData")
+# load("us-all-results.RData")
 done <- c(1:5, 7:9, 11:13, 15:17, 33:36, 38:41, 43:46, 51:74)
 quant.score <- savelist[[1]]
 brier.score <- savelist[[2]]
@@ -36,14 +36,10 @@ for (i in 1:74) {
       val.idx <- cv.lst[[d]]
       validate <- Y[val.idx, ]
       pred.d <- fit.d$yp[, , ]
-      if (i == 26 && d == 1) {
-        validate <- t(validate)
-        pred.d <- fit.d$yp[(25001:30000), , ]
-
       quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
       brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
     }
-      if (i != 26) {
+      if (i != 2) {
         beta.0[, d, i] <- fit.d$beta[, 1]
         beta.1[, d, i] <- fit.d$beta[, 2]
       }
