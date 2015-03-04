@@ -8,13 +8,17 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 1
-method <- "gaussian"
-nknots <- 1
-keep.knots <- F
-threshold <- 0
-thresh.quant <- F
-skew <- F
+setting <- 8
+method <- "t"
+nknots <- 5
+keep.knots <- FALSE
+threshold <- 50
+tau.init <- 0.05
+thresh.quant <- FALSE
+skew <- TRUE
+temporalw <- F
+temporalz <- F
+temporaltau <- F
 outputfile <- paste("us-all-full-", setting, ".RData", sep="")
 
 start <- proc.time()
@@ -32,7 +36,7 @@ start <- proc.time()
 # observed <- c(sample(which(NE), nNE), sample(which(NW), nNW),
 #                 sample(which(SE), nSE), sample(which(SW), nSW))
 
-set.seed(setting*100)
+# set.seed(setting*100)
 
 # y.o <- Y[observed, ]
 # X.o <- X[observed, , ]
@@ -75,7 +79,7 @@ S.o <- S
 # quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
 # lines(borders/1000)
 
-# center and scale CMAQ data
+# # center and scale CMAQ data
 # cmaq.p <- (cmaq.p - mean(cmaq.p)) / sd(cmaq.p)
 
 # # reshape CMAQ to have the correct form for the mcmc function
@@ -88,7 +92,7 @@ tic.set <- proc.time()
 fit <- mcmc(y=y.o, s=S.o, x=X.o, # x.pred=X.p, s.pred=S.p,
             method=method, skew=skew, keep.knots=keep.knots,
             thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-            iters=30000, burn=25000, update=500, iterplot=F, keep.knots=TRUE,
+            iters=30000, burn=25000, update=500, iterplot=F, knots.keep=TRUE,
             beta.init=beta.init, tau.init=tau.init, rho.init=1,
             nu.init=0.5, gamma.init=0.5)
 toc.set <- proc.time()

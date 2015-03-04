@@ -8,13 +8,17 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 1
-method <- "gaussian"
-nknots <- 1
-keep.knots <- F
-threshold <- 0
-thresh.quant <- F
-skew <- F
+setting <- 71
+method <- "t"
+nknots <- 10
+keep.knots <- FALSE
+threshold <- 75
+tau.init <- 0.05
+thresh.quant <- FALSE
+skew <- FALSE
+temporalw <- F
+temporalz <- F
+temporaltau <- F
 outputfile <- paste("us-all-full-", setting, ".RData", sep="")
 
 start <- proc.time()
@@ -32,7 +36,7 @@ start <- proc.time()
 # observed <- c(sample(which(NE), nNE), sample(which(NW), nNW),
 #                 sample(which(SE), nSE), sample(which(SW), nSW))
 
-set.seed(setting*100)
+# set.seed(setting*100)
 
 # y.o <- Y[observed, ]
 # X.o <- X[observed, , ]
@@ -40,6 +44,7 @@ set.seed(setting*100)
 y.o <- Y
 X.o <- X
 S.o <- S
+
 
 # # select every third CMAQ value
 # S.p <- expand.grid(x, y)
@@ -49,14 +54,14 @@ S.o <- S
 # nx <- length(unique(S.p[, 1]))
 # ny <- length(unique(S.p[, 2]))
 
-# # check the plot against the full
-# zlim=c(0, 122)
-# quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
-# lines(borders/1000)
+# # # check the plot against the full
+# # zlim=c(0, 122)
+# # quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
+# # lines(borders/1000)
 
-#### Thin the rows and columns by 3
-# First, figure out what the x and y values are for the rows
-# and columns we should keep
+# #### Thin the rows and columns by 3
+# # First, figure out what the x and y values are for the rows
+# # and columns we should keep
 # unique.x <- unique(S.p[, 1])
 # keep.x <- unique.x[seq(1, length(unique.x), by=10)]
 # nx <- length(keep.x)
@@ -69,13 +74,13 @@ S.o <- S
 # cmaq.p <- cmaq.p[keep.these, ]
 # S.p    <- S.p[keep.these, ]
 
-# # check the plot against the full
-# dev.new()
-# zlim=c(0, 122)
-# quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
-# lines(borders/1000)
+# # # check the plot against the full
+# # dev.new()
+# # zlim=c(0, 122)
+# # quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(CMAQ.p[, 5]), zlim=zlim, nx=nx, ny=ny)
+# # lines(borders/1000)
 
-# center and scale CMAQ data
+# # center and scale CMAQ data
 # cmaq.p <- (cmaq.p - mean(cmaq.p)) / sd(cmaq.p)
 
 # # reshape CMAQ to have the correct form for the mcmc function
