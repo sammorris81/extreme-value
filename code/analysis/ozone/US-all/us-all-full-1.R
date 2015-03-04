@@ -11,10 +11,10 @@ source('../../../R/auxfunctions.R')
 setting <- 1
 method <- "gaussian"
 nknots <- 1
-keep.knots <- F
+keep.knots <- TRUE
 threshold <- 0
-thresh.quant <- F
-skew <- F
+thresh.quant <- FALSE
+skew <- FALSE
 outputfile <- paste("us-all-full-", setting, ".RData", sep="")
 
 start <- proc.time()
@@ -88,7 +88,7 @@ tic.set <- proc.time()
 fit <- mcmc(y=y.o, s=S.o, x=X.o, # x.pred=X.p, s.pred=S.p,
             method=method, skew=skew, keep.knots=keep.knots,
             thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-            iters=30000, burn=25000, update=500, iterplot=F, keep.knots=TRUE,
+            iters=30000, burn=25000, update=500, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=1,
             nu.init=0.5, gamma.init=0.5)
 toc.set <- proc.time()

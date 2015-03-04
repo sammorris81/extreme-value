@@ -11,7 +11,7 @@ source('../../../R/auxfunctions.R')
 setting <- 71
 method <- "t"
 nknots <- 10
-keep.knots <- FALSE
+keep.knots <- TRUE
 threshold <- 75
 tau.init <- 0.05
 thresh.quant <- FALSE
@@ -93,7 +93,7 @@ tic.set <- proc.time()
 fit <- mcmc(y=y.o, s=S.o, x=X.o, # x.pred=X.p, s.pred=S.p,
             method=method, skew=skew, keep.knots=keep.knots,
             thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-            iters=30000, burn=25000, update=500, iterplot=F, keep.knots=TRUE,
+            iters=30000, burn=25000, update=500, iterplot=F,
             beta.init=beta.init, tau.init=tau.init, rho.init=1,
             nu.init=0.5, gamma.init=0.5)
 toc.set <- proc.time()
