@@ -26,11 +26,11 @@ source('predictY.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  min.s, max.s,  # don't want to specify defaults
-                 thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
+                 thresh.all=0, thresh.quant=T, nknots=1, keep.knots=FALSE,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
                  # just to debug temporal parts. eventually change to temporal=F
-                 temporalw=F, temporaltau=F, temporalz=F,
+                 temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
                  # initial values
                  beta.init=NULL, tau.init=1,
                  tau.alpha.init=0.1, tau.beta.init=0.1,
