@@ -8,14 +8,14 @@ load('us-all-setup.RData')
 source('../../../R/mcmc.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
-setting <- 33
+setting <- 59
 method <- "t"
 nknots <- 6
-keep.knots <- F
-threshold <- 0
+keep.knots <- FALSE
+threshold <- 75
 tau.init <- 0.05
-thresh.quant <- F
-skew <- T
+thresh.quant <- FALSE
+skew <- FALSE
 temporalw <- F
 temporalz <- F
 temporaltau <- F
