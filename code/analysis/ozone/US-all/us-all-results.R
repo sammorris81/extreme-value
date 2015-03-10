@@ -141,13 +141,19 @@ col <- c("firebrick4", "firebrick4", "firebrick4",
          "dodgerblue4", "dodgerblue4", "dodgerblue4")
 pch <- c(21, 22, 23, 21, 22, 23)
 lty <- c(1, 2, 3, 1, 2, 3)
+legend <- c("T=0, No Time Series", "T=50, No Time Series",
+           "T=75, No Time Series", "T=0, Time Series", "T=50, Time Series",
+           "T=75, Time Series")
 
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.92, 1),
-     bg=bg[1], col=col[1], pch=pch[1])
+     bg=bg[1], col=col[1], pch=pch[1], main="Time series with thresholding",
+     ylab="Relative Brier Score", xlab="Threshold quantile")
 for(i in 2:6) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
         lty=lty[i])
 }
+legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
+       lty=lty, box.lty=1)
 
 # second plot: time series and number of knots (6 lines)
 knots.low.nts  <- c(3, 4, 5) - 1
@@ -172,14 +178,19 @@ col <- c("firebrick4", "firebrick4", "firebrick4",
          "dodgerblue4", "dodgerblue4", "dodgerblue4")
 pch <- c(21, 22, 23, 21, 22, 23)
 lty <- c(1, 2, 3, 1, 2, 3)
-
+legend <- c("K=1, No Time Series", "K=5-10, No Time Series",
+           "K=15, No Time Series", "K=1, Time Series", "K=5-10, Time Series",
+           "K=15, Time Series")
 
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.92, 1),
-     bg=bg[1], col=col[1], pch=pch[1])
+     bg=bg[1], col=col[1], pch=pch[1], main="Time series with knots",
+     ylab="Relative Brier Score", xlab="Threshold quantile")
 for(i in 2:6) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
         lty=lty[i])
 }
+legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
+       lty=lty, box.lty=1)
 
 # third plot: threshold level and number of knots (9 lines)
 knots.low.0   <- c(3, 51) - 1
@@ -211,13 +222,19 @@ col <- c("firebrick4", "firebrick4", "firebrick4",
          "darkolivegreen4", "darkolivegreen4", "darkolivegreen4")
 pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23)
 lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
+legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
+            "K=5-10, T=0", "K=5-10, T=50", "K=5-10, T=75",
+            "K=15, T=0", "K=15, T=50", "K=15, T=75")
 
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.92, 1),
-     bg=bg[1], col=col[1], pch=pch[1])
+     bg=bg[1], col=col[1], pch=pch[1], main="Knots and thresholding",
+     ylab="Relative Brier Score", xlab="Threshold quantile")
 for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
         lty=lty[i])
 }
+legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
+       lty=lty, box.lty=1)
 
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
