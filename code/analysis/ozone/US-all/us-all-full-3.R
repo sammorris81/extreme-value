@@ -90,7 +90,7 @@ S.o <- S
 # }
 
 tic.set <- proc.time()
-fit <- mcmc(y=y.o, s=S.o, x=X.o, x.pred=X.p, s.pred=S.p,
+fit <- mcmc(y=y.o, s=S.o, x=X.o, # x.pred=X.p, s.pred=S.p,
             method=method, skew=skew, keep.knots=keep.knots,
             min.s=c(-2.25, -1.60), max.s=c(2.35, 1.30),
             thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
