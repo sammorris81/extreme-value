@@ -330,7 +330,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (temporaltau) {
     keepers.phi.tau <- rep(NA, iters)
   }
-  return.iters      <- (burn + 1):iters
+  keepers.y    <- array(0, c((iters-burn), ns, nt))
+  return.iters <- (burn + 1):iters
 
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
@@ -611,6 +612,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (predictions & iter > burn) {
     y.pred[(iter - burn), , ] <- yp
   }
+  if (iter > burn) {
+    keepers.y[(iter - burn), , ] <- y
+  }
   if (skew) {
     keepers.lambda.1[iter] <- lambda.1
     keepers.lambda.2[iter] <- lambda.2
@@ -841,6 +845,7 @@ results <- list(tau=keepers.tau[return.iters, , ],
                 rho=keepers.rho[return.iters],
                 nu=keepers.nu[return.iters],
                 gamma=keepers.gamma[return.iters],
+                y=keepers.y,
                 yp=y.pred,
                 lambda=keepers.lambda,
                 z=keepers.z,
