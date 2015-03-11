@@ -12,9 +12,9 @@ g.R <- function(d) {
 library(inline)
 code <- '
   arma::mat d = Rcpp::as<arma::mat>(d_knots);
-  int ns = d.n_rows; int nknots = d.n_cols; 
+  int ns = d.n_rows; int nknots = d.n_cols;
   arma::uword index; double min;
-  arma::rowvec d_temp(nknots);  
+  arma::rowvec d_temp(nknots);
   NumericVector g(ns);
   for (int i = 0; i < ns; i++) {
     d_temp = d.row(i);
@@ -35,7 +35,7 @@ s.temp <- cbind(runif(380, 0, 10), runif(380, 0, 10))
 knots.temp <- cbind(runif(5, 0, 10), runif(5, 0, 10))
 d.temp <- rdist(s.temp, knots.temp)
 g.R(d=d.temp)
-g.Rcpp(d=d.temp)
+g.mem(d=d.temp)
 
-microbenchmark(g.R(d=d.temp), 
+microbenchmark(g.R(d=d.temp),
                g.mem(d=d.temp), times=1000)
