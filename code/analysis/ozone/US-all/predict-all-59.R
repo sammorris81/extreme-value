@@ -48,7 +48,7 @@ for (t in 1:nt) {
 
 # preliminary setup
 nreps     <- dim(fit$tau)[1]
-nreps <- 10
+nknots    <- dim(fit$knots)[2]
 d11       <- rdist(S.p, S.p)
 d22       <- rdist(S.o, S.o)
 diag(d11) <- 0
@@ -72,9 +72,9 @@ for (i in 1:nreps) {
   beta  <- fit$beta[i, ]
   tau   <- fit$tau[i, , ]
   knots <- fit$knots[i, , , ]
-  z     <- fit$z[i, , ]
+  z     <- matrix(0, nknots, nt)  # non-skew
   y     <- fit$y[i, , ]  # want to use imputed y not true y
-  lambda.1 <- sign(fit$lambda[i])
+  lambda.1 <- 0  # non-skew
 
   # precision matrix
   C <- gamma * simple.cov.sp(D=d22, sp.type=cov.model, sp.par=c(1, rho),

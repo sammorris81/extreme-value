@@ -48,7 +48,6 @@ for (t in 1:nt) {
 
 # preliminary setup
 nreps     <- dim(fit$tau)[1]
-nreps <- 10
 d11       <- rdist(S.p, S.p)
 d22       <- rdist(S.o, S.o)
 diag(d11) <- 0
