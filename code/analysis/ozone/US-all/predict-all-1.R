@@ -96,5 +96,9 @@ for (i in 1:nreps) {
                             nu=nu, gamma=gamma, res=res, beta=beta, tau=tau,
                             taug=taug, z=z, prec=prec, lambda.1=lambda.1,
                             s.pred=S.p, x.pred=X.p, knots=knots)
+
+  if (i %% 500 == 0) {
+    print(paste("Iter", i))
+  }
 }
 save(y.pred, file=outputfile)
