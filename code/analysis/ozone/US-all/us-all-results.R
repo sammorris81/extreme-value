@@ -467,168 +467,282 @@ round(brier.score.se[c(10:19),c(6, 9:12)]*1000, 3)
 round(quant.score.mean, 4)
 round(brier.score.mean*1000, 4)
 
-# posterior prediction maps
+
+
+# posterior predictions
 rm(list=ls())
 library(fields)
 library(SpatialTools)
-load('us-all-setup.RData')
-# select every third CMAQ value
+load("../ozone_data.RData")
+
+# preprocessing
+x <- x / 1000
+y <- y / 1000
+
+# get the locations of 
 S.p <- expand.grid(x, y)
-keep.these <- which((S.p[, 1] > -2.3) & (S.p[, 1] < 2.4) & S.p[, 2] > -1.6 & S.p[, 2] < 1.3)
-CMAQ.p <- CMAQ[keep.these, ]
-S.p    <- S.p[keep.these, ]
+keep.these <- (S.p[, 1] > 1.03 & S.p[, 1] < 1.7) &
+  (S.p[, 2] > -0.96 & S.p[, 2] < -0.40)
+S.p     <- S.p[keep.these, ]
 nx <- length(unique(S.p[, 1]))
 ny <- length(unique(S.p[, 2]))
 
-#### Thin the rows and columns by 3
-# First, figure out what the x and y values are for the rows
-# and columns we should keep
-unique.x <- unique(S.p[, 1])
-keep.x <- unique.x[seq(1, length(unique.x), by=10)]
-nx <- length(keep.x)
-unique.y <- unique(S.p[, 2])
-keep.y <- unique.y[seq(1, length(unique(S.p[, 2])), by=10)]
-ny <- length(keep.y)
-keep.these <- which((S.p[, 1] %in% keep.x) & (S.p[, 2] %in% keep.y))
-
-# Now select the subset from the original covariate and location information
-CMAQ.p <- CMAQ.p[keep.these, ]
-S.p    <- S.p[keep.these, ]
-
 # load results
 threshold <- 75
-load('us-all-full-1.RData')
-yp <- fit$yp
+load('us-all-pred-1.RData')
+yp <- y.pred
 np <- dim(yp)[2]
-gaus.95 <- apply(yp, c(2), quantile, probs=0.95)
-gaus.99 <- apply(yp, c(2), quantile, probs=0.99)
-gaus.p.below <- matrix(0, np, nt)
+set.1.95 <- apply(yp, c(2), quantile, probs=0.95)
+set.1.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.1.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
-  gaus.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+  set.1.p.below[i, t] <- mean(yp[, i, t] <= threshold)
 } }
-gaus.p.0 <- rep(0, np)
+set.1.p.0 <- rep(0, np)
 for(i in 1:np) {
-  gaus.p.0[i] <- prod(gaus.p.below[i, ])
+  set.1.p.0[i] <- prod(set.1.p.below[i, ])
 }
-gaus.p.1 <- rep(0, np)
+set.1.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  gaus.p.1[i] <- gaus.p.1[i] + prod(gaus.p.below[i, -t]) * (1 - gaus.p.below[i, t])
+  set.1.p.1[i] <- set.1.p.1[i] + prod(set.1.p.below[i, -t]) * 
+                  (1 - set.1.p.below[i, t])
 } }
-gaus.p.2 <- rep(0, np)
+set.1.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    gaus.p.2[i] <- gaus.p.2[i] + prod(gaus.p.below[i, -c(s,t)]) * prod(1 - gaus.p.below[i, c(s, t)])
+    set.1.p.2[i] <- set.1.p.2[i] + prod(set.1.p.below[i, -c(s,t)]) * 
+                    prod(1 - set.1.p.below[i, c(s, t)])
   }
 }}
-gaus.p.atleast1 <- 1 - gaus.p.0
-gaus.p.atleast2 <- 1 - (gaus.p.0 + gaus.p.1)
-gaus.p.atleast3 <- 1 - (gaus.p.0 + gaus.p.1 + gaus.p.2)
+set.1.p.atleast1 <- 1 - set.1.p.0
+set.1.p.atleast2 <- 1 - (set.1.p.0 + set.1.p.1)
+set.1.p.atleast3 <- 1 - (set.1.p.0 + set.1.p.1 + set.1.p.2)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast1), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast2), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast3), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.95), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.95), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(35, 140))
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(gaus.99), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(35, 140))
 lines(borders/1000)
 
-load('us-all-full-2.RData')
-yp <- fit$yp
+
+# 1 knot - No Time Series - T = 0
+load('us-all-pred-3.RData')
+yp <- y.pred
 np <- dim(yp)[2]
-t1.95 <- apply(yp, c(2), quantile, probs=0.95)
-t1.99 <- apply(yp, c(2), quantile, probs=0.99)
-t1.p.below <- matrix(0, np, nt)
+set.3.95 <- apply(yp, c(2), quantile, probs=0.95)
+set.3.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.3.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
-  t1.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+  set.3.p.below[i, t] <- mean(yp[, i, t] <= threshold)
 } }
-t1.p.0 <- rep(0, np)
+set.3.p.0 <- rep(0, np)
 for(i in 1:np) {
-  t1.p.0[i] <- prod(t1.p.below[i, ])
+  set.3.p.0[i] <- prod(t1.nts.p.below[i, ])
 }
-t1.p.1 <- rep(0, np)
+set.3.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  t1.p.1[i] <- t1.p.1[i] + prod(t1.p.below[i, -t]) * (1 - t1.p.below[i, t])
+  set.3.p.1[i] <- set.3.p.1[i] + prod(set.3.p.below[i, -t]) * 
+                  (1 - set.3.p.below[i, t])
 } }
-t1.p.2 <- rep(0, np)
+set.3.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    t1.p.2[i] <- t1.p.2[i] + prod(t1.p.below[i, -c(s,t)]) * prod(1 - t1.p.below[i, c(s, t)])
+    set.3.p.2[i] <- set.3.p.2[i] + prod(set.3.p.below[i, -c(s,t)]) * 
+                    prod(1 - set.3.p.below[i, c(s, t)])
   }
 }}
-t1.p.atleast1 <- 1 - t1.p.0
-t1.p.atleast2 <- 1 - (t1.p.0 + t1.p.1)
-t1.p.atleast3 <- 1 - (t1.p.0 + t1.p.1 + t1.p.2)
+set.3.p.atleast1 <- 1 - set.3.p.0
+set.3.p.atleast2 <- 1 - (set.3.p.0 + set.3.p.1)
+set.3.p.atleast3 <- 1 - (set.3.p.0 + set.3.p.1 + set.3.p.2)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast1), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast2), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast3), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.95), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.95), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(35, 140))
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t1.99), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(35, 140))
 lines(borders/1000)
 
-
-load('us-all-full-33.RData')
-yp <- fit$yp
+# Skew-t - No Time series - T = 50
+load('us-all-pred-8.RData')
+yp <- y.pred
 np <- dim(yp)[2]
-t6.95 <- apply(yp, c(2), quantile, probs=0.95)
-t6.99 <- apply(yp, c(2), quantile, probs=0.99)
-t6.p.below <- matrix(0, np, nt)
+set.8.95 <- apply(yp, c(2), quantile, probs=0.95)
+set.8.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.8.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
-  t6.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+  set.8.p.below[i, t] <- mean(yp[, i, t] <= threshold)
 } }
-t6.p.0 <- rep(0, np)
+set.8.p.0 <- rep(0, np)
 for(i in 1:np) {
-  t6.p.0[i] <- prod(t6.p.below[i, ])
+  set.8.p.0[i] <- prod(set.8.p.below[i, ])
 }
-t6.p.1 <- rep(0, np)
+set.8.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  t6.p.1[i] <- t6.p.1[i] + prod(t6.p.below[i, -t]) * (1 - t6.p.below[i, t])
+  set.8.p.1[i] <- set.8.p.1[i] + prod(set.8.p.below[i, -t]) * 
+    (1 - set.8.p.below[i, t])
 } }
-t6.p.2 <- rep(0, np)
+set.8.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    t6.p.2[i] <- t6.p.2[i] + prod(t6.p.below[i, -c(s,t)]) * prod(1 - t6.p.below[i, c(s, t)])
+    set.8.p.2[i] <- set.8.p.2[i] + prod(set.8.p.below[i, -c(s,t)]) * 
+      prod(1 - set.8.p.below[i, c(s, t)])
   }
 }}
-t6.p.atleast1 <- 1 - t6.p.0
-t6.p.atleast2 <- 1 - (t6.p.0 + t6.p.1)
-t6.p.atleast3 <- 1 - (t6.p.0 + t6.p.1 + t6.p.2)
+set.8.p.atleast1 <- 1 - set.8.p.0
+set.8.p.atleast2 <- 1 - (set.8.p.0 + set.8.p.1)
+set.8.p.atleast3 <- 1 - (set.8.p.0 + set.8.p.1 + set.8.p.2)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast1), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast1), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast2), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast2), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.p.atleast3), nx=nx, ny=ny, yaxt="n", xaxt="n")
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast3), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.95), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.95), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(35, 140))
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(t6.99), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", , zlim=c(35, 140))
 lines(borders/1000)
+
+# 6 knots - Time series - T = 75
+load('us-all-pred-59.RData')
+yp <- y.pred
+np <- dim(yp)[2]
+set.59.95 <- apply(yp, c(2), quantile, probs=0.95)
+set.59.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.59.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  set.59.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+set.59.p.0 <- rep(0, np)
+for(i in 1:np) {
+  set.59.p.0[i] <- prod(set.59.p.below[i, ])
+}
+set.59.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  set.59.p.1[i] <- set.59.p.1[i] + prod(set.59.p.below[i, -t]) * 
+    (1 - set.59.p.below[i, t])
+} }
+set.59.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    set.59.p.2[i] <- set.59.p.2[i] + prod(set.59.p.below[i, -c(s,t)]) * 
+      prod(1 - set.59.p.below[i, c(s, t)])
+  }
+}}
+set.59.p.atleast1 <- 1 - set.59.p.0
+set.59.p.atleast2 <- 1 - (set.59.p.0 + set.59.p.1)
+set.59.p.atleast3 <- 1 - (set.59.p.0 + set.59.p.1 + set.59.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast1), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast2), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast3), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", , zlim=c(35, 140))
+lines(borders/1000)
+
+# 10 knots - Time series - T = 75
+load('us-all-pred-71.RData')
+yp <- y.pred
+np <- dim(yp)[2]
+set.71.95 <- apply(yp, c(2), quantile, probs=0.95)
+set.71.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.71.p.below <- matrix(0, np, nt)
+for (i in 1:np) { for (t in 1:nt) {
+  set.71.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+} }
+set.71.p.0 <- rep(0, np)
+for(i in 1:np) {
+  set.71.p.0[i] <- prod(set.71.p.below[i, ])
+}
+set.71.p.1 <- rep(0, np)
+for (i in 1:np) { for (t in 1:nt) {
+  set.71.p.1[i] <- set.71.p.1[i] + prod(set.71.p.below[i, -t]) * 
+                   (1 - set.71.p.below[i, t])
+} }
+set.71.p.2 <- rep(0, np)
+for(i in 1:np) { for (t in 1:(nt - 1)) {
+  for (s in (t+1):nt) {
+    set.71.p.2[i] <- set.71.p.2[i] + prod(set.71.p.below[i, -c(s,t)]) * 
+                     prod(1 - set.71.p.below[i, c(s, t)])
+  }
+}}
+set.71.p.atleast1 <- 1 - set.71.p.0
+set.71.p.atleast2 <- 1 - (set.71.p.0 + set.71.p.1)
+set.71.p.atleast3 <- 1 - (set.71.p.0 + set.71.p.1 + set.71.p.2)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast1), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast2), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast3), nx=nx, ny=ny, 
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", , zlim=c(35, 140))
+lines(borders/1000)
+
+
+
+
+
 
 
 # zlim=c(0, 122)
