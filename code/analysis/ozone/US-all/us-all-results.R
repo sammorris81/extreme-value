@@ -551,7 +551,7 @@ for (i in 1:np) { for (t in 1:nt) {
 } }
 set.3.p.0 <- rep(0, np)
 for(i in 1:np) {
-  set.3.p.0[i] <- prod(t1.nts.p.below[i, ])
+  set.3.p.0[i] <- prod(set.3.p.below[i, ])
 }
 set.3.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
