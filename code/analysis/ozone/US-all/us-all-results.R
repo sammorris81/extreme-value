@@ -239,6 +239,88 @@ legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
 
+# another set of plots, 1 time series, 1 no time series
+these <- 6:11
+x.plot <- probs[these]
+bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
+col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
+
+# time series
+y.plot <- vector(mode="list", length=9)
+y.plot[[1]] <- bs.mean.ref.gau[50, these]
+y.plot[[2]] <- bs.mean.ref.gau[51, these]
+y.plot[[3]] <- bs.mean.ref.gau[52, these]
+y.plot[[4]] <- bs.mean.ref.gau[60, these]
+y.plot[[5]] <- bs.mean.ref.gau[61, these]
+y.plot[[6]] <- bs.mean.ref.gau[62, these]
+y.plot[[7]] <- bs.mean.ref.gau[71, these]
+y.plot[[8]] <- bs.mean.ref.gau[72, these]
+y.plot[[9]] <- bs.mean.ref.gau[73, these]
+
+bg <- c("firebrick1", "firebrick1", "firebrick1",
+        "dodgerblue1", "dodgerblue1", "dodgerblue1",
+        "darkolivegreen1", "darkolivegreen1", "darkolivegreen1")
+col <- c("firebrick4", "firebrick4", "firebrick4",
+         "dodgerblue4", "dodgerblue4", "dodgerblue4",
+         "darkolivegreen4", "darkolivegreen4", "darkolivegreen4")
+pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23)
+lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
+
+quartz(width=12, height=6)
+par(mfrow=c(1, 2))
+plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
+     bg=bg[1], col=col[1], pch=pch[1], main="Time Series Models",
+     ylab="Relative Brier Score", xlab="Threshold quantile")
+for(i in 2:9) {
+  lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
+        lty=lty[i])
+}
+abline(h=1, lty=2)
+legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
+            "K=7, T=0", "K=7, T=50", "K=7, T=75",
+            "K=15, T=0", "K=15, T=50", "K=15, T=75")
+legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
+       lty=lty, box.lty=1)
+
+# non time-series
+y.plot <- vector(mode="list", length=10)
+y.plot[[1]] <- bs.mean.ref.gau[2, these]
+y.plot[[2]] <- bs.mean.ref.gau[3, these]
+y.plot[[3]] <- bs.mean.ref.gau[4, these]
+y.plot[[4]] <- bs.mean.ref.gau[33, these]
+y.plot[[5]] <- bs.mean.ref.gau[38, these]
+y.plot[[6]] <- bs.mean.ref.gau[43, these]
+y.plot[[7]] <- bs.mean.ref.gau[14, these]
+y.plot[[8]] <- bs.mean.ref.gau[15, these]
+y.plot[[9]] <- bs.mean.ref.gau[16, these]
+y.plot[[10]] <- bs.mean.ref.gau[1, these]
+
+bg <- c("firebrick1", "firebrick1", "firebrick1",
+        "dodgerblue1", "dodgerblue1", "dodgerblue1",
+        "darkolivegreen1", "darkolivegreen1", "darkolivegreen1",
+        "orange1")
+col <- c("firebrick4", "firebrick4", "firebrick4",
+         "dodgerblue4", "dodgerblue4", "dodgerblue4",
+         "darkolivegreen4", "darkolivegreen4", "darkolivegreen4",
+         "orange4")
+pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23, 23)
+lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3, 3)
+
+plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
+     bg=bg[1], col=col[1], pch=pch[1], main="Non Time Series Models",
+     ylab="Relative Brier Score", xlab="Threshold quantile")
+for(i in 2:10) {
+  lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
+        lty=lty[i])
+}
+abline(h=1, lty=2)
+legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
+            "K=7, T=0", "K=7, T=50", "K=7, T=75",
+            "K=15, T=0", "K=15, T=50", "K=15, T=75", "Max-stable")
+legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
+       lty=lty, box.lty=1)
+
+
 # one knot
 quartz(width=15, height=12)
 par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
@@ -471,15 +553,13 @@ round(brier.score.mean*1000, 4)
 
 # posterior predictions
 rm(list=ls())
-library(fields)
-library(SpatialTools)
 load("../ozone_data.RData")
 
 # preprocessing
 x <- x / 1000
 y <- y / 1000
 
-# get the locations of 
+# get the locations of
 S.p <- expand.grid(x, y)
 keep.these <- (S.p[, 1] > 1.03 & S.p[, 1] < 1.7) &
   (S.p[, 2] > -0.96 & S.p[, 2] < -0.40)
@@ -504,39 +584,19 @@ for(i in 1:np) {
 }
 set.1.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  set.1.p.1[i] <- set.1.p.1[i] + prod(set.1.p.below[i, -t]) * 
+  set.1.p.1[i] <- set.1.p.1[i] + prod(set.1.p.below[i, -t]) *
                   (1 - set.1.p.below[i, t])
 } }
 set.1.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    set.1.p.2[i] <- set.1.p.2[i] + prod(set.1.p.below[i, -c(s,t)]) * 
+    set.1.p.2[i] <- set.1.p.2[i] + prod(set.1.p.below[i, -c(s,t)]) *
                     prod(1 - set.1.p.below[i, c(s, t)])
   }
 }}
 set.1.p.atleast1 <- 1 - set.1.p.0
 set.1.p.atleast2 <- 1 - (set.1.p.0 + set.1.p.1)
 set.1.p.atleast3 <- 1 - (set.1.p.0 + set.1.p.1 + set.1.p.2)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast1), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast2), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast3), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.95), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
-lines(borders/1000)
 
 
 # 1 knot - No Time Series - T = 0
@@ -555,13 +615,13 @@ for(i in 1:np) {
 }
 set.3.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  set.3.p.1[i] <- set.3.p.1[i] + prod(set.3.p.below[i, -t]) * 
+  set.3.p.1[i] <- set.3.p.1[i] + prod(set.3.p.below[i, -t]) *
                   (1 - set.3.p.below[i, t])
 } }
 set.3.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    set.3.p.2[i] <- set.3.p.2[i] + prod(set.3.p.below[i, -c(s,t)]) * 
+    set.3.p.2[i] <- set.3.p.2[i] + prod(set.3.p.below[i, -c(s,t)]) *
                     prod(1 - set.3.p.below[i, c(s, t)])
   }
 }}
@@ -569,25 +629,7 @@ set.3.p.atleast1 <- 1 - set.3.p.0
 set.3.p.atleast2 <- 1 - (set.3.p.0 + set.3.p.1)
 set.3.p.atleast3 <- 1 - (set.3.p.0 + set.3.p.1 + set.3.p.2)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast1), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast2), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast3), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.95), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.99), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
-lines(borders/1000)
 
 # Skew-t - No Time series - T = 50
 load('us-all-pred-8.RData')
@@ -605,39 +647,19 @@ for(i in 1:np) {
 }
 set.8.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  set.8.p.1[i] <- set.8.p.1[i] + prod(set.8.p.below[i, -t]) * 
+  set.8.p.1[i] <- set.8.p.1[i] + prod(set.8.p.below[i, -t]) *
     (1 - set.8.p.below[i, t])
 } }
 set.8.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    set.8.p.2[i] <- set.8.p.2[i] + prod(set.8.p.below[i, -c(s,t)]) * 
+    set.8.p.2[i] <- set.8.p.2[i] + prod(set.8.p.below[i, -c(s,t)]) *
       prod(1 - set.8.p.below[i, c(s, t)])
   }
 }}
 set.8.p.atleast1 <- 1 - set.8.p.0
 set.8.p.atleast2 <- 1 - (set.8.p.0 + set.8.p.1)
 set.8.p.atleast3 <- 1 - (set.8.p.0 + set.8.p.1 + set.8.p.2)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast1), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast2), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast3), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.95), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.99), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", , zlim=c(35, 140))
-lines(borders/1000)
 
 # 6 knots - Time series - T = 75
 load('us-all-pred-59.RData')
@@ -655,39 +677,19 @@ for(i in 1:np) {
 }
 set.59.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  set.59.p.1[i] <- set.59.p.1[i] + prod(set.59.p.below[i, -t]) * 
+  set.59.p.1[i] <- set.59.p.1[i] + prod(set.59.p.below[i, -t]) *
     (1 - set.59.p.below[i, t])
 } }
 set.59.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    set.59.p.2[i] <- set.59.p.2[i] + prod(set.59.p.below[i, -c(s,t)]) * 
+    set.59.p.2[i] <- set.59.p.2[i] + prod(set.59.p.below[i, -c(s,t)]) *
       prod(1 - set.59.p.below[i, c(s, t)])
   }
 }}
 set.59.p.atleast1 <- 1 - set.59.p.0
 set.59.p.atleast2 <- 1 - (set.59.p.0 + set.59.p.1)
 set.59.p.atleast3 <- 1 - (set.59.p.0 + set.59.p.1 + set.59.p.2)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast1), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast2), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast3), nx=nx, ny=ny, 
-           yaxt="n", xaxt="n")
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.95), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
-lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.99), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", , zlim=c(35, 140))
-lines(borders/1000)
 
 # 10 knots - Time series - T = 75
 load('us-all-pred-71.RData')
@@ -705,13 +707,13 @@ for(i in 1:np) {
 }
 set.71.p.1 <- rep(0, np)
 for (i in 1:np) { for (t in 1:nt) {
-  set.71.p.1[i] <- set.71.p.1[i] + prod(set.71.p.below[i, -t]) * 
+  set.71.p.1[i] <- set.71.p.1[i] + prod(set.71.p.below[i, -t]) *
                    (1 - set.71.p.below[i, t])
 } }
 set.71.p.2 <- rep(0, np)
 for(i in 1:np) { for (t in 1:(nt - 1)) {
   for (s in (t+1):nt) {
-    set.71.p.2[i] <- set.71.p.2[i] + prod(set.71.p.below[i, -c(s,t)]) * 
+    set.71.p.2[i] <- set.71.p.2[i] + prod(set.71.p.below[i, -c(s,t)]) *
                      prod(1 - set.71.p.below[i, c(s, t)])
   }
 }}
@@ -719,25 +721,134 @@ set.71.p.atleast1 <- 1 - set.71.p.0
 set.71.p.atleast2 <- 1 - (set.71.p.0 + set.71.p.1)
 set.71.p.atleast3 <- 1 - (set.71.p.0 + set.71.p.1 + set.71.p.2)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast1), nx=nx, ny=ny, 
+
+# make the prediction maps
+rm(list=ls())
+load("predict-maps.RData")
+library(fields)
+library(SpatialTools)
+
+# probability at least one day exceeds
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast1), nx=nx, ny=ny,
            yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast2), nx=nx, ny=ny, 
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast1), nx=nx, ny=ny,
            yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast3), nx=nx, ny=ny, 
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast1), nx=nx, ny=ny,
            yaxt="n", xaxt="n")
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.95), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast1), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast1), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+# probability at least two days exceed
+quartz(width=12, height=9)
+par(mfrow=c(2, 2))
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast2), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(0, 1),
+           main="Gaus - No Time Series, T=0")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast2), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(0, 1),
+           main="Skew-t, K=1, No Time Series, T=0")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast2), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast2), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast2), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(0, 1),
+           main="Sym-t, K=10, Time Series, T=75")
+lines(borders/1000)
+
+# probability at least three days exceed
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.p.atleast3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.p.atleast3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.p.atleast3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n")
+lines(borders/1000)
+
+# 95th quantiles
+quartz(width=12, height=9)
+par(mfrow=c(2, 2))
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(55, 100),
+           main="Gaus - No Time Series, T=0")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(55, 100),
+           main="Skew-t, K=1, No Time Series, T=0")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.95), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(35, 140))
 lines(borders/1000)
 
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.99), nx=nx, ny=ny,
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.95), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(55, 100),
+           main="Sym-t, K=10, Time Series, T=75")
+lines(borders/1000)
+
+# 99th quantiles
+quartz(width=12, height=9)
+par(mfrow=c(2, 2))
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(60, 120),
+           main="Gaus - No Time Series, T=0")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(60, 120),
+           main="Skew-t, K=1, No Time Series, T=0")
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", , zlim=c(35, 140))
 lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", , zlim=c(35, 140))
+lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(60, 120),
+           main="Sym-t, K=10, Time Series, T=75")
+lines(borders/1000)
+
+
 
 
 
