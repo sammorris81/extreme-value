@@ -566,6 +566,7 @@ keep.these <- (S.p[, 1] > 1.03 & S.p[, 1] < 1.7) &
 S.p     <- S.p[keep.these, ]
 nx <- length(unique(S.p[, 1]))
 ny <- length(unique(S.p[, 2]))
+nt <- dim(Y)[2]
 
 # load results
 threshold <- 75
@@ -720,7 +721,9 @@ for(i in 1:np) { for (t in 1:(nt - 1)) {
 set.71.p.atleast1 <- 1 - set.71.p.0
 set.71.p.atleast2 <- 1 - (set.71.p.0 + set.71.p.1)
 set.71.p.atleast3 <- 1 - (set.71.p.0 + set.71.p.1 + set.71.p.2)
-
+rm(y.pred)
+rm(yp)
+save.image(file="predict-maps.RData")
 
 # make the prediction maps
 rm(list=ls())
