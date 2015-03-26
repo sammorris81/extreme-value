@@ -266,16 +266,19 @@ col <- c("firebrick4", "firebrick4", "firebrick4",
 pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23)
 lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
 
+# Panel for paper
 quartz(width=12, height=6)
-par(mfrow=c(1, 2))
+par(mfrow=c(1, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
-     bg=bg[1], col=col[1], pch=pch[1], main="Time Series Models",
-     ylab="Relative Brier Score", xlab="Threshold quantile")
+     bg=bg[1], col=col[1], pch=pch[1], # main="Time Series Models",
+     ylab="Relative Brier Score", xlab="Threshold quantile", 
+     cex=1.5, cex.lab=2, cex.axis=2, cex.main=2)
 for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
-        lty=lty[i])
+        lty=lty[i], cex=1.5)
 }
-abline(h=1, lty=2)
+# abline(h=1, lty=2)
 legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
             "K=7, T=0", "K=7, T=50", "K=7, T=75",
             "K=15, T=0", "K=15, T=50", "K=15, T=75")
@@ -283,7 +286,7 @@ legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
        lty=lty, box.lty=1)
 
 # non time-series
-y.plot <- vector(mode="list", length=10)
+y.plot <- vector(mode="list", length=9)
 y.plot[[1]] <- bs.mean.ref.gau[2, these]
 y.plot[[2]] <- bs.mean.ref.gau[3, these]
 y.plot[[3]] <- bs.mean.ref.gau[4, these]
@@ -293,32 +296,30 @@ y.plot[[6]] <- bs.mean.ref.gau[43, these]
 y.plot[[7]] <- bs.mean.ref.gau[14, these]
 y.plot[[8]] <- bs.mean.ref.gau[15, these]
 y.plot[[9]] <- bs.mean.ref.gau[16, these]
-y.plot[[10]] <- bs.mean.ref.gau[1, these]
 
 bg <- c("firebrick1", "firebrick1", "firebrick1",
         "dodgerblue1", "dodgerblue1", "dodgerblue1",
-        "darkolivegreen1", "darkolivegreen1", "darkolivegreen1",
-        "orange1")
+        "darkolivegreen1", "darkolivegreen1", "darkolivegreen1")
 col <- c("firebrick4", "firebrick4", "firebrick4",
          "dodgerblue4", "dodgerblue4", "dodgerblue4",
-         "darkolivegreen4", "darkolivegreen4", "darkolivegreen4",
-         "orange4")
-pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23, 23)
-lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3, 3)
+         "darkolivegreen4", "darkolivegreen4", "darkolivegreen4")
+pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23)
+lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
 
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
-     bg=bg[1], col=col[1], pch=pch[1], main="Non Time Series Models",
-     ylab="Relative Brier Score", xlab="Threshold quantile")
-for(i in 2:10) {
+     bg=bg[1], col=col[1], pch=pch[1], # main="Non Time Series Models",
+     ylab="Relative Brier Score", xlab="Threshold quantile", 
+     cex=1.5, cex.lab=2, cex.axis=2, cex.main=2)
+for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
-        lty=lty[i])
+        lty=lty[i], cex=1.5)
 }
-abline(h=1, lty=2)
-legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
-            "K=7, T=0", "K=7, T=50", "K=7, T=75",
-            "K=15, T=0", "K=15, T=50", "K=15, T=75", "Max-stable")
-legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
-       lty=lty, box.lty=1)
+# abline(h=1, lty=2)
+# legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
+#             "K=7, T=0", "K=7, T=50", "K=7, T=75",
+#             "K=15, T=0", "K=15, T=50", "K=15, T=75")
+# legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
+#        lty=lty, box.lty=1)
 
 
 # one knot
