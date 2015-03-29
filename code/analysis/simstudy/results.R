@@ -119,6 +119,21 @@ for (i in 1:11) {
   }
 }
 
+# Dwass, Steel, Critchlow-Fligner non-parametric pairwise differences
+# pSDCFlig(x,g=NA,method=NA,n.mc=10000)
+#   x: list of values
+#   method: "Asymptotic" or "Monte Carlo"
+# dim(quant.score): 11, 50, 5, 7 - quantile, dataset, method, setting
+# we want q(0.90), q(0.95), q(0.98), q(0.99) or 1, 6, 9, 10
+include <- c(1, 6, 9, 10)
+for (quant in include) {
+  x = list(method.1 = quant.score[quant, , 1, 1],
+           method.2 = quant.score[quant, , 2, 1],
+           method.3 = quant.score[quant, , 3, 1],
+           method.4 = quant.score[quant, , 4, 1],
+           method.5 = quant.score[quant, , 5, 1])
+}
+
 # paired t-tests
 paired.results <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
 compare <- c(1, 2, 4, 5)
