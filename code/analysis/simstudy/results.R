@@ -162,13 +162,13 @@ for (j in 1:nsettings) {
 savelist <- list(
   quant.score = quant.score, quant.score.mean = quant.score.mean,
   brier.score = brier.score, brier.score.mean = brier.score.mean,
-  beta.0 = beta.0, beta.1 = beta.1, beta.2 = beta.2
+  beta.0 = beta.0, beta.1 = beta.1, beta.2 = beta.2,
   tau.alpha = tau.alpha, rho = rho, nu = nu, alpha = alpha,
   z.alpha = z.alpha, avgparts = avgparts,
   results.friedman = results.friedman, results.wnmt = results.wnmt
 )
 
-save(list = savelist, file = "simresults.RData")
+save(savelist, file = "simresults.RData")
 
 
 # get single brier scores and quantile scores for each setting x method x quantile
