@@ -169,6 +169,90 @@ savelist <- list(
 )
 
 save(savelist, file = "simresults.RData")
+load("simresults.RData")
+# unlist the items in savelist
+quant.score <- savelist$quant.score
+quant.score.mean <- savelist$quant.score.mean
+brier.score <- savelist$brier.score
+brier.score.mean <- savelist$brier.score.mean
+beta.0 <- savelist$beta.0
+beta.1 <- savelist$beta.1
+beta.2 <- savelist$beta.2
+tau.alpha <- savelist$tau.alpha
+rho <- savelist$rho
+nu <- savelist$nu
+alpha <- savelist$alpha
+z.alpha <- savelist$z.alpha
+avgparts <- savelist$avgparts
+results.friedman <- savelist$results.friedman
+results.wnmt <- savelist$results.wnmt
+rm(savelist)
+
+# helpful settings from original
+nsets <- 5
+ngroups <- 10
+nsettings <- 7
+nmethods <- 5
+include <- c(1, 6, 9, 10, 11)
+probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
+
+# look over results
+#   results.wnmt: ncomparisons x nsettings x nquants
+# results are 1-2, 1-3, 1-4, 1-5, 2-3, 2-4, 2-5, 3-4, 3-5, 4-5
+comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5", "gaus vs. t-5 (T = 0.80)", 
+                 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5", "skew t-1 vs. t-5 (T = 0.80)", 
+                 "t-1 (T = 0.80) vs. skew t-5", "t-1 (T = 0.80) vs. t-5 (T = 0.80)", 
+                 "skew t-5 vs. t-5 (T = 0.80)")
+
+# which groups are different for different settings
+setting <- 1
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
+
+setting <- 2
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
+
+setting <- 3
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
+
+setting <- 4
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
+
+setting <- 5
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
+
+setting <- 6
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
+
+setting <- 7
+comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
 
 # get single brier scores and quantile scores for each setting x method x quantile
@@ -308,7 +392,7 @@ legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
 # Panel for paper
 settings.use <- c(1, 5, 6, 7)
 quartz(width=15, height=12)
-par(mfrow=c(2, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+par(mfrow=c(4, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in settings.use) {
   # if (setting == 6) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T) + 0.1
@@ -337,9 +421,9 @@ for (setting in settings.use) {
 #   }
 }
 
-#plot(1, 1, type='n', axes=F, ylab="", xlab="")
+plot(1, 1, type='n', axes=F, ylab="", xlab="")
 legend("bottomright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
-       cex=1.75)
+       cex=1)
 
 dev.print(file="plots/bsplots-mean.pdf", device=pdf)
 dev.off()
