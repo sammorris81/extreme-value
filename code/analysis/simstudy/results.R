@@ -155,7 +155,7 @@ for (j in 1:nsettings) {
     scores <- as.vector(brier.score[include[i], , , j])
     combine <- data.frame(scores, groups, dataset)
     results.wnmt[, j, i] <- pWNMT(x=combine$scores, b=combine$dataset, 
-                                  trt=combine$groups, n.mc=20000)
+                                  trt=combine$groups, n.mc=20000)$p.val
   }
 }
 
