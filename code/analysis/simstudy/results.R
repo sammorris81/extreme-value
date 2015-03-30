@@ -123,73 +123,53 @@ for (i in 1:11) {
   }
 }
 
-# Dwass, Steel, Critchlow-Fligner non-parametric pairwise differences
-# pSDCFlig(x,g=NA,method=NA,n.mc=10000)
-#   x: list of values
-#   method: "Asymptotic" or "Monte Carlo"
-# dim(quant.score): 11, 50, 5, 7 - quantile, dataset, method, setting
-# we want q(0.90), q(0.95), q(0.98), q(0.99) or 1, 6, 9, 10
-include <- c(1, 6, 9, 10)
-for (quant in include) {
-  x = list(method.1 = quant.score[quant, , 1, 1],
-           method.2 = quant.score[quant, , 2, 1],
-           method.3 = quant.score[quant, , 3, 1],
-           method.4 = quant.score[quant, , 4, 1],
-           method.5 = quant.score[quant, , 5, 1])
+# Check for differences
+# First do Friedman test (one-way repeated measures)
+#   friedman.test(y ~ trt | block, data)
+# Then follow up with the Wilcoxon, Nemenyi, McDonald-Thompson test
+# pWNMT(x, b, trt, method, n.mc)
+#     x: list of values
+#     b: vector of blocks (only needed if x is a vector)
+#     trt: vector of treatments
+#     method: "Exact", "Monte Carlo" or "Asymptotic"
+
+groups <- rep(1:nmethods, each=50)
+dataset <- rep(1:50, times=nmethods)
+
+library(NSM3)
+include <- c(1, 6, 9, 10, 11)
+results.friedman <- matrix(0, length(include), nsettings)
+for (j in 1:nsettings) {
+  for (i in 1:length(include)) {
+    scores <- as.vector(brier.score[include[i], , , j])
+    combine <- data.frame(scores, groups, dataset)
+    results.friedman[i, j] <- friedman.test(scores ~ groups | dataset, 
+                                            data=combine)$p.value
+  }
 }
 
-# paired t-tests
-paired.results <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
-compare <- c(1, 2, 4, 5)
-for (i in 1:length(probs)) { for (j in 1:(nmethods-1)) { for (k in 1:nsettings) {
-  if (k != 6) {
-  	compare.j <- compare[j]  # want to store in the jth row of results array
-  	diff <- quant.score[i, , 3, k] - quant.score[i, , compare.j, k]
-  	s <- sd(diff)
-  	df <- length(diff) - 1
-  	t <- mean(diff) / (s / sqrt(length(diff)))
-    paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
-  } else {
-  	compare.j <- j + 1
-  	diff <- quant.score[i, , 1, k] - quant.score[i, , compare.j, k]
-  	s <- sd(diff)
-  	df <- length(diff) - 1
-  	t <- mean(diff) / (s / sqrt(length(diff)))
-    paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
+# posthoc is  Wilcoxon, Nemenyi, McDonald-Thompson test
+results.wnmt <- array(0, dim=c(choose(nmethods, 2), nsettings, length(include)))
+for (j in 1:nsettings) {
+  for (i in 1:length(include)) {
+    scores <- as.vector(brier.score[include[i], , , j])
+    combine <- data.frame(scores, groups, dataset)
+    results.wnmt[, j, i] <- pWNMT(x=combine$scores, b=combine$dataset, 
+                                  trt=combine$groups, n.mc=20000)
   }
-}  }  }
+}
 
-round(paired.results, 4)
+savelist <- list(
+  quant.score = quant.score, quant.score.mean = quant.score.mean,
+  brier.score = brier.score, brier.score.mean = brier.score.mean,
+  beta.0 = beta.0, beta.1 = beta.1, beta.2 = beta.2
+  tau.alpha = tau.alpha, rho = rho, nu = nu, alpha = alpha,
+  z.alpha = z.alpha, avgparts = avgparts,
+  results.friedman = results.friedman, results.wnmt = results.wnmt
+)
 
-# wilcoxon signed-rank test for Brier scores
-wilcox.results.gau.one <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
-for (i in 1:length(probs)) { for (k in 1:nsettings) {
-  ref.j <- 1
-  for (j in 2:nmethods) {
-    wilcox.results.gau.one[i, (j - 1), k] <- wilcox.test(brier.score[i, , ref.j, k],
-                                            brier.score[i, , j, k],
-                                            paired=T,
-                                            alternative="greater")$p.value
-  }
-}}
+save(list = savelist, file = "simresults.RData")
 
-# wilcoxon signed-rank test for Brier scores
-wilcox.results.gau.two <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
-for (i in 1:length(probs)) { for (k in 1:nsettings) {
-  ref.j <- 1
-  for (j in 2:nmethods) {
-    wilcox.results.gau.two[i, (j - 1), k] <- wilcox.test(brier.score[i, , ref.j, k],
-                                            brier.score[i, , j, k],
-                                            paired=T,
-                                            alternative="two.sided")$p.value
-  }
-}}
-
-wilcox.results.5 <- matrix(NA, nrow=length(probs), ncol=nsettings)
-for (i in 1:length(probs)) { for (k in 1:nsettings) {
-  wilcox.results.5[i, k] <- wilcox.test(brier.score[i, , 2, k], brier.score[i, , 4, k],
-                                               paired=T)$p.value
-}}
 
 # get single brier scores and quantile scores for each setting x method x quantile
 quant.score.med <- apply(quant.score, c(1, 3, 4), median, na.rm=T)
@@ -208,7 +188,6 @@ for (j in 1:4) {
   qs.med.ref.gau[, j, ] <- quant.score.med[, (j + 1), ] / quant.score.med[, 1, ]
   qs.mean.ref.gau[, j, ] <- quant.score.mean[, (j + 1), ] / quant.score.mean[, 1, ]
 }
-
 
 setting.title <- c("Data: Gaussian", "Data: Symmetric-t (K = 1)",
                    "Data: Symmetric-t (K = 5)",
@@ -657,3 +636,84 @@ for (t in 1:25) {
   plot(fit.1[[1]]$tau[, 5, day], type="l", ylab=round(tau.t[[3]][5, day, 1], 2), xlab=print(paste("Day:", day)),
   main=print(paste(interval[1], ", ", interval[2])))
 }
+
+# some code for looking for differences
+
+# # paired t-tests
+# paired.results <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
+# compare <- c(1, 2, 4, 5)
+# for (i in 1:length(probs)) { for (j in 1:(nmethods-1)) { for (k in 1:nsettings) {
+#   if (k != 6) {
+#     compare.j <- compare[j]  # want to store in the jth row of results array
+#   	diff <- quant.score[i, , 3, k] - quant.score[i, , compare.j, k]
+#   	s <- sd(diff)
+#   	df <- length(diff) - 1
+#   	t <- mean(diff) / (s / sqrt(length(diff)))
+#     paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
+#   } else {
+#   	compare.j <- j + 1
+#   	diff <- quant.score[i, , 1, k] - quant.score[i, , compare.j, k]
+#   	s <- sd(diff)
+#   	df <- length(diff) - 1
+#   	t <- mean(diff) / (s / sqrt(length(diff)))
+#     paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
+#   }
+# }  }  }
+# 
+# round(paired.results, 4)
+# 
+# # wilcoxon signed-rank test for Brier scores
+# wilcox.results.gau.one <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
+# for (i in 1:length(probs)) { for (k in 1:nsettings) {
+#   ref.j <- 1
+#   for (j in 2:nmethods) {
+#     wilcox.results.gau.one[i, (j - 1), k] <- wilcox.test(brier.score[i, , ref.j, k],
+#                                             brier.score[i, , j, k],
+#                                             paired=T,
+#                                             alternative="greater")$p.value
+#   }
+# }}
+# 
+# # wilcoxon signed-rank test for Brier scores
+# wilcox.results.gau.two <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
+# for (i in 1:length(probs)) { for (k in 1:nsettings) {
+#   ref.j <- 1
+#   for (j in 2:nmethods) {
+#     wilcox.results.gau.two[i, (j - 1), k] <- wilcox.test(brier.score[i, , ref.j, k],
+#                                             brier.score[i, , j, k],
+#                                             paired=T,
+#                                             alternative="two.sided")$p.value
+#   }
+# }}
+# 
+# wilcox.results.5 <- matrix(NA, nrow=length(probs), ncol=nsettings)
+# for (i in 1:length(probs)) { for (k in 1:nsettings) {
+#   wilcox.results.5[i, k] <- wilcox.test(brier.score[i, , 2, k], brier.score[i, , 4, k],
+#                                                paired=T)$p.value
+# }}
+
+# Check for differences - Not correct for sim study design
+# First do Kruskal-Wallis test (non-parametric one-way ANOVA)
+#   kruskal.test(x)
+#     x: list of values 
+# Then follow up with Dwass, Steel, Critchlow-Fligner non-parametric 
+# pairwise differences
+#   pSDCFlig(x,g=NA,method=NA,n.mc=10000)
+#     x: list of values
+#     g: vector of groups (only needed if x is a vector)
+#     method: "Asymptotic" or "Monte Carlo"
+# dim(quant.score): 11, 50, 5, 7 - quantile, dataset, method, setting
+# we want q(0.90), q(0.95), q(0.98), q(0.99) or 1, 6, 9, 10
+# library(NSM3)
+# include <- c(1, 6, 9, 10, 11)
+# results <- matrix(0, length(include), nsettings)
+# for (j in 1:nsettings) {
+#   for (i in 1:length(include)) {
+#     x = list(method.1 = brier.score[include[i], , 1, j],
+#              method.2 = brier.score[include[i], , 2, j],
+#              method.3 = brier.score[include[i], , 3, j],
+#              method.4 = brier.score[include[i], , 4, j],
+#              method.5 = brier.score[include[i], , 5, j])
+#     results[i, j] <- kruskal.test(x)$p.value 
+#   }
+# }
