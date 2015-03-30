@@ -176,22 +176,26 @@ Let
 \end{align}
 where $\Phi$ is a univariate standard normal density function, and $\bs_i = [s_{1i}, \ldots, s_{ni}]$.
 Then $\bw^*_{tk} \in \calR^2$.
-We use a copula on the $\sigma^2_t(\bs)$ to ensure that the marginal distributions of $\sigma^2_t(\bs)$ are inverse gamma.
+We use a copula on $\sigma^2_t(\bs)$ to ensure that the marginal distributions of $\sigma^2_t(\bs)$ are inverse gamma.
 Let
 \begin{align}
   \sigma^{2*}_t(\bs) =\Phi^{-1}\left\{ \text{IG}[\sigma^2_t(\bs)] \right\}
 \end{align}
 where IG is the distribution function for an IG$(a, b)$ random variable.
-The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z_{1k} \sim N(0, \sigma^2_{1k})$, $\sigma^{2*}_{1k} \sim N(0, 1)$, and for $t > 1$ the time series is modeled as
+We also use a copula on $z_{t}(\bs)$ to ensure that the marginal distributions of $z_t(\bs)$ are half-normal.
+Let
+\begin{align}
+  z^*_t(\bs) = \Phi^{-1}\left\{ \text{HN}[\sigma^2_t(\bs)] \right\}
+\end{align}
+The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z^*_{1k} \sim N(0, \sigma^2_{1k})$, $\sigma^{2*}_{1k} \sim N(0, 1)$, and for $t > 1$ the time series is modeled as
 \begin{align}
   \bw^*_{tk} | \bw^*_{t-1, k} &\sim N_2\left[\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2) \right] \\
-  z_{tk} | z_{t-1, k} &\sim N \left[\phi_z z_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2)\right] \\
+  z^*_{tk} | z^*_{t-1, k} &\sim N \left[\phi_z z^*_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2)\right] \\
   \sigma^{2*}_{tk} | \sigma^{2*}_{t-1, k} &\sim N \left[\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2) \right]
 \end{align}
-where $|\phi_w| < 1$, $0 < \phi_z < 1$, and $|\phi_\sigma| < 1$.
-We restrict $\phi_z$ to be positive because in the model, we assume $Y(\bs)$ is a function of $|z_t(\bs)|$.
-These are stationary time series models with marginal distributions $\bw^*_{k} \sim N_2(0, 1)$, $z_{k} \sim N(0, \sigma^2_{k})$, $\sigma^{2*}_{k} \sim N(0, 1)$.
-After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $\sigma^2_{tk} \sim \text{IG}(a, b)$.
+where $|\phi_w|$, $|\phi_z|$, $|\phi_\sigma| < 1$.
+These are stationary time series models with marginal distributions $\bw^*_{k} \sim N_2(0, 1)$, $z^*_{k} \sim N(0, \sigma^2_{k})$, $\sigma^{2*}_{k} \sim N(0, 1)$.
+After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $z_{tk} \sim HN(0, \sigma^2_{tk})$ $\sigma^2_{tk} \sim \text{IG}(a, b)$.
 For each day, the model is identical to the spatial-only model in (\ref{eq:partition}) by construction.
 
 \subsection{Hierarchical model}\label{s:hier}
@@ -205,13 +209,19 @@ Then
    Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= \bX_t(\bs)^T \beta + \lambda |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
    z_t(\bs) &= z_{tk} \text{ if } \bs \in P_{tk}\\
    \sigma^2_{t}(\bs) &= \sigma^2_{tk} \text{ if } \bs \in P_{tk}\\
-   \lambda &\sim N(0, 10)\\
+   \lambda &= \lambda_1 \lambda_2\\
+   \lambda_1 &= \left\{ \begin{array}{ll}
+      +1 \quad & \text{w.p.} 0.5\\
+      -1 \quad & \text{w.p.} 0.5
+   \end{array}\right.\\
+   \lambda^2_2 & \sim IG(a, b)\\
    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\\
-   z_{tk} \mid z_{t-1, k}, \sigma^2_{tk} &\sim N(\phi_z z_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2))\\
+   z^*_{tk} \mid z^*_{t-1, k}, \sigma^2_{tk} &\sim N(\phi_z z^*_{t-1, k}, \sigma^2_{tk} (1 - \phi_z^2))\\
    \sigma^{2*}_{tk} \mid \sigma^{2*}_{t-1, k} &\sim N(\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2))\\
    \bw^*_{tk} \mid \bw^*_{t-1, k} &\sim N_2(\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2))
 \end{align}
 where $\Theta = \{\rho, \nu, \gamma\}$, and $\Sigma$ is a \Matern covariance matrix as described in Section \ref{s:skewt}.
+We parameterize $\lambda = \lambda_1 \lambda_2$ to help with convergence in the MCMC.
 
 \section{Computation}\label{s:comp}
 First, we impute values below the threshold.
@@ -234,14 +244,15 @@ In this section, we conduct a simulation study to investigate how the number of 
 \subsection{Design}\label{s:simdesign}
 For all simulation designs, we generate data from the model in Section \ref{s:part} using $n_s=144$ sites and $n_t=50$ independent days.
 The sites are generated Uniform$([0, 10] \times [0, 10])$.
-We generate data from 6 different simulation designs:
+We generate data from 7 different simulation designs:
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knot
   \item $T$ marginal, $K=1$ knot
   \item $T$ marginal, $K=5$ knots
   \item Skew-$t$ marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=5$ knots
-  \item Max-stable.
+  \item Max-stable
+  \item Transformation below $T = q(0.80)$
 \end{enumerate}
 In the first five designs, the $v_t(\bs)$ terms are generated using a \Matern covariance with smoothness parameter $\nu = 0.5$ and spatial range $\rho = 1$.
 For the covariance matrices in designs 1 -- 5, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
@@ -253,20 +264,28 @@ In the sixth design, we generate from a spatial max-stable distribution \citep{R
 In this design, data have marginal distributions that follow a generalized extreme value distribution with parameters $\mu = 1, \sigma=1, \xi=0.2$.
 In this model, a random effect is used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
 For this setting, we set $\gamma = 0.5$.
-In all six designs, the mean $\bX \bbeta = 10$ is assumed to be constant across space.
+In the final design, we generate $\tilde{y}$ using the setting from design 4, and then consider the data
+\begin{align}
+  y = \left\{ \begin{array}{lc}
+    \tilde{y}, \quad & \tilde{y} > T \\[0.5em]
+    T \exp\{\tilde{y} - T\}, \quad & \tilde{y} \le T
+  \end{array}\right.
+\end{align}
+where $T = q(0.80)$ is the 80th sample quantile of the data.
+In all seven designs, the mean $\bX \bbeta = 10$ is assumed to be constant across space.
 
 $M = 50$ data sets are generated for each design.
 For each data set we fit the data using
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=1$ knots, $T=-\infty$
-  \item Skew-$t$ marginal, $K=1$ knots, $T=q(0.80)$
+  \item Symmetric-$t$ marginal, $K=1$ knots, $T=q(0.80)$
   \item Skew-$t$ marginal, $K=5$ knots, $T=-\infty$
-  \item Skew-$t$ marginal, $K=5$ knots, $T=q(0.80)$
+  \item Symmetric-$t$ marginal, $K=5$ knots, $T=q(0.80)$
 \end{enumerate}
 where $q(0.80)$ is the 80th sample quantile of the data.
 The design matrix $\bX$ includes an the intercept with a prior of $\beta \sim \text{N}(0, 10)$.
-The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{U}(0, 1)$, $\log(\rho) \sim \text{N}(-2, 1)$.
+The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{Unif}(0, 1)$, $\rho \sim \text{Unif}(15)$.
 The skewness parameter has prior $\lambda \sim \text{N}(0, 2)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1)$.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
@@ -284,15 +303,25 @@ For the Brier score, a lower score indicates a better fit.
 We compared the Brier scores for exceeding 11 different thresholds for each dataset.
 The thresholds used for the Brier scores are extreme quantiles from the simulated data.
 Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier score for the Gaussian method calculated as
-\begin{align*}
+\begin{align}
   \text{BS}_{\text{rel}} = \frac{\text{BS}_{\text{method}}}{\text{BS}_{\text{Gaussian}}}.
-\end{align*}
-We analyzed the results for the simulation study using two-sided Wilcoxon signed rank tests.
-For the first five data settings, our model with no thresholding and $K = 1$ or $5$ partitions performs significantly better (p-value $<0.001$) than the Gaussian method.
-Additionally, for the $T$ and skew-$t$ settings with $K = 5$, the skew-$t$ method with $K=5$ partitions performs significantly better (p-value $<0.001$) than the skew-$t$ method with $K=1$ partition except for the Brier score at $T = q(0.995)$ for the $T$ setting with $K = 5$ (p-value $=0.036$).
-For the $T$ and skew-$t$ settings with $K = 1$, the Brier scores for the model with $K = 1$ partition are significantly better (p-value $<0.001$) for thesholds less than $q(0.95)$.
-However, as the threshold for the Brier score increases, the difference becomes less significant.
-Finally, in the max-stable data setting, our model with $K=1$ partition has significantly better Brier scores than the Gaussian method for thresholds $q(0.92)$ -- $q(0.95)$ (p-value $<0.05$) and $q(0.95)$ -- $q(0.995)$ (p-value $<0.001$).
+\end{align}
+We analyzed the results for the simulation study using two-sided Wilcoxon signed rank tests at a significance level of $\alpha = 0.001$.
+When the data come from a Gaussian distribution, the Gaussian method performs significantly better than the other methods for quantiles below $q(0.95)$.
+However, as we move further out in the tails, the difference in Brier scores is no longer significant beyond $q(0.95)$ when compared to method two and beyond $q(0.99)$ for methods three through five.
+When the data are generated using method two, our methods perform significantly better than the Gaussian method in all cases except for $q(0.90)$ with method five.
+For data setting three, method four performs significantly better at all quantile levels, and method five performs significantly better for quantiles more extreme than $q(0.93)$.
+In this setting, methods two and three do not show significant improvement over the Gaussian method until $q(0.995)$.
+In setting four, method two shows a significant improvement over the Gaussian method at all quantile levels.
+Methods three and four show improvement over the Gaussian method at quantile levels below $q(0.94)$.
+The Gaussian method performs significantly better than method five for all quantile levels in data setting four.
+For setting five, methods three and four perform significantly better than the Gaussian method at all quantile levels.
+Method one performs better than the Gaussian method at quantiles higher than $q(0.99)$, and method two performs better than the Gaussian method at quantiles below $q(0.98)$.
+For setting six, the Gaussian method performs significantly better than all methods for quantiles $q(0.90)$ -- $q(0.94)$.
+However, for quantiles $q(0.99)$ and $q(0.995)$, methods two and three outperform the Gaussian method.
+Finally, in setting seven, methods three demonstrate a significant improvement over the Gaussian method for all quantiles, and method two demonstrates a significant improvement of the Gaussian method for all quantiles except $q(0.94)$.
+Method four performs significantly better than the Gaussian method for $q(0.90)$, $q(0.92)$, and $q(0.95)$ -- $q(0.99)$.
+Finally, method five for setting seven shows no signifcant difference in Brier scores from the Gaussian method.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
@@ -310,8 +339,8 @@ Initially, we fit a linear regression assuming a mean function of
 The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
   \centering
-  \includegraphics[width=0.55\linewidth]{plots/ozone-10jul-us.pdf}
-  \includegraphics[width=0.44\linewidth]{plots/qq-res.pdf}
+  \includegraphics[width=0.56\linewidth]{plots/ozone-10jul-us.pdf}
+  \includegraphics[width=0.41\linewidth]{plots/qq-res.pdf}
   \caption{Ozone values on 10 July 2005 (left) Q-Q plot of the residuals (right)}
   \label{fig:ozone}
 \end{figure}
@@ -334,32 +363,64 @@ Both plots indicate that there is dependence in the high quantile levels beyond 
 \end{figure}
 
 \subsection{Model comparisons}
-The data analysis was done in two stages.
-In the first stage, we fit the model using Gaussian and skew-$t$ marginal distributions with $K=1, 5, 10, 15$ partitions.
-We chose to censor $Y(\bs)$ at $T = 0, 50, 75, 85$ ppb in order to compare results from no, moderate, and high censoring.
-We also include a max-stable analysis using the hierarchical max-stable model of \citet{Reich2012}.
+We fit the model using Gaussian and skew-$t$ marginal distributions with $K=1, 5, 6, 7, 8, 9, 10, 15$ partitions.
+We choose to censor $Y(\bs)$ at $T = 0$, $\widehat{q}(0.42) = 50$, $\widehat{q}(0.92)=75$ ppb in order to compare results from no, moderate, and high censoring.
+We also compare models with no time series to models that include the time series.
+Finally, as a comparison to max-stable methods, we fit the model using the hierarchical max-stable model of \citet{Reich2012}.
 All methods assume the mean function given in (\ref{eq:datamean}).
 For each model, Brier scores were were averaged over all sites and days to obtain a single Brier score for each dataset.
 At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
-Based on the results from the first stage, we conducted a second stage analysis with $K = 6, 7, 8, 9$.
+We then compute the relative Brier scores to compare each model.
 
 \subsection{Results}\label{s:results}
-The plot in Figure \ref{fig:bs-ozone} shows the relative Brier scores (see Section \ref{s:simresults}) for the first and second stages of the analysis.
+The plots in Figure \ref{fig:bs-ozone} shows the relative Brier scores (see Section \ref{s:simresults}) for time-series and non-time-series models, using $K = $1, 7, and 15 knots at thresholds $T = $0, 50, and 75 ppb.
+Both plots have similar features suggesting that most settings do reasonably well.
+In particular, for all extreme quantiles, selecting a moderate number of knots (e.g. $K = 5, \ldots, 10$) tends to give the best results.
 \begin{figure}
-  \includegraphics[width=0.5\linewidth]{plots/bs-ozone-1.pdf}
-  \includegraphics[width=0.5\linewidth]{plots/bs-ozone-2.pdf}
-  \caption{Relative Brier scores for stage 1 ozone analysis (left) and stage 2 ozone analysis (right)}
+  \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
+  \caption{Relative Brier scores for time-series models (left) and non-time-series models (right). Relative brier score for the max-stable model is between 1.07 and 1.15}
   \label{fig:bs-ozone}
 \end{figure}
-As with the simulation results, the Brier scores from the thresholded models were higher than those from the non-thresholded models, so we do not include them here.
-Based upon these results, it would appear that our model using a partition with anywhere from $K = 5$ to $K = 10$ partitions gives Brier scores across all threshold levels that are consistently low.
+Table \ref{tbl:ozoneresults} shows the best two models for selected extreme quantiles.
+The results demonstrate the importance of accounting for the temporal dependence when making extreme predictions.
+They also show the importance of thresholding for predictions further out in the tails of the data.
+This is further illustrated by the plots in Figure \ref{fig:ozoneq99}.
+
+\begin{table}
+  \small
+  \caption{Top two performing models for ozone analysis at extreme quantiles with Relative Brier score}
+  \label{tbl:ozoneresults}
+  \centering
+  \begin{tabular}{|l|l l l c|l l l c|}
+    \cline{2-9}
+    \multicolumn{1}{c|}{}  & \multicolumn{4}{c|}{1st} & \multicolumn{4}{c|}{2nd} \\
+    \hline
+    $q(0.90)$  & No time series & $K=7$  & $T=0$  & BS: 0.980 &
+                 No time series & $K=9$  & $T=0$  & BS: 0.980 \\
+    $q(0.95)$  & No time series & $K=15$ & $T=50$ & BS: 0.970 &
+                 No time series & $K=9$  & $T=50$ & BS: 0.970\\
+    $q(0.98)$  & No time series & $K=5$  & $T=50$ & BS: 0.945 &
+                 No time series & $K=10$ & $T=50$ & BS: 0.946\\
+    $q(0.99)$  & Time series    & $K=10$ & $T=75$ & BS: 0.912 &
+                 Time series    & $K=6$  & $T=75$ & BS: 0.913\\
+    $q(0.995)$ & Time series    & $K=6$  & $T=75$ & BS: 0.917 &
+                 Time series    & $K=10$ & $T=75$ & BS: 0.918\\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{plots/q99-ozone.pdf}
+  \caption{(a) -- (d) give give the posterior predictive $\widehat{q}(0.99)$ for the month of July under four different models, (e) gives the difference between $\widehat{q}(0.99)$ in plots (d) and (a), (f) gives the difference between $\widehat{q}(0.99)$ in plots (d) and (b).}
+  \label{fig:ozoneq99}
+\end{figure}
 
 \section{Discussion}\label{s:con}
 In this paper we propose a new approach for spatitemporal modeling of extreme values.
-The proposed model gives flexible tail behavior, demonstrates asymptotic dependence for observations at sites that are near to one another, and has computation on the order of Gaussian models for large space-time datasets.
-In the simulation study, we demonstrate that there are statistically significant improvements over a na\"{i}ve Gaussian approach.
+The proposed model gives flexible tail behavior, demonstrates asymptotic dependence for observations at sites that are near to one another, \hl{and has computation on the order of Gaussian models for large space-time datasets -- Do I need to add anything about the computation in the paper?}.
+In the simulation study, we demonstrate that this model shows statistically significant improvements over a na\"{i}ve Gaussian approach.
 In both the simulation study, and the application to ozone data, we find that incorporating a partition in the model improves extreme prediction.
-We also find that censoring the data below a threshold does not improve the results, and in many cases makes them worse.
+Furthermore the results suggest that thresholding can improve performance when predicting in the extreme tails of the data.
 
 This model presents new avenues for future research.
 One possibility is the implementation of a different partition structure.
@@ -392,16 +453,18 @@ where $l$ is the likelihood given in (\ref{eq:hier}), and $p(\cdot)$ is the prio
 The candidate knots are accepted with probability $\min\{R, 1\}$.
 
 \subsubsection*{Spatial random effects}
+If there is no temporal dependence amongst the observations, we use a Gibbs update for $z_{tk}$, and the posterior distribution is given in \ref{a:posterior}.
 If there is temporal dependence amongst the observations, then we update $z_{tk}$ using a Metropolis Hastings update.
-First, we generate a candidate using a random walk Gaussian candidate distribution
+Because this model uses $|z_{tk}|$, we generate candidate random effects using the $z^*_{tk}$ (see Section \ref{s:temporal}) and a random walk Gaussian candidate distribution
 \begin{align*}
-  z_{tk}^{(c)} \sim \text{N}(z_{tk}^{(r - 1)}, s^2)
+  {z^*_{tk}}^{(c)} \sim \text{N}({z^*_{tk}}^{(r - 1)}, s^2)
 \end{align*}
-where $z_{tk}^{(r-1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a tuning parameter.
+where ${z^*_{tk}}^{(r-1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a tuning parameter.
 The acceptance ratio is
 \begin{align*}
-  R = \left\{ \frac{ l[Y_t(\bs) | z_{tk}^{(c)}, \ldots] }{ l[Y_t(\bs) | z_{tk}^{(r - 1)}]} \right\} \times \left\{ \frac{ p[ z_{tk}^{(c)} ] }{ p[ z_{tk}^{(r - 1)}]}\right\}.
+  R = \left\{ \frac{ l[Y_t(\bs) | z_{tk}^{(c)}, \ldots] }{ l[Y_t(\bs) | z_{tk}^{(r - 1)}]} \right\} \times \left\{ \frac{ p[ z_{tk}^{(c)} ] }{ p[ z_{tk}^{(r - 1)}]}\right\}
 \end{align*}
+where $p[\cdot]$ is the prior taken from the time series given in Section \ref{s:temporal}.
 The candidate is accepted with probability $\min\{R, 1\}$.
 
 \subsubsection*{Variance terms}
@@ -423,7 +486,7 @@ The acceptance ratio is
          { c[ {\sigma^2_{tk}}^{(c)}]}
     \right\}
 \end{align*}
-where $p[\cdot]$ is the prior either taken from the time series given in (\ref{s:temporal}) or assumed to be IG$(a, b)$, and $c[\cdot]$ is the candidate distribution.
+where $p[\cdot]$ is the prior either taken from the time series given in Section \ref{s:temporal} or assumed to be IG$(a, b)$, and $c[\cdot]$ is the candidate distribution.
 The candidate is accepted with probability $\min\{R, 1\}$.
 
 \subsubsection*{Spatial covariance parameters}

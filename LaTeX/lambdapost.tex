@@ -1,13 +1,15 @@
 \subsection*{Conditional posterior of $\lambda \mid \ldots$}\label{s:lambdapost}
-Let $\lambda \sim N(0, \tau_\lambda)$ where $\tau_\lambda$ is a precision term. Then
+For convergence purposes we model $\lambda = \lambda_1 \lambda_2$ where
+\begin{align}
+  \lambda_1 &= \left\{ \begin{array}{ll}
+      +1 \quad & \text{w.p.} 0.5\\
+      -1 \quad & \text{w.p.} 0.5
+   \end{array}\right.\\
+   \lambda^2_2 & \sim IG(\alpha_\lambda, \beta_\lambda).\\
+\end{align}
+Then
 \begin{align*}
-  \pi(\lambda \mid \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \tau_\lambda \lambda^2 + \sum_{ t = 1 }^T \frac{ 1 }{ 2 } [\bY_t - X_t\beta - \lambda |z_t|]^T \Omega [\bY_t - X_t\beta - \lambda |z_t|] \right\} \\
-      &\propto \exp \left\{ -\frac{ 1 }{ 2 } [\lambda^2(\tau_\lambda + \sum_{t = 1 }^T |z_t|^T \Omega |z_t|^T) - 2 \lambda \sum_{t=1}^T[|z_t|^T \Omega (\bY_t - X_t \beta) \right\}\\
-      &\propto \exp \left\{ -\frac{ 1 }{ 2 } [\tau_\lambda^* \lambda^2 - 2 \mu_\lambda] \right\}
+  \pi(\lambda_2 \mid \ldots) &\propto {\lambda_2^2}^{(-\alpha_\lambda - 1)} \exp\left\{ - \frac{ \beta_\lambda }{ \lambda_2^2} \right\} \prod_{t = 1}^{T} \prod_{k = 1}^K \frac{1} {\lambda_2} \exp\left\{ - \frac{ z^2_{tk} }{ 2 \lambda_2^2  \sigma_{tk})^2} \right\} \\
+   & \propto {\lambda_2^2}^{(-\alpha_\lambda - kt - 1)} \exp \left\{ -\frac{1}{\lambda^2_2} \left[ \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}} \right] \right\}
 \end{align*}
-where
-\begin{align*}
-  \mu_\lambda &= \sum_{t = 1}^T |z_t|^T \Omega (\bY_t - X_t \beta)\\
-  \tau_\lambda^* &= t_\alpha + \sum_{t=1}^T |z_t|^T \Omega |z_t|.
-\end{align*}
-Then $\lambda \mid \ldots \sim N(\tau^{*-1}_\lambda \mu_\lambda, \tau^{*-1}_\lambda) $
+Then $\lambda_2 \mid \ldots \sim IG(\alpha_\lambda + kt, \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}}$

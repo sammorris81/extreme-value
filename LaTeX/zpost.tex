@@ -15,12 +15,12 @@
 
 \subsubsection*{Conditional posterior of $z_{tk} \mid \ldots $}\label{s:mvcondu}
 If knots are independent over days, then the conditional posterior distribution of $|z_{tk}|$ is conjugate.
-For simplicity, drop the subscript $t$, let $z^*_{tk} = |z_{tk}|$, and define
+For simplicity, drop the subscript $t$, let $\tilde{z}_{tk} = |z_{tk}|$, and define
 \begin{align*}
 R(\bs) = \left\{
     \begin{array}{ll}
         Y(\bs) - X(\bs) \beta &s \in P_l\\[1em]
-        Y(\bs) - X(\bs) \beta - \alpha z(\bs) \qquad & s \notin P_l
+        Y(\bs) - X(\bs) \beta - \lambda \tilde{z}(\bs) \qquad & s \notin P_l
     \end{array}
 \right.
 \end{align*}
@@ -34,7 +34,7 @@ Then
 \begin{align*}
     \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[
         \left( \begin{array}{c}
-            R_1 - \alpha z^*_l \bOne\\
+            R_1 - \lambda \tilde{z}_l \bOne\\
             R_2
         \end{array} \right)^T
         \left( \begin{array}{cc}
@@ -42,16 +42,16 @@ Then
             \Omega_{21} & \Omega_{22}
         \end{array} \right)
         \left( \begin{array}{c}
-            R_1 - \alpha z^*_l \bOne\\
+            R_1 - \lambda \tilde{z}_l \bOne\\
             R_2
         \end{array} \right)
-        +  \frac{ {z^*_l}^2 }{ \sigma_l^2 }\right]
+        +  \frac{ {\tilde{z}_l}^2 }{ \sigma_l^2 }\right]
     \right\} I(z_l > 0) \\
-        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_l {z^*_l}^2 - 2 \mu_l z^*_l \right] \right\}
+        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_l {\tilde{z}_l}^2 - 2 \mu_l \tilde{z}_l \right] \right\}
 \end{align*}
 where
 \begin{align*}
-    \mu_l &= \alpha ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
-    \Lambda_l &= \alpha^2 \bOne^T \Omega_{11} \bOne + \frac{ 1 }{ \sigma^2_l }.
+    \mu_l &= \lambda ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
+    \Lambda_l &= \lambda^2 \bOne^T \Omega_{11} \bOne + \frac{ 1 }{ \sigma^2_l }.
 \end{align*}
-Then $Z^*_l | \ldots \sim N_{(0, \infty)} (\Lambda_l^{-1} \mu_l, \Lambda_l^{-1})$
+Then $\tilde{Z}_l | \ldots \sim N_{(0, \infty)} (\Lambda_l^{-1} \mu_l, \Lambda_l^{-1})$

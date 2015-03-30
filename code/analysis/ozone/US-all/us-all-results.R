@@ -98,6 +98,29 @@ for (i in 1:73) {
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
 
+# find top two for selected quantiles
+score.compare <- bs.mean.ref.gau[, c(1, 6, 9:11)]
+idx <- which(score.compare[, 1] == min(score.compare[, 1], na.rm=T))
+score.compare[idx, 1]  # 33
+idx <- which(score.compare[, 2] == min(score.compare[, 2], na.rm=T))
+score.compare[idx, 2]
+idx <- which(score.compare[, 3] == min(score.compare[, 3], na.rm=T))
+score.compare[idx, 3]
+idx <- which(score.compare[, 4] == min(score.compare[, 4], na.rm=T))
+score.compare[idx, 4]
+idx <- which(score.compare[, 5] == min(score.compare[, 5], na.rm=T))
+score.compare[idx, 5]
+
+idx <- order(score.compare[, 1])[2]
+score.compare[idx, 1]
+idx <- order(score.compare[, 2])[2]
+score.compare[idx, 2]
+idx <- order(score.compare[, 3])[2]
+score.compare[idx, 3]
+idx <- order(score.compare[, 4])[2]
+score.compare[idx, 4]
+idx <- order(score.compare[, 5])[2]
+score.compare[idx, 5]
 # three main plots (keep max-stable in all for now)
 #   time series vs no time-series
 #   3 different threshold levels
@@ -273,7 +296,7 @@ par(mfrow=c(1, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
      bg=bg[1], col=col[1], pch=pch[1], # main="Time Series Models",
      ylab="Relative Brier Score", xlab="Threshold quantile",
-     cex=1.5, cex.lab=2, cex.axis=2, cex.main=2)
+     cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
         lty=lty[i], cex=1.5)
@@ -309,7 +332,7 @@ lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
 plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
      bg=bg[1], col=col[1], pch=pch[1], # main="Non Time Series Models",
      ylab="Relative Brier Score", xlab="Threshold quantile",
-     cex=1.5, cex.lab=2, cex.axis=2, cex.main=2)
+     cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
         lty=lty[i], cex=1.5)
@@ -733,6 +756,8 @@ library(fields)
 library(SpatialTools)
 
 # probability at least one day exceeds
+quartz(width=12, height=8)
+par(mfrow=c(2, 3))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast1), nx=nx, ny=ny,
            yaxt="n", xaxt="n")
 lines(borders/1000)
@@ -754,8 +779,8 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast1), nx=nx, ny=ny,
 lines(borders/1000)
 
 # probability at least two days exceed
-quartz(width=12, height=9)
-par(mfrow=c(2, 2))
+quartz(width=12, height=8)
+par(mfrow=c(2, 3))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast2), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(0, 1),
            main="Gaus - No Time Series, T=0")
@@ -780,6 +805,8 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast2), nx=nx, ny=ny,
 lines(borders/1000)
 
 # probability at least three days exceed
+quartz(width=12, height=8)
+par(mfrow=c(2, 3))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast3), nx=nx, ny=ny,
            yaxt="n", xaxt="n")
 lines(borders/1000)
@@ -801,8 +828,8 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.p.atleast3), nx=nx, ny=ny,
 lines(borders/1000)
 
 # 95th quantiles
-quartz(width=12, height=9)
-par(mfrow=c(2, 2))
+quartz(width=12, height=8)
+par(mfrow=c(2, 3))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.95), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(55, 100),
            main="Gaus - No Time Series, T=0")
@@ -814,11 +841,11 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.95), nx=nx, ny=ny,
 lines(borders/1000)
 
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.95), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
+           yaxt="n", xaxt="n", zlim=c(55, 100))
 lines(borders/1000)
 
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.95), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", zlim=c(35, 140))
+           yaxt="n", xaxt="n", zlim=c(55, 100))
 lines(borders/1000)
 
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.95), nx=nx, ny=ny,
@@ -827,32 +854,44 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.95), nx=nx, ny=ny,
 lines(borders/1000)
 
 # 99th quantiles
-quartz(width=12, height=9)
-par(mfrow=c(2, 2))
+quartz(width=12, height=12)
+par(mfrow=c(3, 2))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(60, 120),
-           main="Gaus - No Time Series, T=0")
+           main="(a) Gaussian", cex=1.5)
 lines(borders/1000)
 
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(60, 120),
-           main="Skew-t, K=1, No Time Series, T=0")
+           main="(b) Skew-t, K=1, No Time Series, T=0", cex=1.5)
 lines(borders/1000)
 
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.99), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", , zlim=c(35, 140))
+           yaxt="n", xaxt="n",zlim=c(60, 120),
+           main="(c) Skew-t, K=5, No Time Series, T=50")
 lines(borders/1000)
-
-quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.99), nx=nx, ny=ny,
-           yaxt="n", xaxt="n", , zlim=c(35, 140))
-lines(borders/1000)
+#
+# quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.99), nx=nx, ny=ny,
+#            yaxt="n", xaxt="n",zlim=c(60, 120),
+#            main="Skew-t, K=6, Time Series, T=75")
+# lines(borders/1000)
 
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(60, 120),
-           main="Sym-t, K=10, Time Series, T=75")
+           main="(d) Sym-t, K=10, Time Series, T=75", cex=1.5)
 lines(borders/1000)
 
+diff.71.1 = set.71.99 - set.1.99
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.71.1), nx=nx, ny=ny,
+           yaxt="n", xaxt="n",
+           main="(e) Difference of (d) - (a)", cex=1.5)
+lines(borders/1000)
 
+diff.71.3 = set.71.99 - set.3.99
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.71.3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n",
+           main="(f) Difference of (d) - (b)", cex=1.5)
+lines(borders/1000)
 
 
 

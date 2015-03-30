@@ -10,6 +10,9 @@
 #   4 - skew t-1 (alpha = 3)
 #   5 - skew t-5 w/partition (alpha = 3)
 #   6 - max-stable with mu=1, sig=1, xi=0.1
+#   7 - x = setting 4, set T = q(0.80)
+#       y = x,              x > T
+#       y = T * exp(x - T), x <= T
 #
 # analysis methods:
 #  1 - Gaussian
@@ -19,6 +22,7 @@
 #  5 - t-5 (T = 0.80)
 #
 #########################################################################
+
 rm(list=ls())
 load("simdata.RData")
 ns <- dim(y)[1]
@@ -158,12 +162,26 @@ for (i in 1:length(probs)) { for (j in 1:(nmethods-1)) { for (k in 1:nsettings) 
 round(paired.results, 4)
 
 # wilcoxon signed-rank test for Brier scores
-wilcox.results.gau <- array(NA, dim=c(length(probs), (nmethods-1), nsettings))
+wilcox.results.gau.one <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
 for (i in 1:length(probs)) { for (k in 1:nsettings) {
   ref.j <- 1
   for (j in 2:nmethods) {
-    wilcox.results.gau[i, (j-1), k] <- wilcox.test(brier.score[i, , ref.j, k], brier.score[i, , j, k],
-                                               paired=T, alternative="greater")$p.value
+    wilcox.results.gau.one[i, (j - 1), k] <- wilcox.test(brier.score[i, , ref.j, k],
+                                            brier.score[i, , j, k],
+                                            paired=T,
+                                            alternative="greater")$p.value
+  }
+}}
+
+# wilcoxon signed-rank test for Brier scores
+wilcox.results.gau.two <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
+for (i in 1:length(probs)) { for (k in 1:nsettings) {
+  ref.j <- 1
+  for (j in 2:nmethods) {
+    wilcox.results.gau.two[i, (j - 1), k] <- wilcox.test(brier.score[i, , ref.j, k],
+                                            brier.score[i, , j, k],
+                                            paired=T,
+                                            alternative="two.sided")$p.value
   }
 }}
 

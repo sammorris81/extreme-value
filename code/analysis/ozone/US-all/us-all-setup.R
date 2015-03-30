@@ -77,10 +77,12 @@ points(S)       # Locations of monitoring stations
 lines(borders/1000)  # Add state lines
 
 # Plot a day's data
+quartz(width=8, height=6)
 quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
            xaxt="n", xlim=c(-2.5, 2.5),
            yaxt="n", ylim=c(-1.65, 1.3),
-           main="Ozone values on 10 July 2005")
+#            main="Ozone values on 10 July 2005"
+           )
 lines(borders/1000)
 
 # Plot a day's data - presentation
@@ -285,7 +287,10 @@ abline(0, 1)
 
 xplot <- qst(theory.qq, nu=10, alpha=1)
 xplot <- (xplot - mean(xplot))
-plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1")
+quartz(width=6, height=6)
+plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", 
+     #main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1"
+     cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 abline(0, 1)
 
 # ML - Skew-t fit and diagnostics
