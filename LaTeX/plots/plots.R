@@ -576,10 +576,11 @@ legend("topright", lty=c(1, 1),
   legend=c(as.expression(bquote(paste("Skew-t, ", alpha==10))), "Gaussian"),
   col=c("firebrick3", "black"))
 
+par(mfrow=c(1, 1), mar=c(5.1, 5.1, 4.1, 2.1))
 plot(d.same, chi.10.3, type="l", lty=1, xlim=range(d.same), ylim=c(0, 1), col="firebrick3",
      xlab=bquote(h), ylab=bquote(chi(h)),
      # main=bquote(paste(chi, " statistic as a function of distance"))
-     cex.lab=2, cex.axis=2, cex.main=2, lwd=1.5)
+     cex.lab=1.5, cex.axis=1.5, cex.main=1.5, lwd=1.5)
 lines(d.same, chi.10.3.p3, lty=1, col="dodgerblue3", lwd=1.5)
 lines(d.same, chi.10.3.p5, lty=1, col="orange3", lwd=1.5)
 lines(d.same, chi.10.3.p10, lty=1, col="darkolivegreen3", lwd=1.5)

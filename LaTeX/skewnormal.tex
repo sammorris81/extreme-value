@@ -146,7 +146,7 @@ Figure \ref{fig:chi} shows how partitioning reduces the extremal dependence.
 \begin{figure}
   \centering
   \includegraphics[width=0.5\linewidth]{plots/chi-h.pdf}
-  \caption{$\chi(h)$ for $K = 1, 3, 5$, and $10$ partitions as a function of distance.}
+  \caption{$\chi(h)$ for $K = 1, 3, 5$, and $10$ knots as a function of distance.}
   \label{fig:chi}
 \end{figure}
 
@@ -248,8 +248,8 @@ The sites are generated Uniform$([0, 10] \times [0, 10])$.
 We generate data from 7 different simulation designs:
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knot
-  \item $T$ marginal, $K=1$ knot
-  \item $T$ marginal, $K=5$ knots
+  \item Symmetric-$t$ marginal, $K=1$ knot
+  \item Symmetric-$t$ marginal, $K=5$ knots
   \item Skew-$t$ marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=5$ knots
   \item Max-stable
@@ -301,28 +301,25 @@ We average the Brier scores over all test sites and days.
 For the Brier score, a lower score indicates a better fit.
 
 \subsection{Results}\label{s:simresults}
-We compared the Brier scores for exceeding 11 different thresholds for each dataset.
-The thresholds used for the Brier scores are extreme quantiles from the simulated data.
+We compared the Brier scores for exceeding 4 different thresholds for each dataset.
+The thresholds used for the Brier scores are extreme quantiles from the simulated data for $q(0.90)$, $q(0.95)$, $q(0.98)$, and $q(0.99)$.
 Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier score for the Gaussian method calculated as
 \begin{align}
   \text{BS}_{\text{rel}} = \frac{\text{BS}_{\text{method}}}{\text{BS}_{\text{Gaussian}}}.
 \end{align}
-We analyzed the results for the simulation study using two-sided Wilcoxon signed rank tests at a significance level of $\alpha = 0.001$.
-When the data come from a Gaussian distribution, the Gaussian method performs significantly better than the other methods for quantiles below $q(0.95)$.
-However, as we move further out in the tails, the difference in Brier scores is no longer significant beyond $q(0.95)$ when compared to method two and beyond $q(0.99)$ for methods three through five.
-When the data are generated using method two, our methods perform significantly better than the Gaussian method in all cases except for $q(0.90)$ with method five.
-For data setting three, method four performs significantly better at all quantile levels, and method five performs significantly better for quantiles more extreme than $q(0.93)$.
-In this setting, methods two and three do not show significant improvement over the Gaussian method until $q(0.995)$.
-In setting four, method two shows a significant improvement over the Gaussian method at all quantile levels.
-Methods three and four show improvement over the Gaussian method at quantile levels below $q(0.94)$.
-The Gaussian method performs significantly better than method five for all quantile levels in data setting four.
-For setting five, methods three and four perform significantly better than the Gaussian method at all quantile levels.
-Method one performs better than the Gaussian method at quantiles higher than $q(0.99)$, and method two performs better than the Gaussian method at quantiles below $q(0.98)$.
-For setting six, the Gaussian method performs significantly better than all methods for quantiles $q(0.90)$ -- $q(0.94)$.
-However, for quantiles $q(0.99)$ and $q(0.995)$, methods two and three outperform the Gaussian method.
-Finally, in setting seven, methods three demonstrate a significant improvement over the Gaussian method for all quantiles, and method two demonstrates a significant improvement of the Gaussian method for all quantiles except $q(0.94)$.
-Method four performs significantly better than the Gaussian method for $q(0.90)$, $q(0.92)$, and $q(0.95)$ -- $q(0.99)$.
-Finally, method five for setting seven shows no signifcant difference in Brier scores from the Gaussian method.
+We analyzed the results for the simulation study using a Friedman test at $\alpha = 0.05$.
+If the Friedman test came back with a significant results, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson test to see which methods had different results.
+The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in Appendix \ref{a:pdiffs}.
+Generally, the results of the study show that when the data come from a Gaussian process, our methods at least perform comparably to the Gaussian method.
+The results also show that our method performs better when the number of knots is the same as used in the data generation.
+
+In the Gaussian setting, the performance of the single-partition skew-$t$ method is comparable to the Gaussian method.
+Looking at Brier scores for more extreme quantiles, either skew-$t$ methods have results that are comparable to the Gaussian method.
+For data settings with symmetric-$t$ and skew-$t$ marginals (settings 2 -- 5), we find significant improvement over the Gaussian method.
+Furthermore in these data settings, we find the best performance occurs when the number of knots used in the method matches the number of knots used for data generation.
+The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that the data are generated directly from the model used in the method.
+In setting 6, we see that for low-extreme quantiles, the Gaussian method performs better, for more extreme quantiles, the single-partition method, both thresholded and non-thresholded, perform significantly better.
+Finally, for setting 7, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
@@ -421,7 +418,7 @@ In this paper we propose a new approach for spatitemporal modeling of extreme va
 The proposed model gives flexible tail behavior, demonstrates asymptotic dependence for observations at sites that are near to one another, \hl{and has computation on the order of Gaussian models for large space-time datasets -- Do I need to add anything about the computation in the paper?}.
 In the simulation study, we demonstrate that this model shows statistically significant improvements over a na\"{i}ve Gaussian approach.
 In both the simulation study, and the application to ozone data, we find that incorporating a partition in the model improves extreme prediction.
-Furthermore the results suggest that thresholding can improve performance when predicting in the extreme tails of the data.
+Furthermore the results from the data analysis suggest that thresholding can improve performance when predicting in the extreme tails of the data.
 
 This model presents new avenues for future research.
 One possibility is the implementation of a different partition structure.
@@ -429,6 +426,8 @@ We choose to define the random effects for a site by using an indicator function
 However, this indicator function could be replaced by kernel function that would allow for multiple knots to impact each site, with the weight of each knot to be determined by some characteristic such as distance.
 Another area that should be explored is the temporal dependence in the model.
 Instead of implementing a time series on the random effects, a three-dimensional covariance structure on the residuals could be implemented to address temporal dependence.
+Finally, we acknowledge that by specifying the number of knots, we may be underestimating the uncertainty in the model.
+This could be incoporated by treating the number of knots as a model parameter instead of fixing it to be a specific value.
 
 \section*{Acknowledgments}
 
@@ -567,6 +566,160 @@ Then
 \end{align}
 Because the extended skew-$t$ distribution is not bounded above, for all $\bar{F}_{\text{EST}}(x) = 1 - F_{\text{EST}} > 0$ for all $x < \infty$.
 Therefore, for a skew-$t$ distribution, $\lim_{h \rightarrow \infty} \chi(h) > 0$.
+
+\subsection{Simulation study pairwise difference results} \label{a:pdiffs}
+The following tables show the methods that have significantly different Brier scores when using a Wilcoxon-Nemenyi-McDonald-Thompson test.
+In each column, different letters signify that the methods have significantly different Brier scores.
+For example, there is significant evidence to suggest that method 1 and method 4 have  different Brier scores at $q(0.90)$, whereas there is not significant evidence to suggest that method 1 and method 2 have different Brier scores at $q(0.90)$.
+In each table group A represents the group with the lowest Brier scores.
+Groups are significant with a familywise error rate of $\alpha = 0.05$.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 1: Gaussian marginal, $K = 1$ knot}
+  \label{tbl:gaussim}
+  \begin{tabular}{|l|ccc|ccc|ccc|cc|}
+    \cline{2-12}
+    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{2}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 & A &   &   & A &   &   & A &   &   & A &   \\
+    \hline
+    Method 2 & A & B &   & A & B &   & A &   &   & A &   \\
+    \hline
+    Method 3 &   &   & C &   &   & C &   &   & C &   & B \\
+    \hline
+    Method 4 &   & B &   &   & B &   &   & B &   &   & B \\
+    \hline
+    Method 5 &   &   & C &   &   & C &   &   & C &   & B \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 2: Symmetric-$t$ marginal, $K = 1$ knot}
+  \label{tbl:t1k1sim}
+  \begin{tabular}{|l|cc|cccc|cccc|ccc|}
+    \cline{2-14}
+    \multicolumn{1}{c}{} & \multicolumn{2}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   & B &   &   &   & D &   &   &   & D &   &   & C \\
+    \hline
+    Method 2 & A &   & A &   &   &   & A &   &   &   & A &   &   \\
+    \hline
+    Method 3 &   & B &   & B &   &   &   & B & C &   &   & B &   \\
+    \hline
+    Method 4 & A &   &   &   & C &   &   & B &   &   &   & B &   \\
+    \hline
+    Method 5 &   & B &   &   &   & D &   &   & C & D &   & B & C \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 3: Symmetric-$t$ marginal, $K = 5$ knots}
+  \label{tbl:gaussim}
+  \begin{tabular}{|l|cc|cc|cc|cc|}
+    \cline{2-9}
+    \multicolumn{1}{c}{} & \multicolumn{2}{|c}{$q(0.90)$} & \multicolumn{2}{|c}{$q(0.95)$} & \multicolumn{2}{|c}{$q(0.98)$} & \multicolumn{2}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   & B &   & B &   & B &   & B \\
+    \hline
+    Method 2 &   & B &   & B &   & B &   & B \\
+    \hline
+    Method 3 &   & B &   & B &   & B & A & B \\
+    \hline
+    Method 4 & A &   & A &   & A &   & A &   \\
+    \hline
+    Method 5 &   & B &   & B & A & B & A & B \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 4: Skew-$t$ marginal, $K = 1$ knot}
+  \label{tbl:gaussim}
+  \begin{tabular}{|l|ccc|ccc|ccc|ccc|}
+    \cline{2-13}
+    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   & B &   &   & B &   &   & B &   &   & B &   \\
+    \hline
+    Method 2 & A &   &   & A &   &   & A &   &   & A &   &   \\
+    \hline
+    Method 3 &   & B &   &   & B &   &   & B &   & A & B &   \\
+    \hline
+    Method 4 &   & B &   &   & B &   &   & B &   &   & B &   \\
+    \hline
+    Method 5 &   &   & C &   &   & C &   &   & C &   &   & C \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 5: Skew-$t$ marginal, $K = 5$ knots}
+  \label{tbl:gaussim}
+  \begin{tabular}{|l|cc|cc|cc|ccc|}
+    \cline{2-10}
+    \multicolumn{1}{c}{} & \multicolumn{2}{|c}{$q(0.90)$} & \multicolumn{2}{|c}{$q(0.95)$} & \multicolumn{2}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   & B &   & B &   & B &   &   & C \\
+    \hline
+    Method 2 &   & B &   & B &   & B &   & B & C \\
+    \hline
+    Method 3 & A &   & A &   &   & B &   &   & C \\
+    \hline
+    Method 4 & A &   & A &   & A &   & A & B &   \\
+    \hline
+    Method 5 & A &   & A &   & A &   & A &   &   \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 6: Max-stable}
+  \label{tbl:gaussim}
+  \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
+    \cline{2-15}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 & A &   &   &   & A &   &   &   & A & B &   &   &   & C \\
+    \hline
+    Method 2 &   & B &   &   & A & B &   &   & A &   &   & A & B &   \\
+    \hline
+    Method 3 &   &   & C &   &   & B & C &   & A & B &   & A &   &   \\
+    \hline
+    Method 4 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
+    \hline
+    Method 5 &   &   & C & D &   &   & C &   &   & B &   &   & B & C \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 7: Transformation below $T = q(0.80)$}
+  \label{tbl:gaussim}
+  \begin{tabular}{|l|ccc|cc|ccc|ccc|}
+    \cline{2-12}
+    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{2}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   &   & C &   & B &   &   & C &   &   & C \\
+    \hline
+    Method 2 &   & B &   &   & B & A & B &   & A & B &   \\
+    \hline
+    Method 3 & A &   &   & A &   & A &   &   & A &   &   \\
+    \hline
+    Method 4 &   & B & C &   & B &   & B &   &   & B & C \\
+    \hline
+    Method 5 &   & B & C &   & B &   &   & C &   &   & C \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \bibliographystyle{rss}
 \bibliography{skewnormal}
