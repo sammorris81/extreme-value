@@ -83,17 +83,17 @@ Furthermore, the marginal distributions at each location also follow a univariat
 \subsection{Extremal dependence}
 Our interest lies in spatial dependence in the tail of the skew-$t$ process.
 One measure of extremal dependence is the $\chi$ statistic \citep{Padoan2011}.
-For a stationary and isotropic spatial process, the $\chi$ coefficient for two location $\bs$ and $\bt$ separated by distance $h = || \bs - \bt ||$ is
+For a stationary and isotropic spatial process, the $\chi$ statistic for two location $\bs$ and $\bt$ separated by distance $h = || \bs - \bt ||$ is
 \begin{align}
   \chi(h) = \lim_{c \rightarrow \infty} \Pr[Y(\bs) > c | Y(\bt) > c].
 \end{align}
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the distance, so they are not suitable for modeling spatially-dependent extremes.
 Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent.
-However, one problem with the spatial skew-$t$ process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$.
+However, one problem with the spatial skew-$t$ process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$ (see Appendix \ref{a:skewt} for a proof).
 This occurs because all observations, both near and far, share the same $z$ and $\sigma$ terms.
 Therefore, this long-range dependence feature of the skew-$t$ process is not ideal for spatial analysis of large geographic regions where we expect only local spatial dependence.
-The explicit expression for $\chi(h)$ \citep{Padoan2011} and a proof of this are given in Appendix \ref{a:skewt}.
+The explicit expression for $\chi(h)$ is given in Appendix \ref{a:skewt}.
 
 \section{Spatiotemporal skew-$t$ model for extremes}\label{s:spatial}
 In this section, we propose extensions to the skew-$t$ process to model spatial extremes over a large geographic region by introducing censoring to focus on tail behavior and a random partition to remove long-range asymptotic dependence.
@@ -103,7 +103,7 @@ For notational convenice, we introduce the model for a single replication, and t
 To avoid bias in estimating tail parameters, we model censored data.
 Let
 \beq\label{Yt}
-  \tilde{Y}(\bs) = \left\{ \begin{array}{ll}
+  \widetilde{Y}(\bs) = \left\{ \begin{array}{ll}
       Y(\bs) \quad & \delta(\bs) = 1 \\
       T & \delta(\bs) = 0
   \end{array} \right.
@@ -112,7 +112,7 @@ be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored obser
 Then, assuming the uncensored data $Y(\bs)$ are observations from a skew-$t$ process, we update values censored below the threshold using standard Bayesian missing data methods as described in Section \ref{s:comp}.
 
 \subsection{Partitioning to remove long-range asymptotic dependence}\label{s:part}
-We handle the problem of long-range asymptotic dependence with a random partition model.
+We handle the problem of long-range asymptotic dependence with a random partition.
 As discussed in Section \ref{s:spatialskew}, the source of long-range dependence is the shared $z$ and $\sigma$.
 Therefore, to alleviate this dependence, we allow $z$ and $\sigma$ to vary by site.
 The model becomes
@@ -127,14 +127,13 @@ The knots define a random partition of $\calD$ by subregions $P_{1}, \ldots, P_{
 \end{align}
 All $z(\bs)$ and $\sigma(\bs)$ for sites in subregion $k$ are assigned common values
 \begin{align}
-  z(\bs) &= z_{k} \label{eq:sitez}\\
-  \sigma(\bs) &= \sigma_{k} \label{eq:sitesig},
+  z(\bs) = z_{k} \quad \text{and} \quad \sigma(\bs) = \sigma_{k} \label{eq:sitezsig}
 \end{align}
-and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2 \iid$ IG$(a, b)$.
+and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2 \iid$ IG$(a, b)$ where IG is the distribution function of an inverse gamma random variable.
 So, within each partition, $Y(\bs)$ follows the spatial skew-$t$ process defined in Section \ref{s:spatialskew}.
 Across partitions, the $Y(\bs)$ remain correlated via the correlation function for $v(\bs)$ because $v(\bs)$ spans all partitions.
 
-When incorporating the random daily partition, conditional on knots $\bw_1, \ldots, \bw_K$, the $\chi$ statistic for two sites $\bs$ and $\bt$ in partitions $k_s$ and $k_t$ respectively is
+When incorporating the random partition, conditional on knots $\bw_1, \ldots, \bw_K$, the $\chi$ statistic for two sites $\bs$ and $\bt$ in partitions $k_s$ and $k_t$ respectively is
 \begin{align}
   \chi(h) &= I(k_s = k_t) \chi_{\text{skew-}t}(h) + I(k_s \neq k_t) \chi_{\text{Gaus}}(h) \nonumber \\
          &= I(k_s = k_t) \chi_{\text{skew-}t}(h)
@@ -144,10 +143,11 @@ Therefore, sites in different subregions are asymptotically independent because 
 Marginally, over the knots $\bw_1, \ldots, \bw_K$, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_s = k_t)$ is the probability that two sites separated by distance $h$ are in the same partition.
 So, to show that $\lim_{h \rightarrow \infty} \chi(h) = 0$, we need only know that $\lim_{h \rightarrow \infty} \pi(h) = 0$. A proof of this is given in Appendix \ref{a:proofsamepartition}.
 
-In Figure \ref{fig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a skew-$t$ distribution with $\alpha = 10$, and $\nu = 3$ of freedom.
+In Figure \ref{fig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a skew-$t$ distribution with $\alpha = 10$, and 3 degrees of freedom.
 To estimate $\pi(h)$, we generate 500 sites uniformly over the unit-square.
 We then randomly generate 400 different sets of partitions using $K = 3$, $5$, and $10$.
 For each set of knots, we take $\pi(h)$ to be the proportion of sites in the same partition that are separated by distance $h$.
+This plot demonstrates how partitioning helps to reduce extremal dependence as $h$ increases.
 
 \begin{figure}
   \centering
@@ -174,7 +174,7 @@ As in section \ref{s:part}, these knots define a daily partition $P_{t1}, \ldots
 
 We use an AR(1) time series model for $w_{tk}$, $z_{tk}$, and $\sigma_{tk}$.
 The time series model must be specified after a transformation to preserve the skew-$t$ process at each time point.
-For each time-varying parameter, we transform to obtain a standard normal marginal distribution, place a Gaussian prior with autocorrelation of the transformed parameter, and then transform back to obtain the marginal distribution required to preserve the skew-$t$ process.
+For each time-varying parameter, we transform to obtain a standard normal marginal distribution, place a Gaussian prior with autocorrelation on the transformed parameter, and then transform back to obtain the marginal distribution required to preserve the skew-$t$ process.
 We first transform the spatial knots from $\calD$ to $\calR^2$ as follows.
 Let
 \begin{align}
@@ -187,12 +187,13 @@ Let
 \begin{align}
   \sigma^{2*}_t(\bs) =\Phi^{-1}\left\{ \text{IG}[\sigma^2_t(\bs)] \right\}
 \end{align}
-where IG is the distribution function of an inverse gamma random variable.
+where IG is defined as before.
 We also use a copula on $z_{t}(\bs)$ to ensure that the marginal distributions of $z_t(\bs)$ are half-normal.
 Let
 \begin{align}
-  z^*_t(\bs) = \Phi^{-1}\left\{ \text{HN}[\sigma^2_t(\bs)] \right\}
+  z^*_t(\bs) = \Phi^{-1}\left\{ \text{HN}[z_t(\bs)] \right\}
 \end{align}
+where HN is the distribution function of a half-normal random variable.
 The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z^*_{1k} \sim N(0, \sigma^2_{1k})$, $\sigma^{2*}_{1k} \sim N(0, 1)$, and for $t > 1$ the time series is modeled as
 \begin{align}
   \bw^*_{tk} | \bw^*_{t-1, k} &\sim N_2\left[\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2) \right] \\
@@ -200,18 +201,18 @@ The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z^*_{
   \sigma^{2*}_{tk} | \sigma^{2*}_{t-1, k} &\sim N \left[\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2) \right]
 \end{align}
 where $|\phi_w|$, $|\phi_z|$, $|\phi_\sigma| < 1$.
-These are stationary time series models with marginal distributions $\bw^*_{k} \sim N_2(0, 1)$, $z^*_{k} \sim N(0, \sigma^2_{k})$, $\sigma^{2*}_{k} \sim N(0, 1)$.
+These are stationary time series models with marginal distributions \hbox{$\bw^*_{k} \sim N_2(0, 1)$}, \hbox{$z^*_{k} \sim N(0, \sigma^2_{k})$}, and \hbox{$\sigma^{2*}_{k} \sim N(0, 1)$}.
 After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $z_{tk} \sim HN(0, \sigma^2_{tk})$ $\sigma^2_{tk} \sim \text{IG}(a, b)$.
 For each day, the model is identical to the spatial-only model in (\ref{eq:partition}) by construction.
 
 \section{Computation}\label{s:comp}
 First, we impute values below the threshold.
-Then, we update $\Theta$ using Metropolis Hastings or Gibbs sampling when appropriate.
+Then, we update model parameters, $\Theta$, using Metropolis Hastings or Gibbs sampling when appropriate.
 Finally, we make spatial predictions using conditional multivariate normal results and the fact that the distribution of $Y_t(\bs) \mid \Theta, z(\bs)$ is the usual multivariate normal distribution with a \Matern spatial covariance structure.
 
 We can use Gibbs sampling to update $Y_t(\bs)$ for censored observations that are below the threshold $T$.
 After conditioning on $\lambda$, $z_t(\bs)$ and non-censored observations, $Y_t(\bs)$ has truncated normal full conditionals.
-So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\bX \bbeta, \bSigma)$.
+So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\bX_t^T(\bs) \beta + \lambda | z_t(\bs)|, \bSigma)$.
 After imputing the censored observations, we update the model parameters.
 To update the model parameters, we use standard Gibbs updates for parameters when possible.
 In the case Gibbs sampling is not possible, parameters are updated using a random-walk Metropolis Hastings algorithm.
@@ -226,13 +227,13 @@ We model this with a Bayesian hierarchical model as follows.
 Let $\bw_{t1}, \ldots, \bw_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, and $P_{tk}$ as defined in (\ref{eq:subregions}).
 Then
 \begin{align}
-   Y_t(\bs) \mid z_{t}(\bs), \sigma^2(\bs), P_{tk}, \alpha, \beta, \Theta &= \bX_t(\bs)^T \beta + \lambda |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
+   Y_t(\bs) \mid z_{t}(\bs), \sigma_t^2(\bs), P_{tk}, \Theta &= \bX_t(\bs)^T \beta + \lambda |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{eq:hier}\\
    z_t(\bs) &= z_{tk} \text{ if } \bs \in P_{tk}\nonumber\\
    \sigma^2_{t}(\bs) &= \sigma^2_{tk} \text{ if } \bs \in P_{tk}\nonumber\\
    \lambda &= \lambda_1 \lambda_2\nonumber\\
    \lambda_1 &= \left\{ \begin{array}{ll}
-      +1 \quad & \text{w.p.} 0.5\\
-      -1 \quad & \text{w.p.} 0.5
+      +1 \quad & \text{w.p. } 0.5\\
+      -1 \quad & \text{w.p. } 0.5
    \end{array}\right.\nonumber\\
    \lambda^2_2 & \sim IG(a, b)\nonumber\\
    v_t(\bs) \mid \Theta &\sim \Matern(0, \Sigma)\nonumber\\
@@ -240,7 +241,7 @@ Then
    \sigma^{2*}_{tk} \mid \sigma^{2*}_{t-1, k} &\sim N(\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2))\nonumber\\
    \bw^*_{tk} \mid \bw^*_{t-1, k} &\sim N_2(\phi_w \bw^*_{t-1, k}, (1 - \phi_w^2)) \nonumber
 \end{align}
-where $\Theta = \{\rho, \nu, \gamma\}$, and $\Sigma$ is a \Matern covariance matrix as described in Section \ref{s:skewt}.
+where $\Theta = \{\rho, \nu, \gamma\, \lambda, \beta\}$, and $\Sigma$ is a \Matern covariance matrix as described in Section \ref{s:skewt}.
 We parameterize $\lambda = \lambda_1 \lambda_2$ to help with convergence in the MCMC.
 
 \section{Simulation study}\label{s:simstudy}
@@ -249,7 +250,7 @@ In this section, we conduct a simulation study to investigate how the number of 
 \subsection{Design}\label{s:simdesign}
 For all simulation designs, we generate data from the model in Section \ref{s:part} using $n_s=144$ sites and $n_t=50$ independent days.
 The sites are generated Uniform$([0, 10] \times [0, 10])$.
-We generate data from 7 different simulation designs:
+We generate data from 5 different simulation designs:
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=1$ knot
@@ -262,9 +263,9 @@ We generate data from 7 different simulation designs:
 In the first three designs, the $v_t(\bs)$ terms are generated using a \Matern covariance with smoothness parameter $\nu = 0.5$ and spatial range $\rho = 1$.
 For the covariance matrices in designs 1 -- 3, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
 In the first design, $\sigma^2 = 2$ is used for all days which results in a Gaussian distribution.
-For designs 2 and 3, $\sigma^2_{tk} \iid \text{IG}(3, 8)$
+For designs 2 and 3, $\sigma^2_{tk} \iid \text{IG}(3, 8)$ to give a $t$ distribution with 6 degrees of freedom.
 For designs 1, we set $\lambda = 0$.
-For designs 2 and 3, $\lambda = 3$ was used as to simulate moderate skewness, and the $z_t$ are generated as described in (\ref{eq:sitez}).
+For designs 2 and 3, $\lambda = 3$ was used as to simulate moderate skewness, and the $z_t$ are generated as described in (\ref{eq:sitezsig}).
 In the fourth design, we generate from a spatial max-stable distribution \citep{Reich2012}.
 In this design, data have marginal distributions that follow a generalized extreme value distribution with parameters $\mu = 1, \sigma=1, \xi=0.2$.
 In this model, a random effect is used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
@@ -289,9 +290,9 @@ For each data set we fit the data using five models
   \item Symmetric-$t$ marginal, $K=5$ knots, $T=q(0.80)$
 \end{enumerate}
 where $q(0.80)$ is the 80th sample quantile of the data.
-The design matrix $\bX$ includes an the intercept with a prior of $\beta \sim \text{N}(0, 10)$.
+The design matrix $\bX$ includes an intercept with a first-order spatial trend with priors of $\beta_\text{int}$, $\beta_\text{lat}$, $\beta_\text{long},  \iid \text{N}(0, 10)$.
 The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{Unif}(0, 1)$, $\rho \sim \text{Unif}(15)$.
-The skewness parameter has prior $\lambda \sim \text{N}(0, 2)$.
+The skewness parameter has prior $\lambda_2 \sim \text{IG}(0.1, 0.1)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1)$.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We do not include skewness for the thresholded models because it cannot be identified with only one tail worth of data, and we do not fit the data using the max-stable methods from \citet{Reich2012} because of the computational constraints.
@@ -318,7 +319,7 @@ If the Friedman test came back with a significant results, we conducted a Wilcox
 The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in Appendix \ref{a:pdiffs}.
 
 Figure \ref{fig:simbrierscores} shows that when the data come from a Gaussian process, our methods perform comparably to the Gaussian method.
-For data settings with skew-$t$ marginals (settings 2 -- 5), we find significant improvement over the Gaussian method.
+For data settings with skew-$t$ marginals (settings 2 -- 3), we find significant improvement over the Gaussian method.
 Furthermore in these data settings, we find the best performance occurs when the number of knots used in the method matches the number of knots used for data generation.
 The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that the data are generated directly from the model used in the method.
 For the max-stable data, we see that for low-extreme quantiles, the Gaussian method performs better, for more extreme quantiles, the single-partition method, both thresholded and non-thresholded, perform significantly better than the Gaussian.
@@ -335,7 +336,7 @@ To illustrate this method, we consider the daily maximum 8-hour ozone measuremen
 For each site, we also have covariate information containing the estimated ozone from the Community Multi-scale Air Quality (CMAQ) modeling system.
 Initially, we fit a linear regression assuming a mean function of
 \begin{align}
-  \bX \bbeta = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
+  \bX^T_t(\bs) \bbeta = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
 \end{align}
 The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
@@ -345,7 +346,7 @@ The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot 
   \caption{Ozone values on 10 July 2005 (left) Q-Q plot of the residuals (right)}
   \label{fig:ozone}
 \end{figure}
-Exploratory data analysis indicates that there is dependence in the high quantile levels of the residuals beyond what we expect if the residuals were independent.
+Exploratory data analysis indicates that there is dependence in the high quantile levels of the residuals beyond what we expect in the case if independence.
 
 % We explore spatial and temporal extremal dependence by considering $\chi_c = \Pr[Y(\bs) > c | Y(\bt) > c]$.
 % To examine spatial dependence in high quantiles, we consider observations at all pairs of sites $\bs$ and $\bt$ that are distance $h$ apart where $h$ is separated into bins of size 0.25 km.
@@ -366,27 +367,29 @@ Exploratory data analysis indicates that there is dependence in the high quantil
 
 \subsection{Model comparisons}
 We fit the model using Gaussian and skew-$t$ marginal distributions with $K=1, 5, 6, 7, 8, 9, 10, 15$ partitions.
-We choose to censor $Y(\bs)$ at $T = $0, 50 (0.42 sample quantile), and 75 (0.92 sample quantile) ppb in order to compare results from no, moderate, and high censoring.
-The upper thresholde of 75 ppb was used because the current air quality standard is based on exceedance of 75 ppb.
+We choose to censor $Y(\bs)$ at $T =$ 0, 50 (0.42 sample quantile), and 75 (0.92 sample quantile) ppb in order to compare results from no, moderate, and high censoring.
+The upper threshold of 75 ppb was used because the current air quality standard is based on exceedance of 75 ppb.
+As with the simuliation study, for models with a threshold of $T = 75$, we use a symmetric-$t$ marginal distribution.
 We also compare models with no time series to models that include the time series.
 Finally, as a comparison to max-stable methods, we fit the model using the hierarchical max-stable model of \citet{Reich2012}.
 All methods assume the mean function given in (\ref{eq:datamean}).
-\hl{number of iterations, burnin, convergence}
+Each chain of the mcmc ran for 30000 iterations with a burn-in period of 25000 iterations.
+Parameters appear to converge properly; however, as before, for models with multiple partitions it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
 For each model, Brier scores were were averaged over all sites and days to obtain a single Brier score for each dataset.
 At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
-We then compute the relative (to Gaussian) Brier scores to compare each model.
+We then compute the relative (to Gaussian) Brier scores (see Section \ref{s:simresults}) to compare each model.
 
 \subsection{Results}\label{s:results}
-\hl{Include more here. 1: mention something about the max-stable results (pull from figure caption), 2: discuss general take home points}
-The results demonstrate the importance of accounting for the temporal dependence when making extreme predictions.
-They also show the importance of thresholding for predictions further out in the tails of the data.
-This is further illustrated by the plots in Figure \ref{fig:ozoneq99}.
-
-The plots in Figure \ref{fig:bs-ozone} shows the relative Brier scores (see Section \ref{s:simresults}) for time-series and non-time-series models, using $K = $ 1, 7, and 15 knots at thresholds $T = $ 0, 50, and 75 ppb.
+The results suggest that the skew-$t$, thresholded, partitioned, and time series models all give an improvement in predictions over the Gaussian model, whereas the max-stable method results in relative Brier scores between 1.07 and 1.15 indicating poorer performance than the Gaussian model.
+The plots in Figure \ref{fig:bs-ozone} show the relative Brier scores for time-series and non-time-series models, using $K = $ 1, 7, and 15 knots at thresholds $T = $ 0, 50, and 75 ppb.
+Most of the models perform similarly across all the Brier scores; however, for single-partition models without thresholding, performance tends to diminish in the extreme quantiles.
+The results also suggest that thresholding improves performance for estimates in the extreme quantiles.
 Both plots have similar features suggesting that most settings do reasonably well.
 In particular, for all extreme quantiles, selecting a moderate number of knots (e.g. $K = 5, \ldots, 10$) tends to give the best results.
-
 Table \ref{tbl:ozoneresults} shows the best two models for selected extreme quantiles.
+
+We illustrate the predictive capability of our model in Figure \ref{fig:ozoneq99} by plotting the 99th quantile of the posterior predictive density for July in South Carolina and Georgia.
+\hl{Include more here about the maps}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
@@ -649,7 +652,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 \begin{table}[htbp]
   \centering
   \caption{Setting 2 -- Skew-$t$ marginal, $K = 1$ knot}
-  \label{tbl:gaussim}
+  \label{tbl:st1sim}
   \begin{tabular}{|l|ccc|ccc|ccc|ccc|}
     \cline{2-13}
     \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -670,7 +673,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 \begin{table}[htbp]
   \centering
   \caption{Setting 3 -- Skew-$t$ marginal, $K = 5$ knots}
-  \label{tbl:gaussim}
+  \label{tbl:st5sim}
   \begin{tabular}{|l|cc|cc|cc|ccc|}
     \cline{2-10}
     \multicolumn{1}{c}{} & \multicolumn{2}{|c}{$q(0.90)$} & \multicolumn{2}{|c}{$q(0.95)$} & \multicolumn{2}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -691,7 +694,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 \begin{table}[htbp]
   \centering
   \caption{Setting 4 -- Max-stable}
-  \label{tbl:gaussim}
+  \label{tbl:mssim}
   \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
     \cline{2-15}
     \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -712,7 +715,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 \begin{table}[htbp]
   \centering
   \caption{Setting 5 -- Transformation below $T = q(0.80)$}
-  \label{tbl:gaussim}
+  \label{tbl:transsim}
   \begin{tabular}{|l|ccc|cc|ccc|ccc|}
     \cline{2-12}
     \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{2}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
