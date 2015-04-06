@@ -9,6 +9,7 @@
 \usepackage{times}
 \usepackage{soul}
 \usepackage{color}
+\usepackage{enumitem}
 \usepackage{setspace}
 
 \usepackage[left=1in,top=1in,right=1in]{geometry}
@@ -394,12 +395,14 @@ Table \ref{tbl:ozoneresults} shows the best two models for selected extreme quan
 We illustrate the predictive capability of our model in Figure \ref{fig:ozoneq99} by plotting the 99th quantile of the posterior predictive density for July in South Carolina and Georgia.
 We fit the model using four methods, two reference and two that performed better.
 These four methods are
-\begin{enumerate}[1.]
+\begin{enumerate}\setlength{\itemsep}{-0.5em}
   \item Gaussian (reference)
   \item Skew-$t$, $K =$ 1 knot, $T = $ 0, no time series (reference)
   \item Skew-$t$, $K =$ 5 knots, $T = $ 50, no time series (comparison)
-  \item Symmetric-$t$, $K =$ 10 knots, $T = $ 75, time series (comparison)
+  \item Symmetric-$t$, $K =$ 10 knots, $T = $ 75, time series (comparison).
 \end{enumerate}
+In the bottom two plots, we plot the differences between method 4 and methods 1 and 2.
+The most noticeable differences between the reference methods and the comparison methods is that the comparison methods tend to give higher estimates of the 99th quantile along the I-85 corridor between Charlotte and Atlanta.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
