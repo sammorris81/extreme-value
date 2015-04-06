@@ -143,7 +143,7 @@ for (j in 1:nsettings) {
   for (i in 1:length(include)) {
     scores <- as.vector(brier.score[include[i], , , j])
     combine <- data.frame(scores, groups, dataset)
-    results.friedman[i, j] <- friedman.test(scores ~ groups | dataset, 
+    results.friedman[i, j] <- friedman.test(scores ~ groups | dataset,
                                             data=combine)$p.value
   }
 }
@@ -154,7 +154,7 @@ for (j in 1:nsettings) {
   for (i in 1:length(include)) {
     scores <- as.vector(brier.score[include[i], , , j])
     combine <- data.frame(scores, groups, dataset)
-    results.wnmt[, j, i] <- pWNMT(x=combine$scores, b=combine$dataset, 
+    results.wnmt[, j, i] <- pWNMT(x=combine$scores, b=combine$dataset,
                                   trt=combine$groups, n.mc=20000)$p.val
   }
 }
@@ -199,9 +199,9 @@ probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 # look over results
 #   results.wnmt: ncomparisons x nsettings x nquants
 # results are 1-2, 1-3, 1-4, 1-5, 2-3, 2-4, 2-5, 3-4, 3-5, 4-5
-comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5", "gaus vs. t-5 (T = 0.80)", 
-                 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5", "skew t-1 vs. t-5 (T = 0.80)", 
-                 "t-1 (T = 0.80) vs. skew t-5", "t-1 (T = 0.80) vs. t-5 (T = 0.80)", 
+comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5", "gaus vs. t-5 (T = 0.80)",
+                 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5", "skew t-1 vs. t-5 (T = 0.80)",
+                 "t-1 (T = 0.80) vs. skew t-5", "t-1 (T = 0.80) vs. t-5 (T = 0.80)",
                  "skew t-5 vs. t-5 (T = 0.80)")
 
 # which groups are different for different settings
@@ -390,9 +390,9 @@ legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
 
 
 # Panel for paper
-settings.use <- c(1, 5, 6, 7)
+settings.use <- c(1, 4, 5, 6, 7)
 quartz(width=15, height=12)
-par(mfrow=c(4, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in settings.use) {
   # if (setting == 6) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T) + 0.1
@@ -401,7 +401,7 @@ for (setting in settings.use) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   #   ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   # }
-  ymax <- 1.08
+  ymax <- 1.10
   ymin <- 0.85
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
@@ -422,8 +422,8 @@ for (setting in settings.use) {
 }
 
 plot(1, 1, type='n', axes=F, ylab="", xlab="")
-legend("bottomright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
-       cex=1)
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
+       cex=2)
 
 dev.print(file="plots/bsplots-mean.pdf", device=pdf)
 dev.off()
@@ -743,9 +743,9 @@ for (t in 1:25) {
 #     paired.results[i, j, k] <- 2 * pt(abs(t), df=df, lower.tail=F)
 #   }
 # }  }  }
-# 
+#
 # round(paired.results, 4)
-# 
+#
 # # wilcoxon signed-rank test for Brier scores
 # wilcox.results.gau.one <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
 # for (i in 1:length(probs)) { for (k in 1:nsettings) {
@@ -757,7 +757,7 @@ for (t in 1:25) {
 #                                             alternative="greater")$p.value
 #   }
 # }}
-# 
+#
 # # wilcoxon signed-rank test for Brier scores
 # wilcox.results.gau.two <- array(NA, dim=c(length(probs), (nmethods - 1), nsettings))
 # for (i in 1:length(probs)) { for (k in 1:nsettings) {
@@ -769,7 +769,7 @@ for (t in 1:25) {
 #                                             alternative="two.sided")$p.value
 #   }
 # }}
-# 
+#
 # wilcox.results.5 <- matrix(NA, nrow=length(probs), ncol=nsettings)
 # for (i in 1:length(probs)) { for (k in 1:nsettings) {
 #   wilcox.results.5[i, k] <- wilcox.test(brier.score[i, , 2, k], brier.score[i, , 4, k],
@@ -779,8 +779,8 @@ for (t in 1:25) {
 # Check for differences - Not correct for sim study design
 # First do Kruskal-Wallis test (non-parametric one-way ANOVA)
 #   kruskal.test(x)
-#     x: list of values 
-# Then follow up with Dwass, Steel, Critchlow-Fligner non-parametric 
+#     x: list of values
+# Then follow up with Dwass, Steel, Critchlow-Fligner non-parametric
 # pairwise differences
 #   pSDCFlig(x,g=NA,method=NA,n.mc=10000)
 #     x: list of values
@@ -798,6 +798,6 @@ for (t in 1:25) {
 #              method.3 = brier.score[include[i], , 3, j],
 #              method.4 = brier.score[include[i], , 4, j],
 #              method.5 = brier.score[include[i], , 5, j])
-#     results[i, j] <- kruskal.test(x)$p.value 
+#     results[i, j] <- kruskal.test(x)$p.value
 #   }
 # }
