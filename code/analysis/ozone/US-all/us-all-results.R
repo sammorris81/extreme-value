@@ -263,6 +263,7 @@ bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
 
 # another set of plots, 1 time series, 1 no time series
+# bs-ozone.pdf
 these <- 6:11
 x.plot <- probs[these]
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
