@@ -296,7 +296,7 @@ The skewness parameter has prior $\lambda_2 \sim \text{IG}(0.1, 0.1)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1)$.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We do not include skewness for the thresholded models because it cannot be identified with only one tail worth of data, and we do not fit the data using the max-stable methods from \citet{Reich2012} because of the computational constraints.
-Each chain of the mcmc ran for 20000 iterations with a burn-in period of 10000 iterations.
+Each chain of the MCMC ran for 20000 iterations with a burn-in period of 10000 iterations.
 Parameters appear to converge properly; however, in the models with multiple partitions (i.e.models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
 
 \subsection{Cross validation}\label{s:modelselect}
@@ -332,7 +332,7 @@ Finally, for setting 5, although the thresholded version of the single-partition
 \end{figure}
 
 \section{Data analysis}\label{s:analysis}
-To illustrate this method, we consider the daily maximum 8-hour ozone measurements for July 2005 at 735 Air Quality System (AQS) monitoring sites in the eastern United States as the response (see Figure \ref{fig:ozone}).
+To illustrate this method, we consider the daily maximum 8-hour ozone measurements for July 2005 at 1089 Air Quality System (AQS) monitoring sites in the United States as the response (see Figure \ref{fig:ozone}).
 For each site, we also have covariate information containing the estimated ozone from the Community Multi-scale Air Quality (CMAQ) modeling system.
 Initially, we fit a linear regression assuming a mean function of
 \begin{align}
@@ -373,7 +373,10 @@ As with the simuliation study, for models with a threshold of $T = 75$, we use a
 We also compare models with no time series to models that include the time series.
 Finally, as a comparison to max-stable methods, we fit the model using the hierarchical max-stable model of \citet{Reich2012}.
 All methods assume the mean function given in (\ref{eq:datamean}).
-Each chain of the mcmc ran for 30000 iterations with a burn-in period of 25000 iterations.
+To ensure that the max-stable method runs in a reasonable amount of time, we take a stratified sample of the sites to get 800 sites and consider this our new dataset.
+We conduct two-fold cross validation using 400 training sites and 400 validation sites as described in Section \ref{s:modelselect}
+
+Each chain of the MCMC ran for 30000 iterations with a burn-in period of 25000 iterations.
 Parameters appear to converge properly; however, as before, for models with multiple partitions it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
 For each model, Brier scores were were averaged over all sites and days to obtain a single Brier score for each dataset.
 At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
@@ -389,7 +392,14 @@ In particular, for all extreme quantiles, selecting a moderate number of knots (
 Table \ref{tbl:ozoneresults} shows the best two models for selected extreme quantiles.
 
 We illustrate the predictive capability of our model in Figure \ref{fig:ozoneq99} by plotting the 99th quantile of the posterior predictive density for July in South Carolina and Georgia.
-\hl{Include more here about the maps}.
+We fit the model using four methods, two reference and two that performed better.
+These four methods are
+\begin{enumerate}[1.]
+  \item Gaussian (reference)
+  \item Skew-$t$, $K =$ 1 knot, $T = $ 0, no time series (reference)
+  \item Skew-$t$, $K =$ 5 knots, $T = $ 50, no time series (comparison)
+  \item Symmetric-$t$, $K =$ 10 knots, $T = $ 75, time series (comparison)
+\end{enumerate}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
