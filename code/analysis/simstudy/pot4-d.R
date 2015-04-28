@@ -57,15 +57,15 @@ for (g in 1:10) {
     set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
     obs <- c(rep(T, 100), rep(F, 44))
-    y.o <- y.d[obs, ]
-    x.o <- x[obs, , ]
+    y.o <- t(y.d[obs, ])
+    x.o <- x[obs, , ]  # we don't actually use this in the mcmc, we use s
     s.o <- s[obs, ]
 
     y.validate[, , d] <- y.d[!obs, ]
-    x.p <- x[!obs, , ]
+    x.p <- x[!obs, , ]  # we don't actually use this in the mcmc, we use s
     s.p <- s[!obs, ]
 
-    thresh <- apply(y.o, 1, quantile, probs=0.80, na.rm=T)
+    thresh <- quantile(y.o, probs=0.80, na.rm=T)
 
     cat("  start: max-stable - Set", dataset, "\n")
     tic <- proc.time()
