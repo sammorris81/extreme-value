@@ -9,7 +9,7 @@
 #   3 - t-5
 #   4 - skew t-1 (lambda = 3)
 #   5 - skew t-5 w/partition (lambda = 3)
-#   6 - max-stable with mu=1, sig=1, xi=0.1
+#   6 - max-stable with mu=1, sig=1, xi=0.2, alpha = 0.5, bw = 1
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
 #       y = T * exp(x - T), x <= T
