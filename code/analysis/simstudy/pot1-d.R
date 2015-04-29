@@ -70,7 +70,8 @@ for (g in 1:10) {
     cat("  start: max-stable - Set", dataset, "\n")
     tic <- proc.time()
     fit.1[[d]] <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
-                            knots=knots, iters=30000, burn=25000, update=500, thin=1)
+                            knots=knots, iters=iters, burn=burn, update=update,
+                            thin=1)
     toc <- proc.time()
     cat("  max-stable took:", (toc - tic)[3], "\n")
     cat("  end: max-stable \n")
