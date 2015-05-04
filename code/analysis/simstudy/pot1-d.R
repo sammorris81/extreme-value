@@ -34,7 +34,7 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
-source('./max-stab/MCMC4MaxStable.R')
+source('./max-stab/MCMC4MaxStable.R', chdir=T)
 
 # knots used in data generation
 knots.x <- seq(1, 9, length=12)
@@ -42,7 +42,7 @@ knots   <- expand.grid(knots.x, knots.x)
 
 setting <- 1
 analysis <- "d"
-iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
+iters <- 100; burn <- 50; update <- 10; thin <- 1
 nsets <- 5
 
 for (g in 1:10) {

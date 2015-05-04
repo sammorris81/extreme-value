@@ -31,12 +31,17 @@
 #             5) kernel bandwidth
 #
 ###################################################################################
-
+if (!exists("dPS_cpp_sca") | !exists("dPS_cpp_mat")) {
+  library(Rcpp)
+  Sys.setenv("PKG_CXXFLAGS"="-fopenmp")
+  Sys.setenv("PKG_LIBS"="-fopenmp")
+  sourceCpp(file = "./llps.cpp")
+}
 
 maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
                     mnB = NULL, sdB = NULL, initB = NULL,
                     iters = 50000, burn = 10000, thin = 5,
-                    update = 100, iterplot = FALSE){
+                    threads = 1, update = 100, iterplot = FALSE){
 
 
     ny  <- dim(y)[1]
@@ -76,6 +81,11 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       B[, , j] <- make.B(s, beta[, j], j)
     }
 
+    npts <- 50
+    Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
+    MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
+    BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
+
     FAC <- fac2FAC(make.fac(dw2, B[1, 1, 5]))
     a   <- matrix(1, ny, nk)
     A   <- matrix(1, ny, ns)
@@ -83,12 +93,12 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       A[t, ]    <- a2A(FAC, a[t, ], B[1, 1, 4])
     }
     curll <- matrix(0, ny, ns)
-    curlp <- matrix(0, ny, nk)
+    curlp <- dPS_cpp_mat(a, B[1, 1, 4], MidPoints, BinWidth, threads)
     for (t in 1:ny) {
       curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
-      for (k in 1:nk) {
-        curlp[t, k] <- dPS(a[t, k], B[1, 1, 4])
-      }
+      # for (k in 1:nk) {
+      #   curlp[t, k] <- dPS(a[t, k], B[1, 1, 4])
+      # }
     }
 
     samples <- array(0, c(iters, nrow(beta), ncol(beta)))
@@ -132,7 +142,8 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
          WWW    <- FAC[, k]^(1 / alpha)
          canA   <- A[t, ] + WWW * (cana - a[t, k])
          cc     <- -canA * parts$expo + W * log(canA)
-         canlp  <- dPS(cana, alpha)
+         # canlp  <- dPS(cana, alpha)
+         canlp  <- dPS_cpp_sca(cana, alpha, MidPoints, BinWidth, threads)
          R <- sum(cc - ccc) +
             canlp - curlp[t, k] +
             dlognormal(a[t, k], cana, MHa[l2]) -
@@ -176,9 +187,13 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
          canll[t, ] <- loglike(y[t, ], canA[t, ], canB[t, , ], thresh)
        }
 
-       if (k == 4) { for (t in 1:ny) { for (l in 1:nk) {
-         canlp[t, l] <- dPS(a[t, l], canB[1, 1, 4])
-       } } }
+       if (k == 4) {
+         canlp <- dPS_cpp_mat(a, canB[1, 1, 4], MidPoints, BinWidth, threads)
+       }
+#        if (k == 4) { for (t in 1:ny) { for (l in 1:nk) {
+#          canlp[t, l] <- dPS_cpp_sca(a[t, l], canB[1, 1, 4], MidPoints,
+#                                     BinWidth, threads)
+#        } } }
 
        R <- sum(canll - curll) +
             sum(canlp - curlp) +
@@ -607,11 +622,6 @@ ECkern <- function(h, alpha, gamma, Lmax=50) {
   return(h)
 }
 
-
-npts <- 50
-Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
-MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
-BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
 
 dPS <- function(A, alpha, npts=100) {
   l <- -Inf
