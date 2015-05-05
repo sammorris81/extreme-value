@@ -34,7 +34,7 @@ load(file='./simdata.RData')
 source('../../R/mcmc.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
-source('./max-stab/MCMC4MaxStable.R')
+source('./max-stab/MCMC4MaxStable.R', chdir=T)
 
 # knots used in data generation
 knots.x <- seq(1, 9, length=12)
