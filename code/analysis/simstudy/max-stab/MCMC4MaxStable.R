@@ -81,9 +81,10 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       B[, , j] <- make.B(s, beta[, j], j)
     }
 
-    npts <- 50
+    npts <- 100
     Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
     MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
+    psi <- MidPoints * pi
     BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
 
     FAC <- fac2FAC(make.fac(dw2, B[1, 1, 5]))
@@ -93,12 +94,12 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       A[t, ]    <- a2A(FAC, a[t, ], B[1, 1, 4])
     }
     curll <- matrix(0, ny, ns)
-    curlp <- dPS_cpp_mat(a, B[1, 1, 4], MidPoints, BinWidth, threads)
+    curlp <- dPS_cpp_mat(a, B[1, 1, 4], psi, BinWidth, threads)
     for (t in 1:ny) {
       curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
-      # for (k in 1:nk) {
-      #   curlp[t, k] <- dPS(a[t, k], B[1, 1, 4])
-      # }
+#       for (k in 1:nk) {
+#         curlp[t, k] <- dPS_cpp_sca(a[t, k], B[1, 1, 4], MidPoints, BinWidth, threads)
+#       }
     }
 
     samples <- array(0, c(iters, nrow(beta), ncol(beta)))
@@ -128,6 +129,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       ####################################################
 
       olda <- a
+      FAC.star <- FAC^(1 / B[1, 1, 4])
       for (t in 1:ny) {
         parts <- loglikeparts(y[t, ], A[t, ], B[t, , ], thresh)
         W     <- ifelse(parts$above, 1, 0)
@@ -136,14 +138,16 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
 
 
         for (k in 1:nk) {
-         l1     <- get.level(a[t, k], cuts)
+         # l1     <- get.level(a[t, k], cuts)
+         l1     <- get.level.sca(a[t, k], cuts)
          cana   <- exp(rnorm(1, log(a[t, k]), MHa[l1]))
-         l2     <- get.level(cana, cuts)
-         WWW    <- FAC[, k]^(1 / alpha)
+         # l2     <- get.level(cana, cuts)
+         l2     <- get.level.sca(a[t, k], cuts)
+         WWW    <- FAC.star[, k]
          canA   <- A[t, ] + WWW * (cana - a[t, k])
          cc     <- -canA * parts$expo + W * log(canA)
          # canlp  <- dPS(cana, alpha)
-         canlp  <- dPS_cpp_sca(cana, alpha, MidPoints, BinWidth, threads)
+         canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
          R <- sum(cc - ccc) +
             canlp - curlp[t, k] +
             dlognormal(a[t, k], cana, MHa[l2]) -
@@ -188,7 +192,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
        }
 
        if (k == 4) {
-         canlp <- dPS_cpp_mat(a, canB[1, 1, 4], MidPoints, BinWidth, threads)
+         canlp <- dPS_cpp_mat(a, canB[1, 1, 4], psi, BinWidth, threads)
        }
 #        if (k == 4) { for (t in 1:ny) { for (l in 1:nk) {
 #          canlp[t, l] <- dPS_cpp_sca(a[t, l], canB[1, 1, 4], MidPoints,
@@ -231,7 +235,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
      }
 
 
-     level <- get.level(olda,cuts)
+     level <- get.level(olda, cuts)
      for (j in 1:length(MHa)) {
          acca[j] <- acca[j] + sum(olda[level == j] != a[level == j])
          atta[j] <- atta[j] + sum(level == j)
@@ -284,7 +288,252 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
   return(results)
 }
 
-
+# maxstableold<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
+#                     mnB = NULL, sdB = NULL, initB = NULL,
+#                     iters = 50000, burn = 10000, thin = 5,
+#                     threads = 1, update = 100, iterplot = FALSE){
+#
+#
+#   ny  <- dim(y)[1]
+#   ns  <- dim(y)[2]
+#   nk  <- dim(knots)[1]
+#   dw2 <- as.matrix(rdist(s, knots))^2
+#
+#   #INITIAL VALUES:
+#   nb <- 3  # redoing to fit int, lat, long
+#   if (is.null(initB)) {
+#     beta <- matrix(0, nb, 5)
+#     beta[1, 1] <- 2
+#     beta[1, 2] <- 1
+#     beta[1, 3] <- 0.01
+#     beta[1, 4] <- 0
+#     beta[1, 5] <- 0
+#   }
+#
+#   if (is.null(mnB)) {
+#     mnB = matrix(0, nb, 5)
+#   } else if (length(mnB) == 1) {
+#     mnB = matrix(mnB, nb, 5)
+#   } else if (nrow(mnB) != nb) {
+#     stop("mnB must have 3 rows")
+#   }
+#
+#   if (is.null(sdB)) {
+#     sdB = matrix(1, nb, 5)
+#   } else if (length(sdB) == 1) {
+#     sdB = matrix(sdB, nb, 5)
+#   } else if (nrow(sdB) != nb) {
+#     stop("sdB must have 3 rows")
+#   }
+#
+#   B <- array(0, c(ny, ns, 5))
+#   for (j in 1:5) {
+#     B[, , j] <- make.B(s, beta[, j], j)
+#   }
+#
+#   npts <- 100
+#   Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
+#   MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
+#   BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
+#
+#   FAC <- fac2FAC(make.fac(dw2, B[1, 1, 5]))
+#   a   <- matrix(1, ny, nk)
+#   A   <- matrix(1, ny, ns)
+#   for (t in 1:ny) {
+#     A[t, ]    <- a2A(FAC, a[t, ], B[1, 1, 4])
+#   }
+#   curll <- matrix(0, ny, ns)
+#   curlp <- matrix(0, ny, nk)
+#   for (t in 1:ny) {
+#     curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
+#     for (k in 1:nk) {
+#       curlp[t, k] <- dPS(a[t, k], B[1, 1, 4])
+#     }
+#   }
+#
+#   samples <- array(0, c(iters, nrow(beta), ncol(beta)))
+#   dimnames(samples)[[1]] <- paste("Iteration", 1:iters)
+#   dimnames(samples)[[2]] <- c("Intercept", "Latitude", "Longitude")
+#   dimnames(samples)[[3]] <- c("Prob extreme", "GPD scale", "GPD shape", "Alpha", "Bandwidth")
+#
+#
+#   cuts <- exp(c(-1, 0, 1, 2, 5, 10))
+#   MHa  <- rep(1, 100)
+#   atta <- acca <- 0 * MHa
+#   attb <- accb <- MHb <- matrix(c(0.2, 0.1, 0.1, 0.02, 0.02), nb, 5, byrow=T)
+#
+#   yp <- NULL
+#   np <- 0
+#   if (!is.null(sp)) {
+#     np   <- nrow(sp)
+#     yp   <- array(0, c(iters, ny, np))
+#     dwp2 <- as.matrix(rdist(sp, knots))^2
+#   }
+#
+#   for (i in 1:iters) {
+#
+#     for (ttt in 1:thin) {
+#       ####################################################
+#       ##############      Random effects a    ############
+#       ####################################################
+#
+#       olda <- a
+#       for (t in 1:ny) {
+#         parts <- loglikeparts(y[t, ], A[t, ], B[t, , ], thresh)
+#         W     <- ifelse(parts$above, 1, 0)
+#         ccc   <- -A[t, ] * parts$expo + W * log(A[t, ])
+#         alpha <- B[1, 1, 4]
+#
+#
+#         for (k in 1:nk) {
+#           l1     <- get.level(a[t, k], cuts)
+#           # l1     <- get.level.sca(a[t, k], cuts)
+#           cana   <- exp(rnorm(1, log(a[t, k]), MHa[l1]))
+#           l2     <- get.level(cana, cuts)
+#           # l2     <- get.level.sca(a[t, k], cuts)
+#           WWW    <- FAC[, k]^(1 / alpha)
+#           canA   <- A[t, ] + WWW * (cana - a[t, k])
+#           cc     <- -canA * parts$expo + W * log(canA)
+#           canlp  <- dPS(cana, alpha)
+#           # canlp  <- dPS_cpp_sca(cana, alpha, MidPoints, BinWidth, threads)
+#           R <- sum(cc - ccc) +
+#             canlp - curlp[t, k] +
+#             dlognormal(a[t, k], cana, MHa[l2]) -
+#             dlognormal(cana, a[t, k], MHa[l1])
+#           if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
+#             a[t, k]     <- cana
+#             A[t, ]      <- canA
+#             ccc         <- cc
+#             curlp[t, k] <- canlp
+#           } }
+#         }
+#
+#         curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
+#       }
+#
+#       ####################################################
+#       ##############    Model parameters, B   ############
+#       ####################################################
+#
+#       for (j in 1:nb) { for (k in 1:5) { if ((k == 1) | (k == 2) | (j == 1)) {
+#         attb[j, k] <- attb[j, k] + 1
+#         canbeta <- beta
+#         canB    <- B
+#         canA    <- A
+#         canll   <- curll
+#         canlp   <- curlp
+#         canFAC  <- FAC
+#
+#         canbeta[j, k] <- beta[j, k] + MHb[j, k] * rnorm(1)
+#         canB[, , k]   <- make.B(s, canbeta[, k], k)
+#         if (k > 3) {
+#           alpha  <- canB[1, 1, 4]
+#           gamma  <- canB[1, 1, 5]
+#           canFAC <- fac2FAC(make.fac(dw2, gamma))
+#           for (t in 1:ny) {
+#             canA[t, ] <- a2A(canFAC, a[t, ], alpha)
+#           }
+#         }
+#
+#         for (t in 1:ny) {
+#           canll[t, ] <- loglike(y[t, ], canA[t, ], canB[t, , ], thresh)
+#         }
+#
+# #         if (k == 4) {
+# #           canlp <- dPS_cpp_mat(a, canB[1, 1, 4], MidPoints, BinWidth, threads)
+# #         }
+#         if (k == 4) { for (t in 1:ny) { for (l in 1:nk) {
+#           canlp[t, l] <- dPS(a[t, l], canB[1, 1, 4])
+#         } } }
+#
+#         R <- sum(canll - curll) +
+#           sum(canlp - curlp) +
+#           dnorm(canbeta[j, k], mnB[j, k], sdB[j, k], log=T) -
+#           dnorm(beta[j, k], mnB[j, k], sdB[j, k], log=T)
+#
+#         if (!is.na(exp(R))) { if (log(runif(1)) < R) {
+#           accb[j, k] <- accb[j, k] + 1
+#           beta       <- canbeta
+#           B          <- canB
+#           A          <- canA
+#           curll      <- canll
+#           curlp      <- canlp
+#           FAC        <- canFAC
+#         } }
+#       } } }
+#     }#end thin
+#
+#     samples[i, , ] <- beta
+#
+#     #Predictions
+#     if (np > 0) {
+#       Bp <- array(0, c(ny, np, 5))
+#       for (j in 1:5) {
+#         Bp[, , j] <- make.B(sp, beta[, j], j)
+#       }
+#
+#       for (t in 1:ny) {
+#         Ap         <- a2AP(dwp2, a[t, ], B[1, 1, 4], B[1, 1, 5])
+#         U          <- rGEV(np, 1, B[1, 1, 4], B[1, 1, 4])
+#         X          <- Ap * U
+#         tau        <- exp(-1 / X)
+#         yp[i, t, ] <- qGPD(tau, Bp[t, , ], thresh)
+#       }
+#     }
+#
+#
+#     level <- get.level(olda, cuts)
+#     for (j in 1:length(MHa)) {
+#       acca[j] <- acca[j] + sum(olda[level == j] != a[level == j])
+#       atta[j] <- atta[j] + sum(level == j)
+#       if ((i < burn / 2) & (atta[j] > 100)) {
+#         if (acca[j] / atta[j] < 0.3) { MHa[j] <- MHa[j] * 0.9 }
+#         if (acca[j] / atta[j] > 0.6) { MHa[j] <- MHa[j] * 1.1 }
+#         acca[j] <- atta[j] <- 0
+#       }
+#     }
+#
+#
+#     for (j in 1:nb) { for (k in 1:5) { if ((i < burn / 2) & (attb[j, k] > 50)) {
+#       if (accb[j, k] / attb[j, k] < 0.3) { MHb[j, k] <- MHb[j, k] * 0.9 }
+#       if (accb[j, k] / attb[j, k] > 0.6) { MHb[j, k] <- MHb[j, k] * 1.1 }
+#       accb[j, k] <- attb[j, k] <- 0
+#     } } }
+#
+#
+#     #DISPLAY CURRENT VALUE:
+#     if (iterplot) { if((i %% update) == 0) {
+#       par(mfrow=c(5, 2), mar=c(2, 2, 2, 2))
+#       plot(samples[1:i, 1, 1], main="Prob0 Int", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 2, 1], main="Prob0 Slope", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 1, 2], main="Scale Int", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 2, 2], main="Scale Slope", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 1, 3], main="Shape Int", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 2, 3], main="Shape Slope", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 1, 4], main="Alpha Int", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 2, 4], main="Alpha Slope", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 1, 5], main="BW Int", type="l")
+#       abline(h=0)
+#       plot(samples[1:i, 2, 5], main="BW Slope", type="l")
+#       abline(h=0)
+#     } }
+#
+#     if ((i %% update) == 0) {
+#       cat("\t iter", i, "\n")
+#     }
+#   }
+#
+#   results <- list(samples=samples, yp=yp)
+#   return(results)
+# }
 
 
 #############################################################:
@@ -622,6 +871,10 @@ ECkern <- function(h, alpha, gamma, Lmax=50) {
   return(h)
 }
 
+npts <- 100
+Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
+MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
+BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
 
 dPS <- function(A, alpha, npts=100) {
   l <- -Inf
@@ -638,6 +891,11 @@ get.level <- function(A, cuts) {
   for (j in 1:length(cuts)) {
     lev <- ifelse(A > cuts[j], j + 1, lev)
   }
+  return(lev)
+}
+
+get.level.sca <- function(A, cuts) {  # minor speedup in scalar case
+  lev <- min(which(A < cuts), length(cuts))  # stability for when A > max(cuts)
   return(lev)
 }
 

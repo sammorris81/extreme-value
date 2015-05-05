@@ -42,7 +42,7 @@ knots   <- expand.grid(knots.x, knots.x)
 
 setting <- 1
 analysis <- "d"
-iters <- 100; burn <- 50; update <- 10; thin <- 1
+iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
 for (g in 1:10) {
@@ -69,9 +69,11 @@ for (g in 1:10) {
 
     cat("  start: max-stable - Set", dataset, "\n")
     tic <- proc.time()
+
     fit.1[[d]] <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
                             knots=knots, iters=iters, burn=burn, update=update,
-                            thin=1)
+                            threads=2, thin=1)
+
     toc <- proc.time()
     cat("  max-stable took:", (toc - tic)[3], "\n")
     cat("  end: max-stable \n")
