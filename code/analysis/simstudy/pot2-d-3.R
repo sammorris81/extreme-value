@@ -40,18 +40,18 @@ source('./max-stab/MCMC4MaxStable.R', chdir=T)
 knots.x <- seq(1, 9, length=12)
 knots   <- expand.grid(knots.x, knots.x)
 
-setting <- 4
+setting <- 2
 analysis <- "d"
-iters <- 20000; burn <- 10000; update <- 500; thin <- 1
+iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in c(2, 6, 10)) {
+for (g in c(4, 8)) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
 
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
-    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    ooutputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
     if (dataset > 6) {
       cat("start dataset", dataset, "\n")
       set.seed(setting * 100 + dataset)

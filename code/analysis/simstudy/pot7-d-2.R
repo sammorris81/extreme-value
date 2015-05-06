@@ -40,12 +40,12 @@ source('./max-stab/MCMC4MaxStable.R', chdir=T)
 knots.x <- seq(1, 9, length=12)
 knots   <- expand.grid(knots.x, knots.x)
 
-setting <- 4
+setting <- 7
 analysis <- "d"
-iters <- 20000; burn <- 10000; update <- 500; thin <- 1
+iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in c(2, 6, 10)) {
+for (g in c(3, 7)) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
 
   start <- proc.time()
