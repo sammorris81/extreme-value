@@ -48,10 +48,6 @@ nsets <- 5
 for (g in c(5, 10)) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
 
-  if (g == 2) {
-    load(outputfile)
-  }
-
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
