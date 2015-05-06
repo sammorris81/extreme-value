@@ -42,7 +42,7 @@ knots   <- expand.grid(knots.x, knots.x)
 
 setting <- 4
 analysis <- "d"
-iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
+iters <- 20000; burn <- 10000; update <- 500; thin <- 1
 nsets <- 5
 
 for (g in c(4, 9)) {
