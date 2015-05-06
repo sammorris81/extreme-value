@@ -81,7 +81,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       B[, , j] <- make.B(s, beta[, j], j)
     }
 
-    npts <- 100
+    npts <- 50
     Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
     MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
     psi <- MidPoints * pi
@@ -136,7 +136,6 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
         ccc   <- -A[t, ] * parts$expo + W * log(A[t, ])
         alpha <- B[1, 1, 4]
 
-
         for (k in 1:nk) {
          # l1     <- get.level(a[t, k], cuts)
          l1     <- get.level.sca(a[t, k], cuts)
@@ -148,10 +147,11 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
          cc     <- -canA * parts$expo + W * log(canA)
          # canlp  <- dPS(cana, alpha)
          canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
-         R <- sum(cc - ccc) +
-            canlp - curlp[t, k] +
-            dlognormal(a[t, k], cana, MHa[l2]) -
-            dlognormal(cana, a[t, k], MHa[l1])
+         loga <- log(a[t, k])
+         logcana <- log(cana)
+         R <- sum(cc - ccc) + canlp - curlp[t, k] +
+              dlognormal(loga, logcana, MHa[l2]) -
+              dlognormal(logcana, loga, MHa[l1])
          if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
              a[t, k]     <- cana
              A[t, ]      <- canA
@@ -871,7 +871,7 @@ ECkern <- function(h, alpha, gamma, Lmax=50) {
   return(h)
 }
 
-npts <- 100
+npts <- 50
 Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
 MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
 BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
@@ -895,11 +895,11 @@ get.level <- function(A, cuts) {
 }
 
 get.level.sca <- function(A, cuts) {  # minor speedup in scalar case
-  lev <- min(which(A < cuts), length(cuts))  # stability for when A > max(cuts)
+  lev <- sum(A > cuts) + 1  # stability for when A > max(cuts)
   return(lev)
 }
 
-dlognormal <- function(x, mu, sig) {
-  dnorm(log(x), log(mu), sig, log=T) - log(x)
+dlognormal <- function(logx, logmu, sig) {
+  dnorm(logx, logmu, sig, log=T) - logx
 }
 
