@@ -121,6 +121,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       dwp2 <- as.matrix(rdist(sp, knots))^2
     }
 
+    tic <- proc.time()
     for (i in 1:iters) {
 
      for (ttt in 1:thin) {
@@ -280,7 +281,8 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       } }
 
       if ((i %% update) == 0) {
-        cat("\t iter", i, "\n")
+        toc <- proc.time()
+        cat("\t iter", i, "elapsed time", toc - tic, "\n")
       }
     }
 
