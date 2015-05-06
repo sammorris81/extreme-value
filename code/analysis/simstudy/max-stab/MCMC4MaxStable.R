@@ -282,7 +282,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
 
       if ((i %% update) == 0) {
         toc <- proc.time()
-        cat("\t iter", i, "elapsed time", toc - tic, "\n")
+        cat("\t iter", i, "elapsed time", (toc - tic)[3], "\n")
       }
     }
 

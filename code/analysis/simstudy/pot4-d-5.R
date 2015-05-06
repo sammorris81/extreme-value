@@ -45,7 +45,7 @@ analysis <- "d"
 iters <- 20000; burn <- 10000; update <- 500; thin <- 1
 nsets <- 5
 
-g <- 10
+g <- 6
 y.validate <- array(NA, dim=c(ntest, nt, nsets))
 
 start <- proc.time()
