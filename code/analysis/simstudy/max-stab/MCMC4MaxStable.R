@@ -145,22 +145,24 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
           l2     <- get.level.sca(a[t, k], cuts)
           WWW    <- FAC.star[, k]
           canA   <- A[t, ] + WWW * (cana - a[t, k])
-          if (sum(canA > 0) > 0) {  # numerical stability
-            cc     <- -canA * parts$expo + W * log(canA)
-            # canlp  <- dPS(cana, alpha)
-            canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
-            loga   <- log(a[t, k])
-            logcana <- log(cana)
-            R <- sum(cc - ccc) + canlp - curlp[t, k] +
-                 dlognormal(loga, logcana, MHa[l2]) -
-                 dlognormal(logcana, loga, MHa[l1])
-            if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
-                a[t, k]     <- cana
-                A[t, ]      <- canA
-                ccc         <- cc
-                curlp[t, k] <- canlp
-            } }
-          }
+          cc     <- -canA * parts$expo + W *
+                    tryCatch(log(canA), error=function(e) {
+                      print(paste("Died on cc for k=", k, ", t=", t, sep=""))
+                      save(a, A, canA, WWW, cana, file="logcanA.RData")
+                    })
+          # canlp  <- dPS(cana, alpha)
+          canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
+          loga   <- log(a[t, k])
+          logcana <- log(cana)
+          R <- sum(cc - ccc) + canlp - curlp[t, k] +
+               dlognormal(loga, logcana, MHa[l2]) -
+               dlognormal(logcana, loga, MHa[l1])
+          if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
+              a[t, k]     <- cana
+              A[t, ]      <- canA
+              ccc         <- cc
+              curlp[t, k] <- canlp
+          } }
         }
 
         curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
