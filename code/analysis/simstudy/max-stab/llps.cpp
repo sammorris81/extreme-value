@@ -11,8 +11,8 @@ double integral_component(double *psi_i, double *alpha, double *ast_star) {
   double logc; double logint;
   double lsapsi_i = log(sin((*alpha) * (*psi_i)));
 
-  logc = lsapsi_i - log(sin(*psi_i))) / (1 - (*alpha)) +
-         log(sin((1 - (*alpha)) * (*psi_i))) - lsapsi_i;
+  logc = (lsapsi_i - log(sin(*psi_i))) / (1 - (*alpha)) +
+          log(sin((1 - (*alpha)) * (*psi_i))) - lsapsi_i;
 
   logint = logc - exp(logc) * *ast_star;
 
@@ -89,7 +89,7 @@ double dPS_cpp_sca(double ast, double alpha, arma::vec psi,
   for (i = 0; i < nbins; i++) {
     psi_i = psi[i];
     logint = integral_component(&psi_i, &alpha, &ast_star);
-    integral[i] = exp(logint) * bin_width[i];
+    integral += exp(logint) * bin_width[i];
   }
   ll = llst + log(integral);
 
