@@ -7,6 +7,17 @@ using namespace arma;
 #include <omp.h>
 #endif
 
+double integral_component(double *psi_i, double *alpha, double *ast) {
+  double logc; double logint;
+
+  logc = (log(sin(*alpha * *psi_i)) - log(sin(*psi_i))) / (1 - *alpha) +
+          log(sin((1 - *alpha) * *psi_i)) - log(sin(*alpha * *psi_i));
+
+  logint = logc - exp(logc) * pow(*ast, (- *alpha / (1 - *alpha)));
+
+  return logint;
+}
+
 // [[Rcpp::export]]
 arma::mat dPS_cpp_mat(arma::mat a, double alpha, arma::vec psi,
                       arma::vec bin_width, int threads) {
@@ -38,9 +49,7 @@ arma::mat dPS_cpp_mat(arma::mat a, double alpha, arma::vec psi,
       integral = 0;
       for (i = 0; i < nbins; i++) {
         psi_i = psi[i];
-        logc = (log(sin(alpha * psi_i)) - log(sin(psi_i))) / (1 - alpha) +
-          log(sin((1 - alpha) * psi_i)) - log(sin(alpha * psi_i));
-        logint = logc - exp(logc) * pow(ast, (- alpha / (1 - alpha)));
+        logint = integral_component(&psi_i, &alpha, &ast);
         integral += exp(logint) * bin_width[i];
       }
       ll(s, t) = llst + log(integral);
@@ -75,9 +84,7 @@ double dPS_cpp_sca(double ast, double alpha, arma::vec psi,
   schedule(static)
   for (i = 0; i < nbins; i++) {
     psi_i = psi[i];
-    logc = (log(sin(alpha * psi_i)) - log(sin(psi_i))) / (1 - alpha) +
-      log(sin((1 - alpha) * psi_i)) - log(sin(alpha * psi_i));
-    logint = logc - exp(logc) * pow(ast, (- alpha / (1 - alpha)));
+    logint = integral_component(&psi_i, &alpha, &ast);
     integral[i] = exp(logint) * bin_width[i];
   }
   ll = llst + log(sum(integral));
