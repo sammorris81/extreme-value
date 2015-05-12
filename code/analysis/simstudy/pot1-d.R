@@ -50,36 +50,40 @@ for (g in 2:10) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
   outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
 
+  if (g == 2) {
+    load(outputfile)
+  }
+
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
-    cat("start dataset", dataset, "\n")
-    set.seed(setting * 100 + dataset)
-    y.d <- y[, , dataset, setting]
-    obs <- c(rep(T, 100), rep(F, 44))
-    y.o <- t(y.d[obs, ])
-    x.o <- x[obs, , ]  # we don't actually use this in the mcmc, we use s
-    s.o <- s[obs, ]
+    if (dataset > 6) {
+      cat("start dataset", dataset, "\n")
+      set.seed(setting * 100 + dataset)
+      y.d <- y[, , dataset, setting]
+      obs <- c(rep(T, 100), rep(F, 44))
+      y.o <- t(y.d[obs, ])
+      x.o <- x[obs, , ]  # we don't actually use this in the mcmc, we use s
+      s.o <- s[obs, ]
 
-    y.validate[, , d] <- y.d[!obs, ]
-    x.p <- x[!obs, , ]  # we don't actually use this in the mcmc, we use s
-    s.p <- s[!obs, ]
+      y.validate[, , d] <- y.d[!obs, ]
+      x.p <- x[!obs, , ]  # we don't actually use this in the mcmc, we use s
+      s.p <- s[!obs, ]
 
-    thresh <- quantile(y.o, probs=0.80, na.rm=T)
+      thresh <- quantile(y.o, probs=0.80, na.rm=T)
 
-    cat("  start: max-stable - Set", dataset, "\n")
-    tic <- proc.time()
+      cat("  start: max-stable - Set", dataset, "\n")
+      tic <- proc.time()
+      fit.1[[d]] <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
+                              knots=knots, iters=iters, burn=burn, update=update,
+                              threads=8, thin=1)
+      toc <- proc.time()
+      cat("  max-stable took:", (toc - tic)[3], "\n")
+      cat("  end: max-stable \n")
+      cat("------------------\n")
 
-    fit.1[[d]] <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
-                            knots=knots, iters=iters, burn=burn, update=update,
-                            threads=2, thin=1)
-
-    toc <- proc.time()
-    cat("  max-stable took:", (toc - tic)[3], "\n")
-    cat("  end: max-stable \n")
-    cat("------------------\n")
-
-    save(fit.1, file=outputfile)
+      save(fit.1, file=outputfile)
+    }
   }
 
   rm(fit.1)

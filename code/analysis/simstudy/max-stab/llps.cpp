@@ -7,13 +7,14 @@ using namespace arma;
 #include <omp.h>
 #endif
 
-double integral_component(double *psi_i, double *alpha, double *ast) {
+double integral_component(double *psi_i, double *alpha, double *ast_star) {
   double logc; double logint;
+  double lsapsi_i = log(sin((*alpha) * (*psi_i)));
 
-  logc = (log(sin(*alpha * *psi_i)) - log(sin(*psi_i))) / (1 - *alpha) +
-          log(sin((1 - *alpha) * *psi_i)) - log(sin(*alpha * *psi_i));
+  logc = lsapsi_i - log(sin(*psi_i))) / (1 - (*alpha)) +
+         log(sin((1 - (*alpha)) * (*psi_i))) - lsapsi_i;
 
-  logint = logc - exp(logc) * pow(*ast, (- *alpha / (1 - *alpha)));
+  logint = logc - exp(logc) * *ast_star;
 
   return logint;
 }
@@ -34,22 +35,23 @@ arma::mat dPS_cpp_mat(arma::mat a, double alpha, arma::vec psi,
   double integral; double llst; double logc; double logint;
   double ast; double psi_i;
   arma::mat ll(ns, nt); // arma::vec psi(nbins);
+  double ast_star; double lsapsi_i;
 
   // psi = dscal(nbins, PI, mid_points, 1);
   // psi = PI * mid_points;
 
 #pragma omp parallel for \
-  private(t, i, ast, llst, logc, logint, integral, psi_i) \
-  shared(a, alpha, ll, psi) \
-  schedule(static)
+  private(t, i, ast, ast_star, llst, logc, logint, integral, psi_i, lsapsi_i) \
+  shared(a, alpha, ll, psi)
   for (s = 0; s < ns; s++) {
     for (t = 0; t < nt; t++) {
       ast = a(s, t);
+      ast_star = pow(ast, (-alpha / (1 - alpha)));
       llst = log(alpha) - log(1 - alpha) - log(ast) / (1 - alpha);
       integral = 0;
       for (i = 0; i < nbins; i++) {
         psi_i = psi[i];
-        logint = integral_component(&psi_i, &alpha, &ast);
+        logint = integral_component(&psi_i, &alpha, &ast_star);
         integral += exp(logint) * bin_width[i];
       }
       ll(s, t) = llst + log(integral);
@@ -71,23 +73,25 @@ double dPS_cpp_sca(double ast, double alpha, arma::vec psi,
 
   int nbins = psi.n_elem;
   int i;
-  arma::vec integral(nbins);
+  // arma::vec integral(nbins);
+  double integral;
   double llst; double psi_i; double logc; double logint;
-  double ll;
+  double ll; double ast_star; double lsapsi_i;
 
   // psi = dscal(nbins, PI, mid_points, 1);
-
+  ast_star = pow(ast, (-alpha / (1 - alpha)));
   llst = log(alpha) - log(1 - alpha) - log(ast) / (1 - alpha);
-#pragma omp parallel for \
+
+  integral = 0;
+#pragma omp parallel for reduction(+:integral) \
   private(psi_i, logc, logint) \
-  shared(alpha, ast, psi) \
-  schedule(static)
+  shared(alpha, psi, ast_star, lsapsi_i)
   for (i = 0; i < nbins; i++) {
     psi_i = psi[i];
-    logint = integral_component(&psi_i, &alpha, &ast);
+    logint = integral_component(&psi_i, &alpha, &ast_star);
     integral[i] = exp(logint) * bin_width[i];
   }
-  ll = llst + log(sum(integral));
+  ll = llst + log(integral);
 
   return ll;
 }

@@ -40,23 +40,18 @@ source('./max-stab/MCMC4MaxStable.R', chdir=T)
 knots.x <- seq(1, 9, length=12)
 knots   <- expand.grid(knots.x, knots.x)
 
-setting <- 7
+setting <- 2
 analysis <- "d"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in 2:10) {
-  fit.1 <- vector(mode="list", length=nsets)
+for (g in c(4, 8)) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
-  outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-
-  if (g == 2) {
-    load(outputfile)
-  }
 
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
+    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
     if (dataset > 6) {
       cat("start dataset", dataset, "\n")
       set.seed(setting * 100 + dataset)
@@ -74,18 +69,17 @@ for (g in 2:10) {
 
       cat("  start: max-stable - Set", dataset, "\n")
       tic <- proc.time()
-      fit.1[[d]] <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
-                              knots=knots, iters=iters, burn=burn, update=update,
-                              threads=8, thin=1)
+      fit.1 <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
+                         knots=knots, iters=iters, burn=burn, update=update,
+                         threads=2, thin=1)
       toc <- proc.time()
       cat("  max-stable took:", (toc - tic)[3], "\n")
       cat("  end: max-stable \n")
       cat("------------------\n")
 
       save(fit.1, file=outputfile)
+      rm(fit.1)
+      gc()
     }
   }
-
-  rm(fit.1)
-  gc()
 }

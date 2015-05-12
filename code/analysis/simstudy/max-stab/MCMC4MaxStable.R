@@ -81,7 +81,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       B[, , j] <- make.B(s, beta[, j], j)
     }
 
-    npts <- 100
+    npts <- 50
     Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
     MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
     psi <- MidPoints * pi
@@ -121,6 +121,7 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       dwp2 <- as.matrix(rdist(sp, knots))^2
     }
 
+    tic <- proc.time()
     for (i in 1:iters) {
 
      for (ttt in 1:thin) {
@@ -136,31 +137,35 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
         ccc   <- -A[t, ] * parts$expo + W * log(A[t, ])
         alpha <- B[1, 1, 4]
 
-
         for (k in 1:nk) {
-         # l1     <- get.level(a[t, k], cuts)
-         l1     <- get.level.sca(a[t, k], cuts)
-         cana   <- exp(rnorm(1, log(a[t, k]), MHa[l1]))
-         # l2     <- get.level(cana, cuts)
-         l2     <- get.level.sca(a[t, k], cuts)
-         WWW    <- FAC.star[, k]
-         canA   <- A[t, ] + WWW * (cana - a[t, k])
-         cc     <- -canA * parts$expo + W * log(canA)
-         # canlp  <- dPS(cana, alpha)
-         canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
-         R <- sum(cc - ccc) +
-            canlp - curlp[t, k] +
-            dlognormal(a[t, k], cana, MHa[l2]) -
-            dlognormal(cana, a[t, k], MHa[l1])
-         if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
-             a[t, k]     <- cana
-             A[t, ]      <- canA
-             ccc         <- cc
-             curlp[t, k] <- canlp
-         } }
-       }
+          # l1     <- get.level(a[t, k], cuts)
+          l1     <- get.level.sca(a[t, k], cuts)
+          cana   <- exp(rnorm(1, log(a[t, k]), MHa[l1]))
+          # l2     <- get.level(cana, cuts)
+          l2     <- get.level.sca(a[t, k], cuts)
+          WWW    <- FAC.star[, k]
+          canA   <- A[t, ] + WWW * (cana - a[t, k])
+          cc     <- -canA * parts$expo + W *
+                    tryCatch(log(canA), error=function(e) {
+                      print(paste("Died on cc for k=", k, ", t=", t, sep=""))
+                      save(a, A, canA, WWW, cana, file="logcanA.RData")
+                    })
+          # canlp  <- dPS(cana, alpha)
+          canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
+          loga   <- log(a[t, k])
+          logcana <- log(cana)
+          R <- sum(cc - ccc) + canlp - curlp[t, k] +
+               dlognormal(loga, logcana, MHa[l2]) -
+               dlognormal(logcana, loga, MHa[l1])
+          if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
+              a[t, k]     <- cana
+              A[t, ]      <- canA
+              ccc         <- cc
+              curlp[t, k] <- canlp
+          } }
+        }
 
-       curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
+        curll[t, ] <- loglike(y[t, ], A[t, ], B[t, , ], thresh)
       }
 
       ####################################################
@@ -280,7 +285,8 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
       } }
 
       if ((i %% update) == 0) {
-        cat("\t iter", i, "\n")
+        toc <- proc.time()
+        cat("\t iter", i, "elapsed time", (toc - tic)[3], "\n")
       }
     }
 
@@ -871,7 +877,7 @@ ECkern <- function(h, alpha, gamma, Lmax=50) {
   return(h)
 }
 
-npts <- 100
+npts <- 50
 Ubeta <- qbeta(seq(0, 1, length=npts + 1), 0.5, 0.5)
 MidPoints <- (Ubeta[-1] + Ubeta[-(npts + 1)]) / 2
 BinWidth <- Ubeta[-1] - Ubeta[-(npts + 1)]
@@ -895,11 +901,11 @@ get.level <- function(A, cuts) {
 }
 
 get.level.sca <- function(A, cuts) {  # minor speedup in scalar case
-  lev <- min(which(A < cuts), length(cuts))  # stability for when A > max(cuts)
+  lev <- sum(A > cuts) + 1  # stability for when A > max(cuts)
   return(lev)
 }
 
-dlognormal <- function(x, mu, sig) {
-  dnorm(log(x), log(mu), sig, log=T) - log(x)
+dlognormal <- function(logx, logmu, sig) {
+  dnorm(logx, logmu, sig, log=T) - logx
 }
 
