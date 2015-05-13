@@ -33,8 +33,8 @@
 ###################################################################################
 if (!exists("dPS_cpp_sca") | !exists("dPS_cpp_mat")) {
   library(Rcpp)
-  Sys.setenv("PKG_CXXFLAGS"="-fopenmp")
-  Sys.setenv("PKG_LIBS"="-fopenmp")
+  Sys.setenv("PKG_CXXFLAGS"="-fopenmp")       # -msse4.2
+  Sys.setenv("PKG_LIBS"="-fopenmp")  # -msse4.2
   sourceCpp(file = "./llps.cpp")
 }
 
@@ -146,11 +146,11 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
           WWW    <- FAC.star[, k]
           canA   <- A[t, ] + WWW * (cana - a[t, k])
           if (all(canA > 0)) {  # numerical stability
-            cc     <- -canA * parts$expo + W *
-              tryCatch(log(canA), error=function(e) {
-                print(paste("Died on cc for k=", k, ", t=", t, sep=""))
-                save(a, A, canA, WWW, cana, file="logcanA.RData")
-              })
+            cc     <- -canA * parts$expo + W * log(canA)
+#               tryCatch(log(canA), error=function(e) {
+#                 print(paste("Died on cc for k=", k, ", t=", t, sep=""))
+#                 save(a, A, canA, WWW, cana, file="logcanA.RData")
+#               })
             # canlp  <- dPS(cana, alpha)
             canlp  <- dPS_cpp_sca(cana, alpha, psi, BinWidth, threads)
             loga   <- log(a[t, k])
