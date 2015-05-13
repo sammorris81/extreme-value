@@ -52,7 +52,7 @@ for (g in c(4, 8)) {
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
     outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
-    if (dataset > 6) {
+    if (dataset > 35) {
       cat("start dataset", dataset, "\n")
       set.seed(setting * 100 + dataset)
       y.d <- y[, , dataset, setting]
