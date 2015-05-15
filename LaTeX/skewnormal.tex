@@ -28,22 +28,48 @@
 
 \section{Introduction}\label{s:intro}
 In most climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
-However, averages do not help regulators prepare for the unusual events that only happen once every 100 years.
-For example, it is important to have an idea of how much rain will come in a 100-year floor in order to construct strong enough river levees to protect lands from flooding.
+However, averages are not adequate to prepare for the unusual events that only happen once every 100 years.
+For example, it is important to have an idea of how much rain will come in a 100-year flood in order to construct strong enough river levees to protect lands from flooding.
+To accurately estimate the risk associated with such rare events, it is imperative to use statistical models designed for extreme values.
+Given that many of these applications demonstrate some level of spatial and temporal dependence, there is a growing interest in spatio-temporal methods for extreme values.
 
-Unlike multivariate normal distributions, it is challenging to model multivariate extreme value distributions (e.g. generalized extreme value and generalized Pareto distribution) because few closed-form expressions exist for the density in more than two-dimensions \citep{Coles1991}.
-Given this limitation, pairwise composite likelihoods have been used when modeling dependent extremes \citep{Padoan2010,Blanchet2011,Huser2013}.
+Traditionally, spatial methods for extreme values analysis are conducted from one of two perspectives.
+The first of these is based on the convergence of the maximums of independent stochastic processes to a max-stable process \citep{deHaan2006}.
+Finite dimensional realizations of a max-stable process follow a generalized extreme value distribution \citep{Cooley2012}.
+One drawback to a block-maxima approach is that information is lost by discarding all but the most extreme observations in a block.
+Furthermore, in using multivariate block-maxima methods, the observations in the vector of block maxima rarely occur simultaneously \citep{Coles2001}.
+The other perspective incorporates a peaks-over-threshold approach.
+This methodology requires selecting a threshold, beyond which, the data are assumed to be considered extreme.
+Recently, threshold methods have become a popular choice through censored pairwise composite likelihoods \citep{Wadsworth2012,Thibaud2013,Thibaud2013a,Huser2014}.
 
-One way around the multi-dimensional limitation of multivariate extreme value distributions is to use skew elliptical distributions to model dependent extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
-Due to their flexibility, the skew-normal and skew-$t$ distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate t-distributions.
-As with the spatial Gaussian process, the skew-normal distribution is also asymptotically independent; however, the skew-$t$ does demonstrate asymptotic dependence \citep{Padoan2011}.
-Although asymptotic dependence is desirable between sites that are near one another, one drawback to the skew-$t$ is that sites remain asymptotically dependent even at far distances.
+Unlike multivariate normal distributions, multivariate extreme value distributions are challenging to use directly because closed-form expressions for the density in more than two dimensions are complicated \citep{Coles1991}.
+One exception to this is the Brown-Resnick process, a process for which it is possible to conduct inference in $d$-dimensions \citep{Wadsworth2013,Engelke2014}.
+Extreme value distributions based on the skew-$t$ distribution also permit modeling of extreme values in higher dimensions \citep{Padoan2011}.
+This limitation has led to the development of pairwise composite likelihood methods to model spatially dependent extremes \citep{Padoan2010,Blanchet2011,Huser2013}.
+Bayesian methods have also been proposed using hierarchical models with positive stable random effects \citep{Reich2012}.
 
-In this paper, we present a model that has marginal distributions with flexible tails, demonstrates asymptotic dependence for observations at sites that are near to one another, and has computation on the order of Gaussian models for large space-time datasets.
+Despite these challenges, the spatial modeling of extremes is important because it provides a mechanism by which we can borrow information about extreme events across space.
+There are two primary goals when modeling spatial extremes.
+The first of these goals is to understand the marginal behavior at sites, and the second is to describe the asymptotic dependence between sites.
+In many cases, these are done separately; however, with the development of pairwise composite likelihoods and Bayesian methods, it is resonable to model both simultaneously.
+One challenge to estimating the asymptotic dependence is that the observed extremal dependence may not be the same as the limiting dependence \citep{Davison2012b}.
+Furthermore, in a spatial setting, it may be desirable to have varying degrees of asymptotic dependence based upon the distance between two sites \citep{Wadsworth2012}.
+
+One way around the multi-dimensional limitations of multivariate extreme value distributions is to use skew elliptical distributions to model dependent extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
+For example, the skew-normal and skew-$t$ distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate $t$ distributions.
+As with multivariate Gaussian distributions, the multivariate skew-normal distribution demonstrates asymptotic independence. Conversely both the multivariate $t$ and skew-$t$ distributions demonstrate asymptotic dependence \citep{Padoan2011}.
+Additionally, the limiting distribution of the maxima of skew-$t$ random vectors is the extremal skew-$t$ distribution \citep{Padoan2011} of which the extremal-$t$ \citep{Opitz2013} is a special case.
+
+In many cases, the goal of analyzing extreme values is to understand the behavior of very rare events; however, we take a slightly different approach that is motivated by assessing ozone compliance.
+A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over 3 years does not exceed 75 parts per billion.
+Because this value typically occurs during the summer months, the fourth highest daily maximum is roughly equivalent to modeling the 95th quantile for ozone for the summer or 99th quantile for the year.
+These high quantiles are extreme in the sense that they are unusual for a given year, but they are not extreme in the sense that we are always guaranteed to observe this quantile level every year at each site by definition.
+
+In this paper, we present a new spatio-temporal model based on the skew-$t$ process that is informed by two concepts from extreme value analysis.
 Specifically, our contribution is to incorporate thresholding and random spatial partitions using a multivariate skew-$t$ distribution.
 The advantage of using a thresholded model as opposed to a non-thresholded model is that is allows for the tails of the distribution to inform the predictions in the tails \citep{DuMouchel1983}.
-The random spatial partitions are similar to the method used by \citet{Kim2005} for non-stationary Gaussian data.
-The partition alleviates the long-range spatial dependence present in the skew-$t$ distribution.
+The random spatial partitions are similar to the method used by \citet{Kim2005} for non-stationary Gaussian data, and they alleviate the asymptotic spatial dependence present in the skew-$t$ distribution for sites that are far apart.
+Finally, our model allows for inference and predictions using the full likelihood with computing on the order of Gaussian models for large space-time datasets.
 
 The paper is organized as follows.
 Section \ref{s:spatialskew} is a brief review of the spatial skew-$t$ process.
