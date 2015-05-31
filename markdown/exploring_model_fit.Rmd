@@ -1,0 +1,24 @@
+---
+title: "Exploring Model Fits"
+author: "Sam Morris"
+date: "19 May 2015"
+output: pdf_document
+---
+
+```{r, echo=FALSE, include=FALSE}
+load("./code/analysis/simstudy/simdata.RData")
+library(evd)  # to load in chiplot
+```
+
+The goal of this document is to try to explore different ways to think about dependence in the data.
+In talking with Emeric and Dan, it's not clear to me that we have the best way to assess model fit.
+Brier scores are nice in that they give a single number, and similar to other decision making criterion, you can decide on the best model simply by looking at which model has the lowest Brier score.
+Furthermore, the Brier score is the proper scoring rule that can be used to assess how well you do at predicting the occurence of an event.
+
+One thing I've been thinking about is trying to figure out how well we do at recreating the time series for a specific site. 
+One of the main goals of our model is to predict at unobserved locations.
+Therefore, it would be desirable to know how well we do at estimation of the time series at an unobserved location.
+One plot that might be interesting is the posterior distribution at a particular site for all of the time points.
+If we overlay the observed values, you could see how we do marginally for 3 or 4 sites.
+You could also find some way to differentiate the values that exceed the 95th quantile (for the ozone data, the top 2 days; simulated data, the top 3 days).
+
