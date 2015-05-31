@@ -513,6 +513,7 @@ rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 #   score(nprobs): a single quantile score per quantile
 ################################################################
 QuantScore <- function(preds, probs, validate) {
+
   nt <- ncol(validate)  # number of prediction days
   np <- nrow(validate)  # number of prediction sites
   nprobs <- length(probs)  # number of quantiles to find quantile score
@@ -539,20 +540,56 @@ QuantScore <- function(preds, probs, validate) {
 #                         locations
 #   thresholds(nthreshs): sample quantiles for scoring
 #   validate(np, nt): validation data
+#   trans(bool): are the mcmc predictions transposed
 #
 # Returns:
 #   list:
 #     scores(nthreshs): a single brier score per threshold
 #     threshs(nthreshs): sample quantiles from dataset
 ################################################################
-BrierScore <- function(preds, thresholds, validate) {
+BrierScore <- function(preds, thresholds, validate, trans=FALSE) {
   nthreshs <- length(thresholds)
-
+  np <- nrow(validate)
   scores <- rep(NA, nthreshs)
+
   for (b in 1:nthreshs) {
-    pat <- apply((preds > thresholds[b]), c(2, 3), mean)
-    i <- validate > thresholds[b]
+    pat <- apply((preds > thresholds[b]), c(2, 3), mean)  # np x nt
+    if (trans) {
+      pat <- t(pat)
+    }
+    i <- validate > thresholds[b]                         # np x nt
     scores[b] <- mean((i - pat)^2, na.rm=T)
+  }
+
+  return(scores)
+}
+
+################################################################
+# Arguments:
+#   preds(iters, yp, nt): mcmc predictions at validation
+#                         locations
+#   thresholds(nthreshs): sample quantiles for scoring
+#   validate(np, nt): validation data
+#   trans(bool): are the mcmc predictions transposed
+#
+# Returns:
+#   scores(nthreshs): a single brier score per site
+#   threshs(nthreshs): sample quantiles from dataset
+################################################################
+BrierScoreSite <- function(preds, thresholds, validate, trans=FALSE) {
+  nthreshs <- length(thresholds)
+  np <- nrow(validate)
+  scores <- matrix(NA, np, nthreshs)
+
+  for (b in 1:nthreshs) {
+    pat <- apply((preds > thresholds[b]), c(2, 3), mean)  # np x nt
+    if (trans) {
+      pat <- t(pat)
+    }
+    i <- validate > thresholds[b]                         # np x nt
+    for (p in 1:np) {
+      scores[p, b] <- mean((i[p, ] - pat[p, ])^2, na.rm=T)
+    }
   }
 
   return(scores)
