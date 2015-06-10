@@ -98,6 +98,57 @@ for (i in 1:73) {
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
 
+# find Brier score for methods 36 and 16 (the best performing around 75ppb)
+brier.score.site <- matrix(NA, 800, 2)
+load('us-all-16.RData')
+for (d in 1:2) {
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- Y[val.idx, ]
+  pred.d <- fit.d$yp[, , ]
+  brier.score.site[val.idx, 1] <- BrierScoreSite(pred.d, 75, validate)
+}
+
+load('us-all-36.RData')
+for (d in 1:2) {
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- Y[val.idx, ]
+  pred.d <- fit.d$yp[, , ]
+  brier.score.site[val.idx, 2] <- BrierScoreSite(pred.d, 75, validate)
+}
+
+# get tau such that q(tau) = 75 for each site
+Y < 75
+ozone.quant.site <- apply(Y <= 75, 1, mean, na.rm=T)
+sum(ozone.quant.site < 0.5)
+sum(ozone.quant.site < 0.7)
+sum(ozone.quant.site < 0.76)
+sum(ozone.quant.site < 0.78)
+sum(ozone.quant.site < 0.82)
+sum(ozone.quant.site < 0.83)
+quants <- c(0.0, 0.6, 0.8, 0.84, 0.89, 0.91, 0.94, 0.97, 1.01)
+in.bin <- rep(0, length(quants) - 1)
+sum.bs <- rep(0, length(quants) - 1)
+for (q in 1:(length(quants) - 1)) {
+  these.q <- which(ozone.quant.site >= quants[q] & ozone.quant.site < quants[q + 1])
+  in.bin[q] <- in.bin[q] + length(these.q)
+  sum.bs[q] <- sum.bs[q] + sum(brier.score.site[these.q, 1])
+}
+mean.bs <- sum.bs / in.bin
+line.bs <- (quants[-length(quants)] + quants[-1]) / 2
+lines(line.bs, mean.bs)
+
+plot(ozone.quant.site, brier.score.site[, 1])
+# plot(ozone.quant.site, brier.score.site[, 2])
+
+fit.lm <- lm(brier.score.site[, 1] ~ ozone.quant.site)
+xplot <- seq(0, 1, by=0.01)
+yplot <- coef(fit.lm)[1] + coef(fit.lm)[2] * xplot
+lines(xplot, yplot, lty=2)
+
+# create storage for all 800 sites
+
 # find top two for selected quantiles
 score.compare <- bs.mean.ref.gau[, c(1, 6, 9:11)]
 idx <- which(score.compare[, 1] == min(score.compare[, 1], na.rm=T))
