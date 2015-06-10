@@ -3,19 +3,19 @@ source("../../../R/auxfunctions.R")
 settings <- read.csv("settings.csv")
 
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
-thresholds <- quantile(Y, probs=probs, na.rm=T)
+thresholds <- quantile(Y, probs = probs, na.rm = T)
 nsets <- 2 # Number of cv sets
 nbetas <- 2 # number of betas
 
-quant.score <- array(NA, dim=c(length(probs), nsets, 74))
-brier.score <- array(NA, dim=c(length(thresholds), nsets, 74))
+quant.score <- array(NA, dim = c(length(probs), nsets, 74))
+brier.score <- array(NA, dim = c(length(thresholds), nsets, 74))
 
-beta.0 <- array(NA, dim=c(5000, nsets, 74))
-beta.1 <- array(NA, dim=c(5000, nsets, 74))
+beta.0 <- array(NA, dim = c(5000, nsets, 74))
+beta.1 <- array(NA, dim = c(5000, nsets, 74))
 
-phi.z <- array(NA, dim=c(5000, nsets, 74))
-phi.w <- array(NA, dim=c(5000, nsets, 74))
-phi.tau <- array(NA, dim=c(5000, nsets, 74))
+phi.z <- array(NA, dim = c(5000, nsets, 74))
+phi.w <- array(NA, dim = c(5000, nsets, 74))
+phi.tau <- array(NA, dim = c(5000, nsets, 74))
 
 # load("us-all-results.RData")
 done <- c(1:5, 7:9, 11:13, 15:17, 33:36, 38:41, 43:46, 51:74)
@@ -27,7 +27,7 @@ probs <- savelist[[5]]
 thresholds <- savelist[[6]]
 
 for (i in 1:74) {
-  file <- paste("us-all-", i, ".RData", sep="")
+  file <- paste("us-all-", i, ".RData", sep = "")
   cat("start file", file, "\n")
   if (i %in% done) {
     load(file)
@@ -51,9 +51,9 @@ savelist <- list(quant.score, brier.score,
                  beta.0, beta.1,
                  probs, thresholds)
 
-save(savelist, file="us-all-results.RData")
+save(savelist, file = "us-all-results.RData")
 
-rm(list=ls())
+rm(list = ls())
 load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
 load("us-all-results.RData")
@@ -75,24 +75,24 @@ brier.score.se <- matrix(NA, 74, length(thresholds))
 done <- c(1:5, 7:9, 11:13, 15:17, 33:36, 38:41, 43:46, 51:74)
 for (i in 1:74) {
   if (i %in% done) {
-    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean, na.rm=T)
+    quant.score.mean[i, ] <- apply(quant.score[, , i], 1, mean, na.rm = T)
     quant.score.se[i, ] <- apply(quant.score[, , i], 1, sd) / sqrt(2)
-    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean, na.rm=T)
+    brier.score.mean[i, ] <- apply(brier.score[, , i], 1, mean, na.rm = T)
     brier.score.se[i, ] <- apply(brier.score[, , i], 1, sd) / sqrt(2)
   }
 }
 
 quant.score.mean[c(1:10, 13, 14, 17:19, 21, 23, 25, 26), ]
 for (i in 1:length(thresholds)) {
- print(which(quant.score.mean[, i] == min(quant.score.mean[, i], na.rm=T)))
+ print(which(quant.score.mean[, i] == min(quant.score.mean[, i], na.rm = T)))
 }
 
 for (i in 1:length(thresholds)) {
-  print(which(brier.score.mean[, i] == min(brier.score.mean[, i], na.rm=T)))
+  print(which(brier.score.mean[, i] == min(brier.score.mean[, i], na.rm = T)))
 }
 
-bs.mean.ref.gau <- matrix(NA, nrow=73, ncol=11)
-qs.mean.ref.gau <- matrix(NA, nrow=73, ncol=11)
+bs.mean.ref.gau <- matrix(NA, nrow = 73, ncol = 11)
+qs.mean.ref.gau <- matrix(NA, nrow = 73, ncol = 11)
 for (i in 1:73) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
@@ -119,8 +119,9 @@ for (d in 1:2) {
 }
 
 # get tau such that q(tau) = 75 for each site
+library(np)
 Y < 75
-ozone.quant.site <- apply(Y <= 75, 1, mean, na.rm=T)
+ozone.quant.site <- apply(Y <= 75, 1, mean, na.rm = T)
 sum(ozone.quant.site < 0.5)
 sum(ozone.quant.site < 0.7)
 sum(ozone.quant.site < 0.76)
@@ -131,35 +132,38 @@ quants <- c(0.0, 0.6, 0.8, 0.84, 0.89, 0.91, 0.94, 0.97, 1.01)
 in.bin <- rep(0, length(quants) - 1)
 sum.bs <- rep(0, length(quants) - 1)
 for (q in 1:(length(quants) - 1)) {
-  these.q <- which(ozone.quant.site >= quants[q] & ozone.quant.site < quants[q + 1])
+  these.q <- which(ozone.quant.site >= quants[q] & 
+                   ozone.quant.site < quants[q + 1])
   in.bin[q] <- in.bin[q] + length(these.q)
   sum.bs[q] <- sum.bs[q] + sum(brier.score.site[these.q, 1])
 }
 mean.bs <- sum.bs / in.bin
-line.bs <- (quants[-length(quants)] + quants[-1]) / 2
-lines(line.bs, mean.bs)
 
-plot(ozone.quant.site, brier.score.site[, 1])
+plot(ozone.quant.site, brier.score.site[, 1], main = "",
+     ylab = "Brier score", 
+     xlab = bquote(paste("Marginal ", q^{-1},"(75 ppb)")))
 # plot(ozone.quant.site, brier.score.site[, 2])
 
-fit.lm <- lm(brier.score.site[, 1] ~ ozone.quant.site)
-xplot <- seq(0, 1, by=0.01)
-yplot <- coef(fit.lm)[1] + coef(fit.lm)[2] * xplot
-lines(xplot, yplot, lty=2)
+# get the plotting order for line
+plot.ord <- order(ozone.quant.site)
+
+fit.np <- npreg(brier.score.site[, 1] ~ ozone.quant.site, regtype = "ll", 
+                bwmethod = "cv.aic", bwtype = "adaptive_nn")
+lines(ozone.quant.site[plot.ord], fitted(fit.np)[plot.ord], lty = 2)
 
 # create storage for all 800 sites
 
 # find top two for selected quantiles
 score.compare <- bs.mean.ref.gau[, c(1, 6, 9:11)]
-idx <- which(score.compare[, 1] == min(score.compare[, 1], na.rm=T))
+idx <- which(score.compare[, 1] == min(score.compare[, 1], na.rm = T))
 score.compare[idx, 1]  # 33
-idx <- which(score.compare[, 2] == min(score.compare[, 2], na.rm=T))
+idx <- which(score.compare[, 2] == min(score.compare[, 2], na.rm = T))
 score.compare[idx, 2]
-idx <- which(score.compare[, 3] == min(score.compare[, 3], na.rm=T))
+idx <- which(score.compare[, 3] == min(score.compare[, 3], na.rm = T))
 score.compare[idx, 3]
-idx <- which(score.compare[, 4] == min(score.compare[, 4], na.rm=T))
+idx <- which(score.compare[, 4] == min(score.compare[, 4], na.rm = T))
 score.compare[idx, 4]
-idx <- which(score.compare[, 5] == min(score.compare[, 5], na.rm=T))
+idx <- which(score.compare[, 5] == min(score.compare[, 5], na.rm = T))
 score.compare[idx, 5]
 
 idx <- order(score.compare[, 1])[2]
@@ -201,7 +205,7 @@ thresh.75.ts  <- c(53, 56, 59, 62, 65, 68, 71, 74) - 1
 bs.mean.ref.gau[thresh.75.nts, ]
 bs.mean.ref.gau[thresh.75.ts, ]
 
-y.plot <- vector(mode="list", length=6)
+y.plot <- vector(mode = "list", length=6)
 y.plot[[1]] <- apply(bs.mean.ref.gau[thresh.0.nts, these], 2, mean)
 y.plot[[2]] <- apply(bs.mean.ref.gau[thresh.50.nts, these], 2, mean)
 y.plot[[3]] <- apply(bs.mean.ref.gau[thresh.75.nts, these], 2, mean)
@@ -219,15 +223,16 @@ legend <- c("T=0, No Time Series", "T=50, No Time Series",
            "T=75, No Time Series", "T=0, Time Series", "T=50, Time Series",
            "T=75, Time Series")
 
-plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.92, 1),
-     bg=bg[1], col=col[1], pch=pch[1], main="Time series with thresholding",
-     ylab="Relative Brier Score", xlab="Threshold quantile")
+plot(x.plot, y.plot[[1]], type = "b", lty = 1, ylim = c(0.92, 1),
+     bg = bg[1], col = col[1], pch = pch[1], 
+     main = "Time series with thresholding",
+     ylab = "Relative Brier Score", xlab = "Threshold quantile")
 for(i in 2:6) {
-  lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
-        lty=lty[i])
+  lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
+        lty = lty[i])
 }
-legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
-       lty=lty, box.lty=1)
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+       cex = 1.0, lty = lty, box.lty = 1)
 
 # second plot: time series and number of knots (6 lines)
 knots.low.nts  <- c(3, 4, 5) - 1
@@ -238,7 +243,7 @@ knots.mid.ts   <- c(54:71) - 1
 knots.high.nts <- c(15:17) - 1
 knots.high.ts  <- c(72:74) - 1
 
-y.plot <- vector(mode="list", length=6)
+y.plot <- vector(mode="list", length = 6)
 y.plot[[1]] <- apply(bs.mean.ref.gau[knots.low.nts, these], 2, mean)
 y.plot[[2]] <- apply(bs.mean.ref.gau[knots.mid.nts, these], 2, mean)
 y.plot[[3]] <- apply(bs.mean.ref.gau[knots.high.nts, these], 2, mean)
@@ -256,15 +261,15 @@ legend <- c("K=1, No Time Series", "K=5-10, No Time Series",
            "K=15, No Time Series", "K=1, Time Series", "K=5-10, Time Series",
            "K=15, Time Series")
 
-plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.92, 1),
-     bg=bg[1], col=col[1], pch=pch[1], main="Time series with knots",
-     ylab="Relative Brier Score", xlab="Threshold quantile")
+plot(x.plot, y.plot[[1]], type = "b", lty = 1, ylim = c(0.92, 1),
+     bg = bg[1], col = col[1], pch = pch[1], main = "Time series with knots",
+     ylab = "Relative Brier Score", xlab = "Threshold quantile")
 for(i in 2:6) {
-  lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
-        lty=lty[i])
+  lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
+        lty = lty[i])
 }
-legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
-       lty=lty, box.lty=1)
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+       cex = 1.0, lty = lty, box.lty = 1)
 
 # third plot: threshold level and number of knots (9 lines)
 knots.low.0   <- c(3, 51) - 1
@@ -277,7 +282,7 @@ knots.high.0  <- c(15, 72) - 1
 knots.high.50 <- c(16, 73) - 1
 knots.high.75 <- c(17, 74) - 1
 
-y.plot <- vector(mode="list", length=9)
+y.plot <- vector(mode = "list", length=9)
 y.plot[[1]] <- apply(bs.mean.ref.gau[knots.low.0, these], 2, mean)
 y.plot[[2]] <- apply(bs.mean.ref.gau[knots.low.50, these], 2, mean)
 y.plot[[3]] <- apply(bs.mean.ref.gau[knots.low.75, these], 2, mean)
@@ -300,15 +305,15 @@ legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
             "K=5-10, T=0", "K=5-10, T=50", "K=5-10, T=75",
             "K=15, T=0", "K=15, T=50", "K=15, T=75")
 
-plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.92, 1),
-     bg=bg[1], col=col[1], pch=pch[1], main="Knots and thresholding",
-     ylab="Relative Brier Score", xlab="Threshold quantile")
+plot(x.plot, y.plot[[1]], type = "b", lty = 1, ylim = c(0.92, 1),
+     bg = bg[1], col = col[1], pch = pch[1], main = "Knots and thresholding",
+     ylab = "Relative Brier Score", xlab = "Threshold quantile")
 for(i in 2:9) {
-  lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
-        lty=lty[i])
+  lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
+        lty = lty[i])
 }
-legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
-       lty=lty, box.lty=1)
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+       cex = 1.0, lty = lty, box.lty = 1)
 
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
@@ -321,7 +326,7 @@ bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
 col <- c("firebrick4", "dodgerblue4", "darkolivegreen4", "orange4", "gray16")
 
 # time series
-y.plot <- vector(mode="list", length=9)
+y.plot <- vector(mode = "list", length = 9)
 y.plot[[1]] <- bs.mean.ref.gau[50, these]
 y.plot[[2]] <- bs.mean.ref.gau[51, these]
 y.plot[[3]] <- bs.mean.ref.gau[52, these]
@@ -342,26 +347,26 @@ pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23)
 lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
 
 # Panel for paper
-quartz(width=12, height=6)
-par(mfrow=c(1, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+quartz(width = 12, height = 6)
+par(mfrow = c(1, 2), mar = c(5.1, 5.1, 4.1, 2.1))
 
-plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
-     bg=bg[1], col=col[1], pch=pch[1], # main="Time Series Models",
-     ylab="Relative Brier Score", xlab="Threshold quantile",
-     cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
+plot(x.plot, y.plot[[1]], type="b", lty = 1, ylim = c(0.9, 1),
+     bg = bg[1], col = col[1], pch = pch[1], # main = "Time Series Models",
+     ylab = "Relative Brier Score", xlab = "Threshold quantile",
+     cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main=2)
 for(i in 2:9) {
-  lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
-        lty=lty[i], cex=1.5)
+  lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
+        lty = lty[i], cex = 1.5)
 }
 # abline(h=1, lty=2)
 legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
             "K=7, T=0", "K=7, T=50", "K=7, T=75",
             "K=15, T=0", "K=15, T=50", "K=15, T=75")
-legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
-       lty=lty, box.lty=1)
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+       cex = 1.0, lty = lty, box.lty = 1)
 
 # non time-series
-y.plot <- vector(mode="list", length=9)
+y.plot <- vector(mode = "list", length = 9)
 y.plot[[1]] <- bs.mean.ref.gau[2, these]
 y.plot[[2]] <- bs.mean.ref.gau[3, these]
 y.plot[[3]] <- bs.mean.ref.gau[4, these]
