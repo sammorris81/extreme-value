@@ -148,10 +148,17 @@ for (q in 1:(length(quants) - 1)) {
 }
 mean.bs <- sum.bs / in.bin
 
-plot(ozone.quant.site, brier.score.site[, 1], main = "",
-     ylab = "Brier score", 
+these <- which(ozone.quant.site < 1)  # compare when ozone > 75 at least once
+par(mfrow=c(1, 2))
+yplot <- brier.score.site[, 2] / brier.score.site[, 1]
+plot(ozone.quant.site[these], yplot[these], main = "16",
+     ylab = "Relative Brier score", 
      xlab = bquote(paste("Marginal ", q^{-1},"(75 ppb)")))
-# plot(ozone.quant.site, brier.score.site[, 2])
+yplot <- brier.score.site[, 3] / brier.score.site[, 1]
+plot(ozone.quant.site[these], yplot[these], main = "32",
+     ylab = "Relative Brier score", 
+     xlab = bquote(paste("Marginal ", q^{-1},"(75 ppb)")))
+
 
 # get the plotting order for line
 plot.ord <- order(ozone.quant.site)
