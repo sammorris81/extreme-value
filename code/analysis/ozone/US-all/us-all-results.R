@@ -99,8 +99,8 @@ for (i in 1:73) {
 }
 
 # find Brier score for methods 36 and 16 (the best performing around 75ppb)
-brier.score.site <- matrix(NA, 800, 2)
-load('us-all-16.RData')
+brier.score.site <- matrix(NA, 800, 3)
+load('us-all-1.RData')
 for (d in 1:2) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
@@ -109,13 +109,22 @@ for (d in 1:2) {
   brier.score.site[val.idx, 1] <- BrierScoreSite(pred.d, 75, validate)
 }
 
-load('us-all-36.RData')
+load('us-all-16.RData')
 for (d in 1:2) {
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
   validate <- Y[val.idx, ]
   pred.d <- fit.d$yp[, , ]
   brier.score.site[val.idx, 2] <- BrierScoreSite(pred.d, 75, validate)
+}
+
+load('us-all-36.RData')
+for (d in 1:2) {
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- Y[val.idx, ]
+  pred.d <- fit.d$yp[, , ]
+  brier.score.site[val.idx, 3] <- BrierScoreSite(pred.d, 75, validate)
 }
 
 # get tau such that q(tau) = 75 for each site

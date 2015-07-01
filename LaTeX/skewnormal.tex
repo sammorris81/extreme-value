@@ -22,7 +22,7 @@
 \begin{document}\linenumbers
 
 \begin{center}
-{\Large {\bf A spatial-skew model for threshold exceedances}}\\
+{\Large {\bf A spatial skew-$t$ model for threshold exceedances}}\\
 \today
 \end{center}
 
@@ -116,13 +116,13 @@ The spatial skew-$t$ process can be written
 \end{align}
 where $\bX(\bs)$ is a set of spatial covariates at site $\bs$, $\bbeta$ is the vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a, b)$ is an inverse gamma random variable, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function.
 
-For a finite collection of locations $\bs_1, \ldots, \bs_n$, consider observations $\bY = [Y(\bs_1), \ldots, Y(\bs_n)]^T$.
+For a finite collection of locations $\bs_1, \ldots, \bs_n$, denote the vector of observations $\bY = [Y(\bs_1), \ldots, Y(\bs_n)]^T$.
 After marginalizing over both $z$ and $\sigma$,
 \begin{align}
   \bY \sim \text{ST}_n(\bX \bbeta, \bOmega, \balpha, 2a), \label{eq:fullmodel}
 \end{align}
 that is, $\bY$ follows an $n$-dimensional skew-$t$ distribution with location $\bX \bbeta$, correlation matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $2a$, where $\bX = [\bX(\bs_1)^T, \ldots, \bX(\bs_n)^T]$, $\bOmega = \bomega \bar{\bOmega} \bomega$, $\bomega = \text{diag}\left(\frac{1}{ \sqrt{ab}}, \ldots, \frac{1}{\sqrt{ab}}\right)$, $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T$), $\bSigma$ is the positive definite correlation matrix of $[v(\bs_1), \ldots, v(\bs_n)]$, $\balpha = \lambda (1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ is a vector of slant parameters.
-Although $\bSigma$ can be any positive definite correlation function, we choose to use the stationary isotropic \Matern correlation with
+Although any positive definite correlation function could be used, we choose to use the stationary isotropic \Matern correlation with
 \begin{align}
   \text{cor}[v(\bs), v(\bt)] = \gamma I(\bs = \bt) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right) \label{eq:matern}
 \end{align}
@@ -133,18 +133,17 @@ Furthermore, the marginal distributions at each location also follow a univariat
 \subsection{Extremal dependence}
 Our interest lies in spatial dependence in the tail of the skew-$t$ process.
 One measure of extremal dependence is the $\chi$ statistic \citep{Coles1999}.
-For a stationary and isotropic spatial process, the $\chi$ statistic for two location $\bs$ and $\bt$ separated by distance $h = || \bs - \bt ||$ with identical marginal distributions is
+For a stationary and isotropic spatial process, the $\chi$ statistic for locations $\bs$ and $\bt$ separated by distance $h = || \bs - \bt ||$ with identical marginal distributions is
 \begin{align}
   \chi(h) = \lim_{c \rightarrow c^*} \Pr[Y(\bs) > c | Y(\bt) > c]
 \end{align}
 where $c^*$ is the upper limit of the support of $Y$.
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
-For Gaussian processes, $\chi(h) = 0$ regardless of the distance, so they are not suitable for modeling asymptotically dependent extremes.
-Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent (see Appendix \ref{a:skewt}).
+For Gaussian processes, $\chi(h) = 0$ regardless of the distance $h$, so they are not suitable for modeling asymptotically dependent extremes.
+Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent (the explicit expression for $\chi(h)$ is given in Appendix \ref{a:skewt}).
 However, one problem with the spatial skew-$t$ process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$.
 This occurs because all observations, both near and far, share the same $z$ and $\sigma$ terms.
 Therefore, this long-range dependence feature of the skew-$t$ process is not ideal for spatial analysis of large geographic regions where we expect only local spatial dependence.
-The explicit expression for $\chi(h)$ is given in Appendix \ref{a:skewt}.
 
 \section{Spatiotemporal skew-$t$ model for extremes}\label{s:spatial}
 In this section, we propose extensions to the skew-$t$ process to model spatial extremes over a large geographic region by introducing censoring to focus on tail behavior and a random partition to remove long-range asymptotic dependence.
@@ -192,7 +191,7 @@ When incorporating the random partition, conditional on knots $\bw_1, \ldots, \b
   \chi(h) &= I(k_s = k_t) \chi_{\text{skew-}t}(h) + I(k_s \neq k_t) \chi_{\text{Gaus}}(h) \nonumber \\
          &= I(k_s = k_t) \chi_{\text{skew-}t}(h)
 \end{align}
-where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
+where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in (\ref{eq:chiskew-t}), $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
 Therefore, sites in different subregions are asymptotically independent because $\chi_{\text{Gaus}}(h) = 0$ for all $h$.
 Marginally, over the knots $\bw_1, \ldots, \bw_K$, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_s = k_t)$ is the probability that two sites separated by distance $h$ are in the same partition.
 So, to show that $\lim_{h \rightarrow \infty} \chi(h) = 0$, we need only know that $\lim_{h \rightarrow \infty} \pi(h) = 0$. A proof of this is given in Appendix \ref{a:proofsamepartition}.
@@ -212,16 +211,16 @@ This plot demonstrates how partitioning helps to reduce extremal dependence as $
 
 \subsection{Extension to space-time data} \label{s:temporal}
 When using daily measurements, the assumption of temporal independence is often inappropriate.
-There are several places where temporal dependence could be incorporated in the model, including the residual $v_t(\bs)$.
-However, we choose to allow for temporal dependence in the $\bw$, $z$, and $\sigma$ terms because these terms dictate the tail behavior which is our primary focus.
 In this section, we extend (\ref{eq:partition}) to the spatiotemporal setting.
+There are several places where temporal dependence could be incorporated in the model, including the residuals $v_t(\bs)$.
+However, we choose to allow for temporal dependence in the $\bw$, $z$, and $\sigma$ terms because these terms dictate the tail behavior which is our primary focus.
 Let
 \begin{align} \label{eq:spatiotemp}
   Y_t(\bs) = \bX_t(\bs)^T \bbeta + \lambda \sigma_t(\bs) |z_t(\bs)| + \sigma_t(\bs) v_t(\bs),
 \end{align}
 where $t \in \{1, \ldots, T\}$ denotes the day of each observation.
 Let \hbox{$\bw_{tk} = (w_{tk1}, w_{tk2})$} be a spatial knot on day $t$, and let $w_{t1}, \ldots, w_{tK}$ be a collection of spatial knots on day $t$.
-As in section \ref{s:part}, these knots define a daily partition $P_{t1}, \ldots, P_{tK}$, and for $\bs \in P_{tk}$,
+As in Section \ref{s:part}, these knots define a daily partition $P_{t1}, \ldots, P_{tK}$, and for $\bs \in P_{tk}$,
 \begin{align}
   z_t(\bs) = z_{tk}\quad \text{and} \quad \sigma_{t}(\bs) = \sigma_{tk}.
 \end{align}
@@ -260,23 +259,7 @@ These are stationary time series models with marginal distributions \hbox{$\bw^*
 After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $z_{tk} \sim HN(0, \sigma^2_{tk})$ $\sigma^2_{tk} \sim \text{IG}(a, b)$.
 For each day, the model is identical to the spatial-only model in (\ref{eq:partition}) by construction.
 
-\section{Computation}\label{s:comp}
-First, we impute values below the threshold conditional on observations above the threshold.
-This is feasible for large datasets with our model because for a single day, conditional on the model parameters, we only need to draw from a truncated multivariate normal distribution.
-Then, we update model parameters, $\Theta$, using Metropolis Hastings or Gibbs sampling when appropriate.
-Finally, we make spatial predictions using conditional multivariate normal results and the fact that the distribution of $Y_t(\bs) \mid \Theta, z(\bs)$ is the usual multivariate normal distribution with a \Matern spatial covariance structure.
-
-We can use Gibbs sampling to update $Y_t(\bs)$ for censored observations that are below the threshold $T$.
-After conditioning on $\lambda$, $z_t(\bs)$ and non-censored observations, $Y_t(\bs)$ has truncated normal full conditionals.
-So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\bX_t^T(\bs) \beta + \lambda | z_t(\bs)|, \bSigma)$.
-After imputing the censored observations, we update the model parameters.
-To update the model parameters, we use standard Gibbs updates for parameters when possible.
-In the case Gibbs sampling is not possible, parameters are updated using a random-walk Metropolis Hastings algorithm.
-See Appendices A.1 and A.2 for details regarding the MCMC.
-The final step of the computation is to use Bayesian Kriging to generate a predictive distribution for $Y_t(\bs^*)$ at prediction location $\bs^*$.
-This step is similar to the imputation for censored observations except that the full conditionals are no longer truncated at $T$.
-
-\subsection{Hierarchical model}\label{s:hier}
+\section{Hierarchical model}\label{s:hier}
 Conditioned on $z_{tk}(\bs)$, $\sigma^2_{tk}(\bs)$, and $P_{tk}$, the marginal distributions are Gaussian and the joint distribution multivariate Gaussian.
 However, we do not fix the partitions, they are treated as unknown and updated in the MCMC.
 We model this with a Bayesian hierarchical model as follows.
@@ -301,6 +284,20 @@ Then
 where $\Theta = \{\rho, \nu, \gamma\, \lambda, \beta\}$, and $\Sigma$ is a \Matern covariance matrix as described in Section \ref{s:skewt}.
 We parameterize $\lambda = \lambda_1 \lambda_2$ to help with convergence in the MCMC.
 
+\subsection{Computation}\label{s:comp}
+We use Markov chain Monte Carlo methods to explore the posterior.
+At each MCMC iteration, we first impute values below the threshold conditional on observations above the threshold.
+This is feasible for large datasets with our model because for a single day, conditional on the model parameters, we only need to draw from a truncated multivariate normal distribution.
+We can use Gibbs sampling to update $Y_t(\bs)$ for censored observations that are below the threshold $T$.
+After conditioning on $\lambda$, $z_t(\bs)$ and non-censored observations, $Y_t(\bs)$ has truncated normal full conditionals.
+So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\bX_t^T(\bs) \beta + \lambda | z_t(\bs)|, \bSigma)$.
+
+Then, we update model parameters, $\Theta$, using Metropolis Hastings or Gibbs sampling when appropriate.
+The final step of the computation is to use Bayesian Kriging to generate a predictive distribution for $Y_t(\bs^*)$ at prediction location $\bs^*$.
+This step is similar to the imputation for censored observations except that the full conditionals are no longer truncated at $T$.
+See Appendices A.1 and A.2 for details regarding the MCMC.
+
+
 \section{Simulation study}\label{s:simstudy}
 In this section, we conduct a simulation study to investigate how the number of partitions and the level of thresholding impact the accuracy of predictions made by the model.
 
@@ -321,13 +318,13 @@ In the first three designs, the $v_t(\bs)$ terms are generated using a \Matern c
 For the covariance matrices in designs 1 -- 3, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
 In the first design, $\sigma^2 = 2$ is used for all days which results in a Gaussian distribution.
 For designs 2 and 3, $\sigma^2_{tk} \iid \text{IG}(3, 8)$ to give a $t$ distribution with 6 degrees of freedom.
-For designs 1, we set $\lambda = 0$.
+For design 1, we set $\lambda = 0$.
 For designs 2 and 3, $\lambda = 3$ was used as to simulate moderate skewness, and the $z_t$ are generated as described in (\ref{eq:sitezsig}).
 In the fourth design, we generate from a spatial max-stable distribution \citep{Reich2012}.
 In this design, data have marginal distributions that follow a generalized extreme value distribution with parameters $\mu = 1, \sigma=1, \xi=0.2$.
 In this model, a random effect is used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
 For this setting, we set $\gamma = 0.5$.
-In the final design, we generate $\tilde{y}$ using the setting from design two, and then consider the data
+In the final design, we generate $\tilde{y}$ using the setting from design 2, and then transform the data
 \begin{align}
   y = \left\{ \begin{array}{lc}
     \tilde{y}, \quad & \tilde{y} > T \\[0.5em]
@@ -335,7 +332,8 @@ In the final design, we generate $\tilde{y}$ using the setting from design two, 
   \end{array}\right.
 \end{align}
 where $T = q(0.80)$ is the 80th sample quantile of the data.
-In all five designs, the mean $\bX^T \bbeta = 10$ is assumed to be constant across space.
+The final design is included to explore the importance of using a threshold exceedance model when the distribution for the bulk of the data is misspecified.
+In all six designs, the mean $\bX^T \bbeta = 10$ is assumed to be constant across space.
 
 $M = 50$ data sets are generated for each design.
 For each data set we fit the data using five models
@@ -353,8 +351,8 @@ The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$
 The skewness parameter has prior $\lambda_2 \sim \text{IG}(0.1, 0.1)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(0.1, 0.1)$.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
-We tried also fitting the skew-$t$ marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with only one tail worth of data.
-Each chain of the MCMC ran for 20000 iterations with a burn-in period of 10000 iterations.
+We tried also fitting the skew-$t$ marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
+Each chain of the MCMC ran for 20,000 iterations with a burn-in period of 10,000 iterations.
 Parameters appear to converge properly; however, in the models with multiple partitions (i.e.models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
 
 \subsection{Cross validation}\label{s:modelselect}
@@ -372,16 +370,17 @@ Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier scor
 \begin{align}
   \text{BS}_{\text{rel}} = \frac{\text{BS}_{\text{method}}}{\text{BS}_{\text{Gaussian}}}.
 \end{align}
-We analyzed the results for the simulation study using a Friedman test at $\alpha = 0.05$.
-If the Friedman test came back with a significant results, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson test to see which methods had different results.
+We analyzed the results for the simulation study using a Friedman test at $\alpha = 0.05$ to see if at least one method had a significantly different Brier score.
+For Friedman tests that came back with a significant p-value, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson test to see which of the methods had different results.
 The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in Appendix \ref{a:pdiffs}.
 
 Figure \ref{fig:simbrierscores} shows that when the data come from a Gaussian process, our methods perform comparably to the Gaussian method.
 For data settings with skew-$t$ marginals (settings 2 -- 3), we find significant improvement over the Gaussian method.
 Furthermore in these data settings, we find the best performance occurs when the number of knots used in the method matches the number of knots used for data generation.
-The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that the data are generated directly from the model used in the method.
+The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model used in the method.
 For the max-stable data, we see that for low-extreme quantiles, the Gaussian method performs better, for more extreme quantiles, the single-partition method, both thresholded and non-thresholded, perform significantly better than the Gaussian.
 Finally, for setting 5, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
+In summary, our method provides more flexibility for data that demonstrate some level of asymmetry or heavy tails, while still performing comparably to Gaussian methods when the data are symmetric and have light tails.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
@@ -644,7 +643,7 @@ where $t_d(\bz; \bar{\bOmega}, \eta)$ is a $d$-dimensional Student's $t$-distrib
 
 \subsubsection*{Extremal dependence}
 For a bivariate skew-$t$ random variable $\bY = [Y(\bs), Y(\bt)]^T$, the $\chi(h)$ statistic \citep{Padoan2011} is given by
-\begin{align}
+\begin{align} \label{eq:chiskew-t}
   \chi(h) = \bar{F}_{\text{EST}}\left\{ \frac{[x_1^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{\sqrt{1 - \varrho(h)^2}}; 0, 1, \alpha_1, \tau_1, \eta + 1 \right\} + \bar{F}_{\text{EST}}\left\{ \frac{ [x_2^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{ \sqrt{1 - \varrho(h)^2} }; 0, 1, \alpha_2, \tau_2, \eta + 1 \right\},
 \end{align}
 where $\bar{F}_{\text{EST}}$ is the univariate survival extended skew-$t$ function with zero location and unit scale, \hbox{$\varrho(h) = \text{cor}(y_1, y_2)$}, $\alpha_j = \alpha_i \sqrt{1 - \varrho^2}$, $\tau_j = \sqrt{\eta + 1}(\alpha_j + \alpha_i \varrho)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\eta + 1}; 0, 1, \eta) / F_T(\bar{\alpha}_j \sqrt{\eta + 1}; 0, 1, \eta)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \varrho) / \sqrt{ 1 + \alpha_i^2 [1 - \varrho(h)^2]}$.
