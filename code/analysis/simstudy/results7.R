@@ -27,14 +27,13 @@ ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 ngroups <- 10
-done.groups <- c(1:7)
 nsettings <- dim(y)[4]
 nmethods <- 6
 obs <- c(rep(T, 100), rep(F, 44))
 
 setting <- 7
 filename <- paste("scores", setting, ".RData", sep="")
-prefix <- "/Volumes/sam-ext/spatial-skew-t/code/analysis/simstudy/results/"
+prefix <- "results/"
 
 # Included for easy access if we need to change score functions
 source("../../R/auxfunctions.R")
@@ -117,12 +116,14 @@ for (set in 1:50) {
   }
 
   cat("dataset", set, "\n")
-
-  save(
-  quant.score, brier.score, beta.0, beta.1, beta.2,
-  tau.alpha, tau.beta, rho, nu, gamma, lambda,
-  probs, thresholds,
-  file = filename
-  )
+  
+  if (set %% 10 == 0) {
+    save(
+      quant.score, brier.score, beta.0, beta.1, beta.2,
+      tau.alpha, tau.beta, rho, nu, gamma, lambda,
+      probs, thresholds,
+      file = filename
+    )
+  }
 }
 
