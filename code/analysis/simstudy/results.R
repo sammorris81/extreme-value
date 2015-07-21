@@ -36,7 +36,7 @@ for (i in 1:length(done.groups)){
   done.sets[idx] <- (done.groups[i] - 1) * 5 + seq(1:5)
 }
 nsettings <- 7
-nmethods <- 5
+nmethods <- 6
 obs <- c(rep(T, 100), rep(F, 44))
 
 source("../../R/auxfunctions.R")	# Included for easy access if we need to change score functions
@@ -62,10 +62,12 @@ tau.alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods,
 tau.beta.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 rho.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 nu.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
-alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
+gamma.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 # not all methods use skew or multiple partitions
-z.alpha.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 5, nsettings))
-avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), 3, nsettings))
+lambda.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
+avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
+
+skew.methods <- c(2, 4)
 
 iters <- 20000; burn <- 10000
 for (setting in 1:nsettings) {
@@ -73,38 +75,36 @@ for (setting in 1:nsettings) {
   load(scores.file)
   quant.score.all[, done.sets, , setting] <- quant.score[, done.sets, , setting]
   brier.score.all[, done.sets, , setting] <- brier.score[, done.sets, , setting]
-
+  
   beta.0.all[, done.sets, , setting] <- beta.0[, done.sets, , setting]
   beta.1.all[, done.sets, , setting] <- beta.1[, done.sets, , setting]
   beta.2.all[, done.sets, , setting] <- beta.2[, done.sets, , setting]
   tau.alpha.all[, done.sets, , setting] <- tau.alpha[, done.sets, , setting]
   rho.all[, done.sets, , setting] <- rho[, done.sets, , setting]
   nu.all[, done.sets, , setting] <- nu[, done.sets, , setting]
-  alpha.all[, done.sets, , setting] <- alpha[, done.sets, , setting]
-  z.alpha.all[, done.sets, , setting] <- z.alpha[, done.sets, , setting]
-  avgparts.all[, done.sets, , setting] <- avgparts[, done.sets, , setting]
+  gamma.all[, done.sets, , setting] <- gamma[, done.sets, , setting]
+  lambda.all[, done.sets, , setting] <- lambda[, done.sets, , setting]
 }
 
 quant.score <- quant.score.all
 brier.score <- brier.score.all
-beta.0 <- beta.0.all
-beta.1 <- beta.1.all
-beta.2 <- beta.2.all
+beta.0    <- beta.0.all
+beta.1    <- beta.1.all
+beta.2    <- beta.2.all
 tau.alpha <- tau.alpha.all
-rho <- rho.all
-nu <- nu.all
-alpha <- alpha.all
-z.alpha <- z.alpha.all
-avgparts <- avgparts.all
+rho       <- rho.all
+nu 		  <- nu.all
+gamma     <- gamma.all
+lambda    <- lambda.all
 
 rm(quant.score.all, brier.score.all, beta.0.all, beta.1.all, beta.2.all,
-   tau.alpha.all, rho.all, nu.all, alpha.all, z.alpha.all, avgparts.all)
+   tau.alpha.all, rho.all, nu.all, gamma.all, lambda.all)
 
 ns <- dim(y)[1]
 nt <- dim(y)[2]
 nsets <- 5
 nsettings <- 7
-nmethods <- 5
+nmethods <- 6
 
 # get single brier scores and quantile scores for each setting x method x quantile
 quant.score.mean <- apply(quant.score, c(1, 3, 4), mean, na.rm=T)
@@ -156,34 +156,35 @@ for (j in 1:nsettings) {
     combine <- data.frame(scores, groups, dataset)
     results.wnmt[, j, i] <- pWNMT(x=combine$scores, b=combine$dataset,
                                   trt=combine$groups, n.mc=20000)$p.val
+    print(paste("  i:", i))
   }
+  print(paste("j:", j))
 }
 
 savelist <- list(
   quant.score = quant.score, quant.score.mean = quant.score.mean,
   brier.score = brier.score, brier.score.mean = brier.score.mean,
   beta.0 = beta.0, beta.1 = beta.1, beta.2 = beta.2,
-  tau.alpha = tau.alpha, rho = rho, nu = nu, alpha = alpha,
-  z.alpha = z.alpha, avgparts = avgparts,
+  tau.alpha = tau.alpha, rho = rho, nu = nu, gamma = gamma,
+  lambda = lambda,
   results.friedman = results.friedman, results.wnmt = results.wnmt
 )
 
 save(savelist, file = "simresults.RData")
 load("simresults.RData")
 # unlist the items in savelist
-quant.score <- savelist$quant.score
+quant.score      <- savelist$quant.score
 quant.score.mean <- savelist$quant.score.mean
-brier.score <- savelist$brier.score
+brier.score      <- savelist$brier.score
 brier.score.mean <- savelist$brier.score.mean
-beta.0 <- savelist$beta.0
-beta.1 <- savelist$beta.1
-beta.2 <- savelist$beta.2
+beta.0    <- savelist$beta.0
+beta.1    <- savelist$beta.1
+beta.2    <- savelist$beta.2
 tau.alpha <- savelist$tau.alpha
-rho <- savelist$rho
-nu <- savelist$nu
-alpha <- savelist$alpha
-z.alpha <- savelist$z.alpha
-avgparts <- savelist$avgparts
+rho       <- savelist$rho
+nu        <- savelist$nu
+gamma     <- savelist$gamma
+lambda    <- savelist$lambda
 results.friedman <- savelist$results.friedman
 results.wnmt <- savelist$results.wnmt
 rm(savelist)
@@ -192,17 +193,21 @@ rm(savelist)
 nsets <- 5
 ngroups <- 10
 nsettings <- 7
-nmethods <- 5
+nmethods <- 6
 include <- c(1, 6, 9, 10, 11)
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 
 # look over results
 #   results.wnmt: ncomparisons x nsettings x nquants
-# results are 1-2, 1-3, 1-4, 1-5, 2-3, 2-4, 2-5, 3-4, 3-5, 4-5
-comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5", "gaus vs. t-5 (T = 0.80)",
-                 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5", "skew t-1 vs. t-5 (T = 0.80)",
+# results are 1-2, 1-3, 1-4, 1-5, 1-6, 2-3, 2-4, 2-5, 2-6, 3-4, 3-5, 3-6, 4-5, 4-6, 5-6
+comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5", 
+				 "gaus vs. t-5 (T = 0.80)", "gaus vs. Max-stab (T = 0.80)",
+				 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5", 
+				 "skew t-1 vs. t-5 (T = 0.80)", "skew t-1 vs. Max-stab (T = 0.80)",
                  "t-1 (T = 0.80) vs. skew t-5", "t-1 (T = 0.80) vs. t-5 (T = 0.80)",
-                 "skew t-5 vs. t-5 (T = 0.80)")
+                 "t-1 (T = 0.80) vs. Max.stab (T = 0.80)", 
+                 "skew t-5 vs. t-5 (T = 0.80)", "skew t-5 vs. Max-stab (T = 0.80)", 
+                 "t-5 (T = 0.80) vs. Max-stab (T = 0.80)")
 
 # which groups are different for different settings
 setting <- 1
@@ -259,16 +264,16 @@ comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 quant.score.med <- apply(quant.score, c(1, 3, 4), median, na.rm=T)
 brier.score.med <- apply(brier.score, c(1, 3, 4), median, na.rm=T)
 
-bs.med.ref.gau <- array(NA, dim=c(11, 4, nsettings))
-bs.mean.ref.gau <- array(NA, dim=c(11, 4, nsettings))
-for (j in 1:4) {
+bs.med.ref.gau <- array(NA, dim=c(11, nmethods - 1, nsettings))
+bs.mean.ref.gau <- array(NA, dim=c(11, nmethods - 1, nsettings))
+for (j in 1:(nmethods - 1)) {
   bs.med.ref.gau[, j, ] <- brier.score.med[, (j + 1), ] / brier.score.med[, 1, ]
   bs.mean.ref.gau[, j, ] <- brier.score.mean[, (j + 1), ] / brier.score.mean[, 1, ]
 }
 
-qs.med.ref.gau <- array(NA, dim=c(11, 4, nsettings))
-qs.mean.ref.gau <- array(NA, dim=c(11, 4, nsettings))
-for (j in 1:4) {
+qs.med.ref.gau <- array(NA, dim=c(11, nmethods - 1, nsettings))
+qs.mean.ref.gau <- array(NA, dim=c(11, nmethods - 1, nsettings))
+for (j in 1:(nmethods - 1)) {
   qs.med.ref.gau[, j, ] <- quant.score.med[, (j + 1), ] / quant.score.med[, 1, ]
   qs.mean.ref.gau[, j, ] <- quant.score.mean[, (j + 1), ] / quant.score.mean[, 1, ]
 }
@@ -279,11 +284,12 @@ setting.title <- c("Data: Gaussian", "Data: Symmetric-t (K = 1)",
                    bquote(paste("Data: Skew-t (K = 5, ", lambda == 3, ")")),
                    "Data: Max-stable", "Data: transform below T")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Sym-t, K = 1, T = q(0.8)",
-             "Skew-t, K = 5, T = q(0.0)", "Sym-t, K = 5, T = q(0.8)")
-bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1")
-col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4")
-pch <- c(22, 22, 22, 22)
-lty <- c(1, 1, 3, 3)
+             "Skew-t, K = 5, T = q(0.0)", "Sym-t, K = 5, T = q(0.8)", 
+             "Max-stable, T = q(0.80)")
+bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1", "gray70")
+col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4", "gray14")
+pch <- c(22, 22, 22, 22, 21)
+lty <- c(1, 1, 3, 3, 3)
 
 
 # Individual plots for presentation
@@ -401,7 +407,7 @@ for (setting in settings.use) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   #   ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   # }
-  ymax <- 1.10
+  ymax <- 1.50
   ymin <- 0.85
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
