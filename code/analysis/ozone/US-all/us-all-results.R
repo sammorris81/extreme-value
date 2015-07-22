@@ -1263,6 +1263,72 @@ plot(fit[[2]]$phi.tau, type="l")
 plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
+# get an idea of two sites that are close to one another vs far apart
+load("us-all-setup.RData")
+source("../../../R/auxfunctions.R")
+settings <- read.csv("settings.csv")
+no.na <- which(rowSums(is.na(Y)) == 0)
+indices <- 1:nrow(S)
+S <- S[no.na, ]
+indices <- indices[no.na]
+d <- rdist(S) 
+diag(d) <- 0
+
+far <- which(d > 4.46, arr.ind = TRUE)
+
+quant.close.1 <- quant.close.2 <- quant.far.1 <- quant.far.2 <- rep(NA, ncol(Y))
+ids.1 <- ids.2 <- fill.count <- rep(NA, nrow(close))
+for (i in 1:nrow(close)) {
+	idx.1 <- indices[close[i, 1]]
+	idx.2 <- indices[close[i, 2]]
+	if (!(idx.1 %in% ids.1) & !(idx.2 %in% ids.2)) {
+		ids.1[i] <- 
+		ids.2[i] <- 
+		for (j in 1:ncol(Y)) {
+			quant.close.1[j] <- mean(Y[idx.1, j] > Y[idx.1, -j])
+			quant.close.2[j] <- mean(Y[idx.2, j] > Y[idx.2, -j])
+		}
+		if (i == 1) {
+			plot(quant.close.1, quant.close.2)
+		} else {
+			points(quant.close.1, quant.close.2)
+		}
+	}
+}
+
+# plot(S)
+close <- close[1, ]
+indices <- indices[close]
+
+
+load("us-all-setup.RData")
+
+close <- c(47, 215)
+far <- c(698, 215)
+
+plot(S[close, ], ylim=c(-1.6, 1), xlim=c(-2.2, 2.2))
+plot(S[far, ], ylim=c(-1.6, 1), xlim=c(-2.2, 2.2))
+
+quant.close.1 <- quant.close.2 <- quant.far.1 <- quant.far.2 <- rep(NA, ncol(Y))
+for (i in 1:ncol(Y)) {
+	quant.close.1[i] <- mean(Y[close[1], i] > Y[close[1], -i])
+	quant.close.2[i] <- mean(Y[close[2], i] > Y[close[2], -i])
+	quant.far.1[i] <- mean(Y[far[1], i] > Y[far[1], -i])
+	quant.far.2[i] <- mean(Y[far[2], i] > Y[far[2], -i])
+}
+
+plot(t(Y[close, ]), main = "",
+     xlab = paste("Site", close[1]), ylab = paste("Site", close[2]))
+plot(t(Y[far, ]), main = "",
+     xlab = paste("Site", far[1]), ylab = paste("Site", far[2]))   
+
+quartz(width = 12, height = 6)
+par(mfrow = c(1, 2), mar = c(5.1, 5.1, 4.1, 2.1))
+plot(quant.close.1, quant.close.2, main = "", cex.lab = 1.5,
+     xlab = paste("Site", close[1]), ylab = paste("Site", close[2]))
+plot(quant.far.1, quant.far.2, main = "", cex.lab = 1.5, 
+     xlab = paste("Site", far[1]), ylab = paste("Site", far[2]))
+
 # # X11()
 # # boxplot(log(fit.schlather$gpdre))
 # # lines(log(r^2))

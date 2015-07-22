@@ -396,9 +396,10 @@ legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
 
 
 # Panel for paper
-settings.use <- c(1, 4, 5, 6, 7)
-quartz(width=15, height=12)
-par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+# settings.use <- c(1, 4, 5, 6, 7)
+settings.use <- c(1, 4, 5, 6)
+quartz(width=12, height=12)
+par(mfrow=c(2, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in settings.use) {
   # if (setting == 6) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T) + 0.1
@@ -427,9 +428,9 @@ for (setting in settings.use) {
 #   }
 }
 
-plot(1, 1, type='n', axes=F, ylab="", xlab="")
-legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
-       cex=2)
+# plot(1, 1, type='n', axes=F, ylab="", xlab="")
+legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
+       cex=1.5)
 
 dev.print(file="plots/bsplots-mean.pdf", device=pdf)
 dev.off()

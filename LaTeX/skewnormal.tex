@@ -304,7 +304,7 @@ In this section, we conduct a simulation study to investigate how the number of 
 \subsection{Design}\label{s:simdesign}
 For all simulation designs, we generate data from the model in Section \ref{s:part} using $n_s=144$ sites and $n_t=50$ independent days.
 The sites are generated Uniform$([0, 10] \times [0, 10])$.
-We generate data from 5 different simulation designs:
+We generate data from 4 different simulation designs:
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=1$ knot
@@ -312,7 +312,7 @@ We generate data from 5 different simulation designs:
   \item Skew-$t$ marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=5$ knots
   \item Max-stable
-  \item Transformation below $T = q(0.80)$
+  % \item Transformation below $T = q(0.80)$
 \end{enumerate}
 In the first three designs, the $v_t(\bs)$ terms are generated using a \Matern covariance with smoothness parameter $\nu = 0.5$ and spatial range $\rho = 1$.
 For the covariance matrices in designs 1 -- 3, the proportion of the variance accounted for by the spatial variation is $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect is $0.1$.
@@ -320,23 +320,24 @@ In the first design, $\sigma^2 = 2$ is used for all days which results in a Gaus
 For designs 2 and 3, $\sigma^2_{tk} \iid \text{IG}(3, 8)$ to give a $t$ distribution with 6 degrees of freedom.
 For design 1, we set $\lambda = 0$.
 For designs 2 and 3, $\lambda = 3$ was used as to simulate moderate skewness, and the $z_t$ are generated as described in (\ref{eq:sitezsig}).
+In designs 1 -- 3, the mean $\bX^T \bbeta = 10$ is assumed to be constant across space.
 In the fourth design, we generate from a spatial max-stable distribution \citep{Reich2012}.
 In this design, data have marginal distributions that follow a generalized extreme value distribution with parameters $\mu = 1, \sigma=1, \xi=0.2$.
 In this model, a random effect is used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
 For this setting, we set $\gamma = 0.5$.
-In the final design, we generate $\tilde{y}$ using the setting from design 2, and then transform the data
-\begin{align}
-  y = \left\{ \begin{array}{lc}
-    \tilde{y}, \quad & \tilde{y} > T \\[0.5em]
-    T \exp\{\tilde{y} - T\}, \quad & \tilde{y} \le T
-  \end{array}\right.
-\end{align}
-where $T = q(0.80)$ is the 80th sample quantile of the data.
-The final design is included to explore the importance of using a threshold exceedance model when the distribution for the bulk of the data is misspecified.
-In all six designs, the mean $\bX^T \bbeta = 10$ is assumed to be constant across space.
+% In the final design, we generate $\tilde{y}$ using the setting from design 2, and then transform the data
+% \begin{align}
+%   y = \left\{ \begin{array}{lc}
+%     \tilde{y}, \quad & \tilde{y} > T \\[0.5em]
+%     T \exp\{\tilde{y} - T\}, \quad & \tilde{y} \le T
+%   \end{array}\right.
+% \end{align}
+% where $T = q(0.80)$ is the 80th sample quantile of the data.
+% The final design is included to explore the importance of using a threshold exceedance model when the distribution for the bulk of the data is misspecified.
+
 
 $M = 50$ data sets are generated for each design.
-For each data set we fit the data using five models
+For each data set we fit the data using six models
 \begin{enumerate} \setlength{\itemsep}{-0.5em}
   \item Gaussian marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=1$ knots, $T=-\infty$
@@ -374,12 +375,13 @@ We analyzed the results for the simulation study using a Friedman test at $\alph
 For Friedman tests that came back with a significant p-value, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson test to see which of the methods had different results.
 The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in Appendix \ref{a:pdiffs}.
 
-Figure \ref{fig:simbrierscores} shows that when the data come from a Gaussian process, our methods perform comparably to the Gaussian method.
-For data settings with skew-$t$ marginals (settings 2 -- 3), we find significant improvement over the Gaussian method.
-Furthermore in these data settings, we find the best performance occurs when the number of knots used in the method matches the number of knots used for data generation.
+A plot of the relative Brier scores is given in Figure \ref{fig:simbrierscores}.
+We find that when the data are generated from a Gaussian process, our method performs comparably to a Gaussian approach.
+In general, when the underlying process is not Gaussian, our method results in an improvement over both the max-stable and Gaussian methods.
+One exception to this is the case when the generative process is max-stable.
+In this case, the max-stable method outperforms our method; however, for predictions further out in the tail, the differences between the max-stable method and our method diminish.
 The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model used in the method.
-For the max-stable data, we see that for low-extreme quantiles, the Gaussian method performs better, for more extreme quantiles, the single-partition method, both thresholded and non-thresholded, perform significantly better than the Gaussian.
-Finally, for setting 5, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
+% Finally, for setting 5, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
 In summary, our method provides more flexibility for data that demonstrate some level of asymmetry or heavy tails, while still performing comparably to Gaussian methods when the data are symmetric and have light tails.
 
 \begin{figure}
@@ -389,11 +391,11 @@ In summary, our method provides more flexibility for data that demonstrate some 
 \end{figure}
 
 \section{Data analysis}\label{s:analysis}
-To illustrate this method, we consider the daily maximum 8-hour ozone measurements for July 1 - 31, 2005 at 1089 Air Quality System (AQS) monitoring sites in the United States as the response (see Figure \ref{fig:ozone}).
+To illustrate this method, we consider 31 daily observations of maximum 8-hour ozone measurements for July 2005 at 1089 Air Quality System (AQS) monitoring sites in the United States as the response (see Figure \ref{fig:ozone}).
 For each site, we also have covariate information containing the estimated ozone from the Community Multi-scale Air Quality (CMAQ) modeling system.
 Initially, we fit a linear regression assuming a mean function of
 \begin{align}
-  \bX^T_t(\bs) \bbeta = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
+  \E[Y_i(\bs)] = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
 \end{align}
 The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
@@ -403,7 +405,16 @@ The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot 
   \caption{Ozone values on 10 July 2005 (left) Q-Q plot of the residuals (right)}
   \label{fig:ozone}
 \end{figure}
-Exploratory data analysis indicates that there is dependence in the high quantile levels of the residuals beyond what we expect in the case of independence.
+Standard exploratory data analysis techniques for extremal dependence are very challenging with only 31 days worth of data because it is difficult to estimate extreme quantiles at each site to obtain empirical estimates of $\chi$.
+Despite the fact that there is only one month of data, we can get some sense of extremal dependence between sites by looking at joint occurences of high quantiles.
+Figure \ref{fig:bivariateozone} illustrates the differing levels of dependence in extreme quantiles for a pair of sites that are close to one another versus a pair of sites that are far apart.
+\begin{figure}
+  \label{fig:bivariateozone}
+  \centering
+  \includegraphics[width=\linewidth]{plots/daily-quantiles-ozone.pdf}
+  \caption{Daily quantiles for sites that are close (left) and far apart (right)}
+\end{figure}
+
 
 % We explore spatial and temporal extremal dependence by considering $\chi_c = \Pr[Y(\bs) > c | Y(\bt) > c]$.
 % To examine spatial dependence in high quantiles, we consider observations at all pairs of sites $\bs$ and $\bt$ that are distance $h$ apart where $h$ is separated into bins of size 0.25 km.
@@ -669,21 +680,21 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
   \centering
   \caption{Setting 1 -- Gaussian marginal, $K = 1$ knot}
   \label{tbl:gaussim}
-  \begin{tabular}{|l|ccc|ccc|cccc|cc|}
-    \cline{2-13}
-    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{2}{|c|}{$q(0.99)$} \\
+  \begin{tabular}{|l|ccc|ccc|cccc|ccc|}
+    \cline{2-14}
+    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
     \hline
-    Method 1 & A &   &   & A &   &   & A &   &   &   & A &   \\
+    Method 1 & A &   &   & A &   &   & A &   &   &   & A & B &   \\
     \hline
-    Method 2 & A &   &   & A &   &   & A &   &   &   & A &   \\
+    Method 2 & A &   &   & A &   &   & A &   &   &   & A &   &   \\
     \hline
-    Method 3 &   & B &   &   & B &   &   &   & C &   & A &   \\
+    Method 3 &   & B &   &   & B &   &   &   & C &   &   & B &   \\
     \hline
-    Method 4 & A &   &   & A &   &   & A & B &   &   & A &   \\
+    Method 4 & A &   &   & A &   &   & A & B &   &   & A & B &   \\
     \hline
-    Method 5 &   & B &   &   & B &   &   & B & C &   & A &   \\
+    Method 5 &   & B &   &   & B &   &   & B & C &   & A & B &   \\
     \hline
-    Method 6 &   &   & C &   &   & C &   &   &   & D &   & B \\
+    Method 6 &   &   & C &   &   & C &   &   &   & D &   &   & C \\
     \hline
   \end{tabular}
 \end{table}
@@ -780,21 +791,21 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
   \centering
   \caption{Setting 4 -- Max-stable}
   \label{tbl:mssim}
-  \begin{tabular}{|l|cccc|ccc|ccc|ccc|}
-    \cline{2-14}
-    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+  \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
+    \cline{2-15}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
     \hline
-    Method 1 & A & B &   &   &   & B &   &   & B &   &   &   & C \\
+    Method 1 & A & B &   &   &   & B &   &   &   & B &   &   &   & C \\
     \hline
-    Method 2 &   & B &   &   &   & B &   &   & B &   &   & B & C \\
+    Method 2 &   & B &   &   &   & B & C &   &   & B &   &   & B & C \\
     \hline
-    Method 3 &   &   & C & D &   &   & C &   & B &   &   & B &   \\
+    Method 3 &   &   & C & D &   &   & C &   &   & B &   &   & B &   \\
     \hline
-    Method 4 &   &   &   & D &   &   & C &   &   & C &   & B & C \\
+    Method 4 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
     \hline
-    Method 5 &   &   & C &   &   &   & C &   & B &   &   & B & C \\
+    Method 5 &   &   & C &   &   &   & C &   &   & B &   &   & B & C \\
     \hline
-    Method 6 & A &   &   &   & A &   &   & A &   &   & A &   &   \\
+    Method 6 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
     \hline
   \end{tabular}
 \end{table}
