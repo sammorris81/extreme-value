@@ -105,7 +105,7 @@ The final section provides brief discussion and direction for future research.
 
 \section{Spatial skew processes}\label{s:spatialskew}
 Many types of data demonstrate some level of skewness and therefore should be modeled with distributions that allow for asymmetry.
-The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter to account for asymmetric data \citep{Genton2004}.
+The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter to account for asymmetric data \citep{Azzalini2014}.
 A brief review of the additive process by which a skew-$t$ process is created is given here.
 
 \subsection{Skew-$t$ process} \label{s:skewt}
@@ -121,7 +121,7 @@ After marginalizing over both $z$ and $\sigma$,
 \begin{align}
   \bY \sim \text{ST}_n(\bX \bbeta, \bOmega, \balpha, 2a), \label{eq:fullmodel}
 \end{align}
-that is, $\bY$ follows an $n$-dimensional skew-$t$ distribution with location $\bX \bbeta$, correlation matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $2a$, where $\bX = [\bX(\bs_1)^T, \ldots, \bX(\bs_n)^T]$, $\bOmega = \bomega \bar{\bOmega} \bomega$, $\bomega = \text{diag}\left(\frac{1}{ \sqrt{ab}}, \ldots, \frac{1}{\sqrt{ab}}\right)$, $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T$), $\bSigma$ is the positive definite correlation matrix of $[v(\bs_1), \ldots, v(\bs_n)]$, $\balpha = \lambda (1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ is a vector of slant parameters.
+that is, $\bY$ follows an $n$-dimensional skew-$t$ distribution with location $\bX \bbeta$, correlation matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $2a$, where $\bX = [\bX(\bs_1)^T, \ldots, \bX(\bs_n)^T]$, $\bOmega = \bomega \bar{\bOmega} \bomega$, $\bomega = \text{diag}\left(\frac{1}{ \sqrt{ab}}, \ldots, \frac{1}{\sqrt{ab}}\right)$, $\bar{\bOmega} = (\bSigma + \lambda^2 \bOne \bOne^T$), $\balpha = \lambda (1 + \lambda^2 \bOne^T \bSigma^{-1} \bOne)^{-1/2} \bOne^T \bSigma^{-1}$ is a vector of slant parameters, and $\bSigma$ is the positive definite correlation matrix of $[v(\bs_1), \ldots, v(\bs_n)]$.
 Although any positive definite correlation function could be used, we choose to use the stationary isotropic \Matern correlation with
 \begin{align}
   \text{cor}[v(\bs), v(\bt)] = \gamma I(\bs = \bt) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right) \label{eq:matern}
@@ -395,16 +395,17 @@ To illustrate this method, we consider 31 daily observations of maximum 8-hour o
 For each site, we also have covariate information containing the estimated ozone from the Community Multi-scale Air Quality (CMAQ) modeling system.
 Initially, we fit a linear regression assuming a mean function of
 \begin{align}
-  \E[Y_i(\bs)] = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
+  \text{E}[Y_i(\bs)] = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{eq:datamean}
 \end{align}
 The data from July 10 are shown in Figure \ref{fig:ozone} along with a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
   \centering
   \includegraphics[width=0.56\linewidth]{plots/ozone-10jul-us.pdf}
   \includegraphics[width=0.41\linewidth]{plots/qq-res.pdf}
-  \caption{Ozone values on 10 July 2005 (left) Q-Q plot of the residuals (right)}
+  \caption{Ozone values on 10 July 2005 (left) Q-Q plot of the residuals for a skew-$t$ distribution with 10 d.f. and $\alpha = 1$ (right)}
   \label{fig:ozone}
 \end{figure}
+
 Standard exploratory data analysis techniques for extremal dependence are very challenging with only 31 days worth of data because it is difficult to estimate extreme quantiles at each site to obtain empirical estimates of $\chi$.
 Despite the fact that there is only one month of data, we can get some sense of extremal dependence between sites by looking at joint occurences of high sample quantiles.
 Figure \ref{fig:bivariateozone} suggests suggests there is more agreement between sites that are close to one another than sites that are far from one another.
@@ -444,7 +445,7 @@ All methods assume the mean function given in (\ref{eq:datamean}).
 To ensure that the max-stable method runs in a reasonable amount of time, we take a stratified sample of the sites to get 800 sites and consider this our new dataset.
 We conduct two-fold cross validation using 400 training sites and 400 validation sites as described in Section \ref{s:modelselect}
 
-Each chain of the MCMC ran for 30000 iterations with a burn-in period of 25000 iterations.
+Each chain of the MCMC ran for 30,000 iterations with a burn-in period of 25,000 iterations.
 Parameters appear to converge properly; however, as before, for models with multiple partitions it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
 For each model, Brier scores were averaged over all sites and days to obtain a single Brier score for each dataset.
 At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
@@ -459,14 +460,13 @@ Both plots have similar features suggesting that most settings do reasonably wel
 In particular, for all extreme quantiles, selecting a moderate number of knots (e.g. $K = 5, \ldots, 10$) tends to give the best results.
 Table \ref{tbl:ozoneresults} shows the best two models for selected extreme quantiles.
 
-We illustrate the predictive capability of our model in Figure \ref{fig:ozoneq99} by plotting the 99th quantile of the posterior predictive density for July in South Carolina and Georgia.
-We fit the model using four methods, two reference and two that performed better.
-These four methods are
+We illustrate the predictive capability of our model in Figure \ref{fig:ozoneq99} by plotting the 99th quantile for South Carolina and Georgia, a subset of the spatial domain, in order to study local features.
+The four methods used are
 \begin{enumerate}\setlength{\itemsep}{-0.5em}
-  \item Gaussian (reference)
-  \item Skew-$t$, $K =$ 1 knot, $T = $ 0, no time series (reference)
-  \item Skew-$t$, $K =$ 5 knots, $T = $ 50, no time series (comparison)
-  \item Symmetric-$t$, $K =$ 10 knots, $T = $ 75, time series (comparison).
+  \item Gaussian
+  \item Skew-$t$, $K =$ 1 knot, $T = $ 0, no time series
+  \item Skew-$t$, $K =$ 5 knots, $T = $ 50, no time series
+  \item Symmetric-$t$, $K =$ 10 knots, $T = $ 75, time series.
 \end{enumerate}
 In the bottom two plots, we plot the differences between method 4 and methods 1 and 2.
 The most noticeable differences between the reference methods and the comparison methods is that the comparison methods tend to give higher estimates of the 99th quantile along the I-85 corridor between Charlotte and Atlanta.
@@ -499,19 +499,10 @@ The most noticeable differences between the reference methods and the comparison
   \end{tabular}
 \end{table}
 
-\hl{NEED TO ADD STUFF HERE ACKNOWLEDGING THAT MARGINALS ARE DIFFERENT}
-Also, add an explanation about the purpose of the plot in \ref{fig:bs-marginal}
 \begin{figure}
   \centering
-  \includegraphics[width=0.5\linewidth]{plots/bs-ozone-marginal.pdf}
-  \caption{Comparison of Brier score performance by marginal quantile representing 75ppb}
-  \label{fig:bs-marginal}
-\end{figure}
-
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{plots/q99-ozone.pdf}
-  \caption{(a) -- (d) give give the posterior predictive $\widehat{q}(0.99)$ for the month of July under four different models, (e) gives the difference between $\widehat{q}(0.99)$ in plots (d) and (a), (f) gives the difference between $\widehat{q}(0.99)$ in plots (d) and (b).}
+  \includegraphics[width=0.8\linewidth]{plots/q99-ozone.pdf}
+  \caption{Panels (a) -- (d) give the posterior predictive $\widehat{q}(0.99)$ for the month of July under four different models, panel (e) gives the difference between $\widehat{q}(0.99)$ in panels (d) and (a), panel (f) gives the difference between $\widehat{q}(0.99)$ in panels (d) and (b).}
   \label{fig:ozoneq99}
 \end{figure}
 
@@ -612,15 +603,29 @@ All three candidates are accepted with probability $\min\{R, 1\}$.
 \input{lambdapost.tex}
 
 \subsection{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{a:proofsamepartition}
-Let $N(A)$ be the number of knots in $A$, the area between sites $\bs_1$ and $\bs_2$.
-Consider a spatial Poisson process with intensity $\mu(A)$.
-So,
+Consider a homogeneous spatial Poisson process with intensity $\mu$.
+Define $A$ as the circle with center \hbox{$(\bs_1 + \bs_2) / 2$} and radius $h / 2$.
+Then $\bs_1$ and $\bs_2$ are in different partitions almost surely if two or more points are in $A$.
+Let $N(A)$ be the number of points in $A$, and let
 \begin{align*}
-  P[ N(A) = k] = \frac{ \mu(A)^k \exp\{ -\mu(A)\}}{k!}.
+  \mu(A) = \mu |A| = \mu \pi \left(\frac{h}{2}\right)^2 = \lambda h^2.
 \end{align*}
-Then for any finite $k$, $\lim_{h \rightarrow \infty} P[N(A) = k] = 0$ because $\lim_{h \rightarrow \infty} \mu(A) = \infty$.
-With each additional knot in $A$, the chance that $\bs_1$ and $\bs_2$ will be be in the same partition will decrease, because partition membership is defined by the closest knot to a site.
-Therefore, $\lim_{h \rightarrow \infty} \pi(h) = 0$.
+Then
+\begin{align*}
+  P[N(A) \ge 2] &= 1 - P[N(A) = 0] - P[N(A) = 1]\\
+                &= 1 - \exp\{-\lambda h^2\} - \lambda h^2 \exp\{-\lambda h^2\} \\
+                &= 1 - (1 + \lambda h^2) \exp\{-\lambda h^2\}
+\end{align*}
+which goes to one as $h \rightarrow \infty$.
+
+% Let $N(A)$ be the number of knots in $A$.
+% So,
+% \begin{align*}
+%   P[ N(A) = k] = \frac{ \mu(A)^k \exp\{ -\mu(A)\}}{k!}.
+% \end{align*}
+% Then for any finite $k$, $\lim_{h \rightarrow \infty} P[N(A) = k] = 0$ because $\lim_{h \rightarrow \infty} \mu(A) = \infty$.
+% With each additional knot in $A$, the chance that $\bs_1$ and $\bs_2$ will be be in the same partition will decrease, because partition membership is defined by the closest knot to a site.
+% Therefore, $\lim_{h \rightarrow \infty} \pi(h) = 0$.
 
 % \subsection{Half-normal distribution}
 % Let $u = |z|$ where $Z \sim N(\mu, \sigma^2)$.
@@ -657,7 +662,7 @@ For a bivariate skew-$t$ random variable $\bY = [Y(\bs), Y(\bt)]^T$, the $\chi(h
 \begin{align} \label{eq:chiskew-t}
   \chi(h) = \bar{F}_{\text{EST}}\left\{ \frac{[x_1^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{\sqrt{1 - \varrho(h)^2}}; 0, 1, \alpha_1, \tau_1, \eta + 1 \right\} + \bar{F}_{\text{EST}}\left\{ \frac{ [x_2^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{ \sqrt{1 - \varrho(h)^2} }; 0, 1, \alpha_2, \tau_2, \eta + 1 \right\},
 \end{align}
-where $\bar{F}_{\text{EST}}$ is the univariate survival extended skew-$t$ function with zero location and unit scale, \hbox{$\varrho(h) = \text{cor}(y_1, y_2)$}, $\alpha_j = \alpha_i \sqrt{1 - \varrho^2}$, $\tau_j = \sqrt{\eta + 1}(\alpha_j + \alpha_i \varrho)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\eta + 1}; 0, 1, \eta) / F_T(\bar{\alpha}_j \sqrt{\eta + 1}; 0, 1, \eta)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \varrho) / \sqrt{ 1 + \alpha_i^2 [1 - \varrho(h)^2]}$.
+where $\bar{F}_{\text{EST}}$ is the univariate survival extended skew-$t$ function with zero location and unit scale, \hbox{$\varrho(h) = \text{cor}[y(\bs), y(\bt)]$}, $\alpha_j = \alpha_i \sqrt{1 - \varrho^2}$, $\tau_j = \sqrt{\eta + 1}(\alpha_j + \alpha_i \varrho)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\eta + 1}; 0, 1, \eta) / F_T(\bar{\alpha}_j \sqrt{\eta + 1}; 0, 1, \eta)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \varrho) / \sqrt{ 1 + \alpha_i^2 [1 - \varrho(h)^2]}$.
 
 \subsubsection*{Proof that $\lim_{h \rightarrow \infty} \chi(h) > 0$}
 Consider the bivariate distribution of $\bY = [Y(\bs), Y(\bt)]^T$, with $\varrho(h)$ given by (\ref{eq:matern}).

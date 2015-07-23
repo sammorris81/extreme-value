@@ -829,7 +829,7 @@ library(fields)
 library(SpatialTools)
 
 # probability at least one day exceeds
-quartz(width=12, height=8)
+quartz(width=11, height=8)
 par(mfrow=c(2, 3))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.p.atleast1), nx=nx, ny=ny,
            yaxt="n", xaxt="n")
@@ -927,8 +927,8 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.95), nx=nx, ny=ny,
 lines(borders/1000)
 
 # 99th quantiles
-quartz(width=12, height=12)
-par(mfrow=c(3, 2))
+quartz(width=6, height=9)
+par(mfrow=c(3, 2), mar = c(3, 2, 3, 2))
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(60, 120),
            main="(a) Gaussian", cex=1.5)
@@ -1264,35 +1264,41 @@ plot(fit[[2]]$beta[, 1], type="l")
 plot(fit[[2]]$beta[, 2], type="l")
 
 # get an idea of two sites that are close to one another vs far apart
+rm(list=ls())
+library(fields)
 load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
 settings <- read.csv("settings.csv")
 no.na <- which(rowSums(is.na(Y)) == 0)
 indices <- 1:nrow(S)
+
+# remove the NAs
 S <- S[no.na, ]
 indices <- indices[no.na]
+
+# find the sites that are close to one another
 d <- rdist(S) 
 diag(d) <- 0
 
+close <- which(d < 0.012 & d > 0, arr.ind = TRUE)
+close.these <- duplicated(rowSums(close))
+close <- close[!close.these, ]
 far <- which(d > 4.46, arr.ind = TRUE)
+far.these <- duplicated(rowSums(far))
+far <- far[!far.these, ]
 
 quant.close.1 <- quant.close.2 <- quant.far.1 <- quant.far.2 <- rep(NA, ncol(Y))
-ids.1 <- ids.2 <- fill.count <- rep(NA, nrow(close))
 for (i in 1:nrow(close)) {
 	idx.1 <- indices[close[i, 1]]
 	idx.2 <- indices[close[i, 2]]
-	if (!(idx.1 %in% ids.1) & !(idx.2 %in% ids.2)) {
-		ids.1[i] <- 
-		ids.2[i] <- 
-		for (j in 1:ncol(Y)) {
-			quant.close.1[j] <- mean(Y[idx.1, j] > Y[idx.1, -j])
-			quant.close.2[j] <- mean(Y[idx.2, j] > Y[idx.2, -j])
-		}
-		if (i == 1) {
-			plot(quant.close.1, quant.close.2)
-		} else {
-			points(quant.close.1, quant.close.2)
-		}
+	for (j in 1:ncol(Y)) {
+		quant.close.1[j] <- mean(Y[idx.1, j] > Y[idx.1, -j])
+		quant.close.2[j] <- mean(Y[idx.2, j] > Y[idx.2, -j])
+	}
+	if (i == 1) {
+		plot(quant.close.1, quant.close.2)
+	} else {
+		points(quant.close.1, quant.close.2)
 	}
 }
 
