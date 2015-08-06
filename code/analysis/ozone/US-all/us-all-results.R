@@ -1312,8 +1312,12 @@ load("us-all-setup.RData")
 close <- c(47, 215)
 far <- c(698, 215)
 
-plot(S[close, ], ylim=c(-1.6, 1), xlim=c(-2.2, 2.2))
-plot(S[far, ], ylim=c(-1.6, 1), xlim=c(-2.2, 2.2))
+plot(S, type = 'n')
+lines(borders / 1000)
+points(S[close, ], ylim=c(-1.6, 1), xlim=c(-2.2, 2.2))
+points(S[far, ], ylim=c(-1.6, 1), xlim=c(-2.2, 2.2))
+rdist(S[close, ] * 1000)[1, 2]
+rdist(S[far, ] * 1000)[1, 2]
 
 quant.close.1 <- quant.close.2 <- quant.far.1 <- quant.far.2 <- rep(NA, ncol(Y))
 for (i in 1:ncol(Y)) {
@@ -1330,10 +1334,10 @@ plot(t(Y[far, ]), main = "",
 
 quartz(width = 12, height = 6)
 par(mfrow = c(1, 2), mar = c(5.1, 5.1, 4.1, 2.1))
-plot(quant.close.1, quant.close.2, main = "", cex.lab = 1.5,
-     xlab = paste("Site", close[1]), ylab = paste("Site", close[2]))
-plot(quant.far.1, quant.far.2, main = "", cex.lab = 1.5, 
-     xlab = paste("Site", far[1]), ylab = paste("Site", far[2]))
+plot(quant.close.1, quant.close.2, main = "12 km apart", cex.lab = 1.5,
+     xlab = "Columbus, OH", ylab = "Columbus, OH")
+plot(quant.far.1, quant.far.2, main = "3,143 km apart", cex.lab = 1.5, 
+     xlab = "Los Angeles, CA", ylab = "Columbus, OH")
 
 # # X11()
 # # boxplot(log(fit.schlather$gpdre))

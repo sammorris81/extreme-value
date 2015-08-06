@@ -10,6 +10,10 @@ source('../../../R/auxfunctions.R')
 load("../ozone_data.RData")
 S <- cbind(x[s[, 1]], y[s[, 2]])  # expands the grid of x, y locs where we have CMAQ
 
+# S[582, ] is near Lincoln, NE  (40.8106N, 96.6803W)
+# S[1069, ] is near Topeka, KS  (39.0558N, 95.6894W)
+# distance from rdist is around 216 and actual distance between cities is 212.6km
+
 # Exclude if site is missing more than 50% of its days
 excl   <- which(rowMeans(is.na(Y)) > 0.50)
 index  <- index[-excl]
