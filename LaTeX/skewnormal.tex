@@ -43,7 +43,9 @@ We apply our method to an ozone analysis for July 2005, and find that our model 
 
 \newpage
 \section{Introduction}\label{s:intro}
-In many climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
+% In many climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
+Epidemiological studies have linked air quality to public health concerns regarding morbidity and mortality \citep{Samet2000}.
+As a results, the Environmental Protection Agency (EPA) has developed a set of standards to help reduce air pollution thereby improving air quality.
 Our study is motivated by an air pollution application where the focus is not on the average behavior, but instead the behavior over a fixed threshold determined by government regulation.
 More specifically, we consider the case of compliance for ozone.
 A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over 3 years does not exceed 75 parts per billion (ppb).
@@ -167,6 +169,7 @@ Although any positive definite correlation function could be used, we choose to 
   \text{cor}[v(\bs_1), v(\bs_2)] = \gamma I(\bs_1 = \bs_2) + (1 - \gamma)  \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \rho } \right) \label{eq:matern}
 \end{align}
 where $\rho$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second kind, and $h = || \bs_1 - \bs_2 ||$.
+We use this parameterization for spatial correlation because the $\gamma$ parameter permits the inclusion of a nugget effect to account for non-spatial variability due to issues like measurement error.
 
 \subsection{Extremal dependence}\label{s:extdep}
 Our interest lies in spatial dependence in the tail of the skew-$t$ process.
@@ -362,7 +365,8 @@ In designs 1 -- 3, the mean $\bX^T \bbeta = 10$ was assumed to be constant acros
 In the fourth design, we generated from a spatial max-stable distribution \citep{Reich2012}.
 In this design, data have marginal distributions that follow a generalized extreme value distribution with location parameter $1$, scale parameter $1$, and shape parameter $0.2$.
 In this model, a random effect was used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
-For this setting, we set $\gamma = 0.5$.
+For this setting, $\gamma_{\text{RS}} \in (0, 1)$, is similar to $\gamma$ in that it controls the relative strength of the nugget effect.
+We set $\gamma_{\text{RS}} = 0.5$, which represents moderate spatial dependence.
 % In the final design, we generate $\tilde{y}$ using the setting from design 2, and then transform the data
 % \begin{align}
 %   y = \left\{ \begin{array}{lc}
@@ -436,7 +440,7 @@ Initially, we fit a linear regression assuming a mean function of
 Figure \ref{fig:ozone-qq} shows a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
   \centering
-  \includegraphics[width=\linewidth]{plots/qq-res.pdf}
+  \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
   \caption{Q-Q plot of the residuals for a skew-$t$ distribution with 10 d.f. and $\alpha = 1$ (right)}
   \label{fig:ozone-qq}
 \end{figure}
@@ -566,8 +570,8 @@ The authors also received high-performance computing support from Yellowstone (a
 \section{Appendices}
 \subsection{MCMC details} \label{a:mcmc}
 The MCMC sampling for the model \ref{s:hier} is done using {\tt R} (http://www.r-project.org). Whenever possible, we select conjugate priors (see Appendix \ref{a:posterior}); however, for some of the parameters, no conjugate prior distributions exist.
-When no conjugate prior distribution exists, we use a random walk Metropolis-Hastings update step.
-In each Metropolis-Hastings update, we tune the algorithm to give acceptance rates near 0.40.
+For these parameters, we use a random walk Metropolis-Hastings update step.
+In each Metropolis-Hastings update, we tune the algorithm during the burn-in period to give acceptance rates near 0.40.
 
 \subsubsection*{Spatial knot locations}
 For each day, we update the spatial knot locations, $\bw_1, \ldots, \bw_K$, using a Metropolis-Hastings block update.
@@ -635,10 +639,93 @@ The acceptance ratio is
 All three candidates are accepted with probability $\min\{R, 1\}$.
 
 \subsection{Posterior distributions} \label{a:posterior}
-\input{zpost.tex}
-\input{betapost.tex}
-\input{sigpost.tex}
-\input{lambdapost.tex}
+
+\subsubsection*{Conditional posterior of $z_{tk} \mid \ldots $}\label{s:mvcondu}
+If knots are independent over days, then the conditional posterior distribution of $|z_{tk}|$ is conjugate.
+For simplicity, drop the subscript $t$, let $\tilde{z}_{tk} = |z_{tk}|$, and define
+\begin{align*}
+R(\bs) = \left\{
+    \begin{array}{ll}
+        Y(\bs) - X(\bs) \beta &s \in P_l\\[1em]
+        Y(\bs) - X(\bs) \beta - \lambda \tilde{z}(\bs) \qquad & s \notin P_l
+    \end{array}
+\right.
+\end{align*}
+Let
+\begin{align*}
+    R_1 &= \text{the vector of } R(\bs) \text{ for } s \in P_l \\
+    R_2 &= \text{the vector of } R(\bs) \text{ for } s \notin P_l \\
+    \Omega &= \Sigma^{-1}.
+\end{align*}
+Then
+\begin{align*}
+    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[
+        \left( \begin{array}{c}
+            R_1 - \lambda \tilde{z}_l \bOne\\
+            R_2
+        \end{array} \right)^T
+        \left( \begin{array}{cc}
+            \Omega_{11} & \Omega_{12}\\
+            \Omega_{21} & \Omega_{22}
+        \end{array} \right)
+        \left( \begin{array}{c}
+            R_1 - \lambda \tilde{z}_l \bOne\\
+            R_2
+        \end{array} \right)
+        +  \frac{ {\tilde{z}_l}^2 }{ \sigma_l^2 }\right]
+    \right\} I(z_l > 0) \\
+        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_l {\tilde{z}_l}^2 - 2 \mu_l \tilde{z}_l \right] \right\}
+\end{align*}
+where
+\begin{align*}
+    \mu_l &= \lambda ( R_1^T \Omega_{11} + R_2^T \Omega_{21} )\bOne\\
+    \Lambda_l &= \lambda^2 \bOne^T \Omega_{11} \bOne + \frac{ 1 }{ \sigma^2_l }.
+\end{align*}
+Then $\tilde{Z}_l | \ldots \sim N_{(0, \infty)} (\Lambda_l^{-1} \mu_l, \Lambda_l^{-1})$
+
+\subsection*{Conditional posterior of $\beta \mid \ldots$}\label{s:betapost}
+Let $\beta \sim \mbox{N}_{p}(0, \Lambda_0)$ where $\Lambda_0$ is a precision matrix. Then
+\begin{align*}
+    \pi(\beta \mid \ldots) & \propto \exp \left\{ - \frac{ 1 }{ 2 } \beta^T \Lambda_0 \beta - \frac{ 1 }{ 2 } \sum_{t = 1 }^T [\bY_t - X_t \beta - \lambda |z_t|]^T \Omega [\bY_t - X_t \beta - \lambda |z_t|] \right\}\\
+     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \beta^T \Lambda_\beta \beta  - 2 \sum_{ t = 1 }^T [ \beta^T X_t^T \Omega (\bY_t - \lambda |z_t| )] \right] \right\}\\
+     & \propto \mbox{N} ( \Lambda_\beta^{-1} \mu_\beta , \Lambda_\beta^{-1})
+\end{align*}
+where
+\begin{align*}
+    \mu_\beta &= \sum_{t=1}^{T} \left[ X_t^T \Omega (\bY_t - \lambda |z_t|) \right]\\
+    \Lambda_\beta &= \Lambda_0 + \sum_{ t = 1 }^{ T} X_t^T \Omega X_t.
+\end{align*}
+
+\subsection*{Conditional posterior of $\sigma^2 \mid \ldots$}\label{s:sigpost}
+In the case where $L = 1$ and temporal dependence is negligible, then $\sigma^2$ has a conjugate posterior distribution.
+Let $\sigma_t^2 \iid \mbox{IG}(\alpha_0, \beta_0)$. For simplicity, drop the subscript $t$. Then
+\begin{align*}
+    \pi(\sigma^2 \mid \ldots) & \propto (\sigma^2)^{ -\alpha_0 - 1 / 2 - n / 2 - 1} \exp \left\{ -\frac{\beta_0}{\sigma^2} - \frac{ |z|^2 }{2 \sigma^2} - \frac{ (\bY - \bmu)^T \Sigma^{-1} (\bY - \bmu) }{2 \sigma^2} \right\} \\
+    & \propto (\sigma^2)^{ -\alpha_0 - 1 / 2 - n / 2 - 1} \exp \left\{ - \frac{ 1 }{ \sigma^2 } \left[\beta_0 + \frac{ |z|^2 }{ 2 } + \frac{ 1 }{ 2 } (\bY - \bmu)^T \Sigma^{-1} (\bY - \mu) \right] \right\} \\
+    & \propto \mbox{IG} (\alpha^*, \beta^*)
+\end{align*}
+where
+\begin{align*}
+    \alpha^* &= \alpha_0 + \frac{1}{2} + \frac{n}{2} \\
+    \beta^* &= \beta_0 + \frac{ |z|^2 }{ 2 } + \frac{ 1 }{ 2 }(\bY - \bmu)^T \Sigma^{-1} (\bY - \bmu).
+\end{align*}
+In the case that $L > 1$, a random walk Metropolis Hastings step will be used to update $\sigma^2_{lt}$.
+
+\subsection*{Conditional posterior of $\lambda \mid \ldots$}\label{s:lambdapost}
+For convergence purposes we model $\lambda = \lambda_1 \lambda_2$ where
+\begin{align}
+  \lambda_1 &= \left\{ \begin{array}{ll}
+      +1 \quad & \text{w.p.} 0.5\\
+      -1 \quad & \text{w.p.} 0.5
+   \end{array}\right.\\
+   \lambda^2_2 & \sim IG(\alpha_\lambda, \beta_\lambda).\\
+\end{align}
+Then
+\begin{align*}
+  \pi(\lambda_2 \mid \ldots) &\propto {\lambda_2^2}^{(-\alpha_\lambda - 1)} \exp\left\{ - \frac{ \beta_\lambda }{ \lambda_2^2} \right\} \prod_{t = 1}^{T} \prod_{k = 1}^K \frac{1} {\lambda_2} \exp\left\{ - \frac{ z^2_{tk} }{ 2 \lambda_2^2  \sigma_{tk})^2} \right\} \\
+   & \propto {\lambda_2^2}^{(-\alpha_\lambda - kt - 1)} \exp \left\{ -\frac{1}{\lambda^2_2} \left[ \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}} \right] \right\}
+\end{align*}
+Then $\lambda_2 \mid \ldots \sim IG \left(\alpha_\lambda + kt, \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}} \right)$
 
 \subsection{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{a:proofsamepartition}
 Consider a homogeneous spatial Poisson process with intensity $\mu$.
@@ -674,13 +761,12 @@ which goes to one as $h \rightarrow \infty$.
 % When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
 
 \subsection{Skew-$t$ distribution} \label{a:skewt}
-\subsubsection*{Univariate extended skew-$t$ distribution}
-We say that $Y$ follow a univariate extended skew-$t$ distribution with location $\xi \in \calR$, scale $\omega > 0$, skew parameter $\alpha \in \calR$, extended parameter $\tau \in \calR$, and degrees of freedom $\nu$ if has distribution function
+\subsubsection*{Univariate skew-$t$ distribution}
+We say that $Y$ follows a univariate extended skew-$t$ distribution with location $\xi \in \calR$, scale $\omega > 0$, skew parameter $\alpha \in \calR$, and degrees of freedom $\nu$ if has distribution function
 \begin{align}
-  f_{\text{EST}}(y) = \omega^{-1} \frac{ f_T (z; \nu) }{ F_T(\tau / \sqrt{ 1 + \alpha^2}; \nu)} F_T\left[ (\alpha z + \tau) \sqrt{ \frac{ \nu + 1 }{ \nu + z^2}}; 0, 1, \nu + 1 \right]
+  f_{\text{EST}}(y) = 2 f_T (z; \nu) F_T\left[ \alpha z \sqrt{ \frac{ \nu + 1 }{ \nu + z^2}}; \nu + 1 \right]
 \end{align}
 where $f_T(t; \nu)$ is a univariate Student's $t$ with $\nu$ degrees of freedom, $F_T(t; \nu) = P(T < t)$, and \hbox{$z = (y - \xi) / \omega$}.
-In the case that $\tau = 0$, then $Y$ follows a univariate skew-$t$ distribution.
 
 \subsection*{Multivariate skew-$t$ distribution}
 If $\bZ \sim \text{ST}_d(0, \bar{\bOmega}, \balpha, \eta)$ is a $d$-dimensional skew-$t$ distribution, and $\bY = \xi + \bomega \bZ$, where $\bomega = \text{diag}(\omega_1, \ldots, \omega_d)$, then the density of $Y$ at $y$ is
@@ -709,7 +795,7 @@ Then
 \begin{align}
   \lim_{h \rightarrow \infty} \chi(h) = \bar{F}_{\text{EST}}\left\{ \sqrt{\eta + 1}; 0, 1, \alpha_1, \tau_1, \eta + 1 \right\} + \bar{F}_{\text{EST}}\left\{ \sqrt{\eta + 1}; 0, 1, \alpha_2, \tau_2, \eta + 1 \right\}.
 \end{align}
-Because the extended skew-$t$ distribution is not bounded above, for all $\bar{F}_{\text{EST}}(x) = 1 - F_{\text{EST}} > 0$ for all $x < \infty$.
+Because the extended skew-$t$ distribution is not bounded above, for all $\bar{F}_{\text{EST}}(x) = 1 - F_{\text{EST} (x)} > 0$ for all $x < \infty$.
 Therefore, for a skew-$t$ distribution, $\lim_{h \rightarrow \infty} \chi(h) > 0$.
 
 \subsection{Simulation study pairwise difference results} \label{a:pdiffs}
