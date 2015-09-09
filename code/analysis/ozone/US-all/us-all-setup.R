@@ -179,6 +179,8 @@ legend("topright", lty=1:3, pch=1:3, legend=probs, title="sample quantiles")
 # Making the chi plot
 # run preprocessing first
 # Residuals after lm
+nt   <- ncol(Y)
+ns   <- nrow(Y)
 y.lm <- Y[, 1]
 x.lm <- X[, 1, ]
 for (t in 2:nt) {
@@ -227,7 +229,7 @@ for (thresh in 1:length(threshs)){
 }
 
 par(mar=c(5.1, 5.1, 4.1, 2.1))
-xplot <- bins.h[-length(bins)] + 0.125
+xplot <- bins.h[-length(bins.h)] + 0.125
 plot(xplot, exceed.h.res[, 1], type="b", pch=21, lty=1, lwd=2,
      xlim=c(0, 3.75), xaxt="n", xlab="bin distance (km) / 1000",
      ylim=c(0, 0.35), ylab=bquote(paste(hat(chi)[c], "(h)")),
@@ -291,11 +293,12 @@ abline(0, 1)
 
 xplot <- qst(theory.qq, nu=10, alpha=1)
 xplot <- (xplot - mean(xplot))
-quartz(width=6, height=6)
+X11(width=6, height=6, type = "cairo")
 plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", 
      #main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1"
      cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 abline(0, 1)
+dev.print(device = pdf, file = "qq-res.pdf")
 
 # ML - Skew-t fit and diagnostics
 library(fields)

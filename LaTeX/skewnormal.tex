@@ -45,7 +45,7 @@ We apply our method to an ozone analysis for July 2005, and find that our model 
 \section{Introduction}\label{s:intro}
 % In many climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
 Epidemiological studies have linked air quality to public health concerns regarding morbidity and mortality \citep{Samet2000}.
-As a results, the Environmental Protection Agency (EPA) has developed a set of standards to help reduce air pollution thereby improving air quality.
+As a result, the Environmental Protection Agency (EPA) has developed a set of standards to help reduce air pollution thereby improving air quality.
 Our study is motivated by an air pollution application where the focus is not on the average behavior, but instead the behavior over a fixed threshold determined by government regulation.
 More specifically, we consider the case of compliance for ozone.
 A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over 3 years does not exceed 75 parts per billion (ppb).
@@ -53,7 +53,7 @@ Figure \ref{fig:ozone-10jul} shows the ozone levels from July 10, 2005, at 1089 
 We see a large area above the compliance level in the midwest covering Ohio, Indiana, Illinois, and parts of the surrounding states.
 \begin{figure}
   \centering
-  \includegraphics[width=\linewidth]{plots/ozone-10jul-us.pdf}
+  \includegraphics[width=0.75\linewidth]{plots/ozone-10jul-us.pdf}
   \caption{Ozone values on July 10, 2005}
   \label{fig:ozone-10jul}
 \end{figure}
@@ -66,7 +66,7 @@ Our inference method will only use data which exceed a threshold, and will imput
 Second, likelihood-based spatial modeling typically assumes a Gaussian process, which is appropriate when mean behavior is of interest.
 However, the Gaussian distribution is light-tailed and symmetric, and therefore may be inappropriate for modeling data which does not share this tail behavior.
 Third, we aim to capture the dependence structure when ozone is at high levels, and dependence at these levels may not be well-represented by covariances which focus again on mean behavior.
-Asymptotic dependence/independence (see Section \ref{s:extdep}) are notions which describe how two random variables' dependence behaves as one looks further into the joint tail.
+Asymptotic dependence/independence (see Section \ref{s:extdep}) are notions which describe how two random variables' probability of simultaneous exceedance of an extreme threshold behaves as one increases the threshold.
 The Gaussian distribution always exhibits asymptotic independence, except in the case of perfect dependence, thus is an inappropriate model for data which exhibits asymptotic dependence.
 To allow for more flexibility in the marginal tail and to allow for asymptotic dependence, the skew-$t$ distribution forms the basis for our model.
 
@@ -440,7 +440,7 @@ Initially, we fit a linear regression assuming a mean function of
 Figure \ref{fig:ozone-qq} shows a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
   \centering
-  % \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
+  \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
   \caption{Q-Q plot of the residuals for a skew-$t$ distribution with 10 d.f. and $\alpha = 1$ (right)}
   \label{fig:ozone-qq}
 \end{figure}
