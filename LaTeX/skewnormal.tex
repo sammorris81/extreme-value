@@ -13,6 +13,7 @@
 \usepackage{soul}
 \usepackage{color}
 \usepackage{enumitem}
+% \usepackage{enumerate}
 \usepackage{setspace}
 
 % cross-referencing appendices
@@ -367,7 +368,7 @@ In this section, we present the results from a simulation study to investigate h
 For all simulation designs, we generated data from model (\ref{eq:partition}) in Section \ref{s:part} using $n_s=144$ sites and $n_t=50$ independent days.
 The sites were generated Uniform$([0, 10] \times [0, 10])$.
 We generated data from 4 different simulation designs:
-\begin{enumerate} \setlength{\itemsep}{-0.5em}
+\begin{enumerate}[leftmargin=3em]
   \item Gaussian marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=5$ knots
@@ -401,7 +402,7 @@ We set $\gamma_{\text{RS}} = 0.5$, which represents moderate spatial dependence.
 
 $M = 50$ data sets are generated for each design.
 For each data set we fit the data using six models
-\begin{enumerate} \setlength{\itemsep}{-0.5em}
+\begin{enumerate}[leftmargin=3em]
   \item Gaussian marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=1$ knots, $T=-\infty$
   \item Symmetric-$t$ marginal, $K=1$ knots, $T=q(0.80)$
@@ -523,7 +524,7 @@ Table \ref{tbl:ozoneresults} shows the best two models for selected extreme quan
 
 We illustrate the predictive capability of our model in Figure \ref{fig:ozoneq99} by plotting the 99th quantile for South Carolina and Georgia, a subset of the spatial domain, in order to study local features.
 The four methods used are
-\begin{enumerate}\setlength{\itemsep}{-0.5em}
+\begin{enumerate}[leftmargin=3em]
   \item Gaussian
   \item Skew-$t$, $K =$ 1 knot, $T = $ 0, no time series
   \item Skew-$t$, $K =$ 5 knots, $T = $ 50, no time series
