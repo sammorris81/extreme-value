@@ -1,0 +1,24 @@
+\begin{table}
+  \small
+  \caption{Top two performing models for ozone analysis at extreme quantiles with Relative Brier score}
+  \label{tbl:ozoneresults}
+  \centering
+  \begin{tabular}{|l|l l l c|l l l c|}
+    \cline{2-9}
+    \multicolumn{1}{c|}{}  & \multicolumn{4}{c|}{1st} & \multicolumn{4}{c|}{2nd} \\
+    \hline
+    $q(0.90)$  & No time series & $K=7$  & $T=0$  & BS: 0.980 &
+                 No time series & $K=9$  & $T=0$  & BS: 0.980 \\
+    $q(0.95)$  & No time series & $K=15$ & $T=50$ & BS: 0.970 &
+                 No time series & $K=9$  & $T=50$ & BS: 0.970\\
+    $q(0.98)$  & No time series & $K=5$  & $T=50$ & BS: 0.945 &
+                 No time series & $K=10$ & $T=50$ & BS: 0.946\\
+    $q(0.99)$  & Time series    & $K=10$ & $T=75$ & BS: 0.912 &
+                 Time series    & $K=6$  & $T=75$ & BS: 0.913\\
+    $q(0.995)$ & Time series    & $K=6$  & $T=75$ & BS: 0.917 &
+                 Time series    & $K=10$ & $T=75$ & BS: 0.918\\
+    \hline
+  \end{tabular}
+\end{table}
+\efloatseparator
+ 

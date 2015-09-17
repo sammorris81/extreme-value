@@ -1,8 +1,11 @@
-\documentclass[11pt]{article}
-\usepackage{amssymb, amsthm, amsmath}
+% \documentclass[11pt]{article}
+\documentclass[useAMS,usenatbib,referee]{biom}
+% \usepackage{amssymb, amsthm, amsmath}
+\usepackage{amssymb, amsmath}
 \usepackage{bm}
 \usepackage{graphicx}
-\usepackage[authoryear]{natbib}
+% \usepackage[authoryear]{natbib}
+\usepackage{natbib}
 \usepackage{bm}
 \usepackage{verbatim}
 \usepackage{lineno}
@@ -16,24 +19,35 @@
 \usepackage{xr}
 \externaldocument{supplemental}
 
-\usepackage[left=1in,top=1in,right=1in]{geometry}
-\pdfpageheight 11in
-\pdfpagewidth 8.5in
-\linespread{2.0}
+% \usepackage[left=1in,top=1in,right=1in]{geometry}
+% \pdfpageheight 11in
+% \pdfpagewidth 8.5in
+% \linespread{2.0}
 \input{mycommands.sty}
 
+\title[A Space-time Skew-$t$ Model for Threshold Exceedances]{A space-time skew-$t$ model for threshold exceedances}
+\author
+{Samuel A Morris$^{1,*}$\email{samorris@ncsu.edu},
+Brian J Reich$^{1}$,
+Emeric Thibaud$^{2}$, and
+Daniel Cooley$^{2}$\\
+$^{1}$Department of Statistics, North Carolina State University, Raleigh, North Carolina, U.S.A. \\
+$^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorado, U.S.A.}
 
-\begin{document}\linenumbers
-\begin{center}
-{\Large {\bf A space-time skew-$t$ model for threshold exceedances}}\\
+\begin{document} %\linenumbers
+% \begin{center}
+% {\Large {\bf A space-time skew-$t$ model for threshold exceedances}}\\
 
-{\large Samuel A Morris\footnote[1]{North Carolina State University}, Brian J Reich\footnotemark[1]{}, Emeric Thibaud\footnote[2]{Colorado State University}, and Daniel Cooley\footnotemark[2]{}}
+% {\large Samuel A Morris\footnote[1]{North Carolina State University}, Brian J Reich\footnotemark[1]{}, Emeric Thibaud\footnote[2]{Colorado State University}, and Daniel Cooley\footnotemark[2]{}}
 
-\today
-\end{center}
+% \today
+% \end{center}
+
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
+
+\label{firstpage}
 
 \begin{abstract}
-\singlespacing
 To assess the compliance of air quality regulations, the Environmental Protection Agency (EPA) must know if a site exceeds a pre-specified threshold.
 In the case of ozone, the threshold for compliance is fixed at 75 parts per billion, which is high, but not extreme at all locations.
 We present a new method based on the spatial skew-$t$ process.
@@ -41,11 +55,14 @@ Our method incorporates a random partition to permit long-distance asymptotic in
 We also introduce a transformed AR(1) time-series to allow for temporal dependence.
 Finally, our model allows for high-dimensional Bayesian inference that is comparable in speed to traditional geostatistical methods for large datasets.
 We apply our method to an ozone analysis for July 2005, and find that our model improves over both Gaussian and max-stable methods in terms of predicting exceedances over a fixed threshold.
-
-{\bf Key words}: Skew-$t$, random partition, MCMC, extreme value analysis, spatio-temporal
 \end{abstract}
 
-\newpage
+\begin{keywords}
+Skew-$t$, random partition, MCMC, extreme value analysis, spatio-temporal
+\end{keywords}
+
+\maketitle
+
 \section{Introduction}\label{s:intro}
 % In many climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
 Epidemiological studies have linked air quality to public health concerns regarding morbidity and mortality \citep{Samet2000}.
@@ -185,7 +202,7 @@ For a stationary and isotropic spatial process, the $\chi$ statistic for locatio
 where $c^*$ is the upper limit of the support of $Y$.
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the distance $h$, so they are not suitable for modeling asymptotically dependent extremes.
-Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent (the explicit expression for $\chi(h)$ is given in Appendix \ref{a:skewt}).
+Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent (the explicit expression for $\chi(h)$ is given in \ref{a:skewt}).
 However, one problem with the spatial skew-$t$ process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$.
 This occurs because all observations, both near and far, share the same $z$ and $\sigma$ terms.
 Therefore, this long-range dependence feature of the skew-$t$ process is not ideal for spatial analysis of large geographic regions where we expect only local spatial dependence.
@@ -240,7 +257,7 @@ The partitioning model remove long-range dependence. Conditional on knots $\bw_1
 where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in (\ref{eq:chiskew-t}), $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
 Therefore, sites in different subregions are asymptotically independent because $\chi_{\text{Gaus}}(h) = 0$ for all $h$.
 Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_s = k_t)$ is the probability that two sites separated by distance $h$ are in the same partition.
-In Appendix \ref{a:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, implying $\lim_{h \rightarrow \infty} \chi(h) = 0$.
+In \ref{a:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, implying $\lim_{h \rightarrow \infty} \chi(h) = 0$.
 In Figure \ref{fig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a skew-$t$ distribution with $\alpha = 10$, and 3 degrees of freedom.
 In Figure \ref{fig:chi} we estimate $\pi(h)$ through simulation.
 % To estimate $\pi(h)$, we generate 500 sites uniformly over the unit-square.
@@ -418,7 +435,7 @@ Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier scor
 \end{align}
 We analyzed the results for the simulation study using a Friedman test at $\alpha = 0.05$ to see if at least one method had a significantly different Brier score.
 For Friedman tests that came back with a significant p-value, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson test to see which of the methods had different results.
-The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in Appendix \ref{a:pdiffs}.
+The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in \ref{a:pdiffs}.
 
 The results show that when the data are generated from a Gaussian process, our method performs comparably to a Gaussian approach.
 In general, when the underlying process is not Gaussian, our method results in an improvement over both the max-stable and Gaussian methods.
@@ -566,14 +583,19 @@ Instead of implementing a time series on the random effects, a three-dimensional
 Finally, we acknowledge that by specifying the number of knots, we may be underestimating the uncertainty in the model.
 This could be incorporated by treating the number of knots as a model parameter instead of fixing it to be a specific value.
 
+\backmatter
+
 \section*{Acknowledgments}
 The authors' work was partially supported by grants from the Department of the Interior (14-1-04-9), National Institutes of Health (R21ES022795-01A1), the US Environmental Protection Agency (R835228), the National Science Foundation (1107046), and the Research Network for Statistical Methods for Atmospheric and Oceanic Sciences (STATMOS).
 The authors also received high-performance computing support from Yellowstone (ark:/85065/d7wd3xhc) provided by NCAR's Computational and Information Systems Laboratory, sponsored by the National Science Foundation.
 
-\begin{singlespace}
-\bibliographystyle{rss}
+\section*{Supplementary Materials}
+
+
+\bibliographystyle{biom}
 \bibliography{library}
-\end{singlespace}
+
+\label{lastpage}
 
 \end{document}
 
