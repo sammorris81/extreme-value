@@ -201,7 +201,7 @@ For a stationary and isotropic spatial process, the $\chi$ statistic for locatio
 where $c^*$ is the upper limit of the support of $Y$.
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the distance $h$, so they are not suitable for modeling asymptotically dependent extremes.
-Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent (the explicit expression for $\chi(h)$ is given in \ref{a:skewt}).
+Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent \citep{Padoan2011}.
 However, one problem with the spatial skew-$t$ process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$.
 This occurs because all observations, both near and far, share the same $z$ and $\sigma$ terms.
 Therefore, this long-range dependence feature of the skew-$t$ process is not ideal for spatial analysis of large geographic regions where we expect only local spatial dependence.
@@ -253,10 +253,10 @@ The partitioning model remove long-range dependence. Conditional on knots $\bw_1
   \chi(h) &= I(k_s = k_t) \chi_{\text{skew-}t}(h) + I(k_s \neq k_t) \chi_{\text{Gaus}}(h) \nonumber \\
          &= I(k_s = k_t) \chi_{\text{skew-}t}(h)
 \end{align}
-where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in (\ref{eq:chiskew-t}), $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
+where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h) > 0$ is the $\chi$ statistic for a skew-$t$ process given in \citet{Padoan2011}, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
 Therefore, sites in different subregions are asymptotically independent because $\chi_{\text{Gaus}}(h) = 0$ for all $h$.
 Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_s = k_t)$ is the probability that two sites separated by distance $h$ are in the same partition.
-In \ref{a:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, implying $\lim_{h \rightarrow \infty} \chi(h) = 0$.
+It is straightforward to show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, implying $\lim_{h \rightarrow \infty} \chi(h) = 0$.
 In Figure \ref{fig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a skew-$t$ distribution with $\alpha = 10$, and 3 degrees of freedom.
 In Figure \ref{fig:chi} we estimate $\pi(h)$ through simulation.
 % To estimate $\pi(h)$, we generate 500 sites uniformly over the unit-square.
@@ -434,7 +434,7 @@ Figure \ref{fig:simbrierscores} gives the Brier score relative to the Brier scor
 \end{align}
 We analyzed the results for the simulation study using a Friedman test at $\alpha = 0.05$ to see if at least one method had a significantly different Brier score.
 For Friedman tests that came back with a significant p-value, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson test to see which of the methods had different results.
-The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in \ref{a:pdiffs}.
+% The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in \ref{a:pdiffs}.
 
 The results show that when the data are generated from a Gaussian process, our method performs comparably to a Gaussian approach.
 In general, when the underlying process is not Gaussian, our method results in an improvement over both the max-stable and Gaussian methods.
@@ -590,6 +590,187 @@ The authors also received high-performance computing support from Yellowstone (a
 
 % \section*{Supplementary Materials}
 % Web Appendices A--E are available with this paper at the Biometrics website on Wiley Online Library. \vspace*{-8pt}
+% \renewcommand{\thesection}{Appendix \Alph{section}}
+% \setcounter{section}{0}
+% \section{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{a:proofsamepartition}
+% Consider a homogeneous spatial Poisson process with intensity $\mu$.
+% Define $A$ as the circle with center \hbox{$(\bs_1 + \bs_2) / 2$} and radius $h / 2$.
+% Then $\bs_1$ and $\bs_2$ are in different partitions almost surely if two or more points are in $A$.
+% Let $N(A)$ be the number of points in $A$, and let
+% \begin{align*}
+%   \mu(A) = \mu |A| = \mu \pi \left(\frac{h}{2}\right)^2 = \lambda h^2.
+% \end{align*}
+% Then
+% \begin{align*}
+%   P[N(A) \ge 2] &= 1 - P[N(A) = 0] - P[N(A) = 1]\\
+%                 &= 1 - \exp\{-\lambda h^2\} - \lambda h^2 \exp\{-\lambda h^2\} \\
+%                 &= 1 - (1 + \lambda h^2) \exp\{-\lambda h^2\}
+% \end{align*}
+% which goes to one as $h \rightarrow \infty$.
+
+% \section{Simulation study pairwise difference results} \label{a:pdiffs}
+% The following tables show the methods that have significantly different Brier scores when using a Wilcoxon-Nemenyi-McDonald-Thompson test.
+% In each column, different letters signify that the methods have significantly different Brier scores.
+% For example, there is significant evidence to suggest that method 1 and method 4 have different Brier scores at $q(0.90)$, whereas there is not significant evidence to suggest that method 1 and method 2 have different Brier scores at $q(0.90)$.
+% In each table group A represents the group with the lowest Brier scores.
+% Groups are significant with a familywise error rate of $\alpha = 0.05$.
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Setting 1 -- Gaussian marginal, $K = 1$ knot}
+%   \label{tbl:gaussim}
+%   \begin{tabular}{|l|ccc|ccc|cccc|ccc|}
+%     \cline{2-14}
+%     \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+%     \hline
+%     Method 1 & A &   &   & A &   &   & A &   &   &   & A & B &   \\
+%     \hline
+%     Method 2 & A &   &   & A &   &   & A &   &   &   & A &   &   \\
+%     \hline
+%     Method 3 &   & B &   &   & B &   &   &   & C &   &   & B &   \\
+%     \hline
+%     Method 4 & A &   &   & A &   &   & A & B &   &   & A & B &   \\
+%     \hline
+%     Method 5 &   & B &   &   & B &   &   & B & C &   & A & B &   \\
+%     \hline
+%     Method 6 &   &   & C &   &   & C &   &   &   & D &   &   & C \\
+%     \hline
+%   \end{tabular}
+% \end{table}
+
+% % \begin{table}[htbp]
+% %   \centering
+% %   \caption{Setting 2: Symmetric-$t$ marginal, $K = 1$ knot}
+% %   \label{tbl:t1k1sim}
+% %   \begin{tabular}{|l|cc|cccc|cccc|ccc|}
+% %     \cline{2-14}
+% %     \multicolumn{1}{c}{} & \multicolumn{2}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+% %     \hline
+% %     Method 1 &   & B &   &   &   & D &   &   &   & D &   &   & C \\
+% %     \hline
+% %     Method 2 & A &   & A &   &   &   & A &   &   &   & A &   &   \\
+% %     \hline
+% %     Method 3 &   & B &   & B &   &   &   & B & C &   &   & B &   \\
+% %     \hline
+% %     Method 4 & A &   &   &   & C &   &   & B &   &   &   & B &   \\
+% %     \hline
+% %     Method 5 &   & B &   &   &   & D &   &   & C & D &   & B & C \\
+% %     \hline
+% %   \end{tabular}
+% % \end{table}
+
+% % \begin{table}[htbp]
+% %   \centering
+% %   \caption{Setting 3: Symmetric-$t$ marginal, $K = 5$ knots}
+% %   \label{tbl:gaussim}
+% %   \begin{tabular}{|l|cc|cc|cc|cc|}
+% %     \cline{2-9}
+% %     \multicolumn{1}{c}{} & \multicolumn{2}{|c}{$q(0.90)$} & \multicolumn{2}{|c}{$q(0.95)$} & \multicolumn{2}{|c}{$q(0.98)$} & \multicolumn{2}{|c|}{$q(0.99)$} \\
+% %     \hline
+% %     Method 1 &   & B &   & B &   & B &   & B \\
+% %     \hline
+% %     Method 2 &   & B &   & B &   & B &   & B \\
+% %     \hline
+% %     Method 3 &   & B &   & B &   & B & A & B \\
+% %     \hline
+% %     Method 4 & A &   & A &   & A &   & A &   \\
+% %     \hline
+% %     Method 5 &   & B &   & B & A & B & A & B \\
+% %     \hline
+% %   \end{tabular}
+% % \end{table}
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Setting 2 -- Skew-$t$ marginal, $K = 1$ knot}
+%   \label{tbl:st1sim}
+%   \begin{tabular}{|l|ccccc|cccc|cccc|ccc|}
+%     \cline{2-17}
+%     \multicolumn{1}{c}{} & \multicolumn{5}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+%     \hline
+%     Method 1 &   &   & C &   &   &   & B &   &   &   & B & C &   &   & B &   \\
+%     \hline
+%     Method 2 & A &   &   &   &   & A &   &   &   & A &   &   &   & A &   &   \\
+%     \hline
+%     Method 3 &   & B & C &   &   & A & B &   &   & A & B &   &   & A & B &   \\
+%     \hline
+%     Method 4 & A & B &   &   &   &   & B &   &   &   & B &   &   & A &   &   \\
+%     \hline
+%     Method 5 &   &   &   & D &   &   &   & C &   &   &   & C &   &   & B &   \\
+%     \hline
+%     Method 6 &   &   &   &   & E &   &   &   & D &   &   &   & D &   &   & C \\
+%     \hline
+%   \end{tabular}
+% \end{table}
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Setting 3 -- Skew-$t$ marginal, $K = 5$ knots}
+%   \label{tbl:st5sim}
+%   \begin{tabular}{|l|ccc|cccc|ccc|ccc|}
+%     \cline{2-14}
+%     \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+%     \hline
+%     Method 1 &   & B &   &   &   & C &   &   & B &   &   & B &   \\
+%     \hline
+%     Method 2 &   & B &   &   &   & C &   &   & B &   &   & B &   \\
+%     \hline
+%     Method 3 & A &   &   &   & B &   &   &   & B &   &   & B &   \\
+%     \hline
+%     Method 4 & A &   &   & A &   &   &   & A &   &   & A &   &   \\
+%     \hline
+%     Method 5 & A &   &   & A &   &   &   & A &   &   & A &   &   \\
+%     \hline
+%     Method 6 &   &   & C &   &   &   & D &   &   & C &   &   & C \\
+%     \hline
+%   \end{tabular}
+% \end{table}
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Setting 4 -- Max-stable}
+%   \label{tbl:mssim}
+%   \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
+%     \cline{2-15}
+%     \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+%     \hline
+%     Method 1 & A & B &   &   &   & B &   &   &   & B &   &   &   & C \\
+%     \hline
+%     Method 2 &   & B &   &   &   & B & C &   &   & B &   &   & B & C \\
+%     \hline
+%     Method 3 &   &   & C & D &   &   & C &   &   & B &   &   & B &   \\
+%     \hline
+%     Method 4 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
+%     \hline
+%     Method 5 &   &   & C &   &   &   & C &   &   & B &   &   & B & C \\
+%     \hline
+%     Method 6 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
+%     \hline
+%   \end{tabular}
+% \end{table}
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Setting 5 -- Transformation below $T = q(0.80)$}
+%   \label{tbl:transsim}
+%   \begin{tabular}{|l|cccc|ccc|cccc|cccc|}
+%     \cline{2-16}
+%     \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{4}{|c|}{$q(0.99)$} \\
+%     \hline
+%     Method 1 &   &   & C &   &   & B &   &   &   & C &   &   &   & C &   \\
+%     \hline
+%     Method 2 &   & B &   &   &   & B &   &   & B &   &   & A & B &   &   \\
+%     \hline
+%     Method 3 & A &   &   &   & A &   &   & A &   &   &   & A &   &   &   \\
+%     \hline
+%     Method 4 &   & B & C &   &   & B &   &   & B &   &   &   & B & C &   \\
+%     \hline
+%     Method 5 &   & B &   &   &   & B &   &   & B & C &   &   &   & C &   \\
+%     \hline
+%     Method 6 &   &   &   & D &   &   & C &   &   &   & D &   &   &   & D \\
+%     \hline
+%   \end{tabular}
+% \end{table}
 
 \bibliography{library}
 \bibliographystyle{rss}
