@@ -10,6 +10,9 @@
 *.RData
 *.RDataBak
 
+#Rstudio project
+.Rproj.user
+
 # Profiled output
 Rprof.out
 
@@ -27,4 +30,3 @@ Rprof.out
 binary/code/Ebirds4Sam/cat_eg_sand_data.txt
 
 binary/code/Ebirds4Sam/core-covariates.csv
-.Rproj.user
