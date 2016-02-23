@@ -21,8 +21,9 @@ source('updateKnots.R')
 source('updateLambda.R')
 source('updatePhi.R')
 source('updateTau.R')
-source('updateZ.R')
+
 source('predictY.R')
+source('update_params.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  min.s, max.s,  # don't want to specify defaults
@@ -546,19 +547,23 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
       if (!temporalz) {
         mu <- x.beta + lambda.1 * zg
-        z.update <- updateZ(y=y, x.beta=x.beta, zg=zg, prec=prec,
-                            tau=tau, mu=mu, taug=taug, g=g,
-                            lambda.1=lambda.1, lambda.2=lambda.2)
+        z.update <- updateZ_disc_lambda(y = y, x.beta = x.beta, zg = zg, 
+                                        prec = prec, tau = tau, mu = mu, 
+                                        taug = taug, g = g, lambda.1 = lambda.1, 
+                                        lambda.2 = lambda.2)
 
         z  <- z.update$z
         zg <- z.update$zg
       } else {
-        z.update <- updateZTS(z=z, zg=zg, y=y, lambda.1=lambda.1,
-                              lambda.2=lambda.2, x.beta=x.beta,
-                              phi=phi.z, tau=tau, taug=taug, g=g,
-                              prec=prec, acc=acc.z, att=att.z, mh=mh.z,
-                              acc.phi=acc.phi.z, att.phi=att.phi.z,
-                              mh.phi=mh.phi.z)
+        z.update <- updateZTS_disc_lambda(z = z, zg = zg, y = y, 
+                                          lambda.1 = lambda.1, 
+                                          lambda.2 = lambda.2, 
+                                          x.beta = x.beta, phi = phi.z, 
+                                          tau = tau, taug = taug, g = g,
+                                          prec = prec, acc = acc.z, att = att.z, 
+                                          mh = mh.z, acc.phi = acc.phi.z, 
+                                          att.phi = att.phi.z, 
+                                          mh.phi = mh.phi.z)
         z      <- z.update$z
         zg     <- z.update$zg
         att.z  <- z.update$att

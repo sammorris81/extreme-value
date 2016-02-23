@@ -21,8 +21,9 @@ source('updateKnots.R')
 source('updateLambda.R')
 source('updatePhi.R')
 source('updateTau.R')
-source('updateZ.R')
+
 source('predictY.R')
+source('update_params.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  min.s, max.s,  # don't want to specify defaults
@@ -519,7 +520,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       acc.gamma <- mh.update$acc
       att.gamma <- mh.update$att
       mh.gamma  <- mh.update$mh
-    }
+    } 
 
     if (fixhyper) {
       nu    <- 0.5
@@ -534,8 +535,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       res <- y - mu
 
       if (!temporalz) {
-        z.update <- updateZ1(y=y, x.beta=x.beta, zg=zg, prec=prec,
-                            tau=tau, mu=mu, taug=taug, g=g, lambda=lambda)
+        z.update <- updateZ_cont_lambda(y = y, x.beta = x.beta, zg = zg, 
+                                        prec = prec, tau = tau, mu = mu, 
+                                        taug=taug, g=g, 
+                                        lambda=lambda)
 
         z  <- z.update$z
         zg <- z.update$zg
