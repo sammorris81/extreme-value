@@ -11,7 +11,7 @@ if (!exists("conditional.Rcpp")) {
 if (!exists("g.Rcpp")) {
   source('mem_cpp.R')
 }
-if (!exists("z.Rcpp")) {
+if (!exists("z.Rcpp1")) {
   source('z_update_cpp.R')
 }
 source('imputeY.R')
@@ -26,17 +26,17 @@ source('predictY.R')
 
 mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  min.s, max.s,  # don't want to specify defaults
-                 thresh.all=0, thresh.quant=T, nknots=1, keep.knots=FALSE,
+                 thresh.all=0, thresh.quant=T, nknots=1, keep.knots=F,
                  iters=5000, burn=1000, update=100, thin=1,
                  iterplot=F, plotname=NULL, method="t",
                  # just to debug temporal parts. eventually change to temporal=F
-                 temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                 temporalw=F, temporaltau=F, temporalz=F,
                  # initial values
                  beta.init=NULL, tau.init=1,
                  tau.alpha.init=0.1, tau.beta.init=0.1,
                  rho.init=5, nu.init=0.5, gamma.init=0.5,
                  # priors
-                 beta.m=0, beta.s=10,
+                 beta.m=0, beta.s=20,
                  tau.alpha.m=0, tau.alpha.s=1,
                  tau.beta.a=1, tau.beta.b=1,
                  logrho.m=0, logrho.s=10, rho.upper=NULL,
@@ -46,9 +46,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
                  cov.model="matern",  # or "exponential"
                  rho.prior="cont",  # or "disc"
                  # skew inits
-                 z.init=1, lambda.init=NULL,
+                 z.init=1, lambda.init=0,
                  # skew priors
-                 lambda.a=0.1, lambda.b=0.1, skew=T,
+                 lambda.m=0, lambda.s=20, skew=T,
                  thresh.site.specific=F, thresh.site=NULL,
                  # troubleshooting
                  debug=F, fixhyper=F, tau.t, z.t, fixknots=F, knots.init=NULL,
@@ -123,7 +123,6 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   } else {
     thresholded <- F
   }
-  # y[thresh.obs] <- thresh.mtx[thresh.obs] / 2
 
   missing.obs <- is.na(y)
   if (sum(missing.obs) > 0) {
@@ -137,10 +136,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (!fixknots) {
     if (is.null(knots.init)) {
       # constrain the initial draw to be near the middle for stability
-      lower.1 <- min.s[1] + (max.s[1] - min.s[1]) / 3
-      upper.1 <- min.s[1] + 2 * (max.s[1] - min.s[1]) / 3
-      lower.2 <- min.s[2] + (max.s[2] - min.s[2]) / 3
-      upper.2 <- min.s[2] + 2 * (max.s[2] - min.s[2]) / 3
+      lower.1 <- min.s[1] + (max.s[1] - min.s[1]) / 6
+      upper.1 <- max.s[1] - (max.s[1] - min.s[1]) / 6
+      lower.2 <- min.s[2] + (max.s[2] - min.s[2]) / 6
+      upper.2 <- max.s[2] - (max.s[2] - min.s[2]) / 6
       knots <- array(NA, dim=c(nknots, 2, nt))
       knots[, 1, ] <- runif(nknots * nt, lower.1, upper.1)
       knots[, 2, ] <- runif(nknots * nt, lower.2, upper.2)
@@ -162,7 +161,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # initialize parameters
   if (is.null(beta.init)) {
     beta    <- rep(0, p)
-    # beta[1] <- mean(y)
+    beta[1] <- mean(y)
   } else {
     beta <- beta.init
   }
@@ -223,16 +222,8 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
     } else {
       lambda <- lambda.init
     }
-    if (lambda == 0) {
-      lambda.1 <- 0
-      lambda.2 <- 1
-    } else {
-      lambda.1 <- sign(lambda)
-      lambda.2 <- 1 / (lambda)^2
-    }
   } else {
-    lambda <- lambda.1 <- 0
-    lambda.2 <- 0
+    lambda <- 0
   }
 
   # easier to keep calculations in the precision scale for MCMC
@@ -265,8 +256,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   # simple.cov.sp only needs to be updated for rho and nu updates
   cor <- simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho),
                        error.var=0, smoothness=nu, finescale.var=0)
-  C <- gamma * cor
-  diag(C) <- 1
+  C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
   CC <- tryCatch(chol.inv(C, inv=T, logdet=T),
                  error = function(e) {
                    eig.inv(C, inv=T, logdet=T, mtx.sqrt=T)
@@ -298,7 +288,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }
 
   # MH tuning params
-  acc.w      <- att.w      <- mh.w     <- matrix(0.15, nknots, nt)  # knot locs
+  acc.w      <- att.w      <- mh.w     <- matrix(0.1, nt)  # knot locs
   acc.delta  <- att.delta  <- mh.delta <- 0.1
   acc.rho    <- att.rho    <- mh.rho   <- 1
   acc.nu     <- att.nu     <- mh.nu    <- 0.1
@@ -330,15 +320,14 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (temporaltau) {
     keepers.phi.tau <- rep(NA, iters)
   }
-  keepers.y    <- array(0, c((iters-burn), ns, nt))
-  return.iters <- (burn + 1):iters
+  return.iters      <- (burn + 1):iters
 
   tic <- proc.time()
   for (iter in 1:iters) { for (ttt in 1:thin) {
 
     # data imputation
     if (thresholded) {  # do data imputation and store as y
-      mu <- x.beta + lambda.1 * zg
+      mu <- x.beta + lambda * zg
       res <- y - mu
       y <- imputeY(y=y, taug=taug, mu=mu, obs=thresh.obs, cor=cor,
                    gamma=gamma, thresh.mtx=thresh.mtx)
@@ -346,31 +335,37 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     # missing values
     if (missing) {
-      mu <- x.beta + lambda.1 * zg
+      mu <- x.beta + lambda * zg
       res <- y - mu
       y <- imputeY(y=y, taug=taug, mu=mu, obs=missing.obs, cor=cor,
                    gamma=gamma)
     }
 
     # update beta
-    mu <- x.beta + lambda.1 * zg
+    mu <- x.beta + lambda * zg
     res <- y - mu
-    beta <- updateBeta(beta.m=beta.m, beta.s=beta.s, x=x, y=y, zg=zg,
-                       lambda.1=lambda.1, taug=taug, prec=prec)
+    beta.update <- updateBeta1(beta.m=beta.m, beta.s=beta.s, x=x, y=y, zg=zg,
+                               taug=taug, prec=prec, skew=skew, lambda=lambda,
+                               lambda.m=lambda.m, lambda.s=lambda.s)
+    beta   <- beta.update$beta
+    lambda <- beta.update$lambda
+
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
     }
-    mu <- x.beta + lambda.1 * zg
+    mu <- x.beta + lambda * zg
     res <- y - mu
+
     # update partitions
     if ((nknots > 1) & (!fixknots)) {
       avgparts <- rep(0, nt)
-      knots.update <- updateKnotsTS(phi=phi.w, knots=knots, g=g, ts=temporalw,
-                                    tau=tau, z=z, s=s, min.s=min.s, max.s=max.s,
-                                    x.beta=x.beta, lambda.1=lambda.1, y=y,
-                                    prec=prec, att=att.w, acc=acc.w,
-                                    mh=mh.w, att.phi=att.phi.w,
-                                    acc.phi=acc.phi.w, mh.phi=mh.phi.w)
+      knots.update <- updateKnotsTS1(phi=phi.w, knots=knots, g=g, ts=temporalw,
+                                     tau=tau, z=z, s=s,
+                                     min.s=min.s, max.s=max.s,
+                                     x.beta=x.beta, lambda=lambda, y=y,
+                                     prec=prec, att=att.w, acc=acc.w,
+                                     mh=mh.w, att.phi=att.phi.w,
+                                     acc.phi=acc.phi.w, mh.phi=mh.phi.w)
       knots.star <- knots.update$knots.star
       knots      <- knots.update$knots
       g          <- knots.update$g
@@ -401,7 +396,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     # update tau
     # all taus require mu and res
-    mu <- x.beta + lambda.1 * zg
+    mu <- x.beta + lambda * zg
     res <- y - mu
     if (method == "gaussian") {  # single random effect for all days
       tau.update <- updateTauGaus(res=res, prec=prec,
@@ -411,11 +406,10 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     } else if (method == "t") {
       if (!temporaltau) {
-        tau.update <- updateTau(tau=tau, taug=taug, g=g, res=res,
-                                nparts.tau=nparts.tau, prec=prec,
-                                z=z, lambda.2=lambda.2,
-                                tau.alpha=tau.alpha, tau.beta=tau.beta,
-                                skew=skew, att=att.tau, acc=acc.tau, mh=mh.tau)
+        tau.update <- updateTau1(tau=tau, taug=taug, g=g, res=res,
+                                 nparts.tau=nparts.tau, prec=prec,
+                                 z=z, tau.alpha=tau.alpha, tau.beta=tau.beta,
+                                 skew=skew, att=att.tau, acc=acc.tau, mh=mh.tau)
         tau          <- tau.update$tau
         taug         <- tau.update$taug
         acc.tau      <- tau.update$acc
@@ -429,14 +423,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
         #   mh.tau  <- mh.update$mh
         # }
       } else {
-        tau.update <- updateTauTS(phi=phi.tau, tau=tau, taug=taug,
-                                  g=g, res=res, nparts.tau=nparts.tau,
-                                  prec=prec, z=z, lambda.2=lambda.2,
-                                  tau.alpha=tau.alpha,
-                                  tau.beta=tau.beta, skew=skew,
-                                  att=att.tau, acc=acc.tau, mh=mh.tau,
-                                  att.phi=att.phi.tau, acc.phi=acc.phi.tau,
-                                  mh.phi=mh.phi.tau)
+        tau.update <- updateTauTS1(phi=phi.tau, tau=tau, taug=taug,
+                                   g=g, res=res, nparts.tau=nparts.tau,
+                                   prec=prec, z=z, tau.alpha=tau.alpha,
+                                   tau.beta=tau.beta, skew=skew,
+                                   att=att.tau, acc=acc.tau, mh=mh.tau,
+                                   att.phi=att.phi.tau, acc.phi=acc.phi.tau,
+                                   mh.phi=mh.phi.tau)
 
           tau         <- tau.update$tau
           taug        <- tau.update$taug
@@ -474,7 +467,7 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
     # update rho and nu and gamma
     # update rss with new residuals and taug
-    mu <- x.beta + lambda.1 * zg
+    mu <- x.beta + lambda * zg
     res <- y - mu
     cur.rss <- sum(rss(prec=prec, y=sqrt(taug) * res))
 
@@ -534,31 +527,25 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
       gamma <- 0.9
     }
 
-    # update skew parameters: lambda and z
+    # update z (skew random effects)
+    # Note: lambda is updated with beta terms
     if (skew) {
-      mu <- x.beta + lambda.1 * zg
+      mu <- x.beta + lambda * zg
       res <- y - mu
-      lambda.1 <- updateLambda1(x.beta=x.beta, zg=zg, y=y, prec=prec,
-                                taug=taug)
-      lambda.2 <- updateLambda2(lambda.a=lambda.a, lambda.b=lambda.b,
-                                z=z, tau=tau)
-      lambda <- lambda.1 / sqrt(lambda.2)
 
       if (!temporalz) {
-        mu <- x.beta + lambda.1 * zg
-        z.update <- updateZ(y=y, x.beta=x.beta, zg=zg, prec=prec,
-                            tau=tau, mu=mu, taug=taug, g=g,
-                            lambda.1=lambda.1, lambda.2=lambda.2)
+        z.update <- updateZ1(y=y, x.beta=x.beta, zg=zg, prec=prec,
+                            tau=tau, mu=mu, taug=taug, g=g, lambda=lambda)
 
         z  <- z.update$z
         zg <- z.update$zg
       } else {
-        z.update <- updateZTS(z=z, zg=zg, y=y, lambda.1=lambda.1,
-                              lambda.2=lambda.2, x.beta=x.beta,
-                              phi=phi.z, tau=tau, taug=taug, g=g,
-                              prec=prec, acc=acc.z, att=att.z, mh=mh.z,
-                              acc.phi=acc.phi.z, att.phi=att.phi.z,
-                              mh.phi=mh.phi.z)
+        # trying to do the update with lambda = lambda.1 * lambda.2
+        z.update <- updateZTS1(z=z, zg=zg, y=y, lambda=lambda, x.beta=x.beta,
+                               phi=phi.z, tau=tau, taug=taug, g=g,
+                               prec=prec, acc=acc.z, att=att.z, mh=mh.z,
+                               acc.phi=acc.phi.z, att.phi=att.phi.z,
+                               mh.phi=mh.phi.z)
         z      <- z.update$z
         zg     <- z.update$zg
         att.z  <- z.update$att
@@ -585,13 +572,13 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   }  # end nthin
 
   if (iter > burn) {
-    mu <- x.beta + lambda.1* zg
-    res <- y - mu
     # predictions
     if (predictions) {
-    	yp <- predictY(d11=d11, d12=d12, cov.model=cov.model, rho=rho, nu=nu,
+      mu <- x.beta + lambda * zg
+      res <- y - mu
+    	yp <- predictY1(d11=d11, d12=d12, cov.model=cov.model, rho=rho, nu=nu,
                      gamma=gamma, res=res, beta=beta, tau=tau, taug=taug, z=z,
-                     prec=prec, lambda.1=lambda.1, s.pred=s.pred, x.pred=x.pred,
+                     prec=prec, lambda=lambda, s.pred=s.pred, x.pred=x.pred,
                      knots=knots)
 
     }
@@ -612,12 +599,9 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
   if (predictions & iter > burn) {
     y.pred[(iter - burn), , ] <- yp
   }
-  if (iter > burn) {
-    keepers.y[(iter - burn), , ] <- y
-  }
   if (skew) {
-    keepers.lambda.1[iter] <- lambda.1
-    keepers.lambda.2[iter] <- lambda.2
+    # keepers.lambda.1[iter] <- lambda.1
+    # keepers.lambda.2[iter] <- lambda.2
     keepers.lambda[iter] <- lambda
     keepers.z[iter, , ]   <- z
   }
@@ -798,64 +782,63 @@ mcmc <- function(y, s, x, s.pred=NULL, x.pred=NULL,
 
   } #end iters
 
-if ((nknots == 1) | fixknots) {
-  keepers.avgparts <- NULL
-} else {
-  keepers.avgparts <- keepers.avgparts[return.iters, ]
-}
-
-if (keep.knots & (nknots > 1)) {
-  keepers.knots <- keepers.knots[return.iters, , , ]
-} else {
-  keepers.knots <- NULL
-}
-
-if (!predictions) {
-  y.pred <- NULL
-}
-
-if (!skew) {
-  keepers.z <- NULL
-  keepers.lambda <- NULL
-} else {
-  keepers.z <- keepers.z[return.iters, , ]
-  keepers.lambda <- keepers.lambda[return.iters]
-}
-
-if (!temporalz) {  # ts
-  keepers.phi.z <- NULL
-} else {
-  keepers.phi.z <- keepers.phi.z[return.iters]
-}
-if (!temporalw) {  # ts
-  keepers.phi.w <- NULL
-} else {
-  keepers.phi.w <- keepers.phi.w[return.iters]
-}
-if (!temporaltau) {  # ts
-  keepers.phi.tau <- NULL
-} else {
-  keepers.phi.tau <- keepers.phi.tau[return.iters]
-}
-
-results <- list(tau=keepers.tau[return.iters, , ],
-                beta=keepers.beta[return.iters, ],
-                tau.alpha=keepers.tau.alpha[return.iters],
-                tau.beta=keepers.tau.beta[return.iters],
-                rho=keepers.rho[return.iters],
-                nu=keepers.nu[return.iters],
-                gamma=keepers.gamma[return.iters],
-                y=keepers.y,
-                yp=y.pred,
-                lambda=keepers.lambda,
-                z=keepers.z,
-                knots=keepers.knots,
-                avgparts=keepers.avgparts,
-                phi.z=keepers.phi.z,  # ts
-                phi.w=keepers.phi.w,  # ts
-                phi.tau=keepers.phi.tau  # ts
-                )
-
-return(results)
+  if ((nknots == 1) | fixknots) {
+    keepers.avgparts <- NULL
+  } else {
+    keepers.avgparts <- keepers.avgparts[return.iters, ]
+  }
+  
+  if (keep.knots & (nknots > 1)) {
+    keepers.knots <- keepers.knots[return.iters, , , ]
+  } else {
+    keepers.knots <- NULL
+  }
+  
+  if (!predictions) {
+    y.pred <- NULL
+  }
+  
+  if (!skew) {
+    keepers.z <- NULL
+    keepers.lambda <- NULL
+  } else {
+    keepers.z <- keepers.z[return.iters, , ]
+    keepers.lambda <- keepers.lambda[return.iters]
+  }
+  
+  if (!temporalz) {  # ts
+    keepers.phi.z <- NULL
+  } else {
+    keepers.phi.z <- keepers.phi.z[return.iters]
+  }
+  if (!temporalw) {  # ts
+    keepers.phi.w <- NULL
+  } else {
+    keepers.phi.w <- keepers.phi.w[return.iters]
+  }
+  if (!temporaltau) {  # ts
+    keepers.phi.tau <- NULL
+  } else {
+    keepers.phi.tau <- keepers.phi.tau[return.iters]
+  }
+  
+  results <- list(tau=keepers.tau[return.iters, , ],
+                  beta=keepers.beta[return.iters, ],
+                  tau.alpha=keepers.tau.alpha[return.iters],
+                  tau.beta=keepers.tau.beta[return.iters],
+                  rho=keepers.rho[return.iters],
+                  nu=keepers.nu[return.iters],
+                  gamma=keepers.gamma[return.iters],
+                  yp=y.pred,
+                  lambda=keepers.lambda,
+                  z=keepers.z,
+                  knots=keepers.knots,
+                  avgparts=keepers.avgparts,
+                  phi.z=keepers.phi.z,  # ts
+                  phi.w=keepers.phi.w,  # ts
+                  phi.tau=keepers.phi.tau  # ts
+  )
+  
+  return(results)
 }#end mcmc()
 
