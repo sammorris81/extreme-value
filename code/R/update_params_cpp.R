@@ -1,5 +1,7 @@
 library(inline)
 
+update_params_cpp_init <- function(x) { NULL }
+
 #### update for z when prior on lambda is discrete
 code <- '
 arma::mat tau_g_c = Rcpp::as<arma::mat>(taug);
@@ -150,3 +152,95 @@ z.Rcpp_cont_lambda <- cxxfunction(signature(taug = "numeric", tau = "numeric",
                                             lambda = "numeric", 
                                             zg = "numeric"),
                        code, plugin="RcppArmadillo")
+
+#### update for tau alpha
+code <- '
+  arma::vec m = Rcpp::as<arma::vec>(mmm);
+  arma::mat t = Rcpp::as<arma::mat>(tau);
+  double t_b = as<double>(tau_beta);
+  int nm = m.size(); int nknots = t.n_rows; int nt = t.n_cols;
+  NumericVector l(nm);
+  for (int i = 0; i < nm; i++) {
+    l(i) = 0;
+    for (int j = 0; j < nknots; j++) {
+      for (int k = 0; k < nt; k++) {
+        l(i) += R::dgamma(t(j, k), m(i), 1/t_b, 1);
+      }
+    }
+  }
+  return Rcpp::List::create(
+    Rcpp::Named("lll") = l
+  );
+'
+taualpha.Rcpp <- cxxfunction(signature(mmm="numeric", tau="numeric", tau_beta="numeric"), code, plugin="RcppArmadillo")
+
+taualpha.lll <- function(mmm, tau, tau.beta) {
+  results <- taualpha.Rcpp(mmm=mmm, tau=tau, tau_beta=tau.beta)
+  return(results)
+}
+
+#### conditional mean for imputation
+
+code <- '
+arma::vec m = Rcpp::as<arma::vec>(mn);
+arma::mat H = Rcpp::as<arma::mat>(prec);
+arma::vec tau = Rcpp::as<arma::vec>(taug);
+arma::vec r = Rcpp::as<arma::vec>(res);
+arma::vec inc = Rcpp::as<arma::vec>(include);
+int n = inc.size(); int idx;
+arma::rowvec H_temp;
+arma::colvec r_temp;
+NumericVector condmean(n);
+NumericVector condsd(n);
+double sd_i;
+for (int i = 0; i < n; i++) {
+idx = inc(i) - 1;
+H_temp = H.row(idx);
+r_temp = r % tau;
+H_temp.shed_col(idx);
+r_temp.shed_row(idx);
+sd_i = sqrt(1 / H(idx, idx)) / tau(idx);
+condsd(i) = sd_i;
+condmean(i) = m(idx) - pow(sd_i, 2) * tau(idx) * as_scalar(H_temp * r_temp);
+}
+return Rcpp::List::create(
+Rcpp::Named("cond.mn") = condmean,
+Rcpp::Named("cond.sd") = condsd
+);
+'
+conditional.Rcpp <- cxxfunction(signature(mn="numeric", prec="numeric", taug="numeric", res="numeric", include="numeric"), code, plugin="RcppArmadillo")
+
+conditional.mean <- function(mn, prec, res, taug=NULL, include=NULL) {
+  if (is.null(taug)) {
+    taug <- rep(1, length(mn))
+  }
+  if (is.null(include)) {
+    include <- 1:length(mn)
+  }
+  
+  results <- conditional.Rcpp(mn=mn, prec=prec, res=res, taug=taug,
+                              include=include)
+}
+
+#### partition membership
+
+code <- '
+  arma::mat d = Rcpp::as<arma::mat>(d_knots);
+  int ns = d.n_rows; int nknots = d.n_cols;
+  arma::uword index; double min;
+  arma::rowvec d_temp(nknots);
+  NumericVector g(ns);
+  for (int i = 0; i < ns; i++) {
+    d_temp = d.row(i);
+    min = d_temp.min(index);
+    g(i) = index + 1;
+  }
+  return Rcpp::List::create(
+    Rcpp::Named("g") = g
+  );
+'
+g.Rcpp <- cxxfunction(signature(d_knots="numeric"), code, plugin="RcppArmadillo")
+
+g.mem <- function(d) {
+  results <- g.Rcpp(d_knots=d)
+}
