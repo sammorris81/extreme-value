@@ -59,8 +59,8 @@ ntest     <- 44
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
-    x[, t, 2] <- s[, 1]
-    x[, t, 3] <- s[, 2]
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
 }
 
 # Storage for datasets
@@ -80,7 +80,7 @@ for (setting in 1:nsettings) {
                          lambda=lambda.t[setting], tau.alpha=tau.alpha.t,
                          tau.beta=tau.beta.t, nknots=nknots.t[setting],
                          dist=dist.t[setting])
-
+      
       y[, , set, setting]        <- data$y
       tau.t.setting[, , set]     <- data$tau
       z.t.setting[, , set]       <- data$z
@@ -106,12 +106,12 @@ for (setting in 1:nsettings) {
       y.set   <- data$y
       y.quant <- quantile(y.set, probs=0.80)
       y.set   <- ifelse(
-                    y.set < y.quant,
-                    y.quant * exp((y.set - y.quant)/3),
-                    y.set
-                 )
+        y.set < y.quant,
+        y.quant * exp((y.set - y.quant)/3),
+        y.set
+      )
       y[, , set, setting] <- y.set
-
+      
       tau.t.setting[, , set]     <- data$tau
       z.t.setting[, , set]       <- data$z
       knots.t.setting[, , , set] <- data$knots
@@ -130,7 +130,7 @@ save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
 library(fields)
 library(SpatialTools)
 library(SpatialExtremes)
-source('../../R/mcmc.R', chdir=T)
+source('../../R/mcmc_cont_lambda.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
 load(file = 'simdata.RData')
@@ -141,7 +141,8 @@ nsettings <- dim(y)[4] + 1  # add in brown-resnick setting
 y.new <- array(NA, dim = c(ns, nt, nsets, nsettings))
 y.new[, , , 1:7] <- y
 for (set in 1:nsets) {
-  y[, , set, 8] <- rmaxstab(n = nt, coord = s, cov.mod = )
+  y.new[, , set, 8] <- t(rmaxstab(n = nt, coord = s, cov.mod = "brown", range = 1, 
+                                  smooth = 0.5))
 }
 
 # par(mfrow=c(2, 3))
@@ -167,15 +168,15 @@ quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
 hist(y.gau$y, main="Histogram", xlab="")
 
 y.t1 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
-                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
-                  tau.beta=tau.beta.t, nknots=1)
+                 gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
+                 tau.beta=tau.beta.t, nknots=1)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.t1$y[, 1], nx=50, ny=50, main="t, K=1")
 hist(y.t1$y, main="Histogram", xlab="")
 
 y.t3 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
-                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
-                  tau.beta=tau.beta.t, nknots=3)
+                 gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
+                 tau.beta=tau.beta.t, nknots=3)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
 hist(y.t3$y, main="Histogram", xlab="")
