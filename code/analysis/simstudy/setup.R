@@ -126,6 +126,24 @@ save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
      x, # covariate data that should be the same for all datasets
      file='simdata.RData')
 
+# modify simdata for revisions
+library(fields)
+library(SpatialTools)
+library(SpatialExtremes)
+source('../../R/mcmc.R', chdir=T)
+source('../../R/auxfunctions.R')
+source('./max-stab/Bayes_GEV.R')
+load(file = 'simdata.RData')
+ns        <- dim(y)[1]
+nt        <- dim(y)[2]
+nsets     <- dim(y)[3]
+nsettings <- dim(y)[4] + 1  # add in brown-resnick setting
+y.new <- array(NA, dim = c(ns, nt, nsets, nsettings))
+y.new[, , , 1:7] <- y
+for (set in 1:nsets) {
+  y[, , set, 8] <- rmaxstab(n = nt, coord = s, cov.mod = )
+}
+
 # par(mfrow=c(2, 3))
 # quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 1], nx=20, ny=20)
 # quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 2], nx=20, ny=20)
