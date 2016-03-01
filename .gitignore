@@ -9,6 +9,7 @@
 .Rdata
 *.RData
 *.RDataBak
+!simdata.RData
 
 #Rstudio project
 .Rproj.user
