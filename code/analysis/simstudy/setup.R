@@ -144,6 +144,11 @@ for (set in 1:nsets) {
   y.new[, , set, 8] <- t(rmaxstab(n = nt, coord = s, cov.mod = "brown", range = 1, 
                                   smooth = 0.5))
 }
+y <- y.new
+
+save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
+     x, # covariate data that should be the same for all datasets
+     file='simdata.RData')
 
 # par(mfrow=c(2, 3))
 # quilt.plot(s[, 1], s[, 2], z=y[, 1, 1, 1], nx=20, ny=20)
