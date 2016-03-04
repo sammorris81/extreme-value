@@ -215,11 +215,20 @@ Then $\lambda_2 \mid \ldots \sim IG \left(\alpha_\lambda + kt, \beta_\lambda + \
 \section{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{a:proofsamepartition}
 Consider a homogeneous spatial Poisson process with intensity $\mu$.
 Define $A$ as the circle with center \hbox{$(\bs_1 + \bs_2) / 2$} and radius $h / 2$.
-Then $\bs_1$ and $\bs_2$ are in different partitions almost surely if two or more points are in $A$.
-Let $N(A)$ be the number of points in $A$, and let
-\begin{align*}
-  \mu(A) = \mu |A| = \mu \pi \left(\frac{h}{2}\right)^2 = \lambda h^2.
-\end{align*}
+Without loss of generality, shift $A$ so that its center is at the point $(0, 0)$, and rotate $A$ so that $\bs_1$ and $bs_2$ are on the $x$ axis.
+Partition $A$ into four equal sized partitions, $A_1, A_2, A_3, A_4$ corresponding to the four quadrants of the Cartesian plane.
+The probability of 
+
+
+
+%Then $\bs_1$ and $\bs_2$ are in different partitions almost surely if two or more points are in $A$.
+%Let $N(A)$ be the number of points in $A$, and let
+%\begin{align*}
+%  \mu(A) = \lambda_{PP} |A| = \lambda_{PP} \pi \left(\frac{h}{2}\right)^2 = \lambda_{PP}^* h^2.
+%\end{align*}
+
+
+
 Then
 \begin{align*}
   P[N(A) \ge 2] &= 1 - P[N(A) = 0] - P[N(A) = 1]\\
