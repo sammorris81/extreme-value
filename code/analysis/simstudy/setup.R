@@ -13,6 +13,7 @@
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
 #       y = T * exp(x - T), x <= T
+#   8 - Brown-Resnick with range = 1, smooth = 0.5
 #
 # analysis methods:
 #  1 - Gaussian
@@ -20,9 +21,10 @@
 #  3 - t-1 (T = 0.80)
 #  4 - skew t-5
 #  5 - t-5 (T = 0.80)
+#  6 - Max-stable (T = 0.80)
 #
 #########################################################################
-
+##### For revisions, see below initial generation
 # clean out previous variables
 rm(list=ls())
 
@@ -31,7 +33,7 @@ library(fields)
 library(SpatialTools)
 
 # necessary functions
-source('../../R/mcmc.R', chdir=T)
+source('../../R/mcmc_cont_lambda.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
 
@@ -54,7 +56,7 @@ knots.gev <- expand.grid(knots.x, knots.x)
 ns        <- nrow(s)
 nt        <- 50
 nsets     <- 50
-nsettings <- 7
+nsettings <- 8
 ntest     <- 44
 
 x <- array(1, c(ns, nt, 3))
@@ -80,7 +82,7 @@ for (setting in 1:nsettings) {
                          lambda=lambda.t[setting], tau.alpha=tau.alpha.t,
                          tau.beta=tau.beta.t, nknots=nknots.t[setting],
                          dist=dist.t[setting])
-      
+
       y[, , set, setting]        <- data$y
       tau.t.setting[, , set]     <- data$tau
       z.t.setting[, , set]       <- data$z
@@ -111,7 +113,7 @@ for (setting in 1:nsettings) {
         y.set
       )
       y[, , set, setting] <- y.set
-      
+
       tau.t.setting[, , set]     <- data$tau
       z.t.setting[, , set]       <- data$z
       knots.t.setting[, , , set] <- data$knots
@@ -137,11 +139,13 @@ load(file = 'simdata.RData')
 ns        <- dim(y)[1]
 nt        <- dim(y)[2]
 nsets     <- dim(y)[3]
-nsettings <- dim(y)[4] + 1  # add in brown-resnick setting
+nsettings <- 8  # add in brown-resnick setting
 y.new <- array(NA, dim = c(ns, nt, nsets, nsettings))
-y.new[, , , 1:7] <- y
+y.new[, , , 1:7] <- y[, , , 1:7]
+setting <- 8
 for (set in 1:nsets) {
-  y.new[, , set, 8] <- t(rmaxstab(n = nt, coord = s, cov.mod = "brown", range = 1, 
+  set.seed(setting * 100 + set)
+  y.new[, , set, 8] <- t(rmaxstab(n = nt, coord = s, cov.mod = "brown", range = 1,
                                   smooth = 0.5))
 }
 y <- y.new
