@@ -20,7 +20,7 @@
 
 % cross-referencing appendices
 \usepackage{xr}
-\externaldocument{skewnormal}
+\externaldocument{skewt}
 
 % \usepackage[left=1in,top=1in,right=1in]{geometry}
 % \pdfpageheight 11in
@@ -213,13 +213,34 @@ Then
 Then $\lambda_2 \mid \ldots \sim IG \left(\alpha_\lambda + kt, \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}} \right)$
 
 \section{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{a:proofsamepartition}
-Consider a homogeneous spatial Poisson process with intensity $\mu$.
-Define $A$ as the circle with center \hbox{$(\bs_1 + \bs_2) / 2$} and radius $h / 2$.
-Without loss of generality, shift $A$ so that its center is at the point $(0, 0)$, and rotate $A$ so that $\bs_1$ and $bs_2$ are on the $x$ axis.
-Partition $A$ into four equal sized partitions, $A_1, A_2, A_3, A_4$ corresponding to the four quadrants of the Cartesian plane.
-The probability of 
-
-
+Let $c$ be the midpoint of $\bs_1$ and $\bs_2$.
+Define $A$ as the circle centered at $c$ with radius $h / 2$ where $h = ||\bs_1 - \bs_2||$ is the distance between sites $\bs_1$ and $\bs_2$.
+Consider a homogeneous spatial Poisson process over $A$ with intensity given by
+\begin{align*}
+  \mu(A) = \lambda_{PP} |A| = \lambda_{PP} \pi \left(\frac{h}{2}\right)^2 = \lambda_{PPA}^* h^2.
+\end{align*}
+Consider a partition of $A$ into four regions, $B_1$, $B_2$, $R_1$, $R_2$ as seen in Web Figure \ref{fig:hpp}.
+\begin{figure}
+  \includegraphics[width=\linewidth]{plots/circles}
+  \caption{Illustration of the partition of $A$.}
+  \label{fig:hpp}
+\end{figure}
+Let $N_j$ be the number of knots in $B_j, j = 1, 2$.
+Then
+\begin{align}
+  P(\bs_1 \in P_i, \bs_2 \in P_{j \neq i}) \ge P(N_1 > 0, N_2 > 0)
+\end{align}
+since knots in both $B_1$ and $B_2$ is sufficient, but not necessary, to ensure that $\bs_1$ and $\bs_2$ are in different partition sets.
+By definition of a Poission process, $N_1$ and $N_2$ are independent and thus $P(N_1 > 0, N_2 > 0) = P(N_1 > 0)^2$, and the intensity measure over $B_1$ is given by
+\begin{align}
+  \mu(B_1) &= \lambda_{PP} |B_1| = \lambda_{PP} \frac{h^2}{4} \left(\frac{2 \pi}{3} - \frac{\sqrt{3}}{2} \right) \nonumber \\
+       &= \lambda^*_{PPB1} h^2.
+\end{align}
+So,
+\begin{align}
+  P(\bs_1 \in P_i, \bs_2 \in P_{j \neq i}) >= P(N_1 > 0)^2 = [1 - P(N_1 = 0)]^2 = [1 - \exp\left(-\lambda^*_{PPB1} h^2\right)]^2
+\end{align}
+which goes to 1 as $h$ goes to infinity.
 
 %Then $\bs_1$ and $\bs_2$ are in different partitions almost surely if two or more points are in $A$.
 %Let $N(A)$ be the number of points in $A$, and let
@@ -227,15 +248,16 @@ The probability of
 %  \mu(A) = \lambda_{PP} |A| = \lambda_{PP} \pi \left(\frac{h}{2}\right)^2 = \lambda_{PP}^* h^2.
 %\end{align*}
 
+%
+%
+%Then
+%\begin{align*}
+%  P[N(A) \ge 2] &= 1 - P[N(A) = 0] - P[N(A) = 1]\\
+%                &= 1 - \exp\{-\lambda h^2\} - \lambda h^2 \exp\{-\lambda h^2\} \\
+%                &= 1 - (1 + \lambda h^2) \exp\{-\lambda h^2\}
+%\end{align*}
+%which goes to one as $h \rightarrow \infty$.
 
-
-Then
-\begin{align*}
-  P[N(A) \ge 2] &= 1 - P[N(A) = 0] - P[N(A) = 1]\\
-                &= 1 - \exp\{-\lambda h^2\} - \lambda h^2 \exp\{-\lambda h^2\} \\
-                &= 1 - (1 + \lambda h^2) \exp\{-\lambda h^2\}
-\end{align*}
-which goes to one as $h \rightarrow \infty$.
 
 % Let $N(A)$ be the number of knots in $A$.
 % So,
