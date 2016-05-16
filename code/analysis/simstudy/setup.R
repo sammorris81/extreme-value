@@ -129,6 +129,7 @@ save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
      file='simdata.RData')
 
 # modify simdata for revisions
+rm(list = ls())
 library(fields)
 library(SpatialTools)
 library(SpatialExtremes)
@@ -147,6 +148,7 @@ for (set in 1:nsets) {
   set.seed(setting * 100 + set)
   y.new[, , set, 8] <- t(rmaxstab(n = nt, coord = s, cov.mod = "brown", range = 1,
                                   smooth = 0.5))
+  print("finished set", set)
 }
 y <- y.new
 
