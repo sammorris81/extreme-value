@@ -3,7 +3,7 @@ library(mvtnorm)
 library(sn)
 
 rm(list=ls())
-source('../../../R/mcmc.R', chdir=T)
+source('../../../R/mcmc_cont_lambda.R', chdir=T)
 source('../../../R/auxfunctions.R')
 
 # Setup from Brian
@@ -20,7 +20,7 @@ index  <- index[-excl]
 Y      <- Y[-excl, ]
 S      <- S[-excl, ]
 
-image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - no thin AQS sites")
+image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - 2005-07-01 - no thin AQS sites")
 points(S)       # Locations of monitoring stations
 lines(borders)  # Add state lines
 
@@ -76,7 +76,7 @@ y <- y / 1000
 #### end data preprocessing
 
 # Plot CMAQ
-image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - US")
+image.plot(x, y, matrix(CMAQ[, 5], nx, ny), main="CMAQ output (ppb) - US")
 points(S)       # Locations of monitoring stations
 lines(borders/1000)  # Add state lines
 
@@ -84,7 +84,7 @@ lines(borders/1000)  # Add state lines
 quartz(width=8, height=6)
 quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
            xaxt="n", xlim=c(-2.5, 2.5),
-           yaxt="n", ylim=c(-1.65, 1.3),
+           yaxt="n", ylim=c(-1.65, 1.3)
 #            main="Ozone values on 10 July 2005"
            )
 lines(borders/1000)
@@ -93,7 +93,7 @@ lines(borders/1000)
 quartz(width=8, height=6)
 quilt.plot(x=S[, 1], y=S[, 2], z=Y[, 10], nx=100, ny=100,
            xaxt="n", xlim=c(-2.5, 2.5),
-           yaxt="n", ylim=c(-1.65, 1.3),)
+           yaxt="n", ylim=c(-1.65, 1.3))
 lines(borders/1000)
 
 #### 2-fold cross validation
@@ -105,6 +105,20 @@ cv.lst <- list(cv.1=cv.1, cv.2=cv.2)
 
 beta.init <- 0
 tau.init <- 1
+
+#### find the duplicated sites and slightly jitter to make covariance pos dev
+set.seed(548837)  # jitter
+d <- rdist(S)
+same <- which(d == 0, arr.ind = TRUE)
+same <- same[same[, 1] != same[, 2], ]
+while (nrow(same) > 0) {
+  S[same[1, 1], ] <- S[same[1, 1], ] + rnorm(1, 0, 0.00001)
+  S[same[1, 2], ] <- S[same[1, 2], ] + rnorm(1, 0, 0.00001)
+  d <- rdist(S)
+  same <- which(d == 0, arr.ind = TRUE)
+  same <- same[same[, 1] != same[, 2], ]
+  print(nrow(same))
+}
 
 save(Y, X, S, beta.init, tau.init, cv.lst, file="us-all-setup.RData")
 
