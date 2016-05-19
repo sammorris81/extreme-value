@@ -13,6 +13,7 @@
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
 #       y = T * exp(x - T), x <= T
+#   8 - Brown-Resnick with range = 1, smooth = 0.5
 #
 # analysis methods:
 #  1 - Gaussian
@@ -24,62 +25,52 @@
 #
 #########################################################################
 
-library(fields)
-library(SpatialTools)
-options(warn=2)
-
-#### Load simdata
-rm(list = ls())
-load(file='./simdata.RData')
-source('../../R/mcmc.R', chdir=T)
-source('../../R/auxfunctions.R')
-source('./max-stab/Bayes_GEV.R')
-source('./max-stab/MCMC4MaxStable.R', chdir=T)
+source("./package_load.R", chdir = TRUE)
 
 # knots used in data generation
 knots.x <- seq(1, 9, length=12)
 knots   <- expand.grid(knots.x, knots.x)
 
 setting <- 5
-analysis <- "d"
+analysis <- 6
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
-for (g in c(4, 8)) {
+for (g in 5:6) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
-
+  
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
     outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
-    if (dataset > 6) {
-      cat("start dataset", dataset, "\n")
-      set.seed(setting * 100 + dataset)
-      y.d <- y[, , dataset, setting]
-      obs <- c(rep(T, 100), rep(F, 44))
-      y.o <- t(y.d[obs, ])
-      x.o <- x[obs, , ]  # we don't actually use this in the mcmc, we use s
-      s.o <- s[obs, ]
-
-      y.validate[, , d] <- y.d[!obs, ]
-      x.p <- x[!obs, , ]  # we don't actually use this in the mcmc, we use s
-      s.p <- s[!obs, ]
-
-      thresh <- quantile(y.o, probs=0.80, na.rm=T)
-
-      cat("  start: max-stable - Set", dataset, "\n")
-      tic <- proc.time()
-      fit.1 <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
-                         knots=knots, iters=iters, burn=burn, update=update,
-                         threads=2, thin=1)
-      toc <- proc.time()
-      cat("  max-stable took:", (toc - tic)[3], "\n")
-      cat("  end: max-stable \n")
-      cat("------------------\n")
-
-      save(fit.1, file=outputfile)
-      rm(fit.1)
-      gc()
-    }
+    
+    cat("start dataset", dataset, "\n")
+    set.seed(setting * 100 + dataset)
+    y.d <- y[, , dataset, setting]
+    obs <- c(rep(T, 100), rep(F, 44))
+    y.o <- t(y.d[obs, ])
+    x.o <- x[obs, , ]  # we don't actually use this in the mcmc, we use s
+    s.o <- s[obs, ]
+    
+    y.validate[, , d] <- y.d[!obs, ]
+    x.p <- x[!obs, , ]  # we don't actually use this in the mcmc, we use s
+    s.p <- s[!obs, ]
+    
+    thresh <- quantile(y.o, probs=0.80, na.rm=T)
+    
+    cat("  start: max-stable - Set", dataset, "\n")
+    tic <- proc.time()
+    fit.1 <- maxstable(y=y.o, x=x.o, s=s.o, sp=s.p, xp=x.p, thresh=thresh,
+                       knots=knots, iters=iters, burn=burn, update=update,
+                       threads=2, thin=1)
+    toc <- proc.time()
+    cat("  max-stable took:", (toc - tic)[3], "\n")
+    cat("  end: max-stable \n")
+    cat("------------------\n")
+    
+    save(fit.1, file=outputfile)
+    rm(fit.1)
+    gc()
+    
   }
 }

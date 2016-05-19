@@ -31,7 +31,7 @@ source("./package_load.R", chdir = TRUE)
 knots.x <- seq(1, 9, length=12)
 knots   <- expand.grid(knots.x, knots.x)
 
-setting <- 3
+setting <- 6
 analysis <- 6
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
