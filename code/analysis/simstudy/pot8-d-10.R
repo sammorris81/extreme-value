@@ -47,7 +47,6 @@ for (dataset in start:end) {
   x.o <- x[obs, , ]  # we don't actually use this in the mcmc, we use s
   s.o <- s[obs, ]
   
-  y.validate[, , d] <- y.d[!obs, ]
   x.p <- x[!obs, , ]  # we don't actually use this in the mcmc, we use s
   s.p <- s[!obs, ]
   
