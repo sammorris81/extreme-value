@@ -34,7 +34,7 @@ knots   <- expand.grid(knots.x, knots.x)
 setting <- 8
 analysis <- 6
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
-start <- 21; end <- 25
+start <- 31; end <- 35
 
 for (dataset in start:end) {
   outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
