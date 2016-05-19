@@ -1,14 +1,4 @@
-options(warn=2)
-library(fields)
-library(SpatialTools)
-library(mvtnorm)
-
-rm(list=ls())
-load('us-all-setup.RData')
-source('../../../R/mcmc.R', chdir=T)
-source('../../../R/auxfunctions.R')
-source('../max-stab/gen_data.R')
-source('../max-stab/MCMC4MaxStable.R')
+source("./package_load.R", chdir = TRUE)
 
 setting <- 2
 outputfile <- paste("us-all-", setting, ".RData", sep="")

@@ -1,12 +1,4 @@
-options(warn=2)
-library(fields)
-library(SpatialTools)
-library(mvtnorm)
-
-rm(list=ls())
-load('us-all-setup.RData')
-source('../../../R/mcmc.R', chdir=T)
-source('../../../R/auxfunctions.R')
+source("./package_load.R", chdir = TRUE)
 
 setting <- 19
 method <- "t"
