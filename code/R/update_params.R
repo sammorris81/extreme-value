@@ -1276,7 +1276,7 @@ updateKnotsTS_disc_lambda <- function(phi, knots, g, ts, tau, z, s, min.s,
   }
   
   for (t in 1:nt) {
-    att[t]   <- att[t] + 1
+    att[, t] <- att[, t] + 1
     taug.t   <- tau[g[, t], t]
     y.t      <- y[, t]
     x.beta.t <- x.beta[, t]
@@ -1329,7 +1329,7 @@ updateKnotsTS_disc_lambda <- function(phi, knots, g, ts, tau, z, s, min.s,
     }
     
     if (!is.na(R)) { if (log(runif(1)) < R) {
-      acc[t] <- acc[t] + 1
+      acc[, t] <- acc[, t] + 1
       knots.star[, , t] <- can.knots.star
       knots[, , t] <- can.knots
       g[, t] <- can.g
@@ -1376,6 +1376,7 @@ updateKnotsTS_cont_lambda <- function(phi, knots, g, ts, tau, z, s, min.s,
   }
   
   for (t in 1:nt) {
+    att[, t] <- att[, t] + 1
     taug.t   <- tau[g[, t], t]
     y.t      <- y[, t]
     x.beta.t <- x.beta[, t]
@@ -1384,7 +1385,6 @@ updateKnotsTS_cont_lambda <- function(phi, knots, g, ts, tau, z, s, min.s,
     cur.lly  <- 0.5 * sum(log(taug.t)) -
       0.5 * quad.form(prec, sqrt(taug.t) * res.t)
     
-    att[, t] <- att[, t] + 1
     can.knots.star <- cur.knots.star <- knots.star[, , t]
     for (k in 1:nknots) {
       can.knots.star[k, ] <- cur.knots.star[k, ] + mh[k, t] * rnorm(2)
