@@ -23,16 +23,7 @@
 #
 #########################################################################
 
-library(fields)
-library(SpatialTools)
-options(warn=2)
-
-#### Load simdata
-rm(list = ls())
-load(file='./simdata.RData')
-source('../../R/mcmc_cont_lambda.R', chdir=T)
-source('../../R/auxfunctions.R')
-
+source("./package_load.R", chdir = TRUE)
 setting <- 8
 analysis <- "b"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1

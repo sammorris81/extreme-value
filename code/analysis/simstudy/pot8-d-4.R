@@ -24,17 +24,7 @@
 #
 #########################################################################
 
-library(fields)
-library(SpatialTools)
-options(warn=2)
-
-#### Load simdata
-rm(list = ls())
-load(file='./simdata.RData')
-source('../../R/mcmc_cont_lambda.R', chdir=T)
-source('../../R/auxfunctions.R')
-source('./max-stab/Bayes_GEV.R')
-source('./max-stab/MCMC4MaxStable.R', chdir=T)
+source("./package_load.R", chdir = TRUE)
 
 # knots used in data generation
 knots.x <- seq(1, 9, length=12)
