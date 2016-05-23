@@ -7,17 +7,21 @@
 #   1 - Gaussian
 #   2 - t-1
 #   3 - t-5
-#   4 - skew t-1 (alpha = 3)
-#   5 - skew t-5 w/partition (alpha = 3)
-#   6 - max-stable with mu=1, sig=1, xi=0.1
+#   4 - skew t-1 (lambda = 3)
+#   5 - skew t-5 w/partition (lambda = 3)
+#   6 - max-stable with mu=1, sig=1, xi=0.2, alpha = 0.5, bw = 1
+#   7 - x = setting 4, set T = q(0.80)
+#       y = x,              x > T
+#       y = T * exp(x - T), x <= T
+#   8 - Brown-Resnick with range = 1, smooth = 0.5
 #
 # analysis methods:
 #  1 - Gaussian
 #  2 - skew t-1
 #  3 - t-1 (T = 0.80)
-#  4 - skew t-3
-#  5 - t-3 (T = 0.80)
-#  6 - max-stable
+#  4 - skew t-5
+#  5 - t-5 (T = 0.80)
+#  6 - Max-stable (T = 0.80)
 #
 #########################################################################
 
