@@ -33,8 +33,8 @@
 ###################################################################################
 if (!exists("dPS_cpp_sca") | !exists("dPS_cpp_mat")) {
   library(Rcpp)
-  Sys.setenv("PKG_CXXFLAGS"="-fopenmp")       # -msse4.2
-  Sys.setenv("PKG_LIBS"="-fopenmp")  # -msse4.2
+  # Sys.setenv("PKG_CXXFLAGS"="-fopenmp") # -msse4.2
+  # Sys.setenv("PKG_LIBS"="-fopenmp")     # -msse4.2
   sourceCpp(file = "./llps.cpp")
 }
 
