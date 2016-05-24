@@ -32,16 +32,16 @@ arma::mat dPS_cpp_mat(arma::mat a, double alpha, arma::vec psi,
   int ns = a.n_rows; int nt = a.n_cols;
   int nbins = psi.n_elem;
   int s; int t; int i;
-  double integral; double llst; double logc; double logint;
+  double integral; double llst; double logint;
   double ast; double psi_i;
   arma::mat ll(ns, nt); // arma::vec psi(nbins);
-  double ast_star; double lsapsi_i;
+  double ast_star; 
 
   // psi = dscal(nbins, PI, mid_points, 1);
   // psi = PI * mid_points;
 
 #pragma omp parallel for \
-  private(t, i, ast, ast_star, llst, logc, logint, integral, psi_i, lsapsi_i) \
+  private(t, i, ast, ast_star, llst, logint, integral, psi_i) \
   shared(a, alpha, ll, psi)
   for (s = 0; s < ns; s++) {
     for (t = 0; t < nt; t++) {
@@ -75,8 +75,8 @@ double dPS_cpp_sca(double ast, double alpha, arma::vec psi,
   int i;
   // arma::vec integral(nbins);
   double integral;
-  double llst; double psi_i; double logc; double logint;
-  double ll; double ast_star; double lsapsi_i;
+  double llst; double psi_i; double logint;
+  double ll; double ast_star; 
 
   // psi = dscal(nbins, PI, mid_points, 1);
   ast_star = pow(ast, (-alpha / (1 - alpha)));
@@ -84,8 +84,8 @@ double dPS_cpp_sca(double ast, double alpha, arma::vec psi,
 
   integral = 0;
 #pragma omp parallel for reduction(+:integral) \
-  private(psi_i, logc, logint) \
-  shared(alpha, psi, ast_star, lsapsi_i)
+  private(psi_i, logint) \
+  shared(alpha, psi, ast_star)
   for (i = 0; i < nbins; i++) {
     psi_i = psi[i];
     logint = integral_component(&psi_i, &alpha, &ast_star);
