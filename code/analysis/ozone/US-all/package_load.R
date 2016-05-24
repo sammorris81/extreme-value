@@ -7,6 +7,7 @@ library(compiler)
 enableJIT(3)
 
 load('us-all-setup.RData')
+source('~/repos-git/usefulR/usefulfunctions.R', chdir = T)
 source('../../../R/mcmc_cont_lambda.R', chdir=T)
 source('../../../R/auxfunctions.R')
 source('../max-stab/MCMC4MaxStable.R', chdir=T)
