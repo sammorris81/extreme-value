@@ -501,23 +501,31 @@ rpotspatTS_cont_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
 #                         locations
 #   probs(nprobs): sample quantiles for scoring
 #   validate(np, nt): validation data
+#   trans(bool): are the mcmc predictions transposed
 #
 # Returns:
 #   score(nprobs): a single quantile score per quantile
 ################################################################
-QuantScore <- function(preds, probs, validate) {
+QuantScore <- function(preds, probs, validate, trans = FALSE) {
 
   nt <- ncol(validate)  # number of prediction days
   np <- nrow(validate)  # number of prediction sites
   nprobs <- length(probs)  # number of quantiles to find quantile score
 
-  # we need to know the predicted quantiles for each site and day in the validation set
-  pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
+  # we get the predicted quantile for each site nprobs x np
+  if (trans) {
+    pred.quants <- apply(preds, 3, quantile, probs = probs, na.rm = T)
+  } else {
+    pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
+  }
 
+  pred.quants <- t(pred.quants)  # need np x nprobs for proper matrix subtraction
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
-
+  
+  # we need to figure out how many times the site did or didn't exceed the prediction
+  
   for (q in 1:nprobs) {
-    diff <- pred.quants[q, ] - validate
+    diff <- pred.quants[, q] - validate
     i <- diff >= 0  # diff >= 0 means qhat is larger
     scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
   }

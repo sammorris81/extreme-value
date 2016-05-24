@@ -1,4 +1,6 @@
+rm(list = ls())
 source("./package_load.R", chdir = TRUE)
+load("../ozone_data.RData")
 
 setting <- 1
 method <- "gaussian"
@@ -12,7 +14,7 @@ temporalz <- FALSE
 temporaltau <- FALSE
 beta.init <- 0
 tau.init <- 1
-outputfile <- paste("us-all-full-", setting, ".RData", sep="")
+outputfile <- paste("results/us-all-full-", setting, ".RData", sep="")
 
 # rescale x and y coordinates to make easier to work with
 x <- x / 1000
@@ -25,6 +27,22 @@ Y       <- Y[-excl, ]
 S       <- S[-excl, ]
 CMAQ.cs <- (CMAQ - mean(CMAQ)) / sd(CMAQ)  # center and scale CMAQ data
 cmaq    <- CMAQ.cs[index, ]  # extract cmaq for sites
+
+#### Some site locations are duplicated which prevents us from having a positive 
+#### definite covariance matrix. So we find the duplicated sites and slightly 
+#### to make covariance matrix positive definite
+set.seed(548837)  # jitter
+d <- rdist(S)
+same <- which(d == 0, arr.ind = TRUE)
+same <- same[same[, 1] != same[, 2], ]
+while (nrow(same) > 0) {
+  S[same[1, 1], ] <- S[same[1, 1], ] + rnorm(1, 0, 0.00001)
+  S[same[1, 2], ] <- S[same[1, 2], ] + rnorm(1, 0, 0.00001)
+  d <- rdist(S)
+  same <- which(d == 0, arr.ind = TRUE)
+  same <- same[same[, 1] != same[, 2], ]
+  print(nrow(same))
+}
 
 # make design matrix
 nt <- ncol(Y)
@@ -39,6 +57,7 @@ y.o <- Y
 X.o <- X
 S.o <- S
 
+set.seed(setting * 100)
 tic.set <- proc.time()
 fit <- mcmc(y=y.o, s=S.o, x=X.o, # x.pred=X.p, s.pred=S.p,
             method=method, skew=skew, keep.knots=keep.knots,
@@ -54,4 +73,3 @@ time.set <- (toc.set - tic.set)[3]
 elap.time.val <- (proc.time() - start)[3]
 avg.time.val <- elap.time.val
 save(fit, file=outputfile)
-

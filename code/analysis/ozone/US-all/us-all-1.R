@@ -15,7 +15,7 @@ fit <- vector(mode="list", length=2)
 
 for(val in 1:2){
 
-	set.seed(setting*100 + val)
+	set.seed(setting * 100 + val)
 
 	cat("CV", val, "started \n")
 	val.idx <- cv.lst[[val]]
