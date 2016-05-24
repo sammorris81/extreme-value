@@ -1,4 +1,7 @@
 % \documentclass[11pt]{article}
+%DIF LATEXDIFF DIFFERENCE FILE
+%DIF DEL skewt-orig.tex   Tue May 24 11:45:09 2016
+%DIF ADD skewt-rev.tex    Tue May 24 11:45:01 2016
 \documentclass[useAMS,usenatbib,referee]{biom}
 % \usepackage{amssymb, amsthm, amsmath}
 \usepackage{amssymb, amsmath}
@@ -18,7 +21,11 @@
 
 % cross-referencing appendices
 \usepackage{xr}
-\externaldocument{supplemental}
+%DIF 21c21
+%DIF < \externaldocument{supplemental-orig}
+%DIF -------
+\externaldocument{supplemental-rev} %DIF > 
+%DIF -------
 
 % \usepackage[left=1in,top=1in,right=1in]{geometry}
 % \pdfpageheight 11in
@@ -34,6 +41,25 @@ Emeric Thibaud$^{2}$, and
 Daniel Cooley$^{2}$\\
 $^{1}$Department of Statistics, North Carolina State University, Raleigh, North Carolina, U.S.A. \\
 $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorado, U.S.A.}
+%DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
+%DIF UNDERLINE PREAMBLE %DIF PREAMBLE
+\RequirePackage[normalem]{ulem} %DIF PREAMBLE
+\RequirePackage{color}\definecolor{RED}{rgb}{1,0,0}\definecolor{BLUE}{rgb}{0,0,1} %DIF PREAMBLE
+\providecommand{\DIFadd}[1]{{\protect\color{blue}\uwave{#1}}} %DIF PREAMBLE
+\providecommand{\DIFdel}[1]{{\protect\color{red}\sout{#1}}}                      %DIF PREAMBLE
+%DIF SAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{} %DIF PREAMBLE
+\providecommand{\DIFaddend}{} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+%DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
 
 \begin{document} %\linenumbers
 % \begin{center}
