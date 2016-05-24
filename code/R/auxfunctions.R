@@ -2,20 +2,20 @@
 # Common data transformations
 ################################################################################
 transform <- list(
-  logit = function(x, lower=0, upper=1) {
+  logit = function(x, lower = 0, upper = 1) {
     x <- (x - lower) / (upper - lower)
     return(log(x / (1 - x)))
   },
-  inv.logit = function(x, lower=0, upper=1) {
+  inv.logit = function(x, lower = 0, upper = 1) {
     p <- exp(x) / (1 + exp(x))
     p <- p * (upper - lower) + lower
     return(p)
   },
-  probit = function(x, lower=0, upper=1) {
+  probit = function(x, lower = 0, upper = 1) {
     x <- (x - lower) / (upper - lower)
     return(qnorm(x))
   },
-  inv.probit = function(x, lower=0, upper=1) {
+  inv.probit = function(x, lower = 0, upper = 1) {
     p <- pnorm(x)
     p <- p * (upper - lower) + lower
     return(p)
@@ -23,11 +23,11 @@ transform <- list(
   log = function(x) log(x),
   exp = function(x) exp(x),
   copula = function(dens) {
-    this.dens <- paste("p", dens, sep="")
+    this.dens <- paste("p", dens, sep = "")
     function(x, ...) qnorm(do.call(this.dens, args=list(x, ...)))
   },
   inv.copula = function(dens) {
-    this.dens <- paste("q", dens, sep="")
+    this.dens <- paste("q", dens, sep = "")
     function(x, ...) do.call(this.dens, args=list(pnorm(x), ...))
   }
 )
@@ -40,7 +40,7 @@ transform <- list(
 # Half normal: Z* = |Z| is HN(0, sig) when Z ~ N(0, sig)
 # Note: the location parameter must be 0
 #################################################################
-dhn <- function(x, sig=1, log=FALSE) {
+dhn <- function(x, sig = 1, log = FALSE) {
   if (sum(x < 0) > 0) {
     stop("x must be non-negative")
   }
@@ -53,7 +53,7 @@ dhn <- function(x, sig=1, log=FALSE) {
   }
 }
 
-phn <- function(x, sig=1, lower.tail=TRUE) {
+phn <- function(x, sig = 1, lower.tail = TRUE) {
   if (sum(x < 0) > 0) {
     stop("x must be non-negative")
   }
@@ -64,7 +64,7 @@ phn <- function(x, sig=1, lower.tail=TRUE) {
   return(p.val)
 }
 
-qhn <- function(p, sig=1, lower.tail=TRUE) {  # for the half normal density, mu = 0
+qhn <- function(p, sig = 1, lower.tail = TRUE) {  # for the half normal density, mu = 0
   if (!lower.tail) {
     p <- 1 - p
   }
@@ -75,10 +75,10 @@ qhn <- function(p, sig=1, lower.tail=TRUE) {  # for the half normal density, mu 
 ################################################################################
 # Useful copulas
 ################################################################################
-gamma.cop    <- transform$copula(dens="gamma")
-gamma.invcop <- transform$inv.copula(dens="gamma")
-hn.cop    <- transform$copula(dens="hn")
-hn.invcop <- transform$inv.copula(dens="hn")
+gamma.cop    <- transform$copula(dens = "gamma")
+gamma.invcop <- transform$inv.copula(dens = "gamma")
+hn.cop    <- transform$copula(dens = "hn")
+hn.invcop <- transform$inv.copula(dens = "hn")
 
 ################################################################################
 # MCMC Metropolis SD update
@@ -96,7 +96,7 @@ hn.invcop <- transform$inv.copula(dens="hn")
 # Returns:
 #   mh: updated mh sd
 #################################################################
-mhupdate <- function(acc, att, mh, nattempts=50, lower=0.8, higher=1.2) {
+mhupdate <- function(acc, att, mh, nattempts = 50, lower = 0.8, higher = 1.2) {
   acc.rate     <- acc / att
   these.update <- att > nattempts
   these.low    <- (acc.rate < 0.25) & these.update
@@ -108,7 +108,7 @@ mhupdate <- function(acc, att, mh, nattempts=50, lower=0.8, higher=1.2) {
   acc[these.update] <- 0
   att[these.update] <- 0
 
-  results <- list(acc=acc, att=att, mh=mh)
+  results <- list(acc = acc, att = att, mh = mh)
   return(results)
 }
 
@@ -138,7 +138,7 @@ rss <- function(prec, y) {
 # Returns:
 #   y(nt): truncated normal data
 #########################################################################
-rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0) {
+rTNorm <- function(mn, sd, lower = -Inf, upper = Inf, fudge = 0) {
   lower.u <- pnorm(lower, mn, sd)
   upper.u <- pnorm(upper, mn, sd)
 
@@ -160,15 +160,18 @@ rTNorm <- function(mn, sd, lower=-Inf, upper=Inf, fudge=0) {
 CorFx <- function(d, gamma, rho, nu) {
   if (rho < 1e-6) {
   	n <- nrow(d)
-  	cor <- diag(1, nrow=n)
+  	cor <- diag(1, nrow = n)
   } else {
     if (nu == 0.5) {
-      cor <- gamma * simple.cov.sp(D=d, sp.type="exponential", sp.par=c(1, rho),
-                                   error.var=0, smoothness=nu, finescale.var=0)
+      cor <- gamma * simple.cov.sp(D = d, sp.type = "exponential", 
+                                   sp.par = c(1, rho),
+                                   error.var = 0, smoothness = nu, 
+                                   finescale.var = 0)
     } else {
-      cor <- tryCatch(simple.cov.sp(D=d, sp.type="matern", sp.par=c(1, rho),
-                                    error.var=0, smoothness=nu,
-                                    finescale.var=0),
+      cor <- tryCatch(simple.cov.sp(D = d, sp.type = "matern", 
+                                    sp.par = c(1, rho),
+                                    error.var = 0, smoothness = nu,
+                                    finescale.var = 0),
                       warning=function(e) {
                         cat("rho = ", rho, "\n")
                         cat("nu = ", nu, "\n")
@@ -182,7 +185,7 @@ CorFx <- function(d, gamma, rho, nu) {
   return(cor)
 }
 
-eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
+eig.inv <- function(Q, inv = TRUE, logdet = TRUE, mtx.sqrt = TRUE, thresh=1e-7){
   cor.inv <- NULL
   logdet.prec <- NULL
   cor.sqrt <- NULL
@@ -196,7 +199,7 @@ eig.inv <- function(Q, inv=T, logdet=T, mtx.sqrt=T, thresh=0.0000001){
   if (inv) { cor.inv <- sweep(V, 2, D.inv, "*") %*% t(V) }
   if (mtx.sqrt) { cor.sqrt <- sweep(V, 2, sqrt(D), "*") %*% t(V) }
 
-  results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=cor.sqrt)
+  results <- list(prec = cor.inv, logdet.prec = logdet.prec, sd.mtx = cor.sqrt)
 
   return(results)
 }
@@ -209,7 +212,7 @@ chol.inv <- function(Q, inv=T, logdet=T) {
   if (inv) { cor.inv <- chol2inv(chol.Q) }
   if (logdet) { logdet.prec <- -sum(log(diag(chol.Q))) }
 
-  results <- list(prec=cor.inv, logdet.prec=logdet.prec, sd.mtx=chol.Q)
+  results <- list(prec = cor.inv, logdet.prec = logdet.prec, sd.mtx = chol.Q)
   return(results)
 }
 
@@ -249,17 +252,17 @@ rpotspat <- function(nt, x, s, beta, gamma, nu, rho, dist, lambda,
   z  <- matrix(NA, nknots, nt)
   g  <- matrix(NA, ns, nt)
   d  <- as.matrix(dist(s))
-  C  <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  C  <- CorFx(d = d, gamma = gamma, rho = rho, nu = nu)
 
   if (dist == "t") {
     tau <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
   } else {
-    tau <- matrix(0.25, nrow=nknots, ncol=nt)
+    tau <- matrix(0.25, nrow = nknots, ncol = nt)
   }
   sd <- 1 / sqrt(tau)
   z  <- sd * matrix(abs(rnorm(nknots * nt, 0, 1)), nknots, nt)
 
-  knots  <- array(NA, dim=c(nknots, 2, nt))
+  knots  <- array(NA, dim = c(nknots, 2, nt))
   min.s1 <- min(s[, 1])
   max.s1 <- max(s[, 1])
   min.s2 <- min(s[, 2])
@@ -288,11 +291,11 @@ rpotspat <- function(nt, x, s, beta, gamma, nu, rho, dist, lambda,
     y[, t] <- y.t
   }
 
-  results <- list(y=y, tau=tau, z=z, knots=knots)
+  results <- list(y = y, tau = tau, z = z, knots = knots)
 }
 
 makeKnotsTS <- function(nt, nknots, s, phi) {
-  knots.star <- knots <- array(NA, dim=c(nknots, 2, nt))
+  knots.star <- knots <- array(NA, dim = c(nknots, 2, nt))
   min.s1 <- min(s[, 1])
   max.s1 <- max(s[, 1])
   range.s1 <- max.s1 - min.s1
@@ -311,66 +314,54 @@ makeKnotsTS <- function(nt, nknots, s, phi) {
     knots.star[, 2, t] <- phi * knots.star[, 2, (t - 1)] +
                           sqrt(1 - phi^2) * rnorm(nknots)
   }
-  knots[, 1, ] <- transform$inv.probit(knots.star[, 1, ], lower=min.s1,
-                                       upper=max.s1)
-  knots[, 2, ] <- transform$inv.probit(knots.star[, 2, ], lower=min.s2,
-                                       upper=max.s2)
+  knots[, 1, ] <- transform$inv.probit(knots.star[, 1, ], lower = min.s1,
+                                       upper = max.s1)
+  knots[, 2, ] <- transform$inv.probit(knots.star[, 2, ], lower = min.s2,
+                                       upper = max.s2)
 
   return(knots)
 }
 
 makeTauTS <- function(nt, nknots, tau.alpha, tau.beta, phi) {
-  tau.star <- matrix(NA, nrow=nknots, ncol=nt)
+  tau.star <- matrix(NA, nrow = nknots, ncol = nt)
   tau.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
     tau.star[, t] <- phi * tau.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
   }
 
-  tau <- gamma.invcop(x=tau.star, tau.alpha, tau.beta)
+  tau <- gamma.invcop(x = tau.star, tau.alpha, tau.beta)
   return(tau)
 }
 
-makeZTS <- function(nt, nknots, tau, phi, lambda.2) {
-  z.star <- matrix(NA, nrow=nknots, ncol=nt)
+makeZTS_disc_lambda <- function(nt, nknots, tau, phi, lambda.2) {
+  z.star <- matrix(NA, nrow = nknots, ncol = nt)
   z.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
     z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
   }
 
   sd <- 1 / sqrt(tau * lambda.2)
-  z  <- hn.invcop(x=z.star, sig=sd)
+  z  <- hn.invcop(x = z.star, sig = sd)
 
   return(z)
 }
 
-makeZTS1 <- function(nt, nknots, tau, phi) {
-  z.star <- matrix(NA, nrow=nknots, ncol=nt)
+makeZTS_cont_lambda <- function(nt, nknots, tau, phi) {
+  z.star <- matrix(NA, nrow = nknots, ncol = nt)
   z.star[, 1] <- rnorm(nknots, 0, 1)
   for (t in 2:nt) {
     z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
   }
 
   sd <- 1 / sqrt(tau)
-  z  <- hn.invcop(x=z.star, sig=sd)
+  z  <- hn.invcop(x = z.star, sig = sd)
 
   return(z)
 }
 
-makeZTS2 <- function(nt, nknots, tau, phi) {
-  z.star <- matrix(NA, nrow=nknots, ncol=nt)
-  z.star[, 1] <- rnorm(nknots, 0, 1)
-  for (t in 2:nt) {
-    z.star[, t] <- phi * z.star[, (t - 1)] + sqrt(1 - phi^2) * rnorm(nknots)
-  }
-
-  sd <- 1 / sqrt(tau)
-  z  <- hn.invcop(x=z.star, sig=sd)
-
-  return(z)
-}
-
-rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
-                       lambda, tau.alpha, tau.beta, nknots, dist) {
+rpotspatTS_disc_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
+                                   phi.tau, lambda, tau.alpha, tau.beta, nknots, 
+                                   dist) {
 
   p <- dim(x)[3]
   ns <- nrow(s)
@@ -391,24 +382,25 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     lambda.2 <- 1 / lambda^2
   }
 
-  C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  C <- CorFx(d = d, gamma = gamma, rho = rho, nu = nu)
   chol.C <- chol(C)
   t.chol.C <- t(chol.C)
   if (dist == "t") {
-    tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
-                     tau.beta=tau.beta, phi=phi.tau)
+    tau <- makeTauTS(nt = nt, nknots = nknots, tau.alpha = tau.alpha,
+                     tau.beta = tau.beta, phi = phi.tau)
   } else if (dist == "gaussian") {
     tau <- matrix(0.25, nknots, nt)
   }
   sd <- 1 / sqrt(tau)
 
   if (skew) {
-    z <- makeZTS(nt=nt, nknots=nknots, tau=tau, phi=phi.z, lambda.2=lambda.2)
+    z <- makeZTS_disc_lambda(nt = nt, nknots = nknots, tau = tau, phi = phi.z, 
+                             lambda.2 = lambda.2)
   } else {
-    z <- matrix(0, nrow=nknots, ncol=nt)
+    z <- matrix(0, nrow = nknots, ncol = nt)
   }
 
-  knots <- makeKnotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
+  knots <- makeKnotsTS(nt = nt, nknots = nknots, s = s, phi = phi.w)
 
   for (t in 1:nt) {
     knots.t <- matrix(knots[, , t], nknots, 2)
@@ -418,7 +410,7 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     sdg    <- 1 / sqrt(taug)
 
     if (p == 1) {
-      x.beta <- x[, t, , drop=F] * beta
+      x.beta <- x[, t, , drop = FALSE] * beta
     } else {
       x.beta <- x[, t, ] %*% beta
     }
@@ -429,11 +421,12 @@ rpotspatTS <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     y[, t] <- y.t
   }
 
-  results <- list(y=y, tau=tau, z=z, knots=knots)
+  results <- list(y = y, tau = tau, z = z, knots = knots)
 }
 
-rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
-                        lambda, tau.alpha, tau.beta, nknots, dist) {
+rpotspatTS_cont_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, 
+                                   phi.tau, lambda, tau.alpha, tau.beta, nknots, 
+                                   dist) {
 
   p <- dim(x)[3]
   ns <- nrow(s)
@@ -451,13 +444,13 @@ rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     skew     <- TRUE
   }
 
-  C <- CorFx(d=d, gamma=gamma, rho=rho, nu=nu)
+  C <- CorFx(d = d, gamma = gamma, rho = rho, nu = nu)
   chol.C <- chol(C)
   t.chol.C <- t(chol.C)
   if (dist == "t") {
     if (phi.tau != 0) {
-      tau <- makeTauTS(nt=nt, nknots=nknots, tau.alpha=tau.alpha,
-                       tau.beta=tau.beta, phi=phi.tau)
+      tau <- makeTauTS(nt = nt, nknots = nknots, tau.alpha = tau.alpha,
+                       tau.beta = tau.beta, phi = phi.tau)
     } else {
       tau <- matrix(rgamma(nknots * nt, tau.alpha, tau.beta), nknots, nt)
     }
@@ -468,15 +461,15 @@ rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 
   if (skew) {
     if (phi.z != 0) {
-      z <- makeZTS1(nt=nt, nknots=nknots, tau=tau, phi=phi.z)
+      z <- makeZTS_cont_lambda(nt = nt, nknots = nknots, tau = tau, phi = phi.z)
     } else {
       z <- abs(matrix(rnorm(nknots * nt, 0, sd), nknots, nt))
     }
   } else {
-    z <- matrix(0, nrow=nknots, ncol=nt)
+    z <- matrix(0, nrow = nknots, ncol = nt)
   }
 
-  knots <- makeKnotsTS(nt=nt, nknots=nknots, s=s, phi=phi.w)
+  knots <- makeKnotsTS(nt = nt, nknots = nknots, s = s, phi = phi.w)
 
   for (t in 1:nt) {
     knots.t <- matrix(knots[, , t], nknots, 2)
@@ -486,7 +479,7 @@ rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     sdg     <- 1 / taug.t
 
     if (p == 1) {
-      x.beta <- x[, t, , drop=F] * beta
+      x.beta <- x[, t, , drop = FALSE] * beta
     } else {
       x.beta <- x[, t, ] %*% beta
     }
@@ -497,7 +490,7 @@ rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
     y[, t] <- y.t
   }
 
-  results <- list(y=y, tau=tau, z=z, knots=knots)
+  results <- list(y = y, tau = tau, z = z, knots = knots)
 }
 
 
@@ -508,23 +501,31 @@ rpotspatTS1 <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, phi.tau,
 #                         locations
 #   probs(nprobs): sample quantiles for scoring
 #   validate(np, nt): validation data
+#   trans(bool): are the mcmc predictions transposed
 #
 # Returns:
 #   score(nprobs): a single quantile score per quantile
 ################################################################
-QuantScore <- function(preds, probs, validate) {
+QuantScore <- function(preds, probs, validate, trans = FALSE) {
 
   nt <- ncol(validate)  # number of prediction days
   np <- nrow(validate)  # number of prediction sites
   nprobs <- length(probs)  # number of quantiles to find quantile score
 
-  # we need to know the predicted quantiles for each site and day in the validation set
-  pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)  # gives nprobs x np x nt
+  # we get the predicted quantile for each site nprobs x np
+  if (trans) {
+    pred.quants <- apply(preds, 3, quantile, probs = probs, na.rm = T)
+  } else {
+    pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
+  }
 
+  pred.quants <- t(pred.quants)  # need np x nprobs for proper matrix subtraction
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
-
+  
+  # we need to figure out how many times the site did or didn't exceed the prediction
+  
   for (q in 1:nprobs) {
-    diff <- pred.quants[q, ] - validate
+    diff <- pred.quants[, q] - validate
     i <- diff >= 0  # diff >= 0 means qhat is larger
     scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
   }
@@ -547,7 +548,7 @@ QuantScore <- function(preds, probs, validate) {
 #     scores(nthreshs): a single brier score per threshold
 #     threshs(nthreshs): sample quantiles from dataset
 ################################################################
-BrierScore <- function(preds, thresholds, validate, trans=FALSE) {
+BrierScore <- function(preds, thresholds, validate, trans = FALSE) {
   nthreshs <- length(thresholds)
   np <- nrow(validate)
   scores <- rep(NA, nthreshs)
@@ -576,7 +577,7 @@ BrierScore <- function(preds, thresholds, validate, trans=FALSE) {
 #   scores(nthreshs): a single brier score per site
 #   threshs(nthreshs): sample quantiles from dataset
 ################################################################
-BrierScoreSite <- function(preds, thresholds, validate, trans=FALSE) {
+BrierScoreSite <- function(preds, thresholds, validate, trans = FALSE) {
   nthreshs <- length(thresholds)
   np <- nrow(validate)
   scores <- matrix(NA, np, nthreshs)
@@ -594,41 +595,3 @@ BrierScoreSite <- function(preds, thresholds, validate, trans=FALSE) {
 
   return(scores)
 }
-
-
-# QuantScore <- function(preds, probs, validate){
-  # nt <- ncol(validate)
-  # np <- nrow(validate)
-  # nprobs <- length(probs)
-
-  # # apply gives nprobs x nsites. looking to find each site's quantile over all
-  # # of the days.
-  # pred.quants <- apply(preds, 2, quantile, probs=probs, na.rm=T)
-
-  # scores.sites <- array(NA, dim=c(nprobs, np, nt))
-
-  # for (q in 1:nprobs) {
-    # diff <- pred.quants[q, ] - validate
-    # i <- ifelse(diff >= 0, 1, 0)
-    # scores.sites[q, , ] <- 2 * (i - probs[q]) * diff
-  # }
-
-  # scores <- apply(scores.sites, 1, mean, na.rm=T)
-
-  # return(scores)
-# }
-
-
-# BrierScore <- function(preds, probs, validate){
-  # nthreshs <- length(probs)
-  # thresholds <- quantile(validate, probs=probs, na.rm=T)
-
-  # scores <- rep(NA, nthreshs)
-  # for (b in 1:nthreshs) {
-    # pat <- apply((preds > thresholds[b]), c(2, 3), mean)
-    # ind <- validate < thresholds[b]
-    # scores[b] <- mean((ind - pat)^2, na.rm=T)
-  # }
-
-  # return(scores)
-# }

@@ -1715,7 +1715,7 @@ to 7.75pt{\tiny C}}}
 \def\ftype@figure{2}
 \def\fstyle@figure{\reset@font\small\rm}
 \def\ext@figure{lof}
-\def\fnum@figure{{\bf Figure \thefigure}}
+\def\fnum@figure{{\bf Web Figure \thefigure}}
 %%
 \newenvironment{figure}
                {\@float{figure}}

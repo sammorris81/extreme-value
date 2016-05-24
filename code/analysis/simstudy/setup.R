@@ -13,6 +13,7 @@
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
 #       y = T * exp(x - T), x <= T
+#   8 - Brown-Resnick with range = 1, smooth = 0.5
 #
 # analysis methods:
 #  1 - Gaussian
@@ -20,9 +21,10 @@
 #  3 - t-1 (T = 0.80)
 #  4 - skew t-5
 #  5 - t-5 (T = 0.80)
+#  6 - Max-stable (T = 0.80)
 #
 #########################################################################
-
+##### For revisions, see below initial generation
 # clean out previous variables
 rm(list=ls())
 
@@ -31,7 +33,7 @@ library(fields)
 library(SpatialTools)
 
 # necessary functions
-source('../../R/mcmc.R', chdir=T)
+source('../../R/mcmc_cont_lambda.R', chdir=T)
 source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
 
@@ -54,13 +56,13 @@ knots.gev <- expand.grid(knots.x, knots.x)
 ns        <- nrow(s)
 nt        <- 50
 nsets     <- 50
-nsettings <- 7
+nsettings <- 8
 ntest     <- 44
 
 x <- array(1, c(ns, nt, 3))
 for (t in 1:nt) {
-    x[, t, 2] <- s[, 1]
-    x[, t, 3] <- s[, 2]
+  x[, t, 2] <- s[, 1]
+  x[, t, 3] <- s[, 2]
 }
 
 # Storage for datasets
@@ -106,10 +108,10 @@ for (setting in 1:nsettings) {
       y.set   <- data$y
       y.quant <- quantile(y.set, probs=0.80)
       y.set   <- ifelse(
-                    y.set < y.quant,
-                    y.quant * exp((y.set - y.quant)/3),
-                    y.set
-                 )
+        y.set < y.quant,
+        y.quant * exp((y.set - y.quant)/3),
+        y.set
+      )
       y[, , set, setting] <- y.set
 
       tau.t.setting[, , set]     <- data$tau
@@ -121,6 +123,34 @@ for (setting in 1:nsettings) {
     knots.t[[setting]] <- knots.t.setting
   }
 }
+
+save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
+     x, # covariate data that should be the same for all datasets
+     file='simdata.RData')
+
+# modify simdata for revisions
+rm(list = ls())
+library(fields)
+library(SpatialTools)
+library(SpatialExtremes)
+source('../../R/mcmc_cont_lambda.R', chdir=T)
+source('../../R/auxfunctions.R')
+source('./max-stab/Bayes_GEV.R')
+load(file = 'simdata.RData')
+ns        <- dim(y)[1]
+nt        <- dim(y)[2]
+nsets     <- dim(y)[3]
+nsettings <- 8  # add in brown-resnick setting
+y.new <- array(NA, dim = c(ns, nt, nsets, nsettings))
+y.new[, , , 1:7] <- y[, , , 1:7]
+setting <- 8
+for (set in 1:nsets) {
+  set.seed(setting * 100 + set)
+  y.new[, , set, 8] <- t(rmaxstab(n = nt, coord = s, cov.mod = "brown", range = 1,
+                                  smooth = 0.5))
+  print(paste("finished set", set))
+}
+y <- y.new
 
 save(y, tau.t, z.t, knots.t, ns, nt, s, nsets, ntest,
      x, # covariate data that should be the same for all datasets
@@ -149,15 +179,15 @@ quilt.plot(s[, 1], s[, 2], z=y.gau$y[, 1], nx=50, ny=50, main="Gaussian")
 hist(y.gau$y, main="Histogram", xlab="")
 
 y.t1 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
-                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
-                  tau.beta=tau.beta.t, nknots=1)
+                 gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
+                 tau.beta=tau.beta.t, nknots=1)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.t1$y[, 1], nx=50, ny=50, main="t, K=1")
 hist(y.t1$y, main="Histogram", xlab="")
 
 y.t3 <- rpotspat(nt=2, x=X, s=s, beta=c(10, 0, 0), alpha=alpha.t, nu=nu.t,
-                  gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
-                  tau.beta=tau.beta.t, nknots=3)
+                 gau.rho=0.1, t.rho=0.1, mixprob=1, z.alpha=0, tau.alpha=tau.alpha.t,
+                 tau.beta=tau.beta.t, nknots=3)
 par(mfrow=c(1, 2))
 quilt.plot(s[, 1], s[, 2], z=y.t3$y[, 1], nx=50, ny=50, main="t, K=3")
 hist(y.t3$y, main="Histogram", xlab="")

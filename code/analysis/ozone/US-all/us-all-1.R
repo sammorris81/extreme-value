@@ -1,12 +1,4 @@
-options(warn=2)
-library(fields)
-library(SpatialTools)
-library(mvtnorm)
-
-rm(list=ls())
-load('us-all-setup.RData')
-source('../../../R/mcmc.R', chdir=T)
-source('../../../R/auxfunctions.R')
+source("./package_load.R", chdir = TRUE)
 
 setting <- 1
 method <- "gaussian"
@@ -23,7 +15,7 @@ fit <- vector(mode="list", length=2)
 
 for(val in 1:2){
 
-	set.seed(setting*100 + val)
+	set.seed(setting * 100 + val)
 
 	cat("CV", val, "started \n")
 	val.idx <- cv.lst[[val]]

@@ -13,6 +13,7 @@
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
 #       y = T * exp(x - T), x <= T
+#   8 - Brown-Resnick with range = 1, smooth = 0.5
 #
 # analysis methods:
 #  1 - Gaussian
@@ -20,29 +21,18 @@
 #  3 - t-1 (T = 0.80)
 #  4 - skew t-5
 #  5 - t-5 (T = 0.80)
+#  6 - Max-stable (T = 0.80)
 #
 #########################################################################
 
-library(fields)
-library(SpatialTools)
-options(warn=2)
-
-#### Load simdata
-rm(list = ls())
-load(file='./simdata.RData')
-source('../../R/mcmc.R', chdir=T)
-source('../../R/auxfunctions.R')
-
+source("./package_load.R", chdir = TRUE)
 setting <- 6
-analysis <- "c"
 iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
 nsets <- 5
 
 for (g in 1:10) {
-  fit.1 <- fit.2 <- fit.3 <- vector(mode="list", length=nsets)
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
-  outputfile <- paste(setting, "-", analysis, "-", g, ".RData", sep="")
-
+  
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
@@ -53,62 +43,70 @@ for (g in 1:10) {
     y.o <- y.d[obs, ]
     x.o <- x[obs, , ]
     s.o <- s[obs, ]
-
+    
     y.validate[, , d] <- y.d[!obs, ]
     x.p <- x[!obs, , ]
     s.p <- s[!obs, ]
-
-    cat("  start: gaussian - Set", dataset, "\n")
-    tic <- proc.time()
-    fit.1[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="gaussian", skew=FALSE, thresh.all=0,
-                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
-                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-                       rho.upper=15, nu.upper=10)
-    toc <- proc.time()
-    cat("  gaussian took:", (toc - tic)[3], "\n")
-    cat("  end: gaussian \n")
-    cat("------------------\n")
-
+    
+    # cat("  start: gaussian - Set", dataset, "\n")
+    # analysis <- 1
+    # outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    # tic <- proc.time()
+    # fit.1 <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+    #               method="gaussian", skew=FALSE, thresh.all=0,
+    #               thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
+    #               burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+    #               temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+    #               rho.upper=15, nu.upper=10)
+    # toc <- proc.time()
+    # cat("  gaussian took:", (toc - tic)[3], "\n")
+    # cat("  end: gaussian \n")
+    # cat("------------------\n")
+    # save(fit.1, file=outputfile)
+    # rm(fit.1)
+    
     cat("  start: skew t-1 - Set", dataset, "\n")
+    analysis <- 2
+    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
     tic <- proc.time()
-    fit.2[[d]] <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=TRUE, thresh.all=0,
-                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
-                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-                       rho.upper=15, nu.upper=10)
+    fit.1 <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+                  method="t", skew=TRUE, thresh.all=0,
+                  thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
+                  burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+                  temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                  rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  skew t-1 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-1 \n")
     cat("------------------\n")
-
-    cat("start: t-1 (T=0.80) - Set", dataset, "\n")
-    tic <- proc.time()
-    fit.3[[d]] <- tryCatch(
-                    mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=FALSE, thresh.all=0.80,
-                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
-                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-                       rho.upper=15, nu.upper=10),
-                  error=function(e) {
-                    mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=FALSE, thresh.all=0.80,
-                       thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
-                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-                       rho.upper=15, nu.upper=10, cov.model="exponential")
-                  })
-    toc <- proc.time()
-    cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
-    cat("  end: t-1 (T=0.80) \n")
-    cat("------------------\n")
-
-    save(fit.1, fit.2, fit.3, file=outputfile)
+    save(fit.1, file=outputfile)
+    rm(fit.1)
+    
+    # cat("start: t-1 (T=0.80) - Set", dataset, "\n")
+    # analysis <- 3
+    # outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    # tic <- proc.time()
+    # fit.1 <- tryCatch(
+    #   mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+    #        method="t", skew=FALSE, thresh.all=0.80,
+    #        thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
+    #        burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+    #        temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+    #        rho.upper=15, nu.upper=10),
+    #   error=function(e) {
+    #     mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
+    #          method="t", skew=FALSE, thresh.all=0.80,
+    #          thresh.quant=TRUE, nknots=1, iterplot=FALSE, iters=iters,
+    #          burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+    #          temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+    #          rho.upper=15, nu.upper=10, cov.model="exponential")
+    #   })
+    # toc <- proc.time()
+    # cat("  t-1 (T=0.80) took:", (toc - tic)[3], "\n")
+    # cat("  end: t-1 (T=0.80) \n")
+    # cat("------------------\n")
+    # save(fit.1, file=outputfile)
+    # rm(fit.1)
   }
-
-  rm(fit.1, fit.2, fit.3)
-  gc()
+  
 }

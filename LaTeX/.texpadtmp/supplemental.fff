@@ -1,0 +1,7 @@
+\begin{figure}
+\includegraphics[width=\linewidth]{plots/circles}
+\caption{Illustration of Poisson process.}
+\label{fig:hpp}
+\end{figure}
+\efloatseparator
+ 

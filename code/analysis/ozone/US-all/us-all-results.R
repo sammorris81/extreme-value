@@ -1,3 +1,6 @@
+rm(list = ls())
+library(compiler)
+enableJIT(3)
 load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
 settings <- read.csv("settings.csv")
@@ -19,25 +22,31 @@ phi.tau <- array(NA, dim = c(5000, nsets, 74))
 
 # load("us-all-results.RData")
 done <- c(1:5, 7:9, 11:13, 15:17, 33:36, 38:41, 43:46, 51:74)
-quant.score <- savelist[[1]]
-brier.score <- savelist[[2]]
-beta.0 <- savelist[[3]]
-beta.1 <- savelist[[4]]
-probs <- savelist[[5]]
-thresholds <- savelist[[6]]
+# quant.score <- savelist[[1]]
+# brier.score <- savelist[[2]]
+# beta.0 <- savelist[[3]]
+# beta.1 <- savelist[[4]]
+# probs <- savelist[[5]]
+# thresholds <- savelist[[6]]
 
 for (i in 1:74) {
-  file <- paste("us-all-", i, ".RData", sep = "")
+  file <- paste("results/us-all-", i, ".RData", sep = "")
   cat("start file", file, "\n")
   if (i %in% done) {
     load(file)
     for (d in 1:nsets) {
+      if (i == 2) {
+        trans <- TRUE
+      } else {
+        trans <- FALSE
+      }
       fit.d <- fit[[d]]
       val.idx <- cv.lst[[d]]
       validate <- Y[val.idx, ]
       pred.d <- fit.d$yp[, , ]
-      quant.score[, d, i] <- QuantScore(pred.d, probs, validate)
-      brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate)
+      quant.score[, d, i] <- QuantScore(pred.d, probs, validate, trans = trans)
+      brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate, 
+                                        trans = trans)
       if (i != 2) {
         beta.0[, d, i] <- fit.d$beta[, 1]
         beta.1[, d, i] <- fit.d$beta[, 2]
