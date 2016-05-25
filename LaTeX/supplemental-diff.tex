@@ -1,7 +1,7 @@
 % \documentclass[11pt]{article}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL supplemental-orig.tex   Tue May 24 11:43:53 2016
-%DIF ADD supplemental-rev.tex    Tue May 24 11:44:46 2016
+%DIF DEL supplemental-orig.tex   Tue May 24 23:11:37 2016
+%DIF ADD supplemental-rev.tex    Wed May 25 01:01:57 2016
 \documentclass[useAMS,usenatbib,referee]{biomweb}
 % \usepackage{amssymb, amsthm, amsmath}
 \usepackage{amssymb, amsmath}
@@ -24,7 +24,7 @@
 % cross-referencing appendices
 \usepackage{xr}
 %DIF 23c23
-%DIF < \externaldocument{skewnormal}
+%DIF < \externaldocument{skewt-orig}
 %DIF -------
 \externaldocument{skewt-rev} %DIF > 
 %DIF -------
@@ -80,7 +80,7 @@ $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorad
 % \renewcommand{\thetable}{Web Table \arabic{table}}
 
 \section{MCMC details} \label{a:mcmc}
-The MCMC sampling for the model \ref{s:hier} is done using {\tt R} (http://www.r-project.org). Whenever possible, we select conjugate priors (see Appendix \ref{a:posterior}); however, for some of the parameters, no conjugate prior distributions exist.
+The MCMC sampling for the model \DIFaddbegin \DIFadd{in Section }\DIFaddend \ref{s:hier} is done using {\tt R} (http://www.r-project.org). Whenever possible, we select conjugate priors (see Appendix \ref{a:posterior}); however, for some of the parameters, no conjugate prior distributions exist.
 For these parameters, we use a random walk Metropolis-Hastings update step.
 In each Metropolis-Hastings update, we tune the algorithm during the burn-in period to give acceptance rates near 0.40.
 
@@ -119,17 +119,13 @@ First, we generate a candidate for $\sigma^2_{tk}$ using an IG$(a^*/s, b^*/s)$ c
 The acceptance ratio is
 \begin{align*}
   R = \left\{
-    \frac{ l[Y_t(\bs) | {\sigma^2_{tk}}^{(c)}, \ldots] }
-         { l[Y_t(\bs) | {\sigma^2_{tk}}^{(r - 1)}]}
+    \frac{ l[Y_t(\bs) | {\sigma^2_{tk}}^{(c)}, \ldots] }{ l[Y_t(\bs) | {\sigma^2_{tk}}^{(r - 1)}]}
     \right\} \times \left\{
-    \frac{ l[z_{tk} | {\sigma^2_{tk}}^{(c)}, \ldots] }
-         { l[z_{tk} | {\sigma^2_{tk}}^{(r - 1)}, \ldots] }
+    \frac{ l[z_{tk} | {\sigma^2_{tk}}^{(c)}, \ldots] }{ l[z_{tk} | {\sigma^2_{tk}}^{(r - 1)}, \ldots] }
     \right\} \times \left\{
-    \frac{ p[ {\sigma^2_{tk}}^{(c)} ] }
-         { p[ {\sigma^2_{tk}}^{(r - 1)}] }
+    \frac{ p[ {\sigma^2_{tk}}^{(c)} ] }{ p[ {\sigma^2_{tk}}^{(r - 1)}] }
     \right\} \times \left\{
-    \frac{ c[ {\sigma^2_{tk}}^{(r - 1)}] }
-         { c[ {\sigma^2_{tk}}^{(c)}]}
+    \frac{ c[ {\sigma^2_{tk}}^{(r - 1)}] }{ c[ {\sigma^2_{tk}}^{(c)}]}
     \right\}
 \end{align*}
 where $p[\cdot]$ is the prior either taken from the time series given in Section \ref{s:temporal} or assumed to be IG$(a, b)$, and $c[\cdot]$ is the candidate distribution.

@@ -54,7 +54,7 @@ $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorad
 % \renewcommand{\thetable}{Web Table \arabic{table}}
 
 \section{MCMC details} \label{a:mcmc}
-The MCMC sampling for the model \ref{s:hier} is done using {\tt R} (http://www.r-project.org). Whenever possible, we select conjugate priors (see Appendix \ref{a:posterior}); however, for some of the parameters, no conjugate prior distributions exist.
+The MCMC sampling for the model in Section \ref{s:hier} is done using {\tt R} (http://www.r-project.org). Whenever possible, we select conjugate priors (see Appendix \ref{a:posterior}); however, for some of the parameters, no conjugate prior distributions exist.
 For these parameters, we use a random walk Metropolis-Hastings update step.
 In each Metropolis-Hastings update, we tune the algorithm during the burn-in period to give acceptance rates near 0.40.
 
