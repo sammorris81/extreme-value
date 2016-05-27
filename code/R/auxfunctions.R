@@ -479,13 +479,12 @@ rpotspatTS_cont_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
     sdg     <- 1 / taug.t
 
     if (p == 1) {
-      x.beta <- x[, t, , drop = FALSE] * beta
+      x.beta <- matrix(x[, t, ], ns, 1) * beta
     } else {
       x.beta <- x[, t, ] %*% beta
     }
 
     mu <- x.beta + lambda * zg.t
-
     y.t    <- mu + t.chol.C %*% matrix(rnorm(ns, 0, sdg), ns, 1)
     y[, t] <- y.t
   }
