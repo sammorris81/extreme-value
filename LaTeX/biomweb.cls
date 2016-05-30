@@ -1672,7 +1672,7 @@ to 7.75pt{\tiny C}}}
 \def\fstyle@table{\reset@font\fontsize{9}{10pt}\selectfont\rm}
 \def\thead#1{\reset@font#1}
 \def\ext@table{lot}
-\def\fnum@table{Web Table \thetable}
+\def\fnum@table{Web~Table~\thetable}
 %%
 \def\FigName{figure}
 %
@@ -1715,7 +1715,7 @@ to 7.75pt{\tiny C}}}
 \def\ftype@figure{2}
 \def\fstyle@figure{\reset@font\small\rm}
 \def\ext@figure{lof}
-\def\fnum@figure{{\bf Web Figure \thefigure}}
+\def\fnum@figure{{\bf Web~Figure~\thefigure}}
 %%
 \newenvironment{figure}
                {\@float{figure}}

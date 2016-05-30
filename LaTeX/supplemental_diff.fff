@@ -1,0 +1,7 @@
+\begin{figure}
+  \includegraphics[width=\linewidth]{plots/circles}
+  \caption{\DIFaddFL{Illustration of the partition of $A$.}}
+  \label{fig:hpp}
+\end{figure}
+\efloatseparator
+ 

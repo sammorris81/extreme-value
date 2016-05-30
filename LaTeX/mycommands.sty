@@ -62,6 +62,12 @@
 \newcommand{\Matern}{\mbox{Mat$\acute{\mbox{e}}$rn }}
 \newcommand{\ballunion}{B_a(\bs_1) \cup B_b(\bs_2) }
 
+\newcommand{\eref}[1]{(\ref{#1})}
+\newcommand{\fref}[1]{Figure~\ref{#1}}
+\newcommand{\tref}[1]{Table~\ref{#1}}
+\newcommand{\sref}[1]{Section~\ref{#1}}
+\newcommand{\aref}[1]{\ref{#1}}
+
 \newcommand{\beq}{ \begin{equation}}
 \newcommand{\eeq}{ \end{equation}}
 \newcommand{\beqn}{ \begin{eqnarray}}
@@ -84,3 +90,12 @@
 \patchBothAmsMathEnvironmentsForLineno{gather}%
 \patchBothAmsMathEnvironmentsForLineno{multline}%
 }
+
+\newenvironment{response}{%
+  \list{}{%
+  	\setlength{\topmargin}{-1em}
+  	\setlength{\leftmargin}{2em}
+	\setlength{\rightmargin}{\leftmargin}
+	\item[]
+  }%
+}{\vspace{1em}\endlist}

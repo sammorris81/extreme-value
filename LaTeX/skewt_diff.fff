@@ -2,7 +2,7 @@
   \centering
   \includegraphics[width=0.75\linewidth]{plots/ozone-10jul-us.pdf}
   \caption{Ozone values (ppb) on July 10, 2005}
-  \label{stfig:ozone-10jul}
+  \label{fig:ozone-10jul}
 \end{figure}
 \efloatseparator
  
@@ -10,14 +10,14 @@
   \centering
   \includegraphics[width=0.5\linewidth]{plots/chi-h.pdf}
   \caption{Extremal dependence measure $\chi(h)$, as a function of distance, $h$, for $K = 1, 3, 5$, and $10$ knots.}
-  \label{stfig:chi}
+  \label{fig:chi}
 \end{figure}
 \efloatseparator
  
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
   \caption{Brier scores relative to the Gaussian method for simulation study results. A ratio lower than 1 indicates that the method outperforms the Gaussian method.}
-  \label{stfig:simbrierscores}
+  \label{fig:simbrierscores}
 \end{figure}
 \efloatseparator
  
@@ -25,7 +25,7 @@
   \centering
   \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
   \caption{Q-Q plot of the residuals for a skew-$t$ distribution with 10 d.f. and $\alpha = 1$ (right)}
-  \label{stfig:ozone-qq}
+  \label{fig:ozone-qq}
 \end{figure}
 \efloatseparator
  
@@ -33,14 +33,14 @@
   \centering
   \includegraphics[width=\linewidth]{plots/daily-quantiles-ozone.pdf}
   \caption{Daily quantiles for two monitoring locations near Columbus, OH (left) and daily quantiles for a monitoring location in Los Angeles, CA and Columbus, OH (right)}
-  \label{stfig:bivariateozone}
+  \label{fig:bivariateozone}
 \end{figure}
 \efloatseparator
  
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
   \caption{Relative Brier scores for time-series models (left) and non-time-series models (right). Relative brier score for the max-stable model is between 1.07 and 1.15}
-  \label{stfig:bs-ozone}
+  \label{fig:bs-ozone}
 \end{figure}
 \efloatseparator
  
@@ -48,7 +48,7 @@
   \centering
   \includegraphics[width=0.8\linewidth]{plots/q99-ozone.pdf}
   \caption{Panels (a) -- (d) give the posterior predictive $\widehat{q}(0.99)$ for the month of July under four different models, panel (e) gives the difference between $\widehat{q}(0.99)$ in panels (d) and (a), panel (f) gives the difference between $\widehat{q}(0.99)$ in panels (d) and (b).}
-  \label{stfig:ozoneq99}
+  \label{fig:ozoneq99}
 \end{figure}
 \efloatseparator
  

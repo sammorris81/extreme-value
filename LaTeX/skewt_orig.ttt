@@ -1,7 +1,7 @@
 \begin{table}
   \small
   \caption{Top two performing models for ozone analysis at extreme quantiles with Relative Brier score}
-  \label{sttbl:ozoneresults}
+  \label{tbl:ozoneresults}
   \centering
   \begin{tabular}{|l|l l l c|l l l c|}
     \cline{2-9}
