@@ -73,6 +73,7 @@ More specifically, we consider the case of compliance for ozone.
 A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over 3 years does not exceed 75 parts per billion (ppb).
 \fref{stfig:ozone-10jul} shows the ozone levels from July 10, 2005, at 1089 stations across the United States.
 We see a large area above the compliance level in the midwest covering Ohio, Indiana, Illinois, and parts of the surrounding states.
+We analyze these data with the goals of spatial prediction for unmonitored locations and to map the probability of extreme events.
 
 \begin{figure}[h!tbp]
   \centering
@@ -171,28 +172,29 @@ The skew-elliptical family of distributions provides models that are mathematica
 A brief review of the additive process (\citealp{Azzalini2003}; \citealp[p. 129]{Azzalini2014}; \citealp{Beranger2016}) by which a skew-$t$ process is created is given here.
 
 \subsection{Skew-$t$ process} \label{sts:skewt}
-Let $Y(\bs)$ be the observation at spatial location $\bs$ in a spatial domain of interest $\calD \in \calR^2$.
+Let $Y(\bs)$ be a spatial process defined for spatial location $\bs$ in a spatial domain of interest $\calD \in \calR^2$.
 The spatial skew-$t$ process can be written
 \begin{align}
   Y(\bs) = \bX(\bs)^\top \bbeta + \lambda \sigma |z| + \sigma v(\bs) \label{steq:fullmodel}
 \end{align}
-where $\bX(\bs)$ is a set of spatial covariates at site $\bs$, $\bbeta$ is the vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a / 2, b)$ is random scale parameter, IG is the distribution function of an inverse gamma random variable, $a$ is the degrees of freedom, $b$ controls the precision of the process, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function $\rho(\bs_1, \bs_2)$.
+$\bX(\bs)$ is the observed covariate vector at site $\bs$, $\bbeta$ is the $p$-vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a / 2, b)$ is random scale parameter, IG is the distribution function of an inverse gamma random variable, $a$ is the degrees of freedom, $b$ controls the precision of the process, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function $\text{Cor} \left[Y(\bs_1), Y(\bs_2)\right] = \rho(\bs_1, \bs_2)$.
 Although any positive definite correlation function could be used, we choose to use the stationary isotropic \Matern correlation with
 \begin{align}
   \rho(h) = (1 - \gamma) I(h = 0) + \gamma \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \varphi } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \varphi } \right) \label{steq:matern}
 \end{align}
-where $\varphi$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second kind, and $h = || \bs_1 - \bs_2 ||$ is the distance between sites $\bs_1$ and $\bs_2$.
+where $\varphi$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second kind, and $h = || \bs_1 - \bs_2 ||$ is the Euclidean distance between sites $\bs_1$ and $\bs_2$.
 
 For a finite collection of locations $\bs_1, \ldots, \bs_n$, denote the vector of observations $\bY = [Y(\bs_1), \ldots, Y(\bs_n)]^\top$.
 After marginalizing over both $z$ and $\sigma$, using the notation from \citet[p. 176]{Azzalini2014},
 \begin{align} \label{steq:stazzalini}
   \bY \sim \text{ST}_n(\bX \bbeta, \bOmega, \balpha, a),
 \end{align}
-that is, $\bY$ follows an $n$-dimensional skew-$t$ distribution with location $\bX \bbeta$, variance matrix $\bOmega$, slant parameters $\balpha$ and degrees of freedom $a$, where $\bX = [\bX(\bs_1)^\top, \ldots, \bX(\bs_n)^\top]$,
-$\bOmega = \bomega \bar{\bOmega} \bomega$,
-$\bomega = \text{diag}\left(\sqrt{\frac{a(1 + \lambda^2)}{ b }}, \ldots, \sqrt{\frac{a(1 + \lambda^2)}{ b }} \right)$,
-$\bar{\bOmega} = \frac{1}{1 + \lambda^2}(\bSigma + \lambda^2 \bOne \bOne^\top)$,
-$\balpha = \lambda (1 + \lambda^2)^{1 / 2} (1 + \lambda^2 \bOne^\top \bSigma^{-1} \bOne)^{-1/2} \bSigma^{-1} \bOne$, and $\bSigma$ is the positive definite correlation matrix which is obtained from $\rho(h)$.
+that is, $\bY$ follows an $n$-dimensional skew-$t$ distribution with location $\bX \bbeta \in \calR^n$, variance matrix $\bOmega_{n \times n}$, $\balpha \in \calR^n$ slant parameters, degrees of freedom $a$, where $\bX_{n \times p} = [\bX(\bs_1)^\top, \ldots, \bX(\bs_n)^\top]$,
+$\bX(\bs_i), i = 1, \ldots, n$, are observed covariates at each site,
+$\bOmega_{n \times n} = \bomega \bar{\bOmega} \bomega$,
+$\bar{\bOmega}_{n \times n} = \frac{1}{1 + \lambda^2}(\bSigma + \lambda^2 \bOne \bOne^\top)$,
+$\bomega_{n \times n} = \text{diag}\left(\sqrt{\frac{a(1 + \lambda^2)}{ b }}, \ldots, \sqrt{\frac{a(1 + \lambda^2)}{ b }} \right)$,
+$\balpha = \lambda (1 + \lambda^2)^{1 / 2} (1 + \lambda^2 \bOne^\top \bSigma^{-1} \bOne)^{-1/2} \bSigma^{-1} \bOne$, and $\bSigma_{n \times n}$ is the positive definite correlation matrix which is obtained from $\rho(h)$.
 This process is desirable because of its flexible tail that is controlled by the skewness parameter $\lambda$ and degrees of freedom $a$.
 Furthermore, the marginal distributions at each location also follow a univariate skew-$t$ distribution \citep{Azzalini2014}.
 For comparisons with other parameterizations, please see \aref{sta:otherparams}.
@@ -232,8 +234,8 @@ Let
   \end{array} \right.
 \eeq
 be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored observation, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
-We impute the censored values as a step in the MCMC algorithm used to fit the model described in \sref{sts:comp}.
-\hl{Need to elaborate more here about the bias-variance tradeoff for threshold selection.}
+Selecting $T$ too small may lead to bias in estimating the tail parameters; selecting $T$ to large increases variance.
+We impute the censored values as a step in the MCMC algorithm used to fit the model described in \sref{sts:comp}, and use cross-validation to select $T$.
 
 \subsection{Partitioning to remove long-range asymptotic dependence}\label{sts:part}
 The motivation for the partition is that for a large spatial domain, it may not be reasonable to assume sites that are far apart demonstrate asymptotic dependence.
@@ -246,27 +248,28 @@ The model becomes
 \begin{align} \label{steq:partition}
   Y(\bs) &= \bX(\bs)^\top \bbeta + \lambda \sigma(\bs) |z(\bs)| + \sigma(\bs) v(\bs).
 \end{align}
-To model spatial variation, consider a set of spatial knots $\bw_1, \ldots, \bw_K$ from a homogeneous Poisson process with intensity $\mu$ over spatial domain $\calD \in \calR^2$.
+To model spatial variation, consider a set of spatial knots $\bw_1, \ldots, \bw_K$ from a homogeneous Poisson process with intensity $\mu_{PP}$ over spatial domain $\calD \in \calR^2$.
 The knots define a random partition of $\calD$ by subregions $P_{1}, \ldots, P_{K}$ defined as
 \begin{align} \label{steq:subregions}
   P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \}.
 \end{align}
-In other words, $P_1$ is composed of all sites for which the closest knot is $\bw_1$.
-For all $\bs \in P_k$, with $k = 1, 2, \ldots, K$, the functions $z(\bs)$ and $\sigma(\bs)$ are equal to the constants $z_k$ and $\sigma_k$ respectively.
-and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2_k \iid$ IG$(a, b)$.
+In other words, $P_k$ is composed of all sites for which the closest knot is $\bw_k$.
+For all $\bs \in P_k$, with $k = 1, 2, \ldots, K$, the functions $z(\bs)$ and $\sigma(\bs)$ are equal to the constants $z_k$ and $\sigma_k$ respectively, and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2_k \iid$ IG$(a, b)$.
 So, within each partition, $Y(\bs)$ follows the spatial skew-$t$ process defined in \sref{sts:spatialskew}.
 Across partitions, the $Y(\bs)$ remain correlated via the correlation function for $v(\bs)$ because $v(\bs)$ spans all partitions.
+However, the bivariate distribution for sites in different partitions is neither Gaussian nor skew-$t$ and does not have asymptotic dependence.
 
 The partitioning model remove long-range dependence. Conditional on knots $\bw_1, \ldots, \bw_K$, the $\chi$ statistic for two sites $\bs_1$ and $\bs_2$ in partitions $k_1$ and $k_2$ respectively is
 \begin{align}
   \chi(h) &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) + I(k_1 \neq k_2) \chi_{\text{Gaus}}(h) \nonumber \\
          &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) \label{steq:chiskewt}
 \end{align}
-where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in \eref{steq:chiskew-t}, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs - \bt||$.
+where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in \eref{steq:chiskew-t}, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs_1 - \bs_2||$.
 Therefore, sites in different subregions are asymptotically independent because $\chi_{\text{Gaus}}(h) = 0$ for all $h$.
 Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_1 = k_2)$ is the probability that two sites separated by distance $h$ are in the same partition.
 In \aref{sta:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, assuming that the knots follow a homogeneous Poisson process.
 This implies that $\lim_{h \rightarrow \infty} \chi(h) = 0$.
+In practice we fix $K$ at a finite value and use a uniform distribution for the knots $\bw_1, \ldots, \bw_K$.
 In \fref{stfig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a skew-$t$ distribution with $\alpha = 10$, and 3 degrees of freedom.
 In \fref{stfig:chi} we estimate $\pi(h)$ through simulation.
 % To estimate $\pi(h)$, we generate 500 sites uniformly over the unit-square.
@@ -420,14 +423,16 @@ For each data set we fit the data using six models
   \item A max-stable model based on \citet{Reich2012} thresholded at $T = q(0.80)$
 \end{enumerate}
 where $q(0.80)$ is the 80th sample quantile of the data.
-The design matrix $\bX$ includes an intercept with a first-order spatial trend with priors of $\beta_\text{int}$, $\beta_\text{lat}$, $\beta_\text{long},  \iid \text{N}(0, 10)$.
+All methods are fit using a fully-Bayesian approach that simultaneously estimates marginal and spatial dependence parameters.
+The design matrix $\bX$ includes an intercept with a first-order spatial trend with priors of $\beta_\text{int}$, $\beta_\text{lat}$, $\beta_\text{long},  \iid \text{N}(0, 10)$ although only the intercept is used in the data generation.
 The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{Unif}(0, 1)$, $\varphi \sim \text{Unif}(15)$.
 The skewness parameter has prior $\lambda \sim N(0, 20)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(a, b)$, where $a$ has a discrete uniform prior on a mesh from $0.2$ to $20$ with spacing of $0.1$ and $b$ has a Gamma$(0.1, 0.1)$ prior.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We tried also fitting the skew-$t$ marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
 Each chain of the MCMC ran for 20,000 iterations with a burn-in period of 10,000 iterations.
-Parameters appear to converge properly; however, in the models with multiple partitions (i.e. models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
+For methods that correspond directly to a simulation design (e.g. design 2 and method 2, design 3 and method 4), $\lambda$ and $a$ appear to converge to their true values.
+It should be noted that in the models with multiple partitions (i.e. models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC; however, we are not interested in these parameters but rather spatial predictions and tail probabilities which converge well.
 
 \subsection{Cross validation}\label{sts:modelselect}
 Models were compared using cross validation, with 100 sites used as training sites to fit the models, and 44 sites withheld for testing the predictions.
@@ -450,7 +455,7 @@ The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in \
 The results show that when the data are generated from a Gaussian process, our method performs comparably to a Gaussian approach.
 In general, when the underlying process is not Gaussian, our method results in an improvement over both the max-stable and Gaussian methods.
 One exception to this is the case when the generative process is max-stable.
-In this case, the max-stable method outperforms our method; however, for predictions at high quantile levels, the differences between the max-stable method and our method decrease.
+In this case, the max-stable method outperforms our method for very extreme quantiles; however, for predictions at high quantile levels, the differences between the max-stable method and our method decrease.
 The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model used in the method.
 % Finally, for setting 5, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
 In summary, our method provides more flexibility for data that demonstrate some level of asymmetry or heavy tails, while still performing comparably to Gaussian methods when the data are symmetric and have light tails.

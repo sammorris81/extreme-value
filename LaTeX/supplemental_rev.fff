@@ -1,7 +1,7 @@
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/circles}
   \caption{Illustration of the partition of $A$.}
-  \label{fig:hpp}
+  \label{stfig:hpp}
 \end{figure}
 \efloatseparator
  

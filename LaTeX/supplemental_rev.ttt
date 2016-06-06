@@ -1,7 +1,7 @@
 \begin{table}[htbp]
   \centering
   \caption{Setting 1 -- Gaussian marginal, $K = 1$ knot}
-  \label{tbl:gaussim}
+  \label{sttbl:gaussim}
   \begin{tabular}{|l|ccc|ccc|cccc|ccc|}
     \cline{2-14}
     \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -25,7 +25,7 @@
 \begin{table}[htbp]
   \centering
   \caption{Setting 2 -- Skew-$t$ marginal, $K = 1$ knot}
-  \label{tbl:st1sim}
+  \label{sttbl:st1sim}
   \begin{tabular}{|l|ccccc|cccc|cccc|ccc|}
     \cline{2-17}
     \multicolumn{1}{c}{} & \multicolumn{5}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -49,7 +49,7 @@
 \begin{table}[htbp]
   \centering
   \caption{Setting 3 -- Skew-$t$ marginal, $K = 5$ knots}
-  \label{tbl:st5sim}
+  \label{sttbl:st5sim}
   \begin{tabular}{|l|ccc|cccc|ccc|ccc|}
     \cline{2-14}
     \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -73,7 +73,7 @@
 \begin{table}[htbp]
   \centering
   \caption{Setting 4 -- Max-stable}
-  \label{tbl:mssim}
+  \label{sttbl:mssim}
   \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
     \cline{2-15}
     \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
@@ -97,7 +97,7 @@
 \begin{table}[htbp]
   \centering
   \caption{Setting 5 -- Transformation below $T = q(0.80)$}
-  \label{tbl:transsim}
+  \label{sttbl:transsim}
   \begin{tabular}{|l|cccc|ccc|cccc|cccc|}
     \cline{2-16}
     \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{4}{|c|}{$q(0.99)$} \\
