@@ -3,6 +3,7 @@ rm(list = ls())
 library(fields)
 library(SpatialTools)
 library(mvtnorm)
+library(Rcpp)
 library(compiler)
 enableJIT(3)
 
