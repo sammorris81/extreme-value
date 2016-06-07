@@ -927,17 +927,17 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
                   att.nu = att.nu, acc.nu = acc.nu)
 }
 
-updateRho <- function(rho, logrho.m, logrho.s, nu, 
+updateRho <- function(rho, logrho.m, logrho.s, nu,
                       d, gamma, res, taug, prec, cor, logdet.prec, cur.rss,
                       rho.upper = Inf, att, acc, mh) {
   nt <- ncol(res)
   att <- att + 1
-  
+
   rho.star     <- transform$logit(rho, lower = 0, upper = rho.upper)
   can.rho.star <- rnorm(1, rho.star, mh)
   can.rho      <- transform$inv.logit(can.rho.star, lower = 0,
                                       upper = rho.upper)
-  
+
   # CorFx gives can.C too, but want a way to pass through gammaless
   # correlation matrix to speed up gamma update
   can.cor     <- simple.cov.sp(D = d, sp.type = "matern",
@@ -958,15 +958,15 @@ updateRho <- function(rho, logrho.m, logrho.s, nu,
                      })
   can.prec        <- can.CC$prec
   can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
-  
+
   can.rss <- sum(rss(prec = can.prec, y = sqrt(taug) * res))
-  
+
   R <- -0.5 * (can.rss - cur.rss) +
     nt * (can.logdet.prec - logdet.prec) +
     # dnorm(can.rho.star, log = TRUE) - dnorm(rho.star, log = TRUE)
     log(can.rho - 0) + log(rho.upper - can.rho) -  # Jacobian of prior
     log(rho - 0) - log(rho.upper - rho)
-  
+
   if (!is.na(R)) { if (log(runif(1)) < R) {
     rho         <- can.rho
     prec        <- can.prec
@@ -975,22 +975,21 @@ updateRho <- function(rho, logrho.m, logrho.s, nu,
     acc         <- acc + 1
     cur.rss     <- can.rss
   }}
-  
+
   results <- list(rho = rho, prec = prec, cor = cor,
                   logdet.prec = logdet.prec, cur.rss = cur.rss,
                   att = att, acc = acc)
 }
 
-updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec, 
-                     cor, logdet.prec, cur.rss, nu.upper = Inf, 
+updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec,
+                     cor, logdet.prec, cur.rss, nu.upper = Inf,
                      att, acc, mh) {
   nt <- ncol(res)
   att  <- att + 1
-  
+
   lognu  <- log(nu)
-  
-  can.lognu <- lognu * exp(mh * rnorm(1))
-  can.nu <- exp(can.lognu)
+  can.nu <- nu * exp(mh * rnorm(1))
+  can.lognu <- log(can.nu)
   if (can.nu > nu.upper) {  # automatically reject if it gets too big
     R <- -Inf
   } else {
@@ -1014,9 +1013,9 @@ updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec,
                        })
     can.prec        <- can.CC$prec
     can.logdet.prec <- can.CC$logdet.prec  # this is the sqrt of logdet.prec
-    
+
     can.rss <- sum(rss(prec = can.prec, y = sqrt(taug) * res))
-    
+
     R <- -0.5 * (can.rss - cur.rss) +
       nt * (can.logdet.prec - logdet.prec) +
       dnorm(can.lognu, lognu.m, lognu.s, log = TRUE) -
@@ -1024,7 +1023,7 @@ updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec,
       dlognormal(nu, can.nu, mh) -  # asymmetrical candidate
       dlognormal(can.nu, nu, mh)
   }
-  
+
   if (!is.na(R)) { if (log(runif(1)) < R) {
     nu          <- can.nu
     prec        <- can.prec
@@ -1033,7 +1032,7 @@ updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec,
     acc         <- acc + 1
     cur.rss     <- can.rss
   }}
-  
+
   results <- list(nu = nu, prec = prec, cor = cor,
                   logdet.prec = logdet.prec, cur.rss = cur.rss,
                   att = att, acc = acc)
@@ -1486,21 +1485,21 @@ updatePhiTS <- function(data, phi, day.mar, att, acc, mh) {
 
   cur.mean <- phi * data.lag1
   cur.sd   <- sqrt(1 - phi^2)
-  
+
   cur.lower.U  <- pnorm(q = -1, mean = phi, sd = mh)
   cur.upper.U  <- pnorm(q = 1, mean = phi, sd = mh)
   can.phi.star <- runif(1, cur.lower.U + 1e-6, cur.upper.U - 1e-6)
   can.phi      <- qnorm(can.phi.star, phi, mh)
-  
+
   can.lower.U <- pnorm(q = -1, mean = can.phi, sd = mh)
   can.upper.U <- pnorm(q = 1, mean = can.phi, sd = mh)
-  
+
   # asymmetric candidate adjustment
-  canlog.cand  <- dnorm(can.phi, phi, mh, log = TRUE) - 
+  canlog.cand  <- dnorm(can.phi, phi, mh, log = TRUE) -
     log(cur.upper.U - cur.lower.U)
   curlog.cand <- dnorm(phi, can.phi, mh, log = TRUE) -
     log(can.upper.U - can.lower.U)
-  
+
   # cur.phi.star <- transform$probit(x = phi, lower = -1, upper = 1)
   # can.phi.star <- rnorm(1, cur.phi.star, mh)
   # can.phi      <- transform$inv.probit(x = can.phi.star, lower = -1, upper = 1)
@@ -1510,8 +1509,8 @@ updatePhiTS <- function(data, phi, day.mar, att, acc, mh) {
   # likelihood of data impacted by phi does not include day 1
   R <- sum(dnorm(data.up1, can.mean, can.sd, log = TRUE)) -
        sum(dnorm(data.up1, cur.mean, cur.sd, log = TRUE)) +
-    dnorm(can.phi, 0, 0.5, log = TRUE) - 
-    dnorm(phi, 0, 0.5, log = TRUE) + 
+    dnorm(can.phi, 0, 0.5, log = TRUE) -
+    dnorm(phi, 0, 0.5, log = TRUE) +
     curlog.cand - canlog.cand  # adjust for asymmetrical dandidate
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
