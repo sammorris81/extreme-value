@@ -4,8 +4,8 @@ library(fields)
 library(SpatialTools)
 library(Rcpp)
 
-# library(compiler)
-# enableJIT(3)
+library(compiler)
+enableJIT(3)
 
 #### Load simdata
 load(file='./simdata.RData')
