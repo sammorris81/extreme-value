@@ -28,13 +28,13 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
                  tau.alpha.min = 0.1, tau.alpha.max = 10, tau.alpha.by = 0.1,
                  tau.beta.a = 1, tau.beta.b = 1,
                  logrho.m = 0, logrho.s = 10, rho.upper = NULL,
-                 lognu.m = -1.2, lognu.s = 1, nu.upper = NULL,
+                 lognu.m = -1.2, lognu.s = 1, nu.upper = NULL, fix.nu = FALSE,
                  gamma.m = 0, gamma.s = 1,
                  # covariance model
                  cov.model = "matern",  # or "exponential"
                  rho.prior = "cont",    # or "disc"
                  # skew inits
-                 z.init = 1, lambda.init = 0,
+                 z.init = 1, lambda.init = NULL,
                  # skew priors
                  lambda.m = 0, lambda.s = 20, skew = T,
                  thresh.site.specific = FALSE, thresh.site = NULL,
@@ -332,13 +332,13 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
     # update beta
     mu <- x.beta + lambda * zg
     res <- y - mu
-    beta.update <- updateBeta_cont_lambda(beta.m = beta.m, beta.s = beta.s,
+    this.update <- updateBeta_cont_lambda(beta.m = beta.m, beta.s = beta.s,
                                           x = x, y = y, zg = zg, taug = taug,
                                           prec = prec, skew = skew,
                                           lambda = lambda, lambda.m = lambda.m,
                                           lambda.s = lambda.s)
-    beta   <- beta.update$beta
-    lambda <- beta.update$lambda
+    beta   <- this.update$beta
+    lambda <- this.update$lambda
 
     for (t in 1:nt) {
       x.beta[, t] <- x[, t, ] %*% beta
@@ -349,41 +349,41 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
     # update partitions
     if ((nknots > 1) & (!fixknots)) {
       avgparts <- rep(0, nt)
-      knots.update <- updateKnotsTS_cont_lambda(phi = phi.w, knots = knots,
-                                                g = g, ts = temporalw,
-                                                tau = tau, z = z, s = s,
-                                                min.s = min.s, max.s = max.s,
-                                                x.beta = x.beta,
-                                                lambda = lambda, y = y,
-                                                prec = prec, att = att.w,
-                                                acc = acc.w, mh = mh.w,
-                                                att.phi = att.phi.w,
-                                                acc.phi = acc.phi.w,
-                                                mh.phi = mh.phi.w)
-      knots.star <- knots.update$knots.star
-      knots      <- knots.update$knots
-      g          <- knots.update$g
-      taug       <- knots.update$taug
-      zg         <- knots.update$zg
-      acc.w      <- knots.update$acc
-      att.w      <- knots.update$att
-      phi.w      <- knots.update$phi
-      acc.phi.w  <- knots.update$acc.phi
-      att.phi.w  <- knots.update$att.phi
+      this.update <- updateKnotsTS_cont_lambda(phi = phi.w, knots = knots,
+                                               g = g, ts = temporalw,
+                                               tau = tau, z = z, s = s,
+                                               min.s = min.s, max.s = max.s,
+                                               x.beta = x.beta,
+                                               lambda = lambda, y = y,
+                                               prec = prec, att = att.w,
+                                               acc = acc.w, mh = mh.w,
+                                               att.phi = att.phi.w,
+                                               acc.phi = acc.phi.w,
+                                               mh.phi = mh.phi.w)
+      knots.star <- this.update$knots.star
+      knots      <- this.update$knots
+      g          <- this.update$g
+      taug       <- this.update$taug
+      zg         <- this.update$zg
+      acc.w      <- this.update$acc
+      att.w      <- this.update$att
+      phi.w      <- this.update$phi
+      acc.phi.w  <- this.update$acc.phi
+      att.phi.w  <- this.update$att.phi
 
       # update metropolis sds
       if (iter < (burn / 2)) {
-        mh.update  <- mhupdate(acc = acc.w, att = att.w, mh = mh.w,
-                               nattempts = nknots * nt)
-        acc.w      <- mh.update$acc
-        att.w      <- mh.update$att
-        mh.w       <- mh.update$mh
+        this.update  <- mhupdate(acc = acc.w, att = att.w, mh = mh.w,
+                                 nattempts = nknots * nt)
+        acc.w        <- this.update$acc
+        att.w        <- this.update$att
+        mh.w         <- this.update$mh
 
         if (temporalw) {
-          mh.update <- mhupdate(acc = acc.phi.w, att = att.phi.w, mh = mh.phi.w)
-          acc.phi.w <- mh.update$acc
-          att.phi.w <- mh.update$att
-          mh.phi.w  <- mh.update$mh
+          this.update <- mhupdate(acc = acc.phi.w, att = att.phi.w, mh = mh.phi.w)
+          acc.phi.w   <- this.update$acc
+          att.phi.w   <- this.update$att
+          mh.phi.w    <- this.update$mh
         }
       }
     }  # fi nknots > 1
@@ -393,24 +393,24 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
     mu <- x.beta + lambda * zg
     res <- y - mu
     if (method == "gaussian") {  # single random effect for all days
-      tau.update <- updateTauGaus(res = res, prec = prec, tau.alpha = tau.alpha,
+      this.update <- updateTauGaus(res = res, prec = prec, tau.alpha = tau.alpha,
                                   tau.beta = tau.beta)
-      tau  <- matrix(tau.update, nknots, nt)
-      taug <- matrix(tau.update, ns, nt)
+      tau  <- matrix(this.update, nknots, nt)
+      taug <- matrix(this.update, ns, nt)
 
     } else if (method == "t") {
       if (!temporaltau) {
-        tau.update <- updateTau_cont_lambda(tau = tau, taug = taug, g = g,
-                                            res = res, nparts.tau = nparts.tau,
-                                            prec = prec, z = z,
-                                            tau.alpha = tau.alpha,
-                                            tau.beta = tau.beta, skew = skew,
-                                            att = att.tau, acc = acc.tau,
-                                            mh = mh.tau)
-        tau          <- tau.update$tau
-        taug         <- tau.update$taug
-        acc.tau      <- tau.update$acc
-        att.tau      <- tau.update$att
+        this.update <- updateTau_cont_lambda(tau = tau, taug = taug, g = g,
+                                             res = res, nparts.tau = nparts.tau,
+                                             prec = prec, z = z,
+                                             tau.alpha = tau.alpha,
+                                             tau.beta = tau.beta, skew = skew,
+                                             att = att.tau, acc = acc.tau,
+                                             mh = mh.tau)
+        tau     <- this.update$tau
+        taug    <- this.update$taug
+        acc.tau <- this.update$acc
+        att.tau <- this.update$att
 
         # # Note: this doesn't really tune the algorithm because mh tau isn't used
         # if (iter < (burn / 2)) {
@@ -420,39 +420,39 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
         #   mh.tau  <- mh.update$mh
         # }
       } else {
-        tau.update <- updateTauTS_cont_lambda(phi = phi.tau, tau = tau,
-                                              taug = taug, g = g, res = res,
-                                              nparts.tau = nparts.tau,
-                                              prec = prec, z = z,
-                                              tau.alpha = tau.alpha,
-                                              tau.beta = tau.beta, skew = skew,
-                                              att = att.tau, acc = acc.tau,
-                                              mh = mh.tau,
-                                              att.phi = att.phi.tau,
-                                              acc.phi = acc.phi.tau,
-                                              mh.phi = mh.phi.tau)
+        this.update <- updateTauTS_cont_lambda(phi = phi.tau, tau = tau,
+                                               taug = taug, g = g, res = res,
+                                               nparts.tau = nparts.tau,
+                                               prec = prec, z = z,
+                                               tau.alpha = tau.alpha,
+                                               tau.beta = tau.beta, skew = skew,
+                                               att = att.tau, acc = acc.tau,
+                                               mh = mh.tau,
+                                               att.phi = att.phi.tau,
+                                               acc.phi = acc.phi.tau,
+                                               mh.phi = mh.phi.tau)
 
-          tau         <- tau.update$tau
-          taug        <- tau.update$taug
-          phi.tau     <- tau.update$phi
-          acc.tau     <- tau.update$acc
-          att.tau     <- tau.update$att
-          acc.phi.tau <- tau.update$acc.phi
-          att.phi.tau <- tau.update$att.phi
+          tau         <- this.update$tau
+          taug        <- this.update$taug
+          phi.tau     <- this.update$phi
+          acc.tau     <- this.update$acc
+          att.tau     <- this.update$att
+          acc.phi.tau <- this.update$acc.phi
+          att.phi.tau <- this.update$att.phi
 
 
           # update metropolis sds
           if (iter < (burn / 2)) {
-            mh.update <- mhupdate(acc = acc.tau, att = att.tau, mh = mh.tau)
-            acc.tau   <- mh.update$acc
-            att.tau   <- mh.update$att
-            mh.tau    <- mh.update$mh
+            this.update <- mhupdate(acc = acc.tau, att = att.tau, mh = mh.tau)
+            acc.tau     <- this.update$acc
+            att.tau     <- this.update$att
+            mh.tau      <- this.update$mh
 
-            mh.update  <- mhupdate(acc = acc.phi.tau, att = att.phi.tau,
-                                    mh = mh.phi.tau)
-            acc.phi.tau <- mh.update$acc
-            att.phi.tau <- mh.update$att
-            mh.phi.tau  <- mh.update$mh
+            this.update  <- mhupdate(acc = acc.phi.tau, att = att.phi.tau,
+                                     mh = mh.phi.tau)
+            acc.phi.tau <- this.update$acc
+            att.phi.tau <- this.update$att
+            mh.phi.tau  <- this.update$mh
           }
       }
 
@@ -474,55 +474,86 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
     cur.rss <- sum(rss(prec = prec, y = sqrt(taug) * res))
 
     # rho and nu
-    rhonu.update <- updateRhoNu(rho = rho, logrho.m = logrho.m,
-                                logrho.s = logrho.s, fixnu = fixnu, nu = nu,
-                                lognu.m = lognu.m, lognu.s = lognu.s, d = d,
-                                gamma = gamma, res = res, taug = taug,
-                                prec = prec, cor = cor,
-                                logdet.prec = logdet.prec, cur.rss = cur.rss,
-                                rho.upper = rho.upper, nu.upper = nu.upper,
-                                att.rho = att.rho, acc.rho = acc.rho,
-                                mh.rho = mh.rho, att.nu = att.nu,
-                                acc.nu = acc.nu, mh.nu = mh.nu)
-    rho         <- rhonu.update$rho
-    nu          <- rhonu.update$nu
-    prec        <- rhonu.update$prec
-    cor         <- rhonu.update$cor
-    logdet.prec <- rhonu.update$logdet.prec
-    cur.rss     <- rhonu.update$cur.rss
-    att.rho     <- rhonu.update$att.rho
-    acc.rho     <- rhonu.update$acc.rho
-    att.nu      <- rhonu.update$att.nu
-    acc.nu      <- rhonu.update$acc.nu
+    # this.update <- updateRhoNu(rho = rho, logrho.m = logrho.m,
+    #                            logrho.s = logrho.s, fixnu = fixnu, nu = nu,
+    #                            lognu.m = lognu.m, lognu.s = lognu.s, d = d,
+    #                            gamma = gamma, res = res, taug = taug,
+    #                            prec = prec, cor = cor,
+    #                            logdet.prec = logdet.prec, cur.rss = cur.rss,
+    #                            rho.upper = rho.upper, nu.upper = nu.upper,
+    #                            att.rho = att.rho, acc.rho = acc.rho,
+    #                            mh.rho = mh.rho, att.nu = att.nu,
+    #                            acc.nu = acc.nu, mh.nu = mh.nu)
+    # rho         <- this.update$rho
+    # nu          <- this.update$nu
+    # prec        <- this.update$prec
+    # cor         <- this.update$cor
+    # logdet.prec <- this.update$logdet.prec
+    # cur.rss     <- this.update$cur.rss
+    # att.rho     <- this.update$att.rho
+    # acc.rho     <- this.update$acc.rho
+    # att.nu      <- this.update$att.nu
+    # acc.nu      <- this.update$acc.nu
+    
+    this.update <- updateRho(rho = rho, logrho.m = logrho.m, 
+                             logrho.s = logrho.s, nu = nu, d = d, gamma = gamma,
+                             res = res, taug = taug, prec = prec, cor = cor, 
+                             logdet.prec = logdet.prec, cur.rss = cur.rss,
+                             rho.upper = rho.upper, 
+                             att = att.rho, acc = acc.rho, mh = mh.rho)
+    rho         <- this.update$rho
+    prec        <- this.update$prec
+    cor         <- this.update$cor
+    logdet.prec <- this.update$logdet.prec
+    cur.rss     <- this.update$cur.rss
+    acc.rho     <- this.update$acc
+    att.rho     <- this.update$att
+    
+    if (!fix.nu) {
+      this.update <- updateNu(nu = nu, lognu.m = lognu.m, lognu.s = lognu.s,
+                              rho = rho, d = d, gamma = gamma, res = res, 
+                              taug = taug, prec = prec, cor = cor, 
+                              logdet.prec = logdet.prec, cur.rss = cur.rss,
+                              nu.upper = nu.upper, 
+                              att = att.nu, acc = acc.nu, mh = mh.nu)
+      nu          <- this.update$nu
+      prec        <- this.update$prec
+      cor         <- this.update$cor
+      logdet.prec <- this.update$logdet.prec
+      cur.rss     <- this.update$cur.rss
+      att.nu      <- this.update$att
+      acc.nu      <- this.update$acc
+    }
+    
 
     # gamma - make sure the cor argument does not include gamma
-    gamma.update <- updateGamma(gamma = gamma, gamma.m = gamma.m,
-                                gamma.s = gamma.s, d = d, rho = rho, nu = nu,
-                                taug = taug, res = res, prec = prec, cor = cor,
-                                logdet.prec = logdet.prec, cur.rss = cur.rss,
-                                att = att.gamma, acc = acc.gamma, mh = mh.gamma)
-    gamma       <- gamma.update$gamma
-    prec        <- gamma.update$prec
-    logdet.prec <- gamma.update$logdet.prec
-    cur.rss     <- gamma.update$cur.rss
-    acc.gamma   <- gamma.update$acc
-    att.gamma   <- gamma.update$att
+    this.update <- updateGamma(gamma = gamma, gamma.m = gamma.m,
+                               gamma.s = gamma.s, d = d, rho = rho, nu = nu,
+                               taug = taug, res = res, prec = prec, cor = cor,
+                               logdet.prec = logdet.prec, cur.rss = cur.rss,
+                               att = att.gamma, acc = acc.gamma, mh = mh.gamma)
+    gamma       <- this.update$gamma
+    prec        <- this.update$prec
+    logdet.prec <- this.update$logdet.prec
+    cur.rss     <- this.update$cur.rss
+    acc.gamma   <- this.update$acc
+    att.gamma   <- this.update$att
 
     if (iter < (burn / 2)) {
-      mh.update <- mhupdate(acc = acc.rho, att = att.rho, mh = mh.rho)
-      acc.rho   <- mh.update$acc
-      att.rho   <- mh.update$att
-      mh.rho    <- mh.update$mh
+      this.update <- mhupdate(acc = acc.rho, att = att.rho, mh = mh.rho)
+      acc.rho     <- this.update$acc
+      att.rho     <- this.update$att
+      mh.rho      <- this.update$mh
 
-      mh.update <- mhupdate(acc = acc.nu, att = att.nu, mh = mh.nu)
-      acc.nu    <- mh.update$acc
-      att.nu    <- mh.update$att
-      mh.nu     <- mh.update$mh
+      this.update <- mhupdate(acc = acc.nu, att = att.nu, mh = mh.nu)
+      acc.nu      <- this.update$acc
+      att.nu      <- this.update$att
+      mh.nu       <- this.update$mh
 
-      mh.update <- mhupdate(acc = acc.gamma, att = att.gamma, mh = mh.gamma)
-      acc.gamma <- mh.update$acc
-      att.gamma <- mh.update$att
-      mh.gamma  <- mh.update$mh
+      this.update <- mhupdate(acc = acc.gamma, att = att.gamma, mh = mh.gamma)
+      acc.gamma   <- this.update$acc
+      att.gamma   <- this.update$att
+      mh.gamma    <- this.update$mh
     }
 
     if (fixhyper) {
@@ -538,40 +569,41 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
       res <- y - mu
 
       if (!temporalz) {
-        z.update <- updateZ_cont_lambda(y = y, x.beta = x.beta, zg = zg,
-                                        prec = prec, tau = tau, mu = mu,
-                                        taug = taug, g = g, lambda = lambda)
+        this.update <- updateZ_cont_lambda(y = y, x.beta = x.beta, zg = zg,
+                                           prec = prec, tau = tau, mu = mu,
+                                           taug = taug, g = g, lambda = lambda)
 
-        z  <- z.update$z
-        zg <- z.update$zg
+        z  <- this.update$z
+        zg <- this.update$zg
       } else {
         # trying to do the update with lambda = lambda.1 * lambda.2
-        z.update <- updateZTS_cont_lambda(z = z, zg = zg, y = y,
-                                          lambda = lambda, x.beta = x.beta,
-                                          phi = phi.z, tau = tau, taug = taug,
-                                          g = g, prec = prec, acc = acc.z,
-                                          att = att.z, mh = mh.z,
-                                          acc.phi = acc.phi.z,
-                                          att.phi = att.phi.z,
-                                          mh.phi = mh.phi.z)
-        z      <- z.update$z
-        zg     <- z.update$zg
-        att.z  <- z.update$att
-        acc.z  <- z.update$acc
-        phi.z  <- z.update$phi
-        att.phi.z <- z.update$att.phi
-        acc.phi.z <- z.update$acc.phi
+        this.update <- updateZTS_cont_lambda(z = z, zg = zg, y = y,
+                                             lambda = lambda, x.beta = x.beta,
+                                             phi = phi.z, tau = tau, 
+                                             taug = taug, g = g, prec = prec, 
+                                             acc = acc.z, att = att.z, 
+                                             mh = mh.z, acc.phi = acc.phi.z,
+                                             att.phi = att.phi.z,
+                                             mh.phi = mh.phi.z)
+        z      <- this.update$z
+        zg     <- this.update$zg
+        att.z  <- this.update$att
+        acc.z  <- this.update$acc
+        phi.z  <- this.update$phi
+        att.phi.z <- this.update$att.phi
+        acc.phi.z <- this.update$acc.phi
 
         if (iter < (burn / 2)) {
-          mh.update <- mhupdate(acc = acc.z, att = att.z, mh = mh.z)
-          acc.z     <- mh.update$acc
-          att.z     <- mh.update$att
-          mh.z      <- mh.update$mh
-
-          mh.update <- mhupdate(acc = acc.phi.z, att = att.phi.z, mh = mh.phi.z)
-          acc.phi.z <- mh.update$acc
-          att.phi.z <- mh.update$att
-          mh.phi.z  <- mh.update$mh
+          this.update <- mhupdate(acc = acc.z, att = att.z, mh = mh.z)
+          acc.z       <- this.update$acc
+          att.z       <- this.update$att
+          mh.z        <- this.update$mh
+  
+          this.update <- mhupdate(acc = acc.phi.z, att = att.phi.z, 
+                                  mh = mh.phi.z)
+          acc.phi.z   <- this.update$acc
+          att.phi.z   <- this.update$att
+          mh.phi.z    <- this.update$mh
         }
 
       }  # fi temporalz

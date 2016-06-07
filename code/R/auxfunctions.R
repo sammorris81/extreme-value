@@ -163,12 +163,12 @@ CorFx <- function(d, gamma, rho, nu) {
   	cor <- diag(1, nrow = n)
   } else {
     if (nu == 0.5) {
-      cor <- gamma * simple.cov.sp(D = d, sp.type = "exponential", 
+      cor <- gamma * simple.cov.sp(D = d, sp.type = "exponential",
                                    sp.par = c(1, rho),
-                                   error.var = 0, smoothness = nu, 
+                                   error.var = 0, smoothness = nu,
                                    finescale.var = 0)
     } else {
-      cor <- tryCatch(simple.cov.sp(D = d, sp.type = "matern", 
+      cor <- tryCatch(simple.cov.sp(D = d, sp.type = "matern",
                                     sp.par = c(1, rho),
                                     error.var = 0, smoothness = nu,
                                     finescale.var = 0),
@@ -360,7 +360,7 @@ makeZTS_cont_lambda <- function(nt, nknots, tau, phi) {
 }
 
 rpotspatTS_disc_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
-                                   phi.tau, lambda, tau.alpha, tau.beta, nknots, 
+                                   phi.tau, lambda, tau.alpha, tau.beta, nknots,
                                    dist) {
 
   p <- dim(x)[3]
@@ -394,7 +394,7 @@ rpotspatTS_disc_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
   sd <- 1 / sqrt(tau)
 
   if (skew) {
-    z <- makeZTS_disc_lambda(nt = nt, nknots = nknots, tau = tau, phi = phi.z, 
+    z <- makeZTS_disc_lambda(nt = nt, nknots = nknots, tau = tau, phi = phi.z,
                              lambda.2 = lambda.2)
   } else {
     z <- matrix(0, nrow = nknots, ncol = nt)
@@ -424,8 +424,8 @@ rpotspatTS_disc_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
   results <- list(y = y, tau = tau, z = z, knots = knots)
 }
 
-rpotspatTS_cont_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w, 
-                                   phi.tau, lambda, tau.alpha, tau.beta, nknots, 
+rpotspatTS_cont_lambda <- function(nt, x, s, beta, gamma, nu, rho, phi.z, phi.w,
+                                   phi.tau, lambda, tau.alpha, tau.beta, nknots,
                                    dist) {
 
   p <- dim(x)[3]
@@ -520,9 +520,9 @@ QuantScore <- function(preds, probs, validate, trans = FALSE) {
 
   pred.quants <- t(pred.quants)  # need np x nprobs for proper matrix subtraction
   scores.sites <- array(NA, dim=c(nprobs, np, nt))
-  
+
   # we need to figure out how many times the site did or didn't exceed the prediction
-  
+
   for (q in 1:nprobs) {
     diff <- pred.quants[, q] - validate
     i <- diff >= 0  # diff >= 0 means qhat is larger

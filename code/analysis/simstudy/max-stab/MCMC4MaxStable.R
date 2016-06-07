@@ -156,8 +156,8 @@ maxstable<-function(y, x, s, thresh, knots, sp = NULL, xp = NULL,
             loga   <- log(a[t, k])
             logcana <- log(cana)
             R <- sum(cc - ccc) + canlp - curlp[t, k] +
-              dlognormal(loga, logcana, MHa[l2]) -
-              dlognormal(logcana, loga, MHa[l1])
+              dlognormal(a[t, k], cana, MHa[l2]) -
+              dlognormal(cana, a[t, k], MHa[l1])
             if (!is.na(exp(R))) { if (runif(1) < exp(R)) {
               a[t, k]     <- cana
               A[t, ]      <- canA
@@ -907,6 +907,6 @@ get.level.sca <- function(A, cuts) {  # minor speedup in scalar case
   return(lev)
 }
 
-dlognormal <- function(logx, logmu, sig) {
-  dnorm(logx, logmu, sig, log=T) - logx
-}
+# dlognormal <- function(logx, logmu, sig) {
+#   dnorm(logx, logmu, sig, log=T) - logx
+# }

@@ -38,7 +38,6 @@ for (g in 1:10) {
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
     cat("start dataset", dataset, "\n")
-    set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
     obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
@@ -50,6 +49,7 @@ for (g in 1:10) {
     s.p <- s[!obs, ]
     
     cat("  start: t-5 (T=0.80) - Set", dataset, "\n")
+    set.seed(analysis * 1000 + setting * 100 + dataset)
     outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
     tic <- proc.time()
     fit.1 <- tryCatch(
@@ -75,5 +75,5 @@ for (g in 1:10) {
     save(fit.1, file=outputfile)
     rm(fit.1)
   }
-
+  
 }

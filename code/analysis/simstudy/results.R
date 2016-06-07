@@ -7,12 +7,13 @@
 #   1 - Gaussian
 #   2 - t-1
 #   3 - t-5
-#   4 - skew t-1 (alpha = 3)
-#   5 - skew t-5 w/partition (alpha = 3)
-#   6 - max-stable with mu=1, sig=1, xi=0.1
+#   4 - skew t-1 (lambda = 3)
+#   5 - skew t-5 w/partition (lambda = 3)
+#   6 - max-stable with mu=1, sig=1, xi=0.2, alpha = 0.5, bw = 1
 #   7 - x = setting 4, set T = q(0.80)
 #       y = x,              x > T
 #       y = T * exp(x - T), x <= T
+#   8 - Brown-Resnick with range = 1, smooth = 0.5
 #
 # analysis methods:
 #  1 - Gaussian
@@ -20,6 +21,7 @@
 #  3 - t-1 (T = 0.80)
 #  4 - skew t-5
 #  5 - t-5 (T = 0.80)
+#  6 - Max-stable (T = 0.80)
 #
 #########################################################################
 
@@ -75,7 +77,7 @@ for (setting in 1:nsettings) {
   load(scores.file)
   quant.score.all[, done.sets, , setting] <- quant.score[, done.sets, , setting]
   brier.score.all[, done.sets, , setting] <- brier.score[, done.sets, , setting]
-  
+
   beta.0.all[, done.sets, , setting] <- beta.0[, done.sets, , setting]
   beta.1.all[, done.sets, , setting] <- beta.1[, done.sets, , setting]
   beta.2.all[, done.sets, , setting] <- beta.2[, done.sets, , setting]
@@ -187,13 +189,13 @@ load(file = "simresults.RData")
 # look over results
 #   results.wnmt: ncomparisons x nsettings x nquants
 # results are 1-2, 1-3, 1-4, 1-5, 1-6, 2-3, 2-4, 2-5, 2-6, 3-4, 3-5, 3-6, 4-5, 4-6, 5-6
-comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5", 
+comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew t-5",
 				 "gaus vs. t-5 (T = 0.80)", "gaus vs. Max-stab (T = 0.80)",
-				 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5", 
+				 "skew t-1 vs. t-1 (T = 0.80)", "skew t-1 vs. skew t-5",
 				 "skew t-1 vs. t-5 (T = 0.80)", "skew t-1 vs. Max-stab (T = 0.80)",
                  "t-1 (T = 0.80) vs. skew t-5", "t-1 (T = 0.80) vs. t-5 (T = 0.80)",
-                 "t-1 (T = 0.80) vs. Max.stab (T = 0.80)", 
-                 "skew t-5 vs. t-5 (T = 0.80)", "skew t-5 vs. Max-stab (T = 0.80)", 
+                 "t-1 (T = 0.80) vs. Max.stab (T = 0.80)",
+                 "skew t-5 vs. t-5 (T = 0.80)", "skew t-5 vs. Max-stab (T = 0.80)",
                  "t-5 (T = 0.80) vs. Max-stab (T = 0.80)")
 
 quant.score <- savelist$quant.score
@@ -212,7 +214,20 @@ lambda <- savelist$lambda
 results.wnmt <- savelist$results.wnmt
 results.friedman <- savelist$results.friedman
 
-
+# look over intervals for coverage for settings 4, 5 and methods 2, 4
+# 95% credible sets for lambda: setting 4, method 2
+# lambda[c(2, 7), , 2, 4]
+ints <- lambda[c(2, 7), , 2, 4]
+cover <- 0
+for (i in 1:50) {
+  cover <- cover + (ints[1, i] < 3 & ints[2, i] > 3) / 50
+}
+# 76%
+ints <- lambda[c(2, 7), , 4, 5]
+cover <- 0
+for (i in 1:50) {
+  cover <- cover + cover + (ints[1, i] < 3 & ints[2, i] > 3) / 50
+}
 
 # which groups are different for different settings
 setting <- 1
@@ -297,7 +312,7 @@ setting.title <- c("Data: Gaussian", "Data: Symmetric-t (K = 1)",
                    "Data: Max-stable", "Data: transform below T",
                    "Data: Brown-Resnick")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Sym-t, K = 1, T = q(0.8)",
-             "Skew-t, K = 5, T = q(0.0)", "Sym-t, K = 5, T = q(0.8)", 
+             "Skew-t, K = 5, T = q(0.0)", "Sym-t, K = 5, T = q(0.8)",
              "Max-stable, T = q(0.80)")
 bg <- c("firebrick1", "dodgerblue1", "firebrick1", "dodgerblue1", "gray70")
 col <- c("firebrick4", "dodgerblue4", "firebrick4", "dodgerblue4", "gray14")

@@ -38,7 +38,6 @@ for (g in 1:10) {
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
     cat("start dataset", dataset, "\n")
-    set.seed(setting * 100 + dataset)
     y.d <- y[, , dataset, setting]
     obs <- c(rep(T, 100), rep(F, 44))
     y.o <- y.d[obs, ]
@@ -50,14 +49,15 @@ for (g in 1:10) {
     s.p <- s[!obs, ]
     
     cat("  start: skew t-5 - Set", dataset, "\n")
+    set.seed(analysis * 1000 + setting * 100 + dataset)
     outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
     tic <- proc.time()
     fit.1 <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
-                       method="t", skew=TRUE, thresh.all=0,
-                       thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
-                       burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
-                       temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-                       rho.upper=15, nu.upper=10)
+                  method="t", skew=TRUE, thresh.all=0,
+                  thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+                  burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
+                  temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
+                  rho.upper=15, nu.upper=10)
     toc <- proc.time()
     cat("  skew t-5 took:", (toc - tic)[3], "\n")
     cat("  end: skew t-5 \n")
@@ -66,5 +66,5 @@ for (g in 1:10) {
     save(fit.1, file=outputfile)
     rm(fit.1)
   }
-
+  
 }
