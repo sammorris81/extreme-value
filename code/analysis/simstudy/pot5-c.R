@@ -51,7 +51,8 @@ for (g in 1:10) {
     cat("  start: gaussian - Set", dataset, "\n")
     analysis <- 1
     set.seed(analysis * 1000 + setting * 100 + dataset)
-    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    outputfile <- paste("results/", setting, "-", analysis, "-", dataset, 
+                        ".RData", sep="")
     tic <- proc.time()
     fit.1 <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
                   method="gaussian", skew=FALSE, thresh.all=0,
@@ -69,7 +70,8 @@ for (g in 1:10) {
     cat("  start: skew t-1 - Set", dataset, "\n")
     analysis <- 2
     set.seed(analysis * 1000 + setting * 100 + dataset)
-    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    outputfile <- paste("results/", setting, "-", analysis, "-", dataset, 
+                        ".RData", sep="")
     tic <- proc.time()
     fit.1 <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
                   method="t", skew=TRUE, thresh.all=0,
@@ -87,7 +89,8 @@ for (g in 1:10) {
     cat("start: t-1 (T=0.80) - Set", dataset, "\n")
     analysis <- 3
     set.seed(analysis * 1000 + setting * 100 + dataset)
-    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    outputfile <- paste("results/", setting, "-", analysis, "-", dataset, 
+                        ".RData", sep="")
     tic <- proc.time()
     fit.1 <- tryCatch(
       mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,

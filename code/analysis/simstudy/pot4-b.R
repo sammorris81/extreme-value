@@ -50,7 +50,8 @@ for (g in 1:10) {
     
     cat("  start: skew t-5 - Set", dataset, "\n")
     set.seed(analysis * 1000 + setting * 100 + dataset)
-    outputfile <- paste(setting, "-", analysis, "-", dataset, ".RData", sep="")
+    outputfile <- paste("results/", setting, "-", analysis, "-", dataset, 
+                        ".RData", sep="")
     tic <- proc.time()
     fit.1 <- mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
                   method="t", skew=TRUE, thresh.all=0,
