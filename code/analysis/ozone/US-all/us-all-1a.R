@@ -7,7 +7,7 @@ keep.knots <- F
 threshold <- 0
 thresh.quant <- F
 skew <- F
-outputfile <- paste("us-all-", setting, ".RData", sep="")
+outputfile <- paste("results/us-all-", setting, "a.RData", sep="")
 
 start <- proc.time()
 

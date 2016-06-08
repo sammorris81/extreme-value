@@ -1,7 +1,7 @@
 source("./package_load.R", chdir = TRUE)
 
 setting <- 2
-outputfile <- paste("us-all-", setting, ".RData", sep="")
+outputfile <- paste("results/us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
 thresh <- 75

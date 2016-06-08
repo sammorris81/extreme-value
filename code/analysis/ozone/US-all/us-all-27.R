@@ -11,7 +11,7 @@ skew <- T
 temporalw <- F
 temporalz <- F
 temporaltau <- F
-outputfile <- paste("us-all-", setting, ".RData", sep="")
+outputfile <- paste("results/us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
 

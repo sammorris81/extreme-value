@@ -8,7 +8,7 @@ threshold <- 0
 tau.init <- 0.05
 thresh.quant <- FALSE
 skew <- TRUE
-outputfile <- paste("us-all-", setting, ".RData", sep="")
+outputfile <- paste("results/us-all-", setting, ".RData", sep="")
 
 start <- proc.time()
 
