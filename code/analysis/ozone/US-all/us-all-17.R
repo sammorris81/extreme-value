@@ -34,7 +34,7 @@ for(val in 1:2){
 	                   method=method, skew=skew, keep.knots=keep.knots,
 	                   thresh.all=threshold, thresh.quant=thresh.quant,
 	                   nknots=nknots, iters=30000, burn=25000, update=500,
-	                   iterplot=TRUE, beta.init=beta.init, tau.init=tau.init,
+	                   iterplot=FALSE, beta.init=beta.init, tau.init=tau.init,
 	                   gamma.init=0.5, rho.init=1, rho.upper=5, nu.init=0.5,
 	                   nu.upper=10, min.s=c(-2.25, -1.55), max.s=c(2.35, 1.30))
 	toc.set <- proc.time()
