@@ -1,4 +1,5 @@
 source("./package_load.R", chdir = TRUE)
+options(warn = 2)
 
 setting <- 17
 method <- "t"
