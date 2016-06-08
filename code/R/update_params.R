@@ -866,7 +866,7 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
   lognu  <- log(nu)
   R <- 0
   if (!fixnu) {
-    can.lognu <- lognu * exp(mh.nu * rnorm(1))
+    can.lognu <- rnorm(1, lognu, mh.nu)
   } else {
     can.lognu <- lognu
   }
@@ -904,10 +904,9 @@ updateRhoNu <- function(rho, logrho.m, logrho.s, fixnu, nu, lognu.m, lognu.s,
     log(rho - 0) - log(rho.upper - rho)
 
   if (!fixnu) {
-    R <- R + dnorm(can.lognu, lognu.m, lognu.s, log = TRUE) -
-      dnorm(lognu, lognu.m, lognu.s, log = TRUE) +
-      dlognormal(nu, can.nu, mh.nu) -  # asymmetrical candidate
-      dlognormal(can.nu, nu, mh.nu)
+    R <- R + 
+      dnorm(can.lognu, lognu.m, lognu.s, log = TRUE) - 
+      dnorm(lognu, lognu.m, lognu.s, log = TRUE)
   }
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -988,8 +987,8 @@ updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec,
   att  <- att + 1
 
   lognu  <- log(nu)
-  can.nu <- nu * exp(mh * rnorm(1))
-  can.lognu <- log(can.nu)
+  can.lognu <- rnorm(1, lognu, mh)
+  can.nu <- exp(can.lognu)
   if (can.nu > nu.upper) {  # automatically reject if it gets too big
     R <- -Inf
   } else {
@@ -1018,10 +1017,8 @@ updateNu <- function(nu, lognu.m, lognu.s, rho, d, gamma, res, taug, prec,
 
     R <- -0.5 * (can.rss - cur.rss) +
       nt * (can.logdet.prec - logdet.prec) +
-      dnorm(can.lognu, lognu.m, lognu.s, log = TRUE) -
-      dnorm(lognu, lognu.m, lognu.s, log = TRUE) +
-      dlognormal(nu, can.nu, mh) -  # asymmetrical candidate
-      dlognormal(can.nu, nu, mh)
+      dnorm(can.lognu, lognu.m, lognu.s, log = TRUE) - 
+      dnorm(lognu, lognu.m, lognu.s, log = TRUE)
   }
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
@@ -1043,9 +1040,9 @@ updateGamma <- function(gamma, gamma.m, gamma.s, d, rho, nu, taug, res, prec,
   nt <- ncol(res)
   att <- att + 1
 
-  gamma.star     <- transform$logit(gamma)
+  gamma.star     <- transform$logit(gamma, 1e-4, 0.9999)
   can.gamma.star <- rnorm(1, gamma.star, mh)
-  can.gamma      <- transform$inv.logit(can.gamma.star)
+  can.gamma      <- transform$inv.logit(can.gamma.star, 1e-4, 0.9999)
 
   can.C  <- can.gamma * cor
   diag(can.C) <- 1
@@ -1063,8 +1060,8 @@ updateGamma <- function(gamma, gamma.m, gamma.s, d, rho, nu, taug, res, prec,
   can.rss <- sum(rss(prec = can.prec, y = sqrt(taug) * res))
 
   R <- -0.5 * (can.rss - cur.rss) + nt * (can.logdet.prec - logdet.prec) +
-    log(can.gamma) + log(1 - can.gamma) -  # Jacobian of the prior
-    log(gamma) - log(1 - gamma)
+    log(can.gamma - 1e-4) + log(0.9999 - can.gamma) -  # Jacobian of the prior
+    log(gamma - 1e-4) - log(0.9999 - gamma)
 
   if (!is.na(R)) { if (log(runif(1)) < R) {
     acc         <- acc + 1
