@@ -33,25 +33,25 @@ nsets <- 5
 
 for (g in 1:10) {
   y.validate <- array(NA, dim=c(ntest, nt, nsets))
-  
+
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
-    if (dataset > 17) {
+    if (dataset > 27) {
       cat("start dataset", dataset, "\n")
       y.d <- y[, , dataset, setting]
       obs <- c(rep(T, 100), rep(F, 44))
       y.o <- y.d[obs, ]
       x.o <- x[obs, , ]
       s.o <- s[obs, ]
-      
+
       y.validate[, , d] <- y.d[!obs, ]
       x.p <- x[!obs, , ]
       s.p <- s[!obs, ]
-      
+
       cat("  start: t-5 (T=0.80) - Set", dataset, "\n")
       set.seed(analysis * 1000 + setting * 100 + dataset)
-      outputfile <- paste("results/", setting, "-", analysis, "-", dataset, 
+      outputfile <- paste("results/", setting, "-", analysis, "-", dataset,
                           ".RData", sep="")
       tic <- proc.time()
       fit.1 <- tryCatch(
@@ -73,10 +73,10 @@ for (g in 1:10) {
       cat("  t-5 (T=0.80) took:", (toc - tic)[3], "\n")
       cat("  end: t-5 (T=0.80) \n")
       cat("------------------\n")
-      
+
       save(fit.1, file=outputfile)
       rm(fit.1)
     }
   }
-  
+
 }
