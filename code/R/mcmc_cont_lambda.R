@@ -34,7 +34,7 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
                  cov.model = "matern",  # or "exponential"
                  rho.prior = "cont",    # or "disc"
                  # skew inits
-                 z.init = 1, lambda.init = NULL,
+                 z.init = 0, lambda.init = NULL,
                  # skew priors
                  lambda.m = 0, lambda.s = 20, skew = T,
                  thresh.site.specific = FALSE, thresh.site = NULL,
@@ -236,7 +236,7 @@ mcmc <- function(y, s, x, s.pred = NULL, x.pred = NULL,
   fixnu <- FALSE
   if (cov.model == "exponential") {
     nu <- 0.5
-    fixnu <- TRUE
+    fix.nu <- TRUE
   }
 
   #### Precomputed initialized values.
