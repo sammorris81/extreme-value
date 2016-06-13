@@ -15,4 +15,8 @@ source('../../R/auxfunctions.R')
 source('./max-stab/Bayes_GEV.R')
 source('./max-stab/MCMC4MaxStable.R', chdir = TRUE)
 
+if (Sys.info()["nodename"] == "cwl-mth-sam-001") {
+  openblas.set.num.threads(1)
+}
+
 options(warn=2)
