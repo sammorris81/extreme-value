@@ -35,10 +35,6 @@ nsettings <- dim(y)[4]
 nmethods <- 6
 obs <- c(rep(T, 100), rep(F, 44))
 
-setting <- 1
-filename <- paste("scores", setting, ".RData", sep="")
-prefix <- "results/"
-
 # Included for easy access if we need to change score functions
 source("../../R/auxfunctions.R")
 
@@ -135,13 +131,17 @@ rm(list = c("quant.score.rev", "brier.score.rev", "beta.0.rev", "beta.1.rev",
 
 
 iters <- 20000; burn <- 10000
-for (set in 1:50) {
-  thresholds <- quantile(y[, , set, setting], probs=probs, na.rm=T)
-  validate <- y[!obs, , set, setting]
-  
-  # for(setting in 1:nsettings){
-  for (method in 1:nmethods) {
-    if (method == 2 | method == 4) {
+settings <- c(1, 2, 3, 4, 5, 6, 8)
+for (setting in settings) {
+  filename <- paste("scores", setting, ".RData", sep="")
+  prefix <- "results/"
+  cat("start setting", setting, "\n")
+  for (set in 1:50) {
+    thresholds <- quantile(y[, , set, setting], probs=probs, na.rm=T)
+    validate <- y[!obs, , set, setting]
+    
+    # for(setting in 1:nsettings){
+    for (method in 1:nmethods) {
       dataset <- paste(prefix, setting, "-", method, "-", set, ".RData", sep="")
       load(dataset)
       
@@ -175,17 +175,17 @@ for (set in 1:50) {
       rm(fit, fit.1)
       cat("\t method", method, "\n")
     }
-  }
-  
-  cat("dataset", set, "\n")
-  
-  if (set %% 10 == 0) {
-    save(
-      quant.score, brier.score, beta.0, beta.1, beta.2,
-      tau.alpha, tau.beta, rho, nu, gamma, lambda,
-      probs, thresholds,
-      file = filename
-    )
+    
+    cat("dataset", set, "\n")
+    
+    if (set %% 10 == 0) {
+      save(
+        quant.score, brier.score, beta.0, beta.1, beta.2,
+        tau.alpha, tau.beta, rho, nu, gamma, lambda,
+        probs, thresholds,
+        file = filename
+      )
+    }
   }
 }
 

@@ -70,9 +70,9 @@ lambda.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, ns
 avgparts.all <- array(NA, dim=c(length(intervals), (nsets * ngroups), nmethods, nsettings))
 
 skew.methods <- c(2, 4)
-
+settings <- c(1, 2, 3, 4, 5, 6, 8)
 iters <- 20000; burn <- 10000
-for (setting in 1:nsettings) {
+for (setting in settings) {
   scores.file <- paste("scores", setting, ".RData", sep="")
   load(scores.file)
   quant.score.all[, done.sets, , setting] <- quant.score[, done.sets, , setting]
@@ -106,7 +106,7 @@ rm(quant.score.all, brier.score.all, beta.0.all, beta.1.all, beta.2.all,
 
 ns <- dim(y)[1]
 nt <- dim(y)[2]
-nsets <- 5
+nsets <- dim(y)[3]
 nsettings <- dim(y)[4]
 nmethods <- 6
 
@@ -121,10 +121,20 @@ brier.score.mean
 best.quant <- matrix(NA, nrow=11, ncol=nsettings)
 best.brier <- matrix(NA, nrow=11, ncol=nsettings)
 for (i in 1:11) {
-  for (j in 1:nsettings) {
+  for (j in settings) {
     best.quant[i, j] <- which(quant.score.mean[i, , j] == min(quant.score.mean[i, , j], na.rm=T))
     best.brier[i, j] <- which(brier.score.mean[i, , j] == min(brier.score.mean[i, , j], na.rm=T))
   }
+}
+
+# look at coverage for setting 4 and 5 and methods 2 and 4
+# lambda[c(2, 7), sets, method, setting]
+cover.1 <- cover.2 <- cover.3 <- cover.4 <- 0
+for (i in 1:nsets) {
+  cover.1 <- cover.1 + (lambda[2, i, 2, 4] <= 3 && lambda[7, i, 2, 4] >= 3)
+  cover.2 <- cover.2 + (lambda[2, i, 4, 4] <= 3 && lambda[7, i, 4, 4] >= 3)
+  cover.3 <- cover.3 + (lambda[2, i, 2, 5] <= 3 && lambda[7, i, 2, 5] >= 3)
+  cover.4 <- cover.4 + (lambda[2, i, 4, 5] <= 3 && lambda[7, i, 4, 5] >= 3)
 }
 
 # Check for differences
