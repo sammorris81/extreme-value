@@ -28,7 +28,7 @@
 source("./package_load.R", chdir = TRUE)
 setting <- 4
 analysis <- 5
-iters <- 20000; burn <- 10000; update <- 1000; thin <- 1
+iters <- 20000; burn <- 10000; update <- 500; thin <- 1
 nsets <- 5
 
 for (g in 1:10) {
@@ -37,7 +37,7 @@ for (g in 1:10) {
   start <- proc.time()
   for (d in 1:nsets) {
     dataset <- (g-1) * 5 + d
-    if (dataset > 27) {
+    for (dataset in c(17, 27)) {
       cat("start dataset", dataset, "\n")
       y.d <- y[, , dataset, setting]
       obs <- c(rep(T, 100), rep(F, 44))
@@ -45,9 +45,9 @@ for (g in 1:10) {
       x.o <- x[obs, , ]
       s.o <- s[obs, ]
 
-      y.validate[, , d] <- y.d[!obs, ]
-      x.p <- x[!obs, , ]
-      s.p <- s[!obs, ]
+      # y.validate[, , d] <- y.d[!obs, ]
+      # x.p <- x[!obs, , ]
+      # s.p <- s[!obs, ]
 
       cat("  start: t-5 (T=0.80) - Set", dataset, "\n")
       set.seed(analysis * 1000 + setting * 100 + dataset)
@@ -57,17 +57,17 @@ for (g in 1:10) {
       fit.1 <- tryCatch(
         mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
              method="t", skew=FALSE, thresh.all=0.80,
-             thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+             thresh.quant=TRUE, nknots=5, iterplot=TRUE, iters=iters,
              burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
              temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-             rho.upper=15, nu.upper=10),
+             rho.init = 2, rho.upper=15, nu.upper=10),
         error = function(e) {
           mcmc(y=y.o, x=x.o, s=s.o, s.pred=s.p, x.pred=x.p,
                method="t", skew=FALSE, thresh.all=0.80,
-               thresh.quant=TRUE, nknots=5, iterplot=FALSE, iters=iters,
+               thresh.quant=TRUE, nknots=5, iterplot=TRUE, iters=iters,
                burn=burn, update=update, min.s=c(0, 0), max.s=c(10, 10),
                temporalw=FALSE, temporaltau=FALSE, temporalz=FALSE,
-               rho.upper=15, nu.upper=10, cov.model="exponential")
+               rho.init = 1, rho.upper=15, nu.upper=10)
         })
       toc <- proc.time()
       cat("  t-5 (T=0.80) took:", (toc - tic)[3], "\n")
