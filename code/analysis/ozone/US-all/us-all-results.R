@@ -7,17 +7,20 @@ settings <- read.csv("settings.csv")
 
 probs <- c(0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995)
 thresholds <- quantile(Y, probs = probs, na.rm = T)
-nsets <- 2 # Number of cv sets
+nsets  <- 2 # Number of cv sets
 nbetas <- 2 # number of betas
 
 quant.score <- array(NA, dim = c(length(probs), nsets, 74))
 brier.score <- array(NA, dim = c(length(thresholds), nsets, 74))
 
-beta.0 <- array(NA, dim = c(5000, nsets, 74))
-beta.1 <- array(NA, dim = c(5000, nsets, 74))
+beta.0    <- array(NA, dim = c(5000, nsets, 74))
+beta.1    <- array(NA, dim = c(5000, nsets, 74))
+tau.alpha <- array(NA, dim = c(5000, nsets, 74))
+tau.beta  <- array(NA, dim = c(5000, nsets, 74))
+lambda    <- array(NA, dim = c(5000, nsets, 74))
 
-phi.z <- array(NA, dim = c(5000, nsets, 74))
-phi.w <- array(NA, dim = c(5000, nsets, 74))
+phi.z   <- array(NA, dim = c(5000, nsets, 74))
+phi.w   <- array(NA, dim = c(5000, nsets, 74))
 phi.tau <- array(NA, dim = c(5000, nsets, 74))
 
 # load("us-all-results.RData")
@@ -50,6 +53,11 @@ for (i in 1:74) {
       if (i != 2) {
         beta.0[, d, i] <- fit.d$beta[, 1]
         beta.1[, d, i] <- fit.d$beta[, 2]
+        tau.alpha[, d, i] <- fit.d$tau.alpha
+        tau.beta[, d, i]  <- fit.d$tau.beta
+        if (!is.null(fit.d$lambda)) {
+          lambda[, d, i] <- fit.d$lambda
+        }
       }
     }
   }
