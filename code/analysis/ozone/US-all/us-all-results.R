@@ -189,18 +189,18 @@ lines(ozone.quant.site[plot.ord], fitted(fit.np)[plot.ord], lty = 2)
 # find top two for selected quantiles
 score.compare <- bs.mean.ref.gau[, c(1, 6, 9:11)]
 idx <- which(score.compare[, 1] == min(score.compare[, 1], na.rm = T))
-score.compare[idx, 1]  # 33
+score.compare[idx, 1]  # 37
 idx <- which(score.compare[, 2] == min(score.compare[, 2], na.rm = T))
-score.compare[idx, 2]
+score.compare[idx, 2]  # 54
 idx <- which(score.compare[, 3] == min(score.compare[, 3], na.rm = T))
-score.compare[idx, 3]
+score.compare[idx, 3]  # 60
 idx <- which(score.compare[, 4] == min(score.compare[, 4], na.rm = T))
-score.compare[idx, 4]
+score.compare[idx, 4]  # 34
 idx <- which(score.compare[, 5] == min(score.compare[, 5], na.rm = T))
 score.compare[idx, 5]
 
 idx <- order(score.compare[, 1])[2]
-score.compare[idx, 1]
+score.compare[idx, 1]  # 2
 idx <- order(score.compare[, 2])[2]
 score.compare[idx, 2]
 idx <- order(score.compare[, 3])[2]
@@ -383,7 +383,7 @@ lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
 quartz(width = 12, height = 6)
 par(mfrow = c(1, 2), mar = c(5.1, 5.1, 4.1, 2.1))
 
-plot(x.plot, y.plot[[1]], type="b", lty = 1, ylim = c(0.9, 1),
+plot(x.plot, y.plot[[1]], type="b", lty = 1, ylim = c(0.94, 1.02),
      bg = bg[1], col = col[1], pch = pch[1], # main = "Time Series Models",
      ylab = "Relative Brier Score", xlab = "Threshold quantile",
      cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main=2)
@@ -391,7 +391,7 @@ for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
         lty = lty[i], cex = 1.5)
 }
-# abline(h=1, lty=2)
+abline(h=1, lty=2)
 legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
             "K=7, T=0", "K=7, T=50", "K=7, T=75",
             "K=15, T=0", "K=15, T=50", "K=15, T=75")
@@ -419,7 +419,7 @@ col <- c("firebrick4", "firebrick4", "firebrick4",
 pch <- c(21, 22, 23, 21, 22, 23, 21, 22, 23)
 lty <- c(1, 2, 3, 1, 2, 3, 1, 2, 3)
 
-plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.9, 1),
+plot(x.plot, y.plot[[1]], type="b", lty=1, ylim=c(0.94, 1.02),
      bg=bg[1], col=col[1], pch=pch[1], # main="Non Time Series Models",
      ylab="Relative Brier Score", xlab="Threshold quantile",
      cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
@@ -427,12 +427,13 @@ for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type="b", bg=bg[i], col=col[i], pch=pch[i],
         lty=lty[i], cex=1.5)
 }
-# abline(h=1, lty=2)
+abline(h=1, lty=2)
 # legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
 #             "K=7, T=0", "K=7, T=50", "K=7, T=75",
 #             "K=15, T=0", "K=15, T=50", "K=15, T=75")
 # legend("bottomleft", legend=legend, col=col, pch=pch, pt.bg=bg, cex=1.0,
 #        lty=lty, box.lty=1)
+dev.print(device = pdf, file = "../../../../LaTeX/plots/bs-ozone.pdf")
 
 
 # one knot

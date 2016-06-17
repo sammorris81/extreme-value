@@ -3,11 +3,11 @@ library(fields)
 library(SpatialTools)
 library(mvtnorm)
 
-rm(list=ls())
+rm(list = ls())
 load("../ozone_data.RData")
-source('../../../R/mcmc.R', chdir=T)
+source('../../../R/mcmc_cont_lambda.R', chdir=T)
 source('../../../R/auxfunctions.R')
-load("us-all-full-1.RData")
+load("results/us-all-full-1.RData")
 
 outputfile <- "us-all-pred-1.RData"
 
@@ -39,8 +39,8 @@ cmaq.p  <- CMAQ.cs[keep.these, ]
 nt <- ncol(cmaq.p)
 np <- nrow(cmaq.p)
 ns <- nrow(cmaq.o)
-X.o <- array(1, dim=c(nrow(cmaq.o), nt, 2))
-X.p <- array(1, dim=c(nrow(cmaq.p), nt, 2))
+X.o <- array(1, dim = c(nrow(cmaq.o), nt, 2))
+X.p <- array(1, dim = c(nrow(cmaq.p), nt, 2))
 for (t in 1:nt) {
   X.p[, t, 2] <- cmaq.p[, t]
   X.o[, t, 2] <- cmaq.o[, t]
@@ -70,14 +70,14 @@ for (i in 1:nreps) {
   gamma <- fit$gamma[i]
   beta  <- fit$beta[i, ]
   tau   <- matrix(fit$tau[i, ], 1, nt)
-  knots <- array(0, dim=c(1, 2, nt))
+  knots <- array(0, dim = c(1, 2, nt))
   z     <- matrix(0, 1, nt)
   y     <- fit$y[i, , ]  # want to use imputed y not true y
-  lambda.1 <- 0
+  lambda <- 0
 
   # precision matrix
-  C <- gamma * simple.cov.sp(D=d22, sp.type=cov.model, sp.par=c(1, rho),
-                             error.var=0, smoothness=nu, finescale.var=0)
+  C <- gamma * simple.cov.sp(D = d22, sp.type = cov.model, sp.par = c(1, rho),
+                             error.var = 0, smoothness = nu, finescale.var = 0)
   diag(C) <- 1
   prec <- chol2inv(chol(C))
 
@@ -89,13 +89,16 @@ for (i in 1:nreps) {
     zg[, t]     <- z[g[, t], t]
   }
 
-  mu  <- x.beta + lambda.1 * zg
+  mu  <- x.beta + lambda * zg
   res <- y - mu
 
-  y.pred[i, , ] <- predictY(d11=d11, d12=d12, cov.model=cov.model, rho=rho,
-                            nu=nu, gamma=gamma, res=res, beta=beta, tau=tau,
-                            taug=taug, z=z, prec=prec, lambda.1=lambda.1,
-                            s.pred=S.p, x.pred=X.p, knots=knots)
+  y.pred[i, , ] <- predictY_cont_lambda(d11 = d11, d12 = d12, 
+                                        cov.model = cov.model, rho = rho, 
+                                        nu = nu, gamma = gamma, res = res, 
+                                        beta = beta, tau = tau, taug = taug, 
+                                        z = z, prec = prec, lambda = lambda,
+                                        s.pred = S.p, x.pred = X.p, 
+                                        knots = knots)
 
   if (i %% 500 == 0) {
     print(paste("Iter", i))

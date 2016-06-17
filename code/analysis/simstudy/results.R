@@ -149,12 +149,13 @@ for (i in 1:nsets) {
 
 groups <- rep(1:nmethods, each=50)
 dataset <- rep(1:50, times=nmethods)
+settings <- c(1, 2, 3, 4, 5, 6, 8)
 
 library(NSM3)
 set.seed(6763)  # NSM3
 include <- c(1, 6, 9, 10, 11)
 results.friedman <- matrix(0, length(include), nsettings)
-for (j in 1:nsettings) {
+for (j in settings) {
   for (i in 1:length(include)) {
     scores <- as.vector(brier.score[include[i], , , j])
     combine <- data.frame(scores, groups, dataset)
@@ -165,7 +166,7 @@ for (j in 1:nsettings) {
 
 # posthoc is  Wilcoxon, Nemenyi, McDonald-Thompson test
 results.wnmt <- array(0, dim=c(choose(nmethods, 2), nsettings, length(include)))
-for (j in 1:nsettings) {
+for (j in settings) {
   for (i in 1:length(include)) {
     scores <- as.vector(brier.score[include[i], , , j])
     combine <- data.frame(scores, groups, dataset)
@@ -232,12 +233,13 @@ cover <- 0
 for (i in 1:50) {
   cover <- cover + (ints[1, i] < 3 & ints[2, i] > 3) / 50
 }
-# 76%
-ints <- lambda[c(2, 7), , 4, 5]
+# 96%
+ints <- tau.alpha[c(2, 7), , 2, 4]
 cover <- 0
 for (i in 1:50) {
-  cover <- cover + cover + (ints[1, i] < 3 & ints[2, i] > 3) / 50
+  cover <- cover + (ints[1, i] < 3 & ints[2, i] > 3) / 50
 }
+# 24%
 
 # which groups are different for different settings
 setting <- 1
