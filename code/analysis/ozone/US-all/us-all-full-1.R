@@ -59,14 +59,16 @@ S.o <- S
 
 set.seed(setting * 100)
 tic.set <- proc.time()
-fit <- mcmc(y=y.o, s=S.o, x=X.o, # x.pred=X.p, s.pred=S.p,
-            method=method, skew=skew, keep.knots=keep.knots,
-            min.s=c(-2.25, -1.60), max.s=c(2.35, 1.30),
-            thresh.all=threshold, thresh.quant=thresh.quant, nknots=nknots,
-            iters=30000, burn=25000, update=500, iterplot=F,
-            beta.init=beta.init, tau.init=tau.init,
-            gamma.init=0.5, rho.init=1, rho.upper=5, nu.init=0.5, nu.upper=10,
-            temporaltau=temporaltau, temporalw=temporalw, temporalz=temporalz)
+fit <- mcmc(y = y.o, s = S.o, x = X.o, # x.pred = X.p, s.pred = S.p,
+            method = method, skew = skew, keep.knots = keep.knots,
+            min.s = c(-2.25, -1.60), max.s = c(2.35, 1.30),
+            thresh.all = threshold, thresh.quant = thresh.quant, 
+            nknots = nknots,
+            iters = 30000, burn = 25000, update = 500, iterplot = FALSE,
+            beta.init = beta.init, tau.init = tau.init,
+            gamma.init = 0.5, rho.init = 1, rho.upper = 5, nu.init = 0.5, 
+            nu.upper = 10, temporaltau = temporaltau, temporalw = temporalw, 
+            temporalz = temporalz)
 toc.set <- proc.time()
 time.set <- (toc.set - tic.set)[3]
 
