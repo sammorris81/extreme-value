@@ -3,7 +3,7 @@
 #
 # TODO: Add in model description here
 #
-#ASSUMES x and y are in [0,1]^2
+# ASSUMES x and y are in [0,1]^2
 ################################################################################
 if (!exists("update_params_cpp_init")) {
   source('update_params_cpp.R')

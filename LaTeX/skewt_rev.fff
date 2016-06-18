@@ -39,7 +39,7 @@
  
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
-  \caption{Relative Brier scores for time-series models (left) and non-time-series models (right). Relative brier score for the max-stable model is between 1.07 and 1.15}
+  \caption{Relative Brier scores for time-series models (left) and non-time-series models (right). Relative brier score for the max-stable model is between 1.13 and 1.18}
   \label{stfig:bs-ozone}
 \end{figure}
 \efloatseparator

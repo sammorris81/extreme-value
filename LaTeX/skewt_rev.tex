@@ -49,13 +49,13 @@ $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorad
 \label{stfirstpage}
 
 \begin{abstract}
-To assess the compliance of air quality regulations, the Environmental Protection Agency (EPA) must know if a site exceeds a pre-specified threshold.
-In the case of ozone, the threshold for compliance is fixed at 75 parts per billion, which is high, but not extreme at all locations.
+To assess the compliance of air quality regulations, the Environmental Protection Agency (EPA) must know if a site exceeds a pre-specified level.
+In the case of ozone, the level for compliance is fixed at 75 parts per billion, which is high, but not extreme at all locations.
 We present a new method based on the spatial skew-$t$ process.
 Our method incorporates a random partition to permit long-distance asymptotic independence while allowing for sites that are near one another to be asymptotically dependent, and we incorporate thresholding to allow the tails of the data to speak for themselves.
 We also introduce a transformed AR(1) time-series to allow for temporal dependence.
 Finally, our model allows for high-dimensional Bayesian inference that is comparable in speed to traditional geostatistical methods for large datasets.
-We apply our method to an ozone analysis for July 2005, and find that our model improves over both Gaussian and max-stable methods in terms of predicting exceedances over a fixed threshold.
+We apply our method to an ozone analysis for July 2005, and find that our model improves over both Gaussian and max-stable methods in terms of predicting exceedances of a high level.
 \end{abstract}
 
 \begin{keywords}
@@ -68,7 +68,7 @@ Extreme value analysis, MCMC, Random partition, Skew-$t$, Spatio-temporal
 % In many climatological applications, researchers are interested in learning about the average behavior of different climate variables (e.g. ozone, temperature, rainfall).
 Epidemiological studies have linked air quality to public health concerns regarding morbidity and mortality \citep{Samet2000}.
 As a result, the Environmental Protection Agency (EPA) has developed a set of standards to help reduce air pollution thereby improving air quality.
-Our study is motivated by an air pollution application where the focus is not on the average behavior, but instead the behavior over a fixed threshold determined by government regulation.
+Our study is motivated by an air pollution application where the focus is not on the average behavior, but instead the behavior over a high level determined by government regulation.
 More specifically, we consider the case of compliance for ozone.
 A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over 3 years does not exceed 75 parts per billion (ppb).
 \fref{stfig:ozone-10jul} shows the ozone levels from July 10, 2005, at 1089 stations across the United States.
@@ -86,7 +86,7 @@ A spatial model for threshold exceedances warrants special consideration and sta
 First, because we are interested only in high values, we want to ``let the tail speak for itself''.
 That is, if we fit a model to the entire data set, low-to-moderate values would influence the fit of the overall model.
 As there are more of these values, they can unduly influence the distribution at the higher levels about which we are interested.
-Our inference method will only use data which exceed a threshold, and will impute data below the threshold, thereby tailoring the fit to the levels of interest.
+Our inference method will only use data which exceed a pre-selected threshold, and will impute data below the threshold, thereby tailoring the fit to the levels of interest.
 Second, likelihood-based spatial modeling typically assumes a Gaussian process, which is appropriate when mean behavior is of interest.
 However, the Gaussian distribution is light-tailed and symmetric, and therefore may be inappropriate for modeling data which does not share this tail behavior.
 Third, we aim to capture the dependence structure when ozone is at high levels, and dependence at these levels may not be well-represented by covariances which focus again on mean behavior.
@@ -108,11 +108,11 @@ Our application with ozone data does not fit into this framework because we do n
 Furthermore, in our application, we have observations at over 1,000 ozone monitoring locations.
 
 We propose a new spatiotemporal threshold exceedance model based on the skew-$t$ process \citep{Padoan2011}.
-Our model is a threshold exceedance model for the multivariate skew-$t$ distribution for a fixed threshold.
+\hl{Need to add in more references here to skew-$t$ used in a spatial setting.}
+Our model is a threshold exceedance model for the multivariate skew-$t$ distribution using a fixed threshold.
 In this setting, we describe the threshold as fixed because it is specified in advance by regulatory compliance.
 This differs from the more traditional extremes literature where a threshold is selected to be the value beyond which an extremal model is appropriate for the data.
-We use a skew-$t$ distribution because of its flexibility to model asymmetry and heavy-tailed data with the aim of predicting the probability of exceeding a high fixed threshold at an unobserved location.
-\hl{Need to add in more references here to skew-$t$ used in a spatial setting.}
+We use a skew-$t$ distribution because of its flexibility to model asymmetry and heavy-tailed data with the aim of predicting the probability of exceeding a high fixed level at an unobserved location.
 
 Our model allows for inference and predictions using the full likelihood with computing on the order of Gaussian models.
 This allows us to use Bayesian methods to impute data below the threshold as well as to make predictions at unobserved locations.
@@ -177,7 +177,7 @@ The spatial skew-$t$ process can be written
 \begin{align}
   Y(\bs) = \bX(\bs)^\top \bbeta + \lambda \sigma |z| + \sigma v(\bs) \label{steq:fullmodel}
 \end{align}
-$\bX(\bs)$ is the observed covariate vector at site $\bs$, $\bbeta$ is the $p$-vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a / 2, b)$ is random scale parameter, IG is the distribution function of an inverse gamma random variable, $a$ is the degrees of freedom, $b$ controls the precision of the process, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function $\text{Cor} \left[Y(\bs_1), Y(\bs_2)\right] = \rho(\bs_1, \bs_2)$.
+$\bX(\bs)$ is the observed covariate vector at site $\bs$, $\bbeta$ is the $p$-vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a / 2, b / 2)$ is random scale parameter, IG is the distribution function of an inverse gamma random variable, $a$ is the degrees of freedom, $b$ controls the precision of the process, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function $\text{Cor} \left[Y(\bs_1), Y(\bs_2)\right] = \rho(\bs_1, \bs_2)$.
 Although any positive definite correlation function could be used, we choose to use the stationary isotropic \Matern correlation with
 \begin{align}
   \rho(h) = (1 - \gamma) I(h = 0) + \gamma \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \varphi } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \varphi } \right) \label{steq:matern}
@@ -234,6 +234,8 @@ Let
   \end{array} \right.
 \eeq
 be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored observation, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
+As our goal is to predict exceedances above a high level $L$, we should select a value for $T \le L$.
+For example, in predicting ozone exceedances, we might set $T = 50$ppb in order to predict exceedances of $L = 75$ppb.
 Selecting $T$ too small may lead to bias in estimating the tail parameters; selecting $T$ to large increases variance.
 We impute the censored values as a step in the MCMC algorithm used to fit the model described in \sref{sts:comp}, and use cross-validation to select $T$.
 
@@ -254,7 +256,7 @@ The knots define a random partition of $\calD$ by subregions $P_{1}, \ldots, P_{
   P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \}.
 \end{align}
 In other words, $P_k$ is composed of all sites for which the closest knot is $\bw_k$.
-For all $\bs \in P_k$, with $k = 1, 2, \ldots, K$, the functions $z(\bs)$ and $\sigma(\bs)$ are equal to the constants $z_k$ and $\sigma_k$ respectively, and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2_k \iid$ IG$(a, b)$.
+For all $\bs \in P_k$, with $k = 1, 2, \ldots, K$, the functions $z(\bs)$ and $\sigma(\bs)$ are equal to the constants $z_k$ and $\sigma_k$ respectively, and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2_k \iid$ IG$(a / 2, b / 2)$.
 So, within each partition, $Y(\bs)$ follows the spatial skew-$t$ process defined in \sref{sts:spatialskew}.
 Across partitions, the $Y(\bs)$ remain correlated via the correlation function for $v(\bs)$ because $v(\bs)$ spans all partitions.
 However, the bivariate distribution for sites in different partitions is neither Gaussian nor skew-$t$ and does not have asymptotic dependence.
@@ -264,7 +266,7 @@ The partitioning model remove long-range dependence. Conditional on knots $\bw_1
   \chi(h) &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) + I(k_1 \neq k_2) \chi_{\text{Gaus}}(h) \nonumber \\
          &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) \label{steq:chiskewt}
 \end{align}
-where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in \eref{steq:chiskew-t}, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs_1 - \bs_2||$.
+where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in equation \eref{steq:chiskew-t} of \aref{sta:skewt}, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs_1 - \bs_2||$.
 Therefore, sites in different subregions are asymptotically independent because $\chi_{\text{Gaus}}(h) = 0$ for all $h$.
 Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_1 = k_2)$ is the probability that two sites separated by distance $h$ are in the same partition.
 In \aref{sta:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, assuming that the knots follow a homogeneous Poisson process.
@@ -293,7 +295,7 @@ Let
 \begin{align} \label{steq:spatiotemp}
   Y_t(\bs) = \bX_t(\bs)^\top \bbeta + \lambda \sigma_t(\bs) |z_t(\bs)| + \sigma_t(\bs) v_t(\bs),
 \end{align}
-where $t \in \{1, \ldots, T\}$ denotes the day of each observation.
+where $t \in \{1, \ldots, n_t\}$ denotes the day of each observation.
 Let \hbox{$\bw_{tk} = (w_{tk1}, w_{tk2})$} be a spatial knot on day $t$, and let $\bw_{t1}, \ldots, \bw_{tK}$ be a collection of spatial knots on day $t$.
 As in \sref{sts:part}, these knots define a daily partition $P_{t1}, \ldots, P_{tK}$, and for $\bs \in P_{tk}$,
 \begin{align}
@@ -331,7 +333,7 @@ The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z^*_{
 \end{align}
 where $|\phi_w|$, $|\phi_z|$, $|\phi_\sigma| < 1$.
 These are stationary time series models with marginal distributions \hbox{$\bw^*_{k} \sim N_2(0, 1)$}, \hbox{$z^*_{k} \sim N(0, 1)$}, and \hbox{$\sigma^{2*}_{k} \sim N(0, 1)$}.
-After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $z_{tk} \sim HN(0, 1)$, and $\sigma^2_{tk} \sim \text{IG}(a, b)$.
+After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $z_{tk} \sim HN(0, 1)$, and $\sigma^2_{tk} \sim \text{IG}(a / 2, b / 2)$.
 We then create the partition for day $t$ using $\bw_{t1}, \ldots, \bw_{tk}$.
 For each day, the model is identical to the spatial-only model in \eref{steq:partition} by construction.
 
@@ -341,7 +343,7 @@ However, we do not fix the partitions, they are treated as unknown and updated i
 We model this with a Bayesian hierarchical model as follows.
 Let $\bw_{t1}, \ldots, \bw_{tK}$ be a set of daily spatial knots in a spatial domain of interest, $\calD$, and $P_{tk}$ as defined in \eref{steq:subregions}.
 One approach would be to allow $K$ to be unknown and follow a Poisson process prior, but this would lead to onerous computing.
-Therefore, we elect to treat $K$ as a tuning parameter for the MCMC by fixing it at different levels and assessing its impact on prediction as described in \sref{sts:modelselect}.
+Therefore, we elect to treat $K$ as a tuning parameter for the MCMC by fixing it at different values and assessing its impact on prediction as described in \sref{sts:modelselect}.
 Then
 \begin{align}
    Y_t(\bs) \mid z_{t}(\bs), \sigma_t^2(\bs), P_{tk}, \Theta &= \bX_t(\bs)^\top \beta + \lambda \sigma_t(\bs) |z_t(\bs)| + \sigma_t(\bs) v_t(\bs) \label{steq:hier}\\
@@ -374,7 +376,7 @@ This step is similar to the imputation for censored observations except that the
 See Appendices A.1 and A.2 for details regarding the MCMC algorithm.
 
 \section{Simulation study}\label{sts:simstudy}
-In this section, we present the results from a simulation study to investigate how the number of partitions and the level of thresholding impact the accuracy of predictions made by the model and to compare with Gaussian and max-stable methods.
+In this section, we present the results from a simulation study to investigate how the number of partitions and the amount of thresholding impact the accuracy of predictions made by the model and to compare with Gaussian and max-stable methods.
 
 \subsection{Design}\label{sts:simdesign}
 For all simulation designs, we generated data from model \eref{steq:partition} in \sref{sts:part} using $n_s=144$ sites and $n_t=50$ independent days.
@@ -386,7 +388,7 @@ We generated data from 5 different simulation designs:
   % \item Symmetric-$t$ marginal, $K=5$ knots
   \item Skew-$t$ marginal, $K=1$ knots
   \item Skew-$t$ marginal, $K=5$ knots
-  \item Max-stable
+  \item Max-stable with GEV(1, 1, 0.2) marginals \citep{Reich2012}
   % \item Transformation below $T = q(0.80)$
   \item A Brown-Resnick process with range 1 and smoothness 0.5
 \end{enumerate}
@@ -427,36 +429,36 @@ All methods are fit using a fully-Bayesian approach that simultaneously estimate
 The design matrix $\bX$ includes an intercept with a first-order spatial trend with priors of $\beta_\text{int}$, $\beta_\text{lat}$, $\beta_\text{long},  \iid \text{N}(0, 10)$ although only the intercept is used in the data generation.
 The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{Unif}(0, 1)$, $\varphi \sim \text{Unif}(15)$.
 The skewness parameter has prior $\lambda \sim N(0, 20)$.
-The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(a, b)$, where $a$ has a discrete uniform prior on a mesh from $0.2$ to $20$ with spacing of $0.1$ and $b$ has a Gamma$(0.1, 0.1)$ prior.
+The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(a / 2, b / 2)$, where $a$ has a discrete uniform prior on a mesh from $0.2$ to $20$ with spacing of $0.1$ and $b$ has a Gamma$(0.1, 0.1)$ prior.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We tried also fitting the skew-$t$ marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
 Each chain of the MCMC ran for 20,000 iterations with a burn-in period of 10,000 iterations.
-For methods that correspond directly to a simulation design (e.g. design 2 and method 2, design 3 and method 4), $\lambda$ and $a$ appear to converge to their true values.
+Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2), the $\lambda$ estimate and and $a$ appear to converge to their true values (96\% coverage and 90\% coverage respectively).
 It should be noted that in the models with multiple partitions (i.e. models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC; however, we are not interested in these parameters but rather spatial predictions and tail probabilities which converge well.
 
 \subsection{Cross validation}\label{sts:modelselect}
 Models were compared using cross validation, with 100 sites used as training sites to fit the models, and 44 sites withheld for testing the predictions.
-Because one of the primary goals of this model is to predict exceedances over a fixed threshold, we use Brier scores to compare the models \citep{Gneiting2007}.
-The Brier score for predicting exceedance of a threshold $c$ is given by $[e(c) - P(c)]^2$ where $e(c) = I[y>c]$ is an indicator function indicating that a test set value, $y$, has exceeded the threshold, $c$, and $P(c)$ is the predicted probability of exceeding $c$.
+Because one of the primary goals of this model is to predict exceedances over a high level, we use Brier scores to compare the models \citep{Gneiting2007}.
+The Brier score for predicting exceedance of a level $L$ is given by $[e(L) - P(L)]^2$ where $e(L) = I[y>L]$ is an indicator function indicating that a test set value, $y$, has exceeded the level, $L$, and $P(L)$ is the predicted probability of exceeding $L$.
 We average the Brier scores over all test sites and days.
 For the Brier score, a lower score indicates a better fit.
 
 \subsection{Results}\label{sts:simresults}
-We compared the Brier scores for exceeding 4 different thresholds for each dataset.
-The thresholds used for the Brier scores are extreme quantiles from the simulated data for $q(0.90)$, $q(0.95)$, $q(0.98)$, and $q(0.99)$.
+We compared the Brier scores for exceeding 4 different high levels for each dataset.
+The levels used for the Brier scores are extreme quantiles from the simulated data for $L = q(0.90)$, $q(0.95)$, $q(0.98)$, $q(0.99)$.
 \fref{stfig:simbrierscores} gives the Brier score relative to the Brier score for the Gaussian method calculated as
 \begin{align}
   \text{BS}_{\text{rel}} = \frac{\text{BS}_{\text{method}}}{\text{BS}_{\text{Gaussian}}}.
 \end{align}
-We analyzed the results for the simulation study using a Friedman test at $\alpha = 0.05$ to see if at least one method had a significantly different Brier score.
+We analyzed the results for the simulation study using a Friedman \citep{Hollander2014} test at $\alpha = 0.05$ to see if at least one method had a significantly different Brier score.
 For Friedman tests that came back with a significant p-value, we conducted a Wilcoxon-Nemenyi-McDonald-Thompson \citep{Hollander2014} test to see which of the methods had different results.
 The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in \aref{sta:pdiffs}.
 
+In general, we find that when the method to fit the data matches the data generation scheme, there is some improvement over other methods.
 The results show that when the data are generated from a Gaussian process, our method performs comparably to a Gaussian approach.
 In general, when the underlying process is not Gaussian, our method results in an improvement over both the max-stable and Gaussian methods.
-One exception to this is the case when the generative process is max-stable.
-In this case, the max-stable method outperforms our method for very extreme quantiles; however, for predictions at high quantile levels, the differences between the max-stable method and our method decrease.
-The non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model used in the method.
+We also see that the non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model used in the method.
+Finally, in the case where the data are generated using a Brown-Resnick process, we find that our method is competitive with using a max-stable model.
 % Finally, for setting 5, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
 In summary, our method provides more flexibility for data that demonstrate some level of asymmetry or heavy tails, while still performing comparably to Gaussian methods when the data are symmetric and have light tails.
 
@@ -523,14 +525,14 @@ We conduct two-fold cross validation using 400 training sites and 400 validation
 
 Each chain of the MCMC ran for 30,000 iterations with a burn-in period of 25,000 iterations.
 We use the same priors for the spatial covariance parameters, skewness parameter, and knots as in the simulation study.
-The prior for the residual variance terms is $\sigma^2_t(\bs) \sim text{IG}(a, b)$ where $a$ is the same as the simulation study, but $b$ has a Gamma$(1, 1)$ prior.
+The prior for the residual variance terms is $\sigma^2_t(\bs) \sim \text{IG}(a / 2, b / 2)$ where $a$ is the same as the simulation study, but $b$ has a Gamma$(1, 1)$ prior.
 Parameters appear to converge properly; however, as before, for models with multiple partitions it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC.
 For each model, Brier scores were averaged over all sites and days to obtain a single Brier score for each dataset.
-At a particular threshold or quantile level, the model that fits the best is the one with the lowest score.
+At a particular level, the model that fits the best is the one with the lowest score.
 We then compute the relative (to Gaussian) Brier scores (see \sref{sts:simresults}) to compare each model.
 
 \subsection{Results}\label{sts:results}
-The results suggest that the skew-$t$, thresholded, partitioned, and time series models all give an improvement in predictions over the Gaussian model, whereas the max-stable method results in relative Brier scores between 1.07 and 1.15 indicating poorer performance than the Gaussian model.
+The results suggest that the skew-$t$, thresholded, partitioned, and time series models all give an improvement in predictions over the Gaussian model, whereas the max-stable method results in relative Brier scores between 1.13 and 1.18 indicating poorer performance than the Gaussian model.
 The plots in \fref{stfig:bs-ozone} show the relative Brier scores for time-series and non-time-series models, using $K = $ 1, 7, and 15 knots at thresholds $T = $ 0, 50, and 75 ppb.
 Most of the models perform similarly across all the Brier scores; however, for single-partition models without thresholding, performance tends to diminish in the extreme quantiles.
 The results also suggest that thresholding improves performance for estimates in the extreme quantiles.
@@ -551,28 +553,28 @@ The most noticeable differences between the reference methods and the comparison
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
-  \caption{Relative Brier scores for time-series models (left) and non-time-series models (right). Relative brier score for the max-stable model is between 1.07 and 1.15}
+  \caption{Relative Brier scores for time-series models (left) and non-time-series models (right). Relative brier score for the max-stable model is between 1.13 and 1.18}
   \label{stfig:bs-ozone}
 \end{figure}
 \begin{table}
   \small
-  \caption{Top two performing models for ozone analysis at extreme quantiles with Relative Brier score}
+  \caption{Top two performing models for predicting ozone exceedance of level $L$ with Relative Brier score}
   \label{sttbl:ozoneresults}
   \centering
   \begin{tabular}{|l|l l l c|l l l c|}
     \cline{2-9}
     \multicolumn{1}{c|}{}  & \multicolumn{4}{c|}{1st} & \multicolumn{4}{c|}{2nd} \\
     \hline
-    $q(0.90)$  & No time series & $K=7$  & $T=0$  & BS: 0.980 &
-                 No time series & $K=9$  & $T=0$  & BS: 0.980 \\
-    $q(0.95)$  & No time series & $K=15$ & $T=50$ & BS: 0.970 &
-                 No time series & $K=9$  & $T=50$ & BS: 0.970\\
-    $q(0.98)$  & No time series & $K=5$  & $T=50$ & BS: 0.945 &
-                 No time series & $K=10$ & $T=50$ & BS: 0.946\\
-    $q(0.99)$  & Time series    & $K=10$ & $T=75$ & BS: 0.912 &
-                 Time series    & $K=6$  & $T=75$ & BS: 0.913\\
-    $q(0.995)$ & Time series    & $K=6$  & $T=75$ & BS: 0.917 &
-                 Time series    & $K=10$ & $T=75$ & BS: 0.918\\
+    $L = q(0.90)$  & No time series & $K=6$  & $T=50$  & BS: 0.992 &
+                 No time series & $K=1$  & $T=0$  & BS: 0.992 \\
+    $L = q(0.95)$  & Time series & $K=5$ & $T=50$ & BS: 0.988 &
+                 No time series & $K=6$  & $T=50$ & BS: 0.989\\
+    $L = q(0.98)$  & Time series & $K=7$  & $T=50$ & BS: 0.973 &
+                 Time series & $K=5$ & $T=50$ & BS: 0.975\\
+    $L = q(0.99)$  & No time series    & $K=8$ & $T=0$ & BS: 0.946 &
+                 Time series    & $K=9$  & $T=75$ & BS: 0.947\\
+    $L = q(0.995)$ & No time series    & $K=8$  & $T=0$ & BS: 0.951 &
+                 Time series    & $K=9$ & $T=75$ & BS: 0.956\\
     \hline
   \end{tabular}
 \end{table}

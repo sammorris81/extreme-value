@@ -208,6 +208,11 @@ comparisons <- c("gaus vs. skew t-1", "gaus vs. t-1 (T = 0.80)", "gaus vs. skew 
                  "t-1 (T = 0.80) vs. Max.stab (T = 0.80)",
                  "skew t-5 vs. t-5 (T = 0.80)", "skew t-5 vs. Max-stab (T = 0.80)",
                  "t-5 (T = 0.80) vs. Max-stab (T = 0.80)")
+comparisons <- c("1 vs. 2", "1 vs. 3", "1 vs. 4", "1 vs. 5", "1 vs. 6",
+                 "2 vs. 3", "2 vs. 4", "2 vs. 5", "2 vs. 6",
+                 "3 vs. 4", "3 vs. 5", "3 vs. 6",
+                 "4 vs. 5", "4 vs. 6",
+                 "5 vs. 6")
 
 quant.score <- savelist$quant.score
 quant.score.mean <- savelist$quant.score.mean
@@ -243,48 +248,102 @@ for (i in 1:50) {
 
 # which groups are different for different settings
 setting <- 1
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
-setting <- 2
+setting <- 2  # Not using
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
-setting <- 3
+setting <- 3  # Not using
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
 setting <- 4
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
 setting <- 5
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
 setting <- 6
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
-setting <- 7
+setting <- 7  # Not using
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
@@ -292,10 +351,19 @@ comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
 setting <- 8
+brier.score.mean[1, , setting]
+order(brier.score.mean[1, , setting])
 comparisons[which(results.wnmt[, setting, 1] >= 0.05)]  # q(0.90)
+brier.score.mean[6, , setting]
+order(brier.score.mean[6, , setting])
 comparisons[which(results.wnmt[, setting, 2] >= 0.05)]  # q(0.95)
+brier.score.mean[9, , setting]
+order(brier.score.mean[9, , setting])
 comparisons[which(results.wnmt[, setting, 3] >= 0.05)]  # q(0.98)
+brier.score.mean[10, , setting]
+order(brier.score.mean[10, , setting])
 comparisons[which(results.wnmt[, setting, 4] >= 0.05)]  # q(0.99)
+brier.score.mean[11, , setting]
 comparisons[which(results.wnmt[, setting, 5] >= 0.05)]  # q(0.995)
 
 
@@ -452,9 +520,9 @@ legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
 
 # Panel for paper
 # settings.use <- c(1, 4, 5, 6, 7)
-settings.use <- c(1, 4, 5, 6)
+settings.use <- c(1, 4, 5, 6, 8)
 quartz(width=12, height=12)
-par(mfrow=c(2, 2), mar=c(5.1, 5.1, 4.1, 2.1))
+par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in settings.use) {
   # if (setting == 6) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T) + 0.1
@@ -463,8 +531,13 @@ for (setting in settings.use) {
   #   ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   #   ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
   # }
+  if (setting < 8) {
   ymax <- 1.50
   ymin <- 0.85
+  } else {
+    ymax <- 1.1
+    ymin <- 0.3
+  }
   plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
        lty=lty[1], pch=pch[1], col=col[1], bg=bg[1], cex=1.5,
        ylim=c(ymin, ymax),
@@ -483,9 +556,9 @@ for (setting in settings.use) {
 #   }
 }
 
-# plot(1, 1, type='n', axes=F, ylab="", xlab="")
-legend("topright", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
-       cex=1.5)
+plot(1, 1, type='n', axes=F, ylab="", xlab="")
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
+       bty = "n", cex=2, lwd = 1.5)
 
 dev.print(file="plots/bsplots-mean.pdf", device=pdf)
 dev.off()
@@ -515,10 +588,11 @@ for (setting in 1:nsettings) {
     points(probs[-c(10,11)], qs.mean.ref.gau[-c(10,11), i, setting], pch=pch[i], col=col[i], bg=bg[i], cex=1.5)
     abline(h=1, lty=2)
   }
-  if (setting == 6) {
-    legend("topleft", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, cex=1.6)
-  }
 }
+
+plot(0, 0, type = "n", axes = "n")
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, 
+       cex=1.5, lwd = 1.5, box.lwd = 0)
 
 dev.print(file="plots/qsplots-mean.pdf", device=pdf)
 dev.off()

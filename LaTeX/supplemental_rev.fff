@@ -5,3 +5,11 @@
 \end{figure}
 \efloatseparator
  
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{plots/chi-phi}
+  \caption{Simulated lag-$m$ $\chi$ for varying levels of $\varphi$.}
+  \label{stfig:chiphi}
+\end{figure}
+\efloatseparator
+ 

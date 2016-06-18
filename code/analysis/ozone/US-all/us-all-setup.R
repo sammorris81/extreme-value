@@ -306,9 +306,11 @@ plot(xplot, res.qq)
 abline(0, 1)
 
 xplot <- qst(theory.qq, nu=10, alpha=1)
+these <- c(1:1000, sample(1001:22984, size = 2000), 22985:length(xplot))
 xplot <- (xplot - mean(xplot))
-X11(width=6, height=6, type = "cairo")
-plot(xplot, res.qq, xlab="Theoretical Quantile", ylab="Observed Quantile", 
+quartz(width=6, height=6)
+plot(xplot[these], res.qq[these], 
+     xlab="Theoretical Quantile", ylab="Observed Quantile", 
      #main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1"
      cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 abline(0, 1)

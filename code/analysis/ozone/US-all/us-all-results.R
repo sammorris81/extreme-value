@@ -73,6 +73,7 @@ save(savelist, file = "us-all-results.RData")
 rm(list = ls())
 load("us-all-setup.RData")
 source("../../../R/auxfunctions.R")
+load("../ozone_data.RData")
 load("us-all-results.RData")
 settings <- read.csv("settings.csv")
 
@@ -114,6 +115,25 @@ for (i in 1:73) {
   bs.mean.ref.gau[i, ] <- brier.score.mean[(i + 1), ] / brier.score.mean[1, ]
   qs.mean.ref.gau[i, ] <- quant.score.mean[(i + 1), ] / quant.score.mean[1, ]
 }
+
+# spatially plot brier scores for q(0.95): Gaussian, Skew-t 1, Skew-t 5 (T= 50)
+# Sym-t 10 (T = 75)
+val.idx <- c(cv.lst[[1]], cv.lst[[2]])
+this.prob <- which(probs == 0.95)
+S.bs <- S[val.idx, ]
+bs <- matrix(0, 800, 4)
+bs[1:400, 1]   <- brier.score[this.prob, 1, 1] * 100
+bs[401:800, 1] <- brier.score[this.prob, 2, 1] * 100
+bs[1:400, 2]   <- brier.score[this.prob, 1, 3] * 100
+bs[401:800, 2] <- brier.score[this.prob, 2, 3] * 100
+bs[1:400, 3]   <- brier.score[this.prob, 1, 8] * 100
+bs[401:800, 3] <- brier.score[this.prob, 2, 8] * 100
+bs[1:400, 4]   <- brier.score[this.prob, 1, 71] * 100
+bs[401:800, 4] <- brier.score[this.prob, 2, 71] * 100
+
+par(mfrow = c(2, 2))
+quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = bs[, 1], "Brier score for Gaussian")
+lines(borders / 1000)
 
 # find Brier score for methods 36 and 16 (the best performing around 75ppb)
 brier.score.site <- matrix(NA, 800, 3)

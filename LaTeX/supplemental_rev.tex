@@ -66,11 +66,12 @@ Because the spatial domain is bounded, we generate candidate knots using the tra
 	{\bw^*_k}^{(c)} \sim \text{N}({\bw^*_k}^{(r - 1)}, s^2 I_2)
 \end{align*}
 where ${\bw^*_k}^{(r - 1)}$ is the location for the transformed knot at MCMC iteration $r - 1$, $s$ is a tuning parameter, and $I_2$ is an identity matrix.
+Let $\bY_t = [Y(\bs_1), \ldots, Y(\bs_n)]$ be the vector of observed responses at each site for day $t$.
 After candidates have been generated for all $K$ knots, the acceptance ratio is
 \begin{align*}
-  R = \left\{ \frac{ l[ Y_t(\bs | \bw_1^{(c)}, \ldots, \bw_K^{(c)}, \ldots)] }{l[ Y_t(\bs | \bw_1^{(r - 1)}, \ldots, \bw_K^{(r - 1)}, \ldots)]} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K}\phi(\bw_k^{(c)})}{ \prod_{k = 1}^{K}\phi(\bw_k^{(r - 1)})} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K} p({\bw^*_k}^{(c)})}{ \prod_{k = 1}^{K} p({\bw^*_k}^{(r - 1)})}\right\}
+  R = \left\{ \frac{ l[ \bY_t | \bw_1^{(c)}, \ldots, \bw_K^{(c)}, \ldots] }{l[ \bY_t | \bw_1^{(r - 1)}, \ldots, \bw_K^{(r - 1)}, \ldots]} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K}\phi(\bw_k^{(c)})}{ \prod_{k = 1}^{K}\phi(\bw_k^{(r - 1)})} \right\} \times \left\{ \frac{ \prod_{k = 1}^{K} p({\bw^*_k}^{(c)})}{ \prod_{k = 1}^{K} p({\bw^*_k}^{(r - 1)})}\right\}
 \end{align*}
-where $l$ is the likelihood given in \eref{steq:hier}, and $p(\cdot)$ is the prior either taken from the time series given in \eref{sts:temporal} or assumed to be uniform over $\calD$.
+where $l$ is the likelihood given in \eref{steq:hier}, and $p(\cdot)$ is the prior either taken from the time series (see \sref{sts:temporal}) or assumed to be uniform over $\calD$.
 The candidate knots are accepted with probability $\min\{R, 1\}$.
 
 \subsection*{Spatial random effects}
@@ -83,19 +84,19 @@ Because this model uses $|z_{tk}|$, we generate candidate random effects using t
 where ${z^*_{tk}}^{(r-1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a tuning parameter.
 The acceptance ratio is
 \begin{align*}
-  R = \left\{ \frac{ l[Y_t(\bs) | z_{tk}^{(c)}, \ldots] }{ l[Y_t(\bs) | z_{tk}^{(r - 1)}]} \right\} \times \left\{ \frac{ p[ z_{tk}^{(c)} ] }{ p[ z_{tk}^{(r - 1)}]}\right\}
+  R = \left\{ \frac{ l[\bY_t | z_{tk}^{(c)}, \ldots] }{ l[\bY_t | z_{tk}^{(r - 1)}]} \right\} \times \left\{ \frac{ p[ z_{tk}^{(c)} ] }{ p[ z_{tk}^{(r - 1)}]}\right\}
 \end{align*}
 where $p[\cdot]$ is the prior taken from the time series given in \sref{sts:temporal}.
 The candidate is accepted with probability $\min\{R, 1\}$.
 
 \subsection*{Variance terms}
 When there is more than one site in a partition, then we update $\sigma^2_{tk}$ using a Metropolis-Hastings update.
-First, we generate a candidate for $\sigma^2_{tk}$ using an IG$(a^*/s, b^*/s)$ candidate distribution in an independence Metropolis-Hastings update where $a^* = (n_{tk} + 1) / 2 + a$, $b^* = [Y_{tk}^\prime \Sigma^{-1}_{tk} Y_{tk} + z_{tk}^2] / 2 + b$, $n_{tk}$ is the number of sites in partition $k$ on day $t$, and $Y_{tk}$ and $\Sigma^{-1}_{tk}$ are the observations and precision matrix for partition $k$ on day $t$.
+First, we generate a candidate for $\sigma^2_{tk}$ using an IG$(a^*/s, b^*/s)$ candidate distribution in an independence Metropolis-Hastings update where $a^* = (n_{tk} + 1) / 2 + a$, $b^* = [\bY_{tk}^\top \Sigma^{-1}_{tk} \bY_{tk} + z_{tk}^2] / 2 + b$, $n_{tk}$ is the number of sites in partition $k$ on day $t$, and $\bY_{tk}$ and $\Sigma^{-1}_{tk}$ are the observations and precision matrix for partition $k$ on day $t$.
 The acceptance ratio is
 \begin{align*}
   R = \left\{
-    \frac{ l[Y_t(\bs) | {\sigma^2_{tk}}^{(c)}, \ldots] }
-         { l[Y_t(\bs) | {\sigma^2_{tk}}^{(r - 1)}]}
+    \frac{ l[\bY_t | {\sigma^2_{tk}}^{(c)}, \ldots] }
+         { l[\bY_t | {\sigma^2_{tk}}^{(r - 1)}]}
     \right\} \times \left\{
     \frac{ l[z_{tk} | {\sigma^2_{tk}}^{(c)}, \ldots] }
          { l[z_{tk} | {\sigma^2_{tk}}^{(r - 1)}, \ldots] }
@@ -120,7 +121,7 @@ where $\log(\rho)^{(r-1)}$ is the value at MCMC iteration $r - 1$, and $s$ is a 
 Candidates are generated for $\log(\nu)$ and $\gamma$ in a similar fashion.
 The acceptance ratio is
 \begin{align*}
-	R = \left\{ \frac{ \prod_{t = 1}^{T} l[Y_t(\bs) | \rho^{(c)}, \nu^{(c)}, \gamma^{(c)}, \ldots] }{\prod_{t = 1}^{T} l[Y_t(\bs) | \rho^{(r-1)}, \nu^{(r-1)}, \gamma^{(r-1)}, \ldots] } \right\} \times \left\{ \frac{ p[\rho^{(c)}] }{ p[\rho^{(r - 1)] } } \right\} \times \left\{ \frac{ p[\nu^{(c)}] }{ p[\nu^{(r - 1)}] } \right\} \times \left\{ \frac{ p[ \gamma^{(c)} ] }{ p[\gamma^{(r - 1)} ] } \right\}.
+	R = \left\{ \frac{ \prod_{t = 1}^{n_t} l[Y_t(\bs) | \rho^{(c)}, \nu^{(c)}, \gamma^{(c)}, \ldots] }{\prod_{t = 1}^{n_t} l[Y_t(\bs) | \rho^{(r-1)}, \nu^{(r-1)}, \gamma^{(r-1)}, \ldots] } \right\} \times \left\{ \frac{ p[\rho^{(c)}] }{ p[\rho^{(r - 1)] } } \right\} \times \left\{ \frac{ p[\nu^{(c)}] }{ p[\nu^{(r - 1)}] } \right\} \times \left\{ \frac{ p[ \gamma^{(c)} ] }{ p[\gamma^{(r - 1)} ] } \right\}.
 \end{align*}
 All three candidates are accepted with probability $\min\{R, 1\}$.
 
@@ -128,91 +129,86 @@ All three candidates are accepted with probability $\min\{R, 1\}$.
 
 \subsection*{Conditional posterior of $z_{tk} \mid \ldots $}\label{sts:mvcondu}
 If knots are independent over days, then the conditional posterior distribution of $|z_{tk}|$ is conjugate.
-For simplicity, drop the subscript $t$, let $\tilde{z}_{tk} = |z_{tk}|$, and define
+For simplicity, drop the subscript $t$, let $\tilde{z}_{k} = |z_{k}|$, $\tilde{\bz}_{k^c}$ be the vector of $[|z(\bs_1)|, \ldots, |z(\bs_n)|]$ for $\bs \notin P_k$, $\bX = [\bX(\bs_1), \ldots, \bX(\bs_n)]^\top$, let $\bY_k$ and $\bX_k$ be the observations and covariate measurements for $\bs \in P_k$, and let $\bY_{k^c}$ and $\bX_{k^c}$ be the observations and covariate measurements for $\bs \notin P_k$ and define
 \begin{align*}
-R(\bs) = \left\{
+\bR = \left\{
     \begin{array}{ll}
-        Y(\bs) - X(\bs) \beta &s \in P_l\\[1em]
-        Y(\bs) - X(\bs) \beta - \lambda \tilde{z}(\bs) \qquad & s \notin P_l
+        \bY_k - \bX_k \bbeta & \bs \in P_k\\[1em]
+        \bY_{k^c} - \bX_{k^c} \bbeta - \lambda \tilde{\bz}_{k^c} \qquad & \bs \notin P_k
     \end{array}
 \right.
 \end{align*}
 Let
 \begin{align*}
-    R_1 &= \text{the vector of } R(\bs) \text{ for } s \in P_l \\
-    R_2 &= \text{the vector of } R(\bs) \text{ for } s \notin P_l \\
+    \bR_1 &= \text{the vector of } \bR \text{ for } \bs \in P_k \\
+    \bR_2 &= \text{the vector of } \bR \text{ for } \bs \notin P_k \\
     \Omega &= \Sigma^{-1}.
 \end{align*}
 Then
 \begin{align*}
-    \pi(z_l | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[
+    \pi(z_k | \ldots) &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[
         \left( \begin{array}{c}
-            R_1 - \lambda \tilde{z}_l \bOne\\
-            R_2
-        \end{array} \right)^\prime
+            \bR_1 - \lambda \tilde{z}_k \bOne\\
+            \bR_2
+        \end{array} \right)^\top
         \left( \begin{array}{cc}
             \Omega_{11} & \Omega_{12}\\
             \Omega_{21} & \Omega_{22}
         \end{array} \right)
         \left( \begin{array}{c}
-            R_1 - \lambda \tilde{z}_l \bOne\\
-            R_2
+            \bR_1 - \lambda \tilde{z}_k \bOne\\
+            \bR_2
         \end{array} \right)
-        +  \frac{ {\tilde{z}_l}^2 }{ \sigma_l^2 }\right]
-    \right\} I(z_l > 0) \\
-        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_l {\tilde{z}_l}^2 - 2 \mu_l \tilde{z}_l \right] \right\}
+        +  \frac{ {\tilde{z}_k}^2 }{ \sigma_k^2 }\right]
+    \right\} I(z_k > 0) \\
+        &\propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \Lambda_k {\tilde{z}_k}^2 - 2 \mu_k \tilde{z}_k \right] \right\}
 \end{align*}
 where
 \begin{align*}
-    \mu_l &= \lambda ( R_1^\prime \Omega_{11} + R_2^\prime \Omega_{21} )\bOne\\
-    \Lambda_l &= \lambda^2 \bOne^\prime \Omega_{11} \bOne + \frac{ 1 }{ \sigma^2_l }.
+    \mu_k &= \lambda ( \bR_1^\top \Omega_{11} + \bR_2^\top \Omega_{21} )\bOne\\
+    \Lambda_k &= \lambda^2 \bOne^\top \Omega_{11} \bOne + \frac{ 1 }{ \sigma^2_k }.
 \end{align*}
-Then $\tilde{Z}_l | \ldots \sim N_{(0, \infty)} (\Lambda_l^{-1} \mu_l, \Lambda_l^{-1})$
+Then $\tilde{z}_k | \ldots \sim N_{(0, \infty)} (\Lambda_k^{-1} \mu_k, \Lambda_k^{-1})$
 
-\subsection*{Conditional posterior of $\beta \mid \ldots$}\label{sts:betapost}
-Let $\beta \sim \mbox{N}_{p}(0, \Lambda_0)$ where $\Lambda_0$ is a precision matrix. Then
+\subsection*{Conditional posterior of $\bbeta, \lambda \mid \ldots$}\label{sts:betapost}
+For models that do not include a skewness parameter, we update $\bbeta$ as follows.
+Let $\bbeta \sim \mbox{N}_{p}(0, \Lambda_0)$ where $\Lambda_0$ is a precision matrix.
+Then
 \begin{align*}
-    \pi(\beta \mid \ldots) & \propto \exp \left\{ - \frac{ 1 }{ 2 } \beta^\prime \Lambda_0 \beta - \frac{ 1 }{ 2 } \sum_{t = 1}^{n_t} [\bY_t - X_t \beta - \lambda |z_t|]^\prime \Omega [\bY_t - X_t \beta - \lambda |z_t|] \right\}\\
-     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \beta^\prime \Lambda_\beta \beta  - 2 \sum_{t = 1}^{n_t} [ \beta^\prime X_t^\prime \Omega (\bY_t - \lambda |z_t| )] \right] \right\}\\
+    \pi(\bbeta \mid \ldots) & \propto \exp \left\{ - \frac{ 1 }{ 2 } \bbeta^\top \Lambda_0 \bbeta - \frac{ 1 }{ 2 } \sum_{t = 1}^{n_t} [\bY_t -\bX_t \bbeta]^\top \Omega [\bY_t - \bX_t \bbeta] \right\} \\
+     & \propto \exp \left\{ -\frac{ 1 }{ 2 } \left[ \bbeta^\top \Lambda_\beta \bbeta  - 2 \sum_{t = 1}^{n_t} (\bbeta^\top \bX_t^\top \Omega \bY_t) \right] \right\} \\
      & \propto \mbox{N} ( \Lambda_\beta^{-1} \mu_\beta , \Lambda_\beta^{-1})
 \end{align*}
 where
 \begin{align*}
-    \mu_\beta &= \sum_{t = 1}^{n_t} \left[ X_t^\prime \Omega (\bY_t - \lambda |z_t|) \right]\\
-    \Lambda_\beta &= \Lambda_0 + \sum_{t = 1}^{n_t} X_t^\prime \Omega X_t.
+    \mu_\beta &= \sum_{t = 1}^{n_t} \bX_t^\top \Omega \bY_t \\
+    \Lambda_\beta &= \Lambda_0 + \sum_{t = 1}^{n_t} \bX_t^\top \Omega \bX_t.
 \end{align*}
+For models that do include a skewness parameter, a simple augmentation of the covariate matrix $\bX$ and parameter vector $\bbeta$ allows for a block update of both $\bbeta$ and $\lambda$.
+Let $\bX^*_{t} = [\bX_t, |\bz_{t}|]$ where $\bz_t = [z(\bs_1), \ldots, z(\bs_{n})]^\top$ and let $\bbeta^* = (\beta_1, \ldots, \beta_p, \lambda)^\top$.
+So to incorporate the $N(0, \sigma^2_\lambda)$ prior on $\lambda$, let $\bbeta^* \sim \mbox{N}_{p+1}(0, \Lambda^*_0)$ where
+\begin{align*}
+  \Lambda^*_0 = \left( \begin{array}{cc}
+    \Lambda_0 & 0 \\
+    0         & \sigma^{-2}_\lambda
+  \end{array}\right).
+\end{align*}
+Then the update for both $\bbeta$ and $\lambda$ is done using the conjugate prior given above with $\bX_t = \bX_t^*$ and $\bbeta = \bbeta^*$
 
 \subsection*{Conditional posterior of $\sigma^2 \mid \ldots$}\label{sts:sigpost}
 In the case where $L = 1$ and temporal dependence is negligible, then $\sigma^2$ has a conjugate posterior distribution.
-Let $\sigma_t^2 \iid \mbox{IG}(\alpha_0, \beta_0)$. For simplicity, drop the subscript $t$. Then
+Let $\sigma_t^2 \iid \mbox{IG}(\alpha_0 / 2, \beta_0 / 2)$. For simplicity, drop the subscript $t$. Then
 \begin{align*}
-    \pi(\sigma^2 \mid \ldots) & \propto (\sigma^2)^{ -\alpha_0 - 1 / 2 - n / 2 - 1} \exp \left\{ -\frac{\beta_0}{\sigma^2} - \frac{ |z|^2 }{2 \sigma^2} - \frac{ (\bY - \bmu)^\prime \Sigma^{-1} (\bY - \bmu) }{2 \sigma^2} \right\} \\
-    & \propto (\sigma^2)^{ -\alpha_0 - 1 / 2 - n / 2 - 1} \exp \left\{ - \frac{ 1 }{ \sigma^2 } \left[\beta_0 + \frac{ |z|^2 }{ 2 } + \frac{ 1 }{ 2 } (\bY - \bmu)^\prime \Sigma^{-1} (\bY - \mu) \right] \right\} \\
+    \pi(\sigma^2 \mid \ldots) & \propto (\sigma^2)^{ -\alpha_0 / 2 - 1 / 2 - n / 2 - 1} \exp \left\{ -\frac{\beta_0}{2\sigma^2} - \frac{ |z|^2 }{2 \sigma^2} - \frac{ (\bY - \bmu)^\top \Sigma^{-1} (\bY - \bmu) }{2 \sigma^2} \right\} \\
+    & \propto (\sigma^2)^{ -(\alpha_0 - 1 - n) / 2 - 1} \exp \left\{ - \frac{ 1 }{ 2 \sigma^2 } \left[\beta_0 + |z|^2 + (\bY - \bmu)^\top \Sigma^{-1} (\bY - \bmu) \right] \right\} \\
     & \propto \mbox{IG} (\alpha^*, \beta^*)
 \end{align*}
 where
 \begin{align*}
-    \alpha^* &= \alpha_0 + \frac{1}{2} + \frac{n}{2} \\
-    \beta^* &= \beta_0 + \frac{ |z|^2 }{ 2 } + \frac{ 1 }{ 2 }(\bY - \bmu)^\prime \Sigma^{-1} (\bY - \bmu).
+    \alpha^* &= \frac{\alpha_0 + 1 + n}{2} \\
+    \beta^* &= \frac{1}{2} \left[ \beta_0 + |z|^2 + (\bY - \bmu)^\top \Sigma^{-1} (\bY - \bmu) \right].
 \end{align*}
-In the case that $L > 1$, a random walk Metropolis Hastings step will be used to update $\sigma^2_{lt}$.
-
-\subsection*{Conditional posterior of $\lambda \mid \ldots$}\label{sts:lambdapost}
-\hl{TODO: Still needs to be updated for single $\lambda$}\\
-For convergence purposes we model $\lambda = \lambda_1 \lambda_2$ where
-\begin{align}
-  \lambda_1 &= \left\{ \begin{array}{ll}
-      +1 \quad & \text{w.p.} 0.5\\
-      -1 \quad & \text{w.p.} 0.5
-   \end{array}\right.\\
-   \lambda^2_2 & \sim IG(\alpha_\lambda, \beta_\lambda).\\
-\end{align}
-Then
-\begin{align*}
-  \pi(\lambda_2 \mid \ldots) &\propto {\lambda_2^2}^{(-\alpha_\lambda - 1)} \exp\left\{ - \frac{ \beta_\lambda }{ \lambda_2^2} \right\} \prod_{t = 1}^{n_t} \prod_{k = 1}^K \frac{1} {\lambda_2} \exp\left\{ - \frac{ z^2_{tk} }{ 2 \lambda_2^2  \sigma_{tk})^2} \right\} \\
-   & \propto {\lambda_2^2}^{(-\alpha_\lambda - K*n_t - 1)} \exp \left\{ -\frac{1}{\lambda^2_2} \left[ \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}} \right] \right\}
-\end{align*}
-Then $\lambda_2 \mid \ldots \sim IG \left(\alpha_\lambda + K * n_t, \beta_\lambda + \frac{ z^2 }{2 \sigma^2_{tk}} \right)$
+In the case that $K > 1$, a random walk Metropolis Hastings step will be used to update $\sigma^2_{kt}$.
 
 \section{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{sta:proofsamepartition}
 Let $c$ be the midpoint of $\bs_1$ and $\bs_2$.
@@ -293,20 +289,20 @@ If $\bZ \sim \text{ST}_d(0, \bar{\bOmega}, \balpha, \eta)$ is a $d$-dimensional 
 \end{align}
 where
 \begin{align}
-  f_z(\bz) &= 2 t_d(\bz; \bar{\bOmega}, \eta) T \left[ \balpha^\prime \bz \sqrt{ \frac{\eta + d}{\nu + Q(\bz)} }; \eta + d\right] \\
+  f_z(\bz) &= 2 t_d(\bz; \bar{\bOmega}, \eta) T \left[ \balpha^\top \bz \sqrt{ \frac{\eta + d}{\nu + Q(\bz)} }; \eta + d\right] \\
   \bz &= \bomega^{-1}(\by - \xi)
 \end{align}
-where $t_d(\bz; \bar{\bOmega}, \eta)$ is a $d$-dimensional Student's $t$-distribution with scale matrix $\bar{\bOmega}$ and degrees of freedom $\eta$, $Q(z) = \bz^\prime \bar{\Omega}^{-1}\bz$ and $T(\cdot; \eta)$ denotes the univariate Student's $t$ distribution function with $\eta$ degrees of freedom \citep{Azzalini2014}.
+where $t_d(\bz; \bar{\bOmega}, \eta)$ is a $d$-dimensional Student's $t$-distribution with scale matrix $\bar{\bOmega}$ and degrees of freedom $\eta$, $Q(z) = \bz^\top \bar{\Omega}^{-1}\bz$ and $T(\cdot; \eta)$ denotes the univariate Student's $t$ distribution function with $\eta$ degrees of freedom \citep{Azzalini2014}.
 
 \subsection*{Extremal dependence}
-For a bivariate skew-$t$ random variable $\bY = [Y(\bs), Y(\bt)]^\prime$, the $\chi(h)$ statistic \citep{Padoan2011} is given by
+For a bivariate skew-$t$ random variable $\bY = [Y(\bs), Y(\bt)]^\top$, the $\chi(h)$ statistic \citep{Padoan2011} is given by
 \begin{align} \label{steq:chiskew-t}
   \chi(h) = \bar{F}_{\text{EST}}\left\{ \frac{[x_1^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{\sqrt{1 - \varrho(h)^2}}; 0, 1, \alpha_1, \tau_1, \eta + 1 \right\} + \bar{F}_{\text{EST}}\left\{ \frac{ [x_2^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{ \sqrt{1 - \varrho(h)^2} }; 0, 1, \alpha_2, \tau_2, \eta + 1 \right\},
 \end{align}
 where $\bar{F}_{\text{EST}}$ is the univariate survival extended skew-$t$ function with zero location and unit scale, \hbox{$\varrho(h) = \text{cor}[y(\bs), y(\bt)]$}, $\alpha_j = \alpha_i \sqrt{1 - \varrho^2}$, $\tau_j = \sqrt{\eta + 1}(\alpha_j + \alpha_i \varrho)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\eta + 1}; 0, 1, \eta) / F_T(\bar{\alpha}_j \sqrt{\eta + 1}; 0, 1, \eta)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \varrho) / \sqrt{ 1 + \alpha_i^2 [1 - \varrho(h)^2]}$.
 
 \subsection*{Proof that $\lim_{h \rightarrow \infty} \chi(h) > 0$}
-Consider the bivariate distribution of $\bY = [Y(\bs), Y(\bt)]^\prime$, with $\varrho(h)$ given by \eref{steq:matern}.
+Consider the bivariate distribution of $\bY = [Y(\bs), Y(\bt)]^\top$, with $\varrho(h)$ given by \eref{steq:matern}.
 So, $\lim_{h \rightarrow \infty} \varrho(h) = 0$.
 Then
 \begin{align}
@@ -324,14 +320,32 @@ In this section, we make a connection between our parameterization in \eref{steq
 \end{align}
 where $\tilde{\lambda} \in (-1, 1)$, $z \sim N(0, 1)$, and $v(\bs)$ is a Gaussian process with mean zero, variance one, and spatial correlation function $\rho$.
 To extend this to the skew-$t$ distribution, \citet{Azzalini2003} take $\tilde{Y}(\bs) = W\tilde{X}(\bs)$ where $W^{-2} \sim $ Gamma$(a / 2, a / 2)$.
-Returning to the proposed parameterization (with $\bbeta = 0$), let $W^{-2} = \frac{2b}{a}\sigma^{-2} \sim$ Gamma$(a / 2, a / 2)$ so that \eref{steq:fullmodel} becomes
+Returning to the proposed parameterization (with $\bbeta = 0$), let $W^{-2} = \frac{b}{a}\sigma^{-2} \sim$ Gamma$(a / 2, a / 2)$ so that \eref{steq:fullmodel} in the manuscript becomes
 \begin{align}
-  Y(\bs) = W \left[ \lambda \left(\frac{a}{2b}\right)^{1 / 2} |z| + \left(\frac{a}{2b}\right)^{1 / 2} v(\bs) \right].
+  Y(\bs) = W \left[ \lambda \left(\frac{b}{a}\right)^{1 / 2} |z| + \left(\frac{b}{a}\right)^{1 / 2} v(\bs) \right].
 \end{align}
-Clearly setting $b = \frac{a}{(1 - \tilde{\lambda}^2)} > 0$, and $\lambda = \tilde{\lambda} / (1 - \tilde{\lambda}^2)^{1 / 2} \in (-\infty, \infty)$ resolves the difference in parameterizations.
+Clearly setting $b = a (1 - \tilde{\lambda}^2) > 0$, and $\lambda = \tilde{\lambda} / (1 - \tilde{\lambda}^2)^{1 / 2} \in (-\infty, \infty)$ resolves the difference in parameterizations.
 We note that our parameterization has three parameters $(a, b, \lambda)$ compared to the two parameters of the alternative parameterization $(a, \tilde{\lambda})$.
 Since we have assumed that both $v(\bs)$ and $z$ have unit scale, the additional $b$ parameter in our parameterization is required to control the precision.
 % However, if we introduce an overall scale parameter $c > 0$ into the alternative parameterization so that $\tilde{Y}(\bs) = c W \tilde{X}(\bs)$, then the two models remain equivalent by setting $a = \nu$, $b = \frac{\nu}{c^2 (1 - \tilde{\lambda}^2)}$, and $\lambda = \tilde{\lambda} / (1 - \tilde{\lambda}^2)^{1 / 2}$.
+
+\section{Temporal dependence} \label{sta:temporal}
+It is very challenging to derive an analytical expression the temporal extremal dependence at a single site $\bs$.
+However, using simulated data, we have evidence to suggest that the model does exhibits temporal extremal dependence.
+To demonstrate that our model maintains temporal extremal dependence, we generate lag-$m$ observations for $m = 1, 3, 5, 10$ from our model setting $\phi_w = \phi_z = \phi_\sigma = \varphi$, for $\varphi = 0, 0.02, 0.04, \ldots, 1$.
+To estimate the lag-$m$ chi-statistic $\chi(m)$ we first estimate the lag-$m$ $F$-madogram $\nu_F(m)$ \citep{Cooley2006} using $\hat{\nu}_F(m) = \frac{1}{2n} \sum_{i = 1}^n | \hat{F}(y_{0}) - \hat{F}(y_{m})|$ where $\hat{F}(\cdot)$ represents an empirical CDF and $y_m$ is the lag-$m$ observation.
+The $F$-madogram is related to the $\chi$ statistic as follows
+\begin{align}
+  \chi = 2 - \frac{1 + 2 \nu_F}{1 - 2 \nu_F}.
+\end{align}
+\fref{stfig:chiphi} suggests that the extremal dependence increases as $\phi \rightarrow 1$, and that the extremal dependence decreases as $m$ increases.
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{plots/chi-phi}
+  \caption{Simulated lag-$m$ $\chi$ for varying levels of $\varphi$.}
+  \label{stfig:chiphi}
+\end{figure}
+
 
 \section{Simulation study pairwise difference results} \label{sta:pdiffs}
 The following tables show the methods that have significantly different Brier scores when using a Wilcoxon-Nemenyi-McDonald-Thompson test.
@@ -344,21 +358,21 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
   \centering
   \caption{Setting 1 -- Gaussian marginal, $K = 1$ knot}
   \label{sttbl:gaussim}
-  \begin{tabular}{|l|ccc|ccc|cccc|ccc|}
-    \cline{2-14}
-    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+  \begin{tabular}{|l|ccc|ccc|cccc|cc|}
+    \cline{2-13}
+    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{2}{|c|}{$q(0.99)$} \\
     \hline
-    Method 1 & A &   &   & A &   &   & A &   &   &   & A & B &   \\
+    Method 1 & A &   &   & A &   &   & A &   &   &   & A &   \\
     \hline
-    Method 2 & A &   &   & A &   &   & A &   &   &   & A &   &   \\
+    Method 2 & A &   &   & A &   &   & A &   &   &   & A &   \\
     \hline
-    Method 3 &   & B &   &   & B &   &   &   & C &   &   & B &   \\
+    Method 3 &   & B &   &   & B &   &   &   & C &   & A &   \\
     \hline
-    Method 4 & A &   &   & A &   &   & A & B &   &   & A & B &   \\
+    Method 4 & A &   &   & A &   &   & A & B &   &   & A &   \\
     \hline
-    Method 5 &   & B &   &   & B &   &   & B & C &   & A & B &   \\
+    Method 5 &   & B &   &   & B &   &   & B & C &   & A &   \\
     \hline
-    Method 6 &   &   & C &   &   & C &   &   &   & D &   &   & C \\
+    Method 6 &   &   & C &   &   & C &   &   &   & D &   & B \\
     \hline
   \end{tabular}
 \end{table}
@@ -409,21 +423,21 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
   \centering
   \caption{Setting 2 -- Skew-$t$ marginal, $K = 1$ knot}
   \label{sttbl:st1sim}
-  \begin{tabular}{|l|ccccc|cccc|cccc|ccc|}
-    \cline{2-17}
-    \multicolumn{1}{c}{} & \multicolumn{5}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+  \begin{tabular}{|l|cccc|cccc|cccc|ccc|}
+    \cline{2-16}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
     \hline
-    Method 1 &   &   & C &   &   &   & B &   &   &   & B & C &   &   & B &   \\
+    Method 1 &   & B &   &   &   & B &   &   &   & B &   &   &   & B &   \\
     \hline
-    Method 2 & A &   &   &   &   & A &   &   &   & A &   &   &   & A &   &   \\
+    Method 2 & A &   &   &   & A &   &   &   & A &   &   &   & A &   &   \\
     \hline
-    Method 3 &   & B & C &   &   & A & B &   &   & A & B &   &   & A & B &   \\
+    Method 3 & A & B &   &   & A & B &   &   & A & B &   &   & A & B &   \\
     \hline
-    Method 4 & A & B &   &   &   &   & B &   &   &   & B &   &   & A &   &   \\
+    Method 4 & A & B &   &   & A & B &   &   & A & B &   &   & A & B &   \\
     \hline
-    Method 5 &   &   &   & D &   &   &   & C &   &   &   & C &   &   & B &   \\
+    Method 5 &   &   & C &   &   &   & C &   &   &   & C &   &   &   & C \\
     \hline
-    Method 6 &   &   &   &   & E &   &   &   & D &   &   &   & D &   &   & C \\
+    Method 6 &   &   &   & D &   &   &   & D &   &   &   & D &   &   & C \\
     \hline
   \end{tabular}
 \end{table}
@@ -432,21 +446,21 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
   \centering
   \caption{Setting 3 -- Skew-$t$ marginal, $K = 5$ knots}
   \label{sttbl:st5sim}
-  \begin{tabular}{|l|ccc|cccc|ccc|ccc|}
-    \cline{2-14}
-    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+  \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
+    \cline{2-15}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
     \hline
-    Method 1 &   & B &   &   &   & C &   &   & B &   &   & B &   \\
+    Method 1 &   &   & C &   &   &   & C &   &   & B &   &   & B &   \\
     \hline
-    Method 2 &   & B &   &   &   & C &   &   & B &   &   & B &   \\
+    Method 2 &   &   & C &   &   &   & C &   &   & B &   &   & B &   \\
     \hline
-    Method 3 & A &   &   &   & B &   &   &   & B &   &   & B &   \\
+    Method 3 &   & B &   &   &   & B &   &   & A &   &   & A &   &   \\
     \hline
-    Method 4 & A &   &   & A &   &   &   & A &   &   & A &   &   \\
+    Method 4 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
     \hline
-    Method 5 & A &   &   & A &   &   &   & A &   &   & A &   &   \\
+    Method 5 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
     \hline
-    Method 6 &   &   & C &   &   &   & D &   &   & C &   &   & C \\
+    Method 6 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
     \hline
   \end{tabular}
 \end{table}
@@ -461,13 +475,13 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
     \hline
     Method 1 & A & B &   &   &   & B &   &   &   & B &   &   &   & C \\
     \hline
-    Method 2 &   & B &   &   &   & B & C &   &   & B &   &   & B & C \\
+    Method 2 &   & B &   &   &   & B &   &   &   & B &   &   & B & C \\
     \hline
     Method 3 &   &   & C & D &   &   & C &   &   & B &   &   & B &   \\
     \hline
     Method 4 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
     \hline
-    Method 5 &   &   & C &   &   &   & C &   &   & B &   &   & B & C \\
+    Method 5 &   &   & C &   &   & B & C &   &   & B &   &   & B & C \\
     \hline
     Method 6 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
     \hline
@@ -476,23 +490,23 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 
 \begin{table}[htbp]
   \centering
-  \caption{Setting 5 -- Transformation below $T = q(0.80)$}
+  \caption{Setting 5 -- Brown Resnick}
   \label{sttbl:transsim}
-  \begin{tabular}{|l|cccc|ccc|cccc|cccc|}
-    \cline{2-16}
-    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{4}{|c|}{$q(0.99)$} \\
+  \begin{tabular}{|l|cccc|ccc|ccc|ccc|}
+    \cline{2-14}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
     \hline
-    Method 1 &   &   & C &   &   & B &   &   &   & C &   &   &   & C &   \\
+    Method 1 &   &   &   & D &   &   & C &   &   & C &   &   & C \\
     \hline
-    Method 2 &   & B &   &   &   & B &   &   & B &   &   & A & B &   &   \\
+    Method 2 &   &   &   & D &   &   & C &   &   & C &   &   & C \\
     \hline
-    Method 3 & A &   &   &   & A &   &   & A &   &   &   & A &   &   &   \\
+    Method 3 & A & B &   &   & A &   &   & A & B &   &   & B &   \\
     \hline
-    Method 4 &   & B & C &   &   & B &   &   & B &   &   &   & B & C &   \\
+    Method 4 &   &   & C &   &   & B &   &   & B &   &   & B &   \\
     \hline
-    Method 5 &   & B &   &   &   & B &   &   & B & C &   &   &   & C &   \\
+    Method 5 & A &   &   &   & A &   &   & A &   &   & A & B &   \\
     \hline
-    Method 6 &   &   &   & D &   &   & C &   &   &   & D &   &   &   & D \\
+    Method 6 &   & B & C &   & A &   &   & A &   &   & A &   &   \\
     \hline
   \end{tabular}
 \end{table}

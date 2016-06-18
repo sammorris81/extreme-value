@@ -1,22 +1,22 @@
 \begin{table}
   \small
-  \caption{Top two performing models for ozone analysis at extreme quantiles with Relative Brier score}
+  \caption{Top two performing models for predicting ozone exceedance of level $L$ with Relative Brier score}
   \label{sttbl:ozoneresults}
   \centering
   \begin{tabular}{|l|l l l c|l l l c|}
     \cline{2-9}
     \multicolumn{1}{c|}{}  & \multicolumn{4}{c|}{1st} & \multicolumn{4}{c|}{2nd} \\
     \hline
-    $q(0.90)$  & No time series & $K=7$  & $T=0$  & BS: 0.980 &
-                 No time series & $K=9$  & $T=0$  & BS: 0.980 \\
-    $q(0.95)$  & No time series & $K=15$ & $T=50$ & BS: 0.970 &
-                 No time series & $K=9$  & $T=50$ & BS: 0.970\\
-    $q(0.98)$  & No time series & $K=5$  & $T=50$ & BS: 0.945 &
-                 No time series & $K=10$ & $T=50$ & BS: 0.946\\
-    $q(0.99)$  & Time series    & $K=10$ & $T=75$ & BS: 0.912 &
-                 Time series    & $K=6$  & $T=75$ & BS: 0.913\\
-    $q(0.995)$ & Time series    & $K=6$  & $T=75$ & BS: 0.917 &
-                 Time series    & $K=10$ & $T=75$ & BS: 0.918\\
+    $L = q(0.90)$  & No time series & $K=6$  & $T=50$  & BS: 0.992 &
+                 No time series & $K=1$  & $T=0$  & BS: 0.992 \\
+    $L = q(0.95)$  & Time series & $K=5$ & $T=50$ & BS: 0.988 &
+                 No time series & $K=6$  & $T=50$ & BS: 0.989\\
+    $L = q(0.98)$  & Time series & $K=7$  & $T=50$ & BS: 0.973 &
+                 Time series & $K=5$ & $T=50$ & BS: 0.975\\
+    $L = q(0.99)$  & No time series    & $K=8$ & $T=0$ & BS: 0.946 &
+                 Time series    & $K=9$  & $T=75$ & BS: 0.947\\
+    $L = q(0.995)$ & No time series    & $K=8$  & $T=0$ & BS: 0.951 &
+                 Time series    & $K=9$ & $T=75$ & BS: 0.956\\
     \hline
   \end{tabular}
 \end{table}
