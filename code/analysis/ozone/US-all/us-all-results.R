@@ -71,9 +71,10 @@ savelist <- list(quant.score, brier.score,
 save(savelist, file = "us-all-results.RData")
 
 rm(list = ls())
-load("us-all-setup.RData")
+library(fields)
 source("../../../R/auxfunctions.R")
 load("../ozone_data.RData")
+load("us-all-setup.RData")  # setup removes sites with too many missing obs
 load("us-all-results.RData")
 settings <- read.csv("settings.csv")
 
@@ -121,30 +122,127 @@ for (i in 1:73) {
 val.idx <- c(cv.lst[[1]], cv.lst[[2]])
 this.prob <- which(probs == 0.95)
 S.bs <- S[val.idx, ]
-bs <- matrix(0, 800, 4)
-bs[1:400, 1]   <- brier.score[this.prob, 1, 1] * 100
-bs[401:800, 1] <- brier.score[this.prob, 2, 1] * 100
-bs[1:400, 2]   <- brier.score[this.prob, 1, 3] * 100
-bs[401:800, 2] <- brier.score[this.prob, 2, 3] * 100
-bs[1:400, 3]   <- brier.score[this.prob, 1, 8] * 100
-bs[401:800, 3] <- brier.score[this.prob, 2, 8] * 100
-bs[1:400, 4]   <- brier.score[this.prob, 1, 71] * 100
-bs[401:800, 4] <- brier.score[this.prob, 2, 71] * 100
-
-par(mfrow = c(2, 2))
-quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = bs[, 1], "Brier score for Gaussian")
-lines(borders / 1000)
+this.score <- rep(0, 400)
+brier.score.site <- matrix(0, 800, 4)
+thresh <- thresholds[this.prob]
 
 # find Brier score for methods 36 and 16 (the best performing around 75ppb)
-brier.score.site <- matrix(NA, 800, 3)
-load('us-all-1.RData')
+load('results/us-all-1.RData')
 for (d in 1:2) {
+  trans <- FALSE
   fit.d <- fit[[d]]
   val.idx <- cv.lst[[d]]
   validate <- Y[val.idx, ]
   pred.d <- fit.d$yp[, , ]
-  brier.score.site[val.idx, 1] <- BrierScoreSite(pred.d, 75, validate)
+  if (d == 1) {
+    start <- 1
+    end <- 400
+  } else {
+    start <- 401
+    end <- 800
+  }
+  pat <- apply(pred.d > thresh, c(2, 3), mean)
+  indicate <- validate > thresh
+  for (i in 1:nrow(validate)) {
+    this.score[i] <- mean((indicate[i, ] - pat[i, ])^2, na.rm = TRUE)
+  }
+  brier.score.site[start:end, 1] <- this.score * 100
 }
+
+# find Brier score for methods 36 and 16 (the best performing around 75ppb)
+load('results/us-all-3.RData')
+for (d in 1:2) {
+  trans <- FALSE
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- Y[val.idx, ]
+  pred.d <- fit.d$yp[, , ]
+  if (d == 1) {
+    start <- 1
+    end <- 400
+  } else {
+    start <- 401
+    end <- 800
+  }
+  pat <- apply(pred.d > thresh, c(2, 3), mean)
+  indicate <- validate > thresh
+  for (i in 1:nrow(validate)) {
+    this.score[i] <- mean((indicate[i, ] - pat[i, ])^2, na.rm = TRUE)
+  }
+  brier.score.site[start:end, 2] <- this.score * 100
+}
+
+
+# find Brier score for methods 36 and 16 (the best performing around 75ppb)
+load('results/us-all-8.RData')
+for (d in 1:2) {
+  trans <- FALSE
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- Y[val.idx, ]
+  pred.d <- fit.d$yp[, , ]
+  if (d == 1) {
+    start <- 1
+    end <- 400
+  } else {
+    start <- 401
+    end <- 800
+  }
+  pat <- apply(pred.d > thresh, c(2, 3), mean)
+  indicate <- validate > thresh
+  for (i in 1:nrow(validate)) {
+    this.score[i] <- mean((indicate[i, ] - pat[i, ])^2, na.rm = TRUE)
+  }
+  brier.score.site[start:end, 3] <- this.score * 100
+}
+
+# find Brier score for methods 36 and 16 (the best performing around 75ppb)
+load('results/us-all-71.RData')
+for (d in 1:2) {
+  trans <- FALSE
+  fit.d <- fit[[d]]
+  val.idx <- cv.lst[[d]]
+  validate <- Y[val.idx, ]
+  pred.d <- fit.d$yp[, , ]
+  if (d == 1) {
+    start <- 1
+    end <- 400
+  } else {
+    start <- 401
+    end <- 800
+  }
+  pat <- apply(pred.d > thresh, c(2, 3), mean)
+  indicate <- validate > thresh
+  for (i in 1:nrow(validate)) {
+    this.score[i] <- mean((indicate[i, ] - pat[i, ])^2, na.rm = TRUE)
+  }
+  brier.score.site[start:end, 4] <- this.score * 100
+}
+
+quartz(width = 10, height = 14)
+par(mfrow = c(2, 1))
+quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 1], 
+           main = "Brier score: Gaussian", nlevel = 100, 
+           nx = 120, ny = 84,
+           xlim = c(-2.3, 2.5),  axes = FALSE)
+lines(borders / 1000)
+
+# quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 2], 
+#            main = "Brier score: Skew-t, K = 1, T = 0, No Time Series",
+#            nx = 295, ny = 216, xlim = c(-2, 1.5), 
+# lines(borders / 1000)
+
+quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 3],
+           main = "Brier score: Skew-t, K = 5, T = 50, No Time Series",
+           nx = 120, ny = 84, xlim = c(-2.3, 2.5), axes = FALSE)
+lines(borders / 1000)
+
+# quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 4], 
+#            main = "Brier score: Sym-t, K = 10, T = 75, Time Series",
+#            nx = 295, ny = 216, xlim = c(-2.3, 2.5), axes = FALSE)
+# lines(borders / 1000)
+dev.print(device = pdf, file = "plots/bs-site.pdf")
+dev.off()
 
 load('us-all-16.RData')
 for (d in 1:2) {
@@ -163,6 +261,9 @@ for (d in 1:2) {
   pred.d <- fit.d$yp[, , ]
   brier.score.site[val.idx, 3] <- BrierScoreSite(pred.d, 75, validate)
 }
+
+
+
 
 # get tau such that q(tau) = 75 for each site
 library(np)

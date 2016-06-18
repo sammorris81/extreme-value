@@ -346,6 +346,16 @@ The $F$-madogram is related to the $\chi$ statistic as follows
   \label{stfig:chiphi}
 \end{figure}
 
+\section{Brier scores for ozone prediction} \label{sta:ozonesite}
+Because typical ozone concentration varies throughout the US, we have included Brier scores by site for two model fits (Gaussian and Skew-$t$, $K = 5$, $T = 50$) in \fref{stfig:bssite}.
+As we can see in these plots, both models seem to perform similarly across the US with the poorest performance in California.
+Other methods have similar Brier score maps to these.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{plots/bs-site}
+  \caption{Map of Brier scores for Gaussian (top) vs Skew-$t$, $K = 5$, $T = 50$ (bottom).}
+  \label{stfig:bssite}
+\end{figure}
 
 \section{Simulation study pairwise difference results} \label{sta:pdiffs}
 The following tables show the methods that have significantly different Brier scores when using a Wilcoxon-Nemenyi-McDonald-Thompson test.

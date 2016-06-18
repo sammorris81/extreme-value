@@ -1,6 +1,6 @@
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/circles}
-  \caption{Illustration of the partition of $A$.}
+  \caption{\DIFaddFL{Illustration of the partition of $A$.}}
   \label{stfig:hpp}
 \end{figure}
 \efloatseparator
@@ -8,7 +8,7 @@
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{plots/chi-phi}
-  \caption{Simulated lag-$m$ $\chi$ for varying levels of $\varphi$.}
+  \caption{\DIFaddFL{Simulated lag-$m$ $\chi$ for varying levels of $\varphi$.}}
   \label{stfig:chiphi}
 \end{figure}
 \efloatseparator
@@ -16,7 +16,7 @@
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{plots/bs-site}
-  \caption{Map of Brier scores for Gaussian (top) vs Skew-$t$, $K = 5$, $T = 50$ (bottom).}
+  \caption{\DIFaddFL{Map of Brier scores for Gaussian (top) vs Skew-$t$, $K = 5$, $T = 50$ (bottom).}}
   \label{stfig:bssite}
 \end{figure}
 \efloatseparator
