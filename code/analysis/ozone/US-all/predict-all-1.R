@@ -3,10 +3,8 @@ library(fields)
 library(SpatialTools)
 library(mvtnorm)
 
-rm(list = ls())
+source('./package_load.R', chdir = TRUE)
 load("../ozone_data.RData")
-source('../../../R/mcmc_cont_lambda.R', chdir=T)
-source('../../../R/auxfunctions.R')
 load("results/us-all-full-1.RData")
 
 outputfile <- "us-all-pred-1.RData"

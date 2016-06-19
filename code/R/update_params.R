@@ -962,7 +962,6 @@ updateRho <- function(rho, logrho.m, logrho.s, nu,
 
   R <- -0.5 * (can.rss - cur.rss) +
     nt * (can.logdet.prec - logdet.prec) +
-    # dnorm(can.rho.star, log = TRUE) - dnorm(rho.star, log = TRUE)
     log(can.rho - 0) + log(rho.upper - can.rho) -  # Jacobian of prior
     log(rho - 0) - log(rho.upper - rho)
 

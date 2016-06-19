@@ -3,11 +3,9 @@ library(fields)
 library(SpatialTools)
 library(mvtnorm)
 
-rm(list=ls())
+source('./package_load.R', chdir = TRUE)
 load("../ozone_data.RData")
-source('../../../R/mcmc.R', chdir=T)
-source('../../../R/auxfunctions.R')
-load("us-all-full-71.RData")
+load("results/us-all-full-71.RData")
 
 outputfile <- "us-all-pred-71.RData"
 
@@ -66,15 +64,15 @@ y.pred    <- array(0, c(5000, np, nt))
 set.seed(1)
 for (i in 1:nreps) {
   # get values for current iteration from mcmc
-  rho   <- fit$rho[i]
-  nu    <- fit$nu[i]
-  gamma <- fit$gamma[i]
-  beta  <- fit$beta[i, ]
-  tau   <- fit$tau[i, , ]
-  knots <- fit$knots[i, , , ]
-  z     <- matrix(0, nknots, nt)  # non-skew
-  y     <- fit$y[i, , ]  # want to use imputed y not true y
-  lambda.1 <- 0  # non-skew
+  rho    <- fit$rho[i]
+  nu     <- fit$nu[i]
+  gamma  <- fit$gamma[i]
+  beta   <- fit$beta[i, ]
+  tau    <- fit$tau[i, , ]
+  knots  <- fit$knots[i, , , ]
+  z      <- matrix(0, nknots, nt)  # non-skew
+  y      <- fit$y[i, , ]  # want to use imputed y not true y
+  lambda <- 0  # non-skew
 
   # precision matrix
   C <- gamma * simple.cov.sp(D=d22, sp.type=cov.model, sp.par=c(1, rho),
@@ -90,13 +88,16 @@ for (i in 1:nreps) {
     zg[, t]     <- z[g[, t], t]
   }
 
-  mu  <- x.beta + lambda.1 * zg
+  mu  <- x.beta + lambda * zg
   res <- y - mu
 
-  y.pred[i, , ] <- predictY(d11=d11, d12=d12, cov.model=cov.model, rho=rho,
-                            nu=nu, gamma=gamma, res=res, beta=beta, tau=tau,
-                            taug=taug, z=z, prec=prec, lambda.1=lambda.1,
-                            s.pred=S.p, x.pred=X.p, knots=knots)
+  y.pred[i, , ] <- predictY_cont_lambda(d11 = d11, d12 = d12, 
+                                        cov.model = cov.model, rho = rho, 
+                                        nu = nu, gamma = gamma, res = res, 
+                                        beta = beta, tau = tau, taug = taug, 
+                                        z = z, prec = prec, lambda = lambda,
+                                        s.pred = S.p, x.pred = X.p, 
+                                        knots = knots)
 
   if (i %% 500 == 0) {
     print(paste("Iter", i))
