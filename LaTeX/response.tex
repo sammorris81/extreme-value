@@ -123,7 +123,7 @@ It is not clear what sort of temporal dependence that induces on the data.\\
   \begin{response}
     When we create the partition, it is created in the space of the original data (i.e. using $\bw$).
     As you mention, because the transformation is non-linear and acts independently in each coordinate, the partition created using $\bw$ will be similar to, but not the same as the partition created using $\bw^*$.
-    We have added clarification in Section \sref{sts:temporal} to clarify that the partition is created in the $\bw$ space as opposed to the $\bw^*$ space.
+    We have added clarification in \sref{sts:temporal} to clarify that the partition is created in the $\bw$ space as opposed to the $\bw^*$ space.
     % \hl{Is this something we should be concerned about?}
   \end{response}
 
@@ -166,7 +166,7 @@ It is not clear what sort of temporal dependence that induces on the data.\\
   \begin{response}
     As we now describe at the end of the first paragraph of the introduction, two objectives for our data analysis are spatial prediction and mapping the probability of an extreme event.
     In the extremes context, spatial prediction means using the values of monitored stations to determine whether an unmonitored site experienced an extreme event.
-    Mapping the probability of extreme events could either be the marginal probability of an event, such as ozone exceeding 75ppb, or a map of an upper quantile, such as the map of the 99th percentile in Figure \fref{stfig:ozoneq99}.
+    Mapping the probability of extreme events could either be the marginal probability of an event, such as ozone exceeding 75ppb, or a map of an upper quantile, such as the map of the 99th percentile in \fref{stfig:ozoneq99}.
   \end{response}
 
   \item There is a lot of confusion about the ``threshold'', and what this means in various contexts. Sometimes you discuss this as fixed and specified by regulation (e.g. p.3 l.5) but other times you refer to the role of censoring as not allowing low-moderate values influence the fit (e.g. Section 3.1 or the stated goal of modeling ``spatial extremes'' in the first line of Section 3) even though you state that the constant threshold is not extreme everywhere (e.g. in the Abstract, and p.15 l.3 where in fact the highest threshold you use in the application is the 0.06 quantile at some sites, and so hardly the tail!). The role of the threshold needs to be much more clearly explained in the context of the application (fixed thresholds of interest), and modeling the extremes. \\
@@ -200,7 +200,7 @@ It is not clear what sort of temporal dependence that induces on the data.\\
   \begin{response}
     Yes, as noted in the response to AE (major comment 5), we have evidence using simulated data that our temporal construction maintains extremal dependence.
     This now appears in \aref{sta:temporal}.
-    Thank you both for the suggestion!
+    Thank you both for the suggestion.
   \end{response}
 
   \item Section 5: The simulation study needs more details. For example, when fitting datasets (1)--(4) to model (6) (max-stable), were the margins of this estimated or assumed fixed? Also you fit trend terms in some models when the mean is constant, and do not comment on the rationale for this or what happens to the estimates of these parameters (are $\beta_\text{lat}$ and $\beta_\text{long}$ close to 0 and $\beta_\text{int}$ close to 10?)

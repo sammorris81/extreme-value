@@ -261,13 +261,11 @@ So, within each partition, $Y(\bs)$ follows the spatial skew-$t$ process defined
 Across partitions, the $Y(\bs)$ remain correlated via the correlation function for $v(\bs)$ because $v(\bs)$ spans all partitions.
 However, the bivariate distribution for sites in different partitions is neither Gaussian nor skew-$t$ and does not have asymptotic dependence.
 
-The partitioning model remove long-range dependence. Conditional on knots $\bw_1, \ldots, \bw_K$, the $\chi$ statistic for two sites $\bs_1$ and $\bs_2$ in partitions $k_1$ and $k_2$ respectively is
+The partitioning model removes long-range dependence. Conditional on knots $\bw_1, \ldots, \bw_K$, the $\chi$ statistic for two sites $\bs_1$ and $\bs_2$ in partitions $k_1$ and $k_2$ respectively is
 \begin{align}
-  \chi(h) &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) + I(k_1 \neq k_2) \chi_{\text{Gaus}}(h) \nonumber \\
-         &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) \label{steq:chiskewt}
+  \chi(h) &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) \label{steq:chiskewt}
 \end{align}
-where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in equation \eref{steq:chiskew-t} of \aref{sta:skewt}, $\chi_{\text{Gaus}}(h)$ is the $\chi$ statistic for a Gaussian process, and $h = ||\bs_1 - \bs_2||$.
-Therefore, sites in different subregions are asymptotically independent because $\chi_{\text{Gaus}}(h) = 0$ for all $h$.
+where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in equation \eref{steq:chiskew-t} of \aref{sta:skewt}, and $h = ||\bs_1 - \bs_2||$.
 Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_1 = k_2)$ is the probability that two sites separated by distance $h$ are in the same partition.
 In \aref{sta:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, assuming that the knots follow a homogeneous Poisson process.
 This implies that $\lim_{h \rightarrow \infty} \chi(h) = 0$.
@@ -433,7 +431,7 @@ The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(a / 2, b
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We tried also fitting the skew-$t$ marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
 Each chain of the MCMC ran for 20,000 iterations with a burn-in period of 10,000 iterations.
-Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2), the $\lambda$ estimate and and $a$ appear to converge to their true values (96\% coverage and 90\% coverage respectively).
+Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2) where data are generated and fit with a skew-$t$ distribution, the sample converges for $\lambda$ and $a$, and the empirical coverage of posterior 95\% intervals is near the nominal level (96\% coverage for $\lambda$ and 90\% for $a$).
 It should be noted that in the models with multiple partitions (i.e. models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC; however, we are not interested in these parameters but rather spatial predictions and tail probabilities which converge well.
 
 \subsection{Cross validation}\label{sts:modelselect}
