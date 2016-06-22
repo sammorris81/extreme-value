@@ -809,8 +809,16 @@ threshold <- 75
 load('us-all-pred-1.RData')
 yp <- y.pred
 np <- dim(yp)[2]
-set.1.95 <- apply(yp, c(2), quantile, probs=0.95)
-set.1.99 <- apply(yp, c(2), quantile, probs=0.99)
+niters <- dim(yp)[1]
+
+# get the posterior distribution of the 95th and 99th quantile for each site
+set.1.95.q <- apply(yp, c(1, 2), quantile, probs = 0.95)
+set.1.99.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
+# set.1.95 <- apply(yp, c(2), quantile, probs=0.95)
+# set.1.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.1.95 <- apply(set.1.95.q, 2, mean)
+set.1.99 <- apply(set.1.99.q, 2, mean)
+
 set.1.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
   set.1.p.below[i, t] <- mean(yp[, i, t] <= threshold)
@@ -840,8 +848,14 @@ set.1.p.atleast3 <- 1 - (set.1.p.0 + set.1.p.1 + set.1.p.2)
 load('us-all-pred-3.RData')
 yp <- y.pred
 np <- dim(yp)[2]
-set.3.95 <- apply(yp, c(2), quantile, probs=0.95)
-set.3.99 <- apply(yp, c(2), quantile, probs=0.99)
+niters <- dim(yp)[1]
+set.3.95.q <- apply(yp, c(1, 2), quantile, probs = 0.95)
+set.3.95.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
+# set.3.95 <- apply(yp, c(2), quantile, probs=0.95)
+# set.3.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.3.95 <- apply(set.3.95.q, 2, mean)
+set.3.99 <- apply(set.3.99.q, 2, mean)
+
 set.3.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
   set.3.p.below[i, t] <- mean(yp[, i, t] <= threshold)
@@ -866,14 +880,18 @@ set.3.p.atleast1 <- 1 - set.3.p.0
 set.3.p.atleast2 <- 1 - (set.3.p.0 + set.3.p.1)
 set.3.p.atleast3 <- 1 - (set.3.p.0 + set.3.p.1 + set.3.p.2)
 
-
-
 # Skew-t - No Time series - T = 50
 load('us-all-pred-8.RData')
 yp <- y.pred
 np <- dim(yp)[2]
-set.8.95 <- apply(yp, c(2), quantile, probs=0.95)
-set.8.99 <- apply(yp, c(2), quantile, probs=0.99)
+niters <- dim(yp)[1]
+set.8.95.q <- apply(yp, c(1, 2), quantile, probs = 0.95)
+set.8.99.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
+# set.8.95 <- apply(yp, c(2), quantile, probs=0.95)
+# set.8.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.8.95 <- apply(set.8.95.q, 2, mean)
+set.8.99 <- apply(set.8.99.q, 2, mean)
+
 set.8.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
   set.8.p.below[i, t] <- mean(yp[, i, t] <= threshold)
@@ -898,42 +916,48 @@ set.8.p.atleast1 <- 1 - set.8.p.0
 set.8.p.atleast2 <- 1 - (set.8.p.0 + set.8.p.1)
 set.8.p.atleast3 <- 1 - (set.8.p.0 + set.8.p.1 + set.8.p.2)
 
-# 6 knots - Time series - T = 75
-load('us-all-pred-59.RData')
-yp <- y.pred
-np <- dim(yp)[2]
-set.59.95 <- apply(yp, c(2), quantile, probs=0.95)
-set.59.99 <- apply(yp, c(2), quantile, probs=0.99)
-set.59.p.below <- matrix(0, np, nt)
-for (i in 1:np) { for (t in 1:nt) {
-  set.59.p.below[i, t] <- mean(yp[, i, t] <= threshold)
-} }
-set.59.p.0 <- rep(0, np)
-for(i in 1:np) {
-  set.59.p.0[i] <- prod(set.59.p.below[i, ])
-}
-set.59.p.1 <- rep(0, np)
-for (i in 1:np) { for (t in 1:nt) {
-  set.59.p.1[i] <- set.59.p.1[i] + prod(set.59.p.below[i, -t]) *
-    (1 - set.59.p.below[i, t])
-} }
-set.59.p.2 <- rep(0, np)
-for(i in 1:np) { for (t in 1:(nt - 1)) {
-  for (s in (t+1):nt) {
-    set.59.p.2[i] <- set.59.p.2[i] + prod(set.59.p.below[i, -c(s,t)]) *
-      prod(1 - set.59.p.below[i, c(s, t)])
-  }
-}}
-set.59.p.atleast1 <- 1 - set.59.p.0
-set.59.p.atleast2 <- 1 - (set.59.p.0 + set.59.p.1)
-set.59.p.atleast3 <- 1 - (set.59.p.0 + set.59.p.1 + set.59.p.2)
+# # 6 knots - Time series - T = 75
+# load('us-all-pred-59.RData')
+# yp <- y.pred
+# np <- dim(yp)[2]
+# set.59.95 <- apply(yp, c(2), quantile, probs=0.95)
+# set.59.99 <- apply(yp, c(2), quantile, probs=0.99)
+# set.59.p.below <- matrix(0, np, nt)
+# for (i in 1:np) { for (t in 1:nt) {
+#   set.59.p.below[i, t] <- mean(yp[, i, t] <= threshold)
+# } }
+# set.59.p.0 <- rep(0, np)
+# for(i in 1:np) {
+#   set.59.p.0[i] <- prod(set.59.p.below[i, ])
+# }
+# set.59.p.1 <- rep(0, np)
+# for (i in 1:np) { for (t in 1:nt) {
+#   set.59.p.1[i] <- set.59.p.1[i] + prod(set.59.p.below[i, -t]) *
+#     (1 - set.59.p.below[i, t])
+# } }
+# set.59.p.2 <- rep(0, np)
+# for(i in 1:np) { for (t in 1:(nt - 1)) {
+#   for (s in (t+1):nt) {
+#     set.59.p.2[i] <- set.59.p.2[i] + prod(set.59.p.below[i, -c(s,t)]) *
+#       prod(1 - set.59.p.below[i, c(s, t)])
+#   }
+# }}
+# set.59.p.atleast1 <- 1 - set.59.p.0
+# set.59.p.atleast2 <- 1 - (set.59.p.0 + set.59.p.1)
+# set.59.p.atleast3 <- 1 - (set.59.p.0 + set.59.p.1 + set.59.p.2)
 
 # 10 knots - Time series - T = 75
 load('us-all-pred-71.RData')
 yp <- y.pred
 np <- dim(yp)[2]
-set.71.95 <- apply(yp, c(2), quantile, probs=0.95)
-set.71.99 <- apply(yp, c(2), quantile, probs=0.99)
+niters <- dim(yp)[1]
+set.71.95.q <- apply(yp, c(1, 2), quantile, probs = 0.95)
+set.71.99.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
+# set.71.95 <- apply(yp, c(2), quantile, probs=0.95)
+# set.71.99 <- apply(yp, c(2), quantile, probs=0.99)
+set.71.95 <- apply(set.71.95.q, 2, mean)
+set.71.99 <- apply(set.71.99.q, 2, mean)
+  
 set.71.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
   set.71.p.below[i, t] <- mean(yp[, i, t] <= threshold)
