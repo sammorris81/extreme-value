@@ -26,7 +26,7 @@ niters <- dim(yp)[1]
 print("getting q95")
 set.3.95.q <- apply(yp, c(1, 2), quantile, probs = 0.95)
 print("getting q99")
-set.3.95.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
+set.3.99.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
 # set.3.95 <- apply(yp, c(2), quantile, probs=0.95)
 # set.3.99 <- apply(yp, c(2), quantile, probs=0.99)
 set.3.95 <- apply(set.3.95.q, 2, mean)
