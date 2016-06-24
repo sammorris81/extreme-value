@@ -389,8 +389,8 @@ setting.title <- c("Data: Gaussian", "Data: Symmetric-t (K = 1)",
                    "Data: Symmetric-t (K = 5)",
                    bquote(paste("Data: Skew-t (K = 1, ", lambda == 3, ")")),
                    bquote(paste("Data: Skew-t (K = 5, ", lambda == 3, ")")),
-                   "Data: Max-stable", "Data: transform below T",
-                   "Data: Brown-Resnick")
+                   "Data: Max-stable, Asymmetric logistic", "Data: transform below T",
+                   "Data: Max-stable, Brown-Resnick")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Sym-t, K = 1, T = q(0.8)",
              "Skew-t, K = 5, T = q(0.0)", "Sym-t, K = 5, T = q(0.8)",
              "Max-stable, T = q(0.80)")
@@ -414,6 +414,7 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-1.pdf")
 
 setting <- 2
 ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
@@ -428,6 +429,7 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-2.pdf")
 
 setting <- 3
 ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
@@ -442,6 +444,7 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-3.pdf")
 
 setting <- 4
 ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
@@ -456,6 +459,7 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-4.pdf")
 
 setting <- 5
 ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
@@ -470,6 +474,7 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-5.pdf")
 
 setting <- 6
 ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
@@ -484,21 +489,21 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-6.pdf")
 
-setting <- 7
-ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
-ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
-plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
-     lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
-     ylim=c(ymin, ymax), main=as.expression(setting.title[setting]),
-     ylab="Relative Brier score", xlab="Threshold quantile")
-
-for (i in 2:(nmethods - 1)) {
-  lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
-  points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
-  abline(h=1, lty=2)
-}
-
+# setting <- 7
+# ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
+# ymin <- min(bs.mean.ref.gau[, , setting], 1, na.rm=T)
+# plot(probs, bs.mean.ref.gau[, 1, setting], type='o',
+#      lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
+#      ylim=c(ymin, ymax), main=as.expression(setting.title[setting]),
+#      ylab="Relative Brier score", xlab="Threshold quantile")
+# 
+# for (i in 2:(nmethods - 1)) {
+#   lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
+#   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
+#   abline(h=1, lty=2)
+# }
 
 setting <- 8
 ymax <- max(bs.mean.ref.gau[, , setting], 1, na.rm=T)
@@ -513,15 +518,15 @@ for (i in 2:(nmethods - 1)) {
   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
   abline(h=1, lty=2)
 }
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-8.pdf")
 
 plot(1, 1, type='n', axes=F, ylab="", xlab="")
 legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg)
-
+dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-legend.pdf")
 
 # Panel for paper
 # settings.use <- c(1, 4, 5, 6, 7)
 settings.use <- c(1, 4, 5, 6, 8)
-quartz(width=12, height=12)
 par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in settings.use) {
   # if (setting == 6) {
@@ -560,8 +565,8 @@ plot(1, 1, type='n', axes=F, ylab="", xlab="")
 legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
        bty = "n", cex=2, lwd = 1.5)
 
-dev.print(file="plots/bsplots-mean.pdf", device=pdf)
-dev.off()
+dev.print(width = 12, height = 12, file="plots/bsplots-mean.pdf", device=pdf)
+
 
 setting.title <- c("Gaussian", "T (K = 1)", "T (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Skew-t, K = 1, T = q(0.8)", "Skew-t, K = 5, T = q(0.0)", "Skew-t, K = 5, T = q(0.8)")

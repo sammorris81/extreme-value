@@ -305,16 +305,35 @@ xplot <- qt(theory.qq, 10)
 plot(xplot, res.qq)
 abline(0, 1)
 
-xplot <- qst(theory.qq, nu=10, alpha=1)
+# qst(x, xi: location, omega: scale, alpha: slant, nu:df)
+llike.st <- function(params, y) {
+  xi <- params[1]
+  omega <- exp(params[2])
+  alpha <- params[3]
+  nu <- params[4]
+  ll <- dst(y, xi = xi, omega = omega, alpha = alpha, nu = nu, log = TRUE)
+  return(sum(-ll, na.rm = TRUE))
+}
+
+pars <- c(0, 1, 0, 3)
+fit <- optim(par = pars, fn = llike.st, y = res.qq)$par
+
+xi     <- fit[1]  # location
+omega  <- exp(fit[2])  # logscale
+lambda <- fit[3]  # slant
+nu     <- fit[4]  # degrees of freedom
+
+xplot <- qst(theory.qq, xi = xi, omega = omega, alpha = lambda, nu = nu)
+xplot <- qst(theory.qq, alpha = 1, nu = 10)
+# xplot <- qst(theory.qq, alpha = 0.304, nu = 10)
 these <- c(1:1000, sample(1001:22984, size = 2000), 22985:length(xplot))
 xplot <- (xplot - mean(xplot))
-quartz(width=6, height=6)
 plot(xplot[these], res.qq[these], 
      xlab="Theoretical Quantile", ylab="Observed Quantile", 
      #main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1"
      cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 abline(0, 1)
-dev.print(device = pdf, file = "qq-res.pdf")
+dev.print(width = 6, height = 6, device = pdf, file = "plots/qq-res.pdf")
 
 # ML - Skew-t fit and diagnostics
 library(fields)

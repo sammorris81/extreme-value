@@ -985,6 +985,14 @@ rm(y.pred)
 rm(yp)
 save.image(file="predict-maps.RData")
 
+rm(list = ls())
+load("predict-maps-1.RData")
+load("predict-maps-3.RData")
+load("predict-maps-8.RData")
+load("predict-maps-71.RData")
+save.image(file = "predict-maps.RData")
+
+
 # make the prediction maps
 rm(list=ls())
 load("predict-maps.RData")
@@ -1128,7 +1136,7 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.71.3), nx=nx, ny=ny,
            yaxt="n", xaxt="n",
            main="(f) Difference of (d) - (b)", cex=1.5)
 lines(borders/1000)
-
+dev.print(device = pdf, file = "plots/q99-ozone.pdf")
 
 
 
