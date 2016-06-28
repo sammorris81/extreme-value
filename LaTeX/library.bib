@@ -1,37 +1,61 @@
 %% This BibTeX bibliography file was created using BibDesk.
 %% http://bibdesk.sourceforge.net/
 
-%% Created for Sam Morris at 2016-06-06 17:06:37 -0500
+%% Created for Sam Morris at 2016-06-27 15:38:40 -0400 
 
 
-%% Saved with string encoding Unicode (UTF-8)
-@book{Gelfand2010,
-  title={Handbook of Spatial Statistics},
-  author={Gelfand, A.E. and Diggle, P. and Guttorp, P. and Fuentes, M.},
-  isbn={9781420072884},
-  lccn={2010006620},
-  series={Chapman \& Hall/CRC Handbooks of Modern Statistical Methods},
-  year={2010},
-  publisher={CRC Press}
+%% Saved with string encoding Unicode (UTF-8) 
+
+@Manual{,
+    title = {SpatialExtremes: Modelling Spatial Extremes},
+    author = {Mathieu Ribatet},
+    year = {2015},
+    note = {R package version 2.0-2},
+    url = {https://CRAN.R-project.org/package=SpatialExtremes},
+  }
+
+@article{Kabluchko2009,
+abstract = {Let Wi, i∈ℕ, be independent copies of a zero-mean Gaussian process {\{}W(t), t∈ℝd{\}} with stationary increments and variance $\sigma$2(t). Independently of Wi, let ∑i=1∞$\delta$Ui be a Poisson point process on the real line with intensity e−y dy. We show that the law of the random family of functions {\{}Vi(⋅), i∈ℕ{\}}, where Vi(t)=Ui+Wi(t)−$\sigma$2(t)/2, is translation invariant. In particular, the process $\eta$(t)=⋁i=1∞Vi(t) is a stationary max-stable process with standard Gumbel margins. The process $\eta$ arises as a limit of a suitably normalized and rescaled pointwise maximum of n i.i.d. stationary Gaussian processes as n→∞ if and only if W is a (nonisotropic) fractional Brownian motion on ℝd. Under suitable conditions on W, the process $\eta$ has a mixed moving maxima representation.},
+archivePrefix = {arXiv},
+arxivId = {arXiv:0806.2780v3},
+author = {Kabluchko, Zakhar and Schlather, Martin and de Haan, Laurens},
+doi = {10.1214/09-AOP455},
+eprint = {arXiv:0806.2780v3},
+issn = {00911798},
+journal = {Annals of Probability},
+keywords = {Extremes,Gaussian processes,Poisson point processes,Stationary max-stable processes},
+number = {5},
+pages = {2042--2065},
+title = {{Stationary max-stable fields associated to negative definite functions}},
+volume = {37},
+year = {2009}
 }
 
+
+@book{Gelfand2010,
+	Author = {Gelfand, A.E. and Diggle, P. and Guttorp, P. and Fuentes, M.},
+	Isbn = {9781420072884},
+	Lccn = {2010006620},
+	Publisher = {CRC Press},
+	Series = {Chapman \& Hall/CRC Handbooks of Modern Statistical Methods},
+	Title = {Handbook of Spatial Statistics},
+	Year = {2010}}
 
 @incollection{Cooley2006,
-address = {New York, NY},
-author = {Cooley, Daniel and Naveau, Philippe and Poncet, Paul},
-booktitle = {Dependence in Probability and Statistics},
-chapter = {Variograms},
-doi = {10.1007/0-387-36062-X},
-editor = {Bertail, Patrice and Soulier, Philippe and Doukhan, Paul},
-isbn = {978-0-387-31741-0},
-pages = {373--390},
-publisher = {Springer New York},
-series = {Lecture Notes in Statistics},
-title = {{Variograms for spatial max-stable random fields}},
-volume = {187},
-year = {2006}
-}
-
+	Address = {New York, NY},
+	Author = {Cooley, Daniel and Naveau, Philippe and Poncet, Paul},
+	Booktitle = {Dependence in Probability and Statistics},
+	Chapter = {Variograms},
+	Date-Modified = {2016-06-27 19:37:59 +0000},
+	Editor = {Bertail, Patrice and Soulier, Philippe and Doukhan, Paul},
+	Isbn = {978-0-387-31741-0},
+	Pages = {373--390},
+	Publisher = {Springer New York},
+	Series = {Lecture Notes in Statistics},
+	Title = {{Variograms for spatial max-stable random fields}},
+	Volume = {187},
+	Year = {2006},
+	Bdsk-Url-1 = {http://dx.doi.org/10.1007/0-387-36062-X}}
 
 @article{Albert1993,
 	Abstract = {A vast literature in statistics, biometrics, and econometrics is concerned with the analysis of binary and polychotomous response data. The classical approach fits a categorical response regression model using maximum likelihood, and inferences about the model are based on the associated asymptotic theory. The accuracy of classical confidence statements is questionable for small sample sizes. In this article, exact Bayesian methods for modeling categorical response data are developed using the idea of data augmentation. The general approach can be summarized as follows. The probit regression model for binary outcomes is seen to have an underlying normal regression structure on latent continuous data. Values of the latent data can be simulated from suitable truncated normal distributions. If the latent data are known, then the posterior distribution of the parameters can be computed using standard results for normal linear models. Draws from this posterior are used to sample new latent data, and the process is iterated with Gibbs sampling. This data augmentation approach provides a general framework for analyzing binary regression models. It leads to the same simplification achieved earlier for censored regression models. Under the proposed framework, the class of probit regression models can be enlarged by using mixtures of normal distributions to model the latent data. In this normal mixture class, one can investigate the sensitivity of the parameter estimates to the choice of "link function," which relates the linear regression estimate to the fitted probabilities. In addition, this approach allows one to easily fit Bayesian hierarchical models. One specific model considered here reflects the belief that the vector of regression coefficients lies on a smaller dimension linear subspace. The methods can also be generalized to multinomial response models with {\$}J {\textgreater} 2{\$} categories. In the ordered multinomial model, the J categories are ordered and a model is written linking the cumulative response probabilities with the linear regression structure. In the unordered multinomial model, the latent variables have a multivariate normal distribution with unknown variance-covariance matrix. For both multinomial models, the data augmentation method combined with Gibbs sampling is outlined. This approach is especially attractive for the multivariate probit model, where calculating the likelihood can be difficult.},
@@ -644,11 +668,11 @@ year = {2006}
 	Bdsk-Url-1 = {http://linkinghub.elsevier.com/retrieve/pii/S1878029611001666},
 	Bdsk-Url-2 = {http://dx.doi.org/10.1016/j.proenv.2011.07.039}}
 
-@article{Engelke2014,
+@article{Engelke2015,
 	Archiveprefix = {arXiv},
 	Arxivid = {arXiv:1207.6886v2},
 	Author = {Engelke, Sebastian and Malinowski, Alexander and Kabluchko, Zakhar and Schlather, Martin},
-	Date-Modified = {2016-06-06 22:06:33 +0000},
+	Date-Modified = {2016-06-27 19:38:39 +0000},
 	Eprint = {arXiv:1207.6886v2},
 	File = {:Users/samorris/Dropbox/Mendeley/Journal of the Royal Statistical Society. Series B Statistical Methodology/Engelke et al. - 2014 - Estimation of H{\"{u}}sler-Reiss distributions and Brown-Resnick processes.pdf:pdf},
 	Issn = {13697412},
@@ -656,7 +680,7 @@ year = {2006}
 	Keywords = {Extreme value theory,Max-stable process,Peaks-over-threshold method,Poisson point process,Spectral density},
 	Pages = {239--265},
 	Title = {{Estimation of H{\"{u}}sler-Reiss distributions and Brown-Resnick processes}},
-	Year = {2014},
+	Year = {2015},
 	Bdsk-Url-1 = {http://dx.doi.org/10.1111/rssb.12074}}
 
 @article{Engelke2014a,

@@ -26,7 +26,7 @@
 % \linespread{2.0}
 \input{mycommands.sty}
 
-\title[A Space-time Skew-$t$ Model for Threshold Exceedances]{A space-time skew-$t$ model for threshold exceedances}
+\title[A Space-time \Skewt Model for Threshold Exceedances]{A space-time \skewt model for threshold exceedances}
 \author
 {Samuel A Morris$^{1,*}$\email{samorris@ncsu.edu},
 Brian J Reich$^{1}$,
@@ -37,7 +37,7 @@ $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorad
 
 \begin{document} %\linenumbers
 % \begin{center}
-% {\Large {\bf A space-time skew-$t$ model for threshold exceedances}}\\
+% {\Large {\bf A space-time \skewt model for threshold exceedances}}\\
 
 % {\large Samuel A Morris\footnote[1]{North Carolina State University}, Brian J Reich\footnotemark[1]{}, Emeric Thibaud\footnote[2]{Colorado State University}, and Daniel Cooley\footnotemark[2]{}}
 
@@ -51,7 +51,7 @@ $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorad
 \begin{abstract}
 To assess the compliance of air quality regulations, the Environmental Protection Agency (EPA) must know if a site exceeds a pre-specified level.
 In the case of ozone, the level for compliance is fixed at 75 parts per billion, which is high, but not extreme at all locations.
-We present a new method based on the spatial skew-$t$ process.
+We present a new space-time model for threshold exceedances based on the spatial \skewt process.
 Our method incorporates a random partition to permit long-distance asymptotic independence while allowing for sites that are near one another to be asymptotically dependent, and we incorporate thresholding to allow the tails of the data to speak for themselves.
 We also introduce a transformed AR(1) time-series to allow for temporal dependence.
 Finally, our model allows for high-dimensional Bayesian inference that is comparable in speed to traditional geostatistical methods for large datasets.
@@ -59,7 +59,7 @@ We apply our method to an ozone analysis for July 2005, and find that our model 
 \end{abstract}
 
 \begin{keywords}
-Extreme value analysis, MCMC, Random partition, Skew-$t$, Spatio-temporal
+Extreme value analysis, Markov chain Monte Carlo, Random partition, \Skewt, Spatio-temporal modeling
 \end{keywords}
 
 \maketitle
@@ -70,7 +70,7 @@ Epidemiological studies have linked air quality to public health concerns regard
 As a result, the Environmental Protection Agency (EPA) has developed a set of standards to help reduce air pollution thereby improving air quality.
 Our study is motivated by an air pollution application where the focus is not on the average behavior, but instead the behavior over a high level determined by government regulation.
 More specifically, we consider the case of compliance for ozone.
-A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over 3 years does not exceed 75 parts per billion (ppb).
+A site is said to be in compliance if the fourth highest daily maximum 8-hour concentration averaged over three years does not exceed 75 parts per billion (ppb).
 \fref{stfig:ozone-10jul} shows the ozone levels from July 10, 2005, at 1089 stations across the United States.
 We see a large area above the compliance level in the midwest covering Ohio, Indiana, Illinois, and parts of the surrounding states.
 We analyze these data with the goals of spatial prediction for unmonitored locations and to map the probability of extreme events.
@@ -86,46 +86,41 @@ A spatial model for threshold exceedances warrants special consideration and sta
 First, because we are interested only in high values, we want to ``let the tail speak for itself''.
 That is, if we fit a model to the entire data set, low-to-moderate values would influence the fit of the overall model.
 As there are more of these values, they can unduly influence the distribution at the higher levels about which we are interested.
-Our inference method will only use data which exceed a pre-selected threshold, and will impute data below the threshold, thereby tailoring the fit to the levels of interest.
+Our inference method will only use data which exceed a pre-selected threshold and will censor data below the threshold, thereby tailoring the fit to the levels of interest.
 Second, likelihood-based spatial modeling typically assumes a Gaussian process, which is appropriate when mean behavior is of interest.
 However, the Gaussian distribution is light-tailed and symmetric, and therefore may be inappropriate for modeling data which does not share this tail behavior.
 Third, we aim to capture the dependence structure when ozone is at high levels, and dependence at these levels may not be well-represented by covariances which focus again on mean behavior.
-Asymptotic dependence/independence (see \sref{sts:extdep}) are notions which describe how two random variables' probability of simultaneous exceedance of an extreme threshold behaves as one increases the threshold.
+Asymptotic dependence/independence (see \sref{sts:extdep}) are notions which describe how two random variables' probability of simultaneous exceedance of an extremely high level.
 The Gaussian distribution always exhibits asymptotic independence, except in the case of perfect dependence, thus is an inappropriate model for data which exhibits asymptotic dependence.
-To allow for more flexibility in the marginal tail and to allow for asymptotic dependence, the skew-$t$ distribution forms the basis for our model.
+To allow for more flexibility in the marginal tail and to allow for asymptotic dependence, the \skewt distribution forms the basis for our model.
 
 Our approach differs from threshold modeling approaches based on extreme value distributions.
 There has been extensive work on threshold modeling in the field of extreme value statistics where extreme events are naturally defined in terms of exceedances over a high threshold.
 \citet{Davison1990} considered modeling threshold exceedances of univariate time series by the generalized Pareto distribution.
-Bivariate threshold models for extreme value distributions were considered by \citet{Ledford1996} who introduced a censored approach that provides a way to deal with different types of exceedances of a bivariate threshold in terms of only one or both components.
+Threshold based inference for multivariate extreme value distributions was considered by \citet{Ledford1996} who introduced a censored approach that provides a way to deal with different types of exceedances of a threshold.
 These threshold models were extended to spatial models for extremes by \citet{Wadsworth2012} and \citet{Thibaud2013} who fit various models to spatial extremes using a censored pairwise likelihood \citep{Padoan2010} based on the approach of \citet{Ledford1996}.
 \citet{Huser2014} further extended this to space-time modeling.
-\citet{Thibaud2013a}, \citet{Engelke2014}, and \citet{Wadsworth2014}, introduced more efficient inference for threshold exceedances of extremal spatial processes with full likelihood methods.
+\citet{Wadsworth2014}, \citet{Engelke2015}, and \citet{Thibaud2013a} introduced more efficient inference for threshold exceedances of extremal spatial processes with full likelihood methods.
 The previous approaches to threshold modeling are motivated by extreme value theory and assume the threshold is high enough that extremal models are valid for the data, and for extrapolation beyond the range of observed values.
 Moreover, these approaches are computationally intensive and limited to rather small datasets.
-For example, \citet{Wadsworth2014} present a simulation study with observations at 16 sites on a regular grid, and \citet{Engelke2014} analyze a dataset with observations at 35 meteorological stations.
-Our application with ozone data does not fit into this framework because we do not focus on exceedances of a very high threshold, but on exceedances of a fixed threshold.
-Furthermore, in our application, we have observations at over 1,000 ozone monitoring locations.
+For example, \citet{Wadsworth2014} present a simulation study with observations at 16 sites on a regular grid, and \citet{Engelke2015} analyze a dataset with observations at 35 meteorological stations.
+Our application with ozone data does not fit into this framework because we do not focus on exceedances of a very high level, and we have observations at over 1,000 ozone monitoring locations.
 
-We propose a new spatiotemporal threshold exceedance model based on the skew-$t$ process \citep{Padoan2011}.
+We propose a new spatiotemporal threshold exceedance model based on the \skewt process \citep{Padoan2011}.
 \hl{Need to add in more references here to skew-$t$ used in a spatial setting.}
-Our model is a threshold exceedance model for the multivariate skew-$t$ distribution using a fixed threshold.
-In this setting, we describe the threshold as fixed because it is specified in advance by regulatory compliance.
-This differs from the more traditional extremes literature where a threshold is selected to be the value beyond which an extremal model is appropriate for the data.
-We use a skew-$t$ distribution because of its flexibility to model asymmetry and heavy-tailed data with the aim of predicting the probability of exceeding a high fixed level at an unobserved location.
-
+We use a \skewt distribution because of its flexibility to model asymmetry and heavy-tailed data with the aim of predicting the probability of exceeding a high fixed level at an unobserved location.
 Our model allows for inference and predictions using the full likelihood with computing on the order of Gaussian models.
-This allows us to use Bayesian methods to impute data below the threshold as well as to make predictions at unobserved locations.
-In a spatial setting, the multivariate skew-$t$ distribution demonstrates asymptotic dependence between observations at all sites regardless of the distance between the sites.
+This allows us to use Bayesian methods, which we use to fit the model, handle censored data below the threshold, and make predictions at unobserved locations.
+In a spatial setting, the multivariate \skewt distribution demonstrates asymptotic dependence between observations at all sites regardless of the distance between the sites.
 In order to address this concern, we introduce a random spatial partition similar to the method used by \citet{Kim2005} for non-stationary Gaussian data.
-This partitioning alleviates the asymptotic spatial dependence present in the skew-$t$ distribution for sites that are far apart.
+This partitioning alleviates the asymptotic spatial dependence present in the \skewt distribution for sites that are far apart.
 
 The paper is organized as follows.
-\sref{sts:spatialskew} is a brief review of the spatial skew-$t$ process.
-In \sref{sts:spatial}, we build upon the traditional skew-$t$ process by incorporating censoring to focus on tails, partitioning to remove long-range asymptotic dependence, and extending the model to space-time data.
+\sref{sts:spatialskew} is a brief review of the spatial \skewt process.
+In \sref{sts:spatial}, we build upon the traditional \skewt process by incorporating censoring to focus on tails, partitioning to remove long-range asymptotic dependence, and extending the model to space-time data.
 The computing is described in \sref{sts:hier}.
 In \sref{sts:simstudy}, we present a simulation study that examines the predictive capabilities of this model compared to Gaussian and max-stable methods.
-We then compare our method to Gaussian and max-stable methods with a data analysis of ozone measurements from 800 sites throughout the US in \sref{sts:analysis}.
+We then compare our method to Gaussian and max-stable methods with a data analysis of ozone measurements from 1,000 sites throughout the US in \sref{sts:analysis}.
 The final section provides brief discussion and direction for future research.
 
 % These models describe dependence using the probability that two observations jointly exceed an extreme value, which in the limit of the distribution is referred to as asymptotic dependence.
@@ -156,9 +151,9 @@ The final section provides brief discussion and direction for future research.
 % For example, \citet{Wadsworth2014} discuss a censored Poisson process that exploits the fact that the spectral functions for Brown-Resnick processes are log-Gaussian random fields.
 % Additionally, \citep{Engelke2014}, show that upon standardizing marginals to the Gumbel distribution and conditioned on a fixed location exceeding a high threshold, the incremental distribution asymptotically forms a Gaussian process.
 % In addition to Brown-Resnick processes, skew elliptical distributions can be used for multivariate modeling with dependent extreme values \citep{Genton2004,Zhang2010,Padoan2011}.
-% For example, the skew-normal and skew-$t$ distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate $t$ distributions.
-% As with multivariate Gaussian distributions, the multivariate skew-normal distribution demonstrates asymptotic independence. Conversely both the multivariate $t$ and skew-$t$ distributions demonstrate asymptotic dependence \citep{Padoan2011}.
-% Additionally, the limiting distribution of the maxima of skew-$t$ random vectors is the extremal skew-$t$ distribution \citep{Padoan2011} of which the extremal-$t$ \citep{Opitz2013} is a special case.
+% For example, the skew-normal and \skewt distribution offer a flexible way to handle non-symmetric data within a framework of multivariate normal and multivariate $t$ distributions.
+% As with multivariate Gaussian distributions, the multivariate skew-normal distribution demonstrates asymptotic independence. Conversely both the multivariate $t$ and \skewt distributions demonstrate asymptotic dependence \citep{Padoan2011}.
+% Additionally, the limiting distribution of the maxima of \skewt random vectors is the extremal \skewt distribution \citep{Padoan2011} of which the extremal-$t$ \citep{Opitz2013} is a special case.
 
 % Despite this challenge, spatial modeling is important because it provides a mechanism by which we can borrow information about extreme events across space.
 % There are two primary goals for spatial methods.
@@ -169,62 +164,57 @@ The final section provides brief discussion and direction for future research.
 
 \section{Spatial skew processes}\label{sts:spatialskew}
 The skew-elliptical family of distributions provides models that are mathematically tractable while introducing a slant parameter to account for asymmetric data.
-A brief review of the additive process (\citealp{Azzalini2003}; \citealp[p. 129]{Azzalini2014}; \citealp{Beranger2016}) by which a skew-$t$ process is created is given here.
+A brief review of the additive process (\citealp{Azzalini2003}; \citealp[p. 129]{Azzalini2014}; \citealp{Beranger2016}) by which a \skewt process is created is given here.
 
-\subsection{Skew-$t$ process} \label{sts:skewt}
+\subsection{\Skewt process} \label{sts:skewt}
 Let $Y(\bs)$ be a spatial process defined for spatial location $\bs$ in a spatial domain of interest $\calD \in \calR^2$.
-The spatial skew-$t$ process can be written
+The spatial \skewt process can be written as
 \begin{align}
   Y(\bs) = \bX(\bs)^\top \bbeta + \lambda \sigma |z| + \sigma v(\bs) \label{steq:fullmodel}
 \end{align}
-$\bX(\bs)$ is the observed covariate vector at site $\bs$, $\bbeta$ is the $p$-vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skew, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a / 2, b / 2)$ is random scale parameter, IG is the distribution function of an inverse gamma random variable, $a$ is the degrees of freedom, $b$ controls the precision of the process, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function $\text{Cor} \left[Y(\bs_1), Y(\bs_2)\right] = \rho(\bs_1, \bs_2)$.
+where $\bX(\bs)$ is the observed covariate vector at site $\bs$, $\bbeta$ is the $p$-vector of regression parameters, $\lambda \in \calR$ is a parameter controlling skewness, $z \sim N(0, 1)$, $\sigma^2 \sim \text{IG}(a / 2, b / 2)$ is random scale parameter, IG is the distribution function of an inverse gamma random variable, $a$ is the degrees of freedom, $b$ controls the precision of the process, and $v(\bs)$ is a spatial Gaussian process with mean zero, variance one, and a positive definite correlation function $\text{Cor} \left[Y(\bs_1), Y(\bs_2)\right] = \rho(\bs_1, \bs_2)$.
 Although any positive definite correlation function could be used, we choose to use the stationary isotropic \Matern correlation with
 \begin{align}
   \rho(h) = (1 - \gamma) I(h = 0) + \gamma \frac{ 1 }{ \Gamma(\nu) 2^{ \nu - 1}} \left( \sqrt{2\nu} \frac{ h }{ \varphi } \right)^{\nu} K_{\nu} \left( \sqrt{2\nu} \frac{ h }{ \varphi } \right) \label{steq:matern}
 \end{align}
-where $\varphi$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second kind, and $h = || \bs_1 - \bs_2 ||$ is the Euclidean distance between sites $\bs_1$ and $\bs_2$.
+where $I(\cdot)$ is an indicator function, $\varphi$ is the spatial range, $\nu$ is the smoothness, $\gamma$ is the proportion of variance accounted for by the spatial variation, $K_\nu$ is a modified Bessel function of the second kind, and $h = || \bs_1 - \bs_2 ||$ is the Euclidean distance between sites $\bs_1$ and $\bs_2$.
 
-For a finite collection of locations $\bs_1, \ldots, \bs_n$, denote the vector of observations $\bY = [Y(\bs_1), \ldots, Y(\bs_n)]^\top$.
+For a finite collection of locations $\bs_1, \ldots, \bs_n$, denote the vector of observations $\bY = [Y(\bs_1), \ldots, Y(\bs_n)]^\top$, and the covariate matrix $\bX_{n \times p} = [\bX(\bs_1), \ldots, \bX(\bs_n)]^\top$.
 After marginalizing over both $z$ and $\sigma$, using the notation from \citet[p. 176]{Azzalini2014},
 \begin{align} \label{steq:stazzalini}
   \bY \sim \text{ST}_n(\bX \bbeta, \bOmega, \balpha, a),
 \end{align}
-that is, $\bY$ follows an $n$-dimensional skew-$t$ distribution with location $\bX \bbeta \in \calR^n$, variance matrix $\bOmega_{n \times n}$, $\balpha \in \calR^n$ slant parameters, degrees of freedom $a$, where $\bX_{n \times p} = [\bX(\bs_1)^\top, \ldots, \bX(\bs_n)^\top]$,
-$\bX(\bs_i), i = 1, \ldots, n$, are observed covariates at each site,
-$\bOmega_{n \times n} = \bomega \bar{\bOmega} \bomega$,
-$\bar{\bOmega}_{n \times n} = \frac{1}{1 + \lambda^2}(\bSigma + \lambda^2 \bOne \bOne^\top)$,
-$\bomega_{n \times n} = \text{diag}\left(\sqrt{\frac{a(1 + \lambda^2)}{ b }}, \ldots, \sqrt{\frac{a(1 + \lambda^2)}{ b }} \right)$,
-$\balpha = \lambda (1 + \lambda^2)^{1 / 2} (1 + \lambda^2 \bOne^\top \bSigma^{-1} \bOne)^{-1/2} \bSigma^{-1} \bOne$, and $\bSigma_{n \times n}$ is the positive definite correlation matrix which is obtained from $\rho(h)$.
-This process is desirable because of its flexible tail that is controlled by the skewness parameter $\lambda$ and degrees of freedom $a$.
-Furthermore, the marginal distributions at each location also follow a univariate skew-$t$ distribution \citep{Azzalini2014}.
-For comparisons with other parameterizations, please see \aref{sta:otherparams}.
-
+that is, $\bY$ follows an $n$-dimensional \skewt distribution with location $\bX \bbeta \in \calR^n$; covariance matrix $\bOmega_{n \times n} = \bomega \bar{\bOmega} \bomega$ where \mbox{$\bar{\bOmega}_{n \times n} = \frac{1}{1 + \lambda^2}(\bSigma + \lambda^2 \bOne \bOne^\top)$}, $\bSigma_{n \times n}$ is the positive definite correlation matrix which is obtained from $\rho(h)$, and $\bomega_{n \times n} = \text{diag}\left(\sqrt{\frac{ b }{a(1 + \lambda^2)}}, \ldots, \sqrt{\frac{ b }{a(1 + \lambda^2)}} \right)$; slant parameters $\balpha \in \calR^n = \lambda (1 + \lambda^2)^{1 / 2} (1 + \lambda^2 \bOne^\top \bSigma^{-1} \bOne)^{-1/2} \bSigma^{-1} \bOne$, and degrees of freedom $a$.
+Furthermore, the marginal distributions at each location also follow a univariate \skewt distribution \citep{Azzalini2014}.
+This process is desirable because of its flexible tail that is controlled by the skewness parameter and degrees of freedom.
+One major difference between the parameterization given in \eref{steq:fullmodel} and other parameterizations is that we characterize the skewnewss using $\lambda$ instead of the slant parameters $\balpha$.
+For a more complete comparison with other parameterizations, see \aref{sta:otherparams}.
 
 % We use this parameterization for spatial correlation because the $\gamma$ parameter permits the inclusion of a nugget effect to account for non-spatial variability due to issues like measurement error.
 
 \subsection{Extremal dependence}\label{sts:extdep}
-Our interest lies in spatial dependence in the tail of the skew-$t$ process.
+Our interest lies in spatial dependence in the tail of the \skewt process.
 One measure of extremal dependence is the $\chi$ statistic \citep{Coles1999}.
 For a stationary and isotropic spatial process, the $\chi$ statistic for locations $\bs_1$ and $\bs_2$ separated by distance $h = || \bs_1 - \bs_2 ||$ with identical marginal distributions is
 \begin{align} \label{steq:chih}
   \chi(h) = \lim_{c \rightarrow c^*} \Pr[Y(\bs_1) > c | Y(\bs_2) > c]
 \end{align}
 where $c^*$ is the upper limit of the support of $Y$.
-For the skew-$t$ distribution, $c^* = \infty$.
+For the \skewt distribution, $c^* = \infty$.
 If $\chi(h) = 0$, then observations are asymptotically independent at distance $h$.
 For Gaussian processes, $\chi(h) = 0$ regardless of the distance $h$, so they are not suitable for modeling asymptotically dependent extremes.
-Unlike the Gaussian process, the skew-$t$ process is asymptotically dependent (the explicit expression for $\chi(h)$ is given in \aref{sta:skewt}).
-However, one problem with the spatial skew-$t$ process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$.
+Unlike the Gaussian process, the \skewt process is asymptotically dependent (the explicit expression for $\chi(h)$ is given in \aref{sta:skewt}).
+However, one problem with the spatial \skewt process is that $\lim_{h \rightarrow \infty} \chi(h) > 0$.
 This occurs because all observations, both near and far, share the same $z$ and $\sigma$ terms.
-Therefore, this long-range dependence feature of the skew-$t$ process is not ideal for spatial analysis of large geographic regions where we expect only local spatial dependence.
+Therefore, this long-range dependence feature of the \skewt process is not desirable for spatial analysis of large geographic regions where we expect only local spatial dependence.
 We propose a solution to this in \sref{sts:part}.
 
-\section{Spatiotemporal skew-$t$ model for threshold exceedances}\label{sts:spatial}
-In this section, we propose extensions to the skew-$t$ process to model spatial extremes over a large geographic region by introducing censoring to focus on tail behavior and a random partition to remove long-range asymptotic dependence.
+\section{Spatiotemporal \skewt model for threshold exceedances}\label{sts:spatial}
+In this section, we propose extensions to the \skewt process to model spatial extremes over a large geographic region by introducing censoring to focus on tail behavior and a random partition to remove long-range asymptotic dependence.
 For notational convenience, we introduce the model for a single replication, and then extend this model to the spatiotemporal setting in \sref{sts:temporal}.
 
-\subsection{Censoring to focus on the tails} \label{sts:censoring}
-As mentioned previously, we propose to use a censored approach because we are interested in high values and do not want the low-to-moderate values to influence the fit of the overall model.
+\subsection{Censoring to focus on the tail} \label{sts:censoring}
+As mentioned previously, we propose to use a censored approach because we do not want the low-to-moderate values to influence the fit of the overall model.
 % The censored observations below the threshold give information on the marginal probabilities to exceed the threshold and on the dependence, but their values are not used to fit the model.
 Let
 \beq \label{steq:Yt}
@@ -233,15 +223,15 @@ Let
       T & \delta(\bs) = 0
   \end{array} \right.
 \eeq
-be the censored observation at site $\bs$ where $Y(\bs)$ is the uncensored observation, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
-As our goal is to predict exceedances above a high level $L$, we should select a value for $T \le L$.
-For example, in predicting ozone exceedances, we might set $T = 50$ppb in order to predict exceedances of $L = 75$ppb.
-Selecting $T$ too small may lead to bias in estimating the tail parameters; selecting $T$ to large increases variance.
-We impute the censored values as a step in the MCMC algorithm used to fit the model described in \sref{sts:comp}, and use cross-validation to select $T$.
+be the censored process at site $\bs$ where $Y(\bs)$ is the uncensored process, $\delta(\bs) = I[Y(\bs) > T]$, and $T$ is a pre-specified threshold value.
+As our goal is to model exceedances above a high level $L$, we should select a value for $T \le L$.
+For example, in predicting ozone exceedances, we might set $T = 50$ ppb in order to predict exceedances of $L = 75$ ppb.
+Selecting $T$ too small may lead to bias in estimating the tail parameters; selecting $T$ too large increases variance.
+We impute the censored values as a step in the algorithm used to fit the model described in \sref{sts:comp}, and use cross-validation to select $T$.
 
 \subsection{Partitioning to remove long-range asymptotic dependence}\label{sts:part}
 The motivation for the partition is that for a large spatial domain, it may not be reasonable to assume sites that are far apart demonstrate asymptotic dependence.
-Modeling different levels of asymptotic dependence was discussed by \citet{Wadsworth2012} with a hybrid spatial dependence model.
+Modeling different levels of asymptotic dependence was discussed by \citet{Wadsworth2012}.
 \citet{Huser2014} also allow for varying asymptotic dependence across both space and time with a partition structure represented by random discs moving across the space for a random duration with a random velocity and random radius.
 We handle the problem of long-range asymptotic dependence with a random partition.
 As discussed in \sref{sts:spatialskew}, the source of long-range dependence is the shared $z$ and $\sigma$.
@@ -250,27 +240,27 @@ The model becomes
 \begin{align} \label{steq:partition}
   Y(\bs) &= \bX(\bs)^\top \bbeta + \lambda \sigma(\bs) |z(\bs)| + \sigma(\bs) v(\bs).
 \end{align}
-To model spatial variation, consider a set of spatial knots $\bw_1, \ldots, \bw_K$ from a homogeneous Poisson process with intensity $\mu_{PP}$ over spatial domain $\calD \in \calR^2$.
+To model spatial variation, consider a set of spatial knots $\bw_1, \ldots, \bw_K$ from a homogeneous Poisson process over spatial domain $\calD \in \calR^2$.
 The knots define a random partition of $\calD$ by subregions $P_{1}, \ldots, P_{K}$ defined as
 \begin{align} \label{steq:subregions}
   P_{k} = \{ \bs : k = \argmin_\ell || \bs - \bw_{\ell} || \}.
 \end{align}
 In other words, $P_k$ is composed of all sites for which the closest knot is $\bw_k$.
 For all $\bs \in P_k$, with $k = 1, 2, \ldots, K$, the functions $z(\bs)$ and $\sigma(\bs)$ are equal to the constants $z_k$ and $\sigma_k$ respectively, and the $z_k$ and $\sigma^2_k$ are distributed as $z_k \iid N(0, 1)$ and $\sigma^2_k \iid$ IG$(a / 2, b / 2)$.
-So, within each partition, $Y(\bs)$ follows the spatial skew-$t$ process defined in \sref{sts:spatialskew}.
-Across partitions, the $Y(\bs)$ remain correlated via the correlation function for $v(\bs)$ because $v(\bs)$ spans all partitions.
-However, the bivariate distribution for sites in different partitions is neither Gaussian nor skew-$t$ and does not have asymptotic dependence.
+So, within each partition, $Y(\bs)$ follows the spatial \skewt process defined in \sref{sts:spatialskew}.
+Across partitions, the $Y(\bs)$ remain dependence via the correlation function for $v(\bs)$ because $v(\bs)$ spans all partitions.
+However, the bivariate distribution for sites in different partitions is neither Gaussian nor \skewt and does not have asymptotic dependence.
 
 The partitioning model removes long-range dependence. Conditional on knots $\bw_1, \ldots, \bw_K$, the $\chi$ statistic for two sites $\bs_1$ and $\bs_2$ in partitions $k_1$ and $k_2$ respectively is
 \begin{align}
   \chi(h) &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) \label{steq:chiskewt}
 \end{align}
-where $I(\cdot)$ is an indicator function, $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a skew-$t$ process given in equation \eref{steq:chiskew-t} of \aref{sta:skewt}, and $h = ||\bs_1 - \bs_2||$.
+where $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a \skewt process given in equation \eref{steq:chiskew-t} of \aref{sta:skewt}, and $h = ||\bs_1 - \bs_2||$.
 Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_1 = k_2)$ is the probability that two sites separated by distance $h$ are in the same partition.
 In \aref{sta:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, assuming that the knots follow a homogeneous Poisson process.
 This implies that $\lim_{h \rightarrow \infty} \chi(h) = 0$.
 In practice we fix $K$ at a finite value and use a uniform distribution for the knots $\bw_1, \ldots, \bw_K$.
-In \fref{stfig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a skew-$t$ distribution with $\alpha = 10$, and 3 degrees of freedom.
+In \fref{stfig:chi}, we give $\chi(h)$ for $K = 1, 3, 5, 10$ partitions for a \skewt distribution with $\alpha = 10$, and 3 degrees of freedom.
 In \fref{stfig:chi} we estimate $\pi(h)$ through simulation.
 % To estimate $\pi(h)$, we generate 500 sites uniformly over the unit-square.
 % We then randomly generate 400 different sets of partitions using $K = 3$, $5$, and $10$.
@@ -287,8 +277,8 @@ In \fref{stfig:chi} we estimate $\pi(h)$ through simulation.
 \subsection{Extension to space-time data} \label{sts:temporal}
 When using daily measurements, the assumption of temporal independence is often inappropriate.
 In this section, we extend \eref{steq:partition} to the spatiotemporal setting.
-There are several places where temporal dependence could be incorporated in the model, including the residuals $v_t(\bs)$.
-However, we choose to allow for temporal dependence in the $\bw$, $z$, and $\sigma$ terms because these terms dictate the tail behavior which is our primary focus.
+There are several places where temporal dependence could be incorporated in the model, including the Gaussian process $v_t(\bs)$.
+However, we choose to allow for temporal dependence in the $\bw$, $z$, and $\sigma$ terms because these terms dictate the tail behavior which is our primary focus (see \aref{sta:temporal}).
 Let
 \begin{align} \label{steq:spatiotemp}
   Y_t(\bs) = \bX_t(\bs)^\top \bbeta + \lambda \sigma_t(\bs) |z_t(\bs)| + \sigma_t(\bs) v_t(\bs),
@@ -302,8 +292,8 @@ As in \sref{sts:part}, these knots define a daily partition $P_{t1}, \ldots, P_{
 We allow the partition structure to vary from day to day in order to account for sharp spikes in a response that may not be present every day (e.g. the impact of a forest fire on ozone levels).
 
 We use an AR(1) time series model for $\bw_{tk}$, $z_{tk}$, and $\sigma_{tk}$.
-The time series model must be specified after a transformation to preserve the skew-$t$ process at each time point.
-For each time-varying parameter, we transform to obtain a standard normal marginal distribution, place a Gaussian prior with autocorrelation on the transformed parameter, and then transform back to the appropriate marginal distribution for the skew-$t$ process.
+The time series model must be specified after a transformation to preserve the \skewt process at each time point.
+For each time-varying parameter, we transform the parameter to obtain a standard normal marginal distribution, place a Gaussian prior with autocorrelation on the transformed parameter, and then transform back to the appropriate marginal distribution for the \skewt process.
 We first transform the spatial knots from $\calD$ to $\calR^2$ as follows.
 Let
 \begin{align} \label{steq:wstar}
@@ -330,10 +320,10 @@ The AR(1) process for each tail parameter is $\bw^*_{1k} \sim N_w(0, 1)$, $z^*_{
   \sigma^{2*}_{tk} | \sigma^{2*}_{t-1, k} &\sim N \left[\phi_\sigma \sigma^{2*}_{t-1, k}, (1 - \phi_\sigma^2) \right] \label{steq:ts-sigmastar}
 \end{align}
 where $|\phi_w|$, $|\phi_z|$, $|\phi_\sigma| < 1$.
-These are stationary time series models with marginal distributions \hbox{$\bw^*_{k} \sim N_2(0, 1)$}, \hbox{$z^*_{k} \sim N(0, 1)$}, and \hbox{$\sigma^{2*}_{k} \sim N(0, 1)$}.
+These are stationary time series models with marginal distributions \hbox{$\bw^*_{k} \sim N_2(\bZero, \bI_2)$}, where $\bI_2 = \text{diag}(1, 1)$, \hbox{$z^*_{k} \sim N(0, 1)$}, and \hbox{$\sigma^{2*}_{k} \sim N(0, 1)$}.
 After transformation back to the original space, $\bw_{tk} \sim \text{Unif}(\calD)$, $z_{tk} \sim HN(0, 1)$, and $\sigma^2_{tk} \sim \text{IG}(a / 2, b / 2)$.
 We then create the partition for day $t$ using $\bw_{t1}, \ldots, \bw_{tk}$.
-For each day, the model is identical to the spatial-only model in \eref{steq:partition} by construction.
+For each day, the model is identical to the spatial-only model in \eref{steq:partition} by construction.\citep{
 
 \section{Hierarchical model}\label{sts:hier}
 Conditioned on $z_{tk}(\bs)$, $\sigma^2_{tk}(\bs)$, and $P_{tk}$, the marginal distributions of $Y(\bs)$ are Gaussian and the joint distribution of $Y(\bs)$ is multivariate Gaussian.
@@ -384,8 +374,8 @@ We generated data from 5 different simulation designs:
   \item Gaussian marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=5$ knots
-  \item Skew-$t$ marginal, $K=1$ knots
-  \item Skew-$t$ marginal, $K=5$ knots
+  \item \Skewt marginal, $K=1$ knots
+  \item \Skewt marginal, $K=5$ knots
   \item Max-stable with GEV(1, 1, 0.2) marginals \citep{Reich2012}
   % \item Transformation below $T = q(0.80)$
   \item A Brown-Resnick process with range 1 and smoothness 0.5
@@ -416,9 +406,9 @@ $M = 50$ data sets are generated for each design.
 For each data set we fit the data using six models
 \begin{enumerate}[leftmargin=3em]
   \item Gaussian marginal, $K=1$ knots
-  \item Skew-$t$ marginal, $K=1$ knots, $T=-\infty$
+  \item \Skewt marginal, $K=1$ knots, $T=-\infty$
   \item Symmetric-$t$ marginal, $K=1$ knots, $T=q(0.80)$
-  \item Skew-$t$ marginal, $K=5$ knots, $T=-\infty$
+  \item \Skewt marginal, $K=5$ knots, $T=-\infty$
   \item Symmetric-$t$ marginal, $K=5$ knots, $T=q(0.80)$
   \item A max-stable model based on \citet{Reich2012} thresholded at $T = q(0.80)$
 \end{enumerate}
@@ -429,9 +419,9 @@ The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$
 The skewness parameter has prior $\lambda \sim N(0, 20)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(a / 2, b / 2)$, where $a$ has a discrete uniform prior on a mesh from $0.2$ to $20$ with spacing of $0.1$ and $b$ has a Gamma$(0.1, 0.1)$ prior.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
-We tried also fitting the skew-$t$ marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
+We tried also fitting the \skewt marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
 Each chain of the MCMC ran for 20,000 iterations with a burn-in period of 10,000 iterations.
-Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2) where data are generated and fit with a skew-$t$ distribution, the sample converges for $\lambda$ and $a$, and the empirical coverage of posterior 95\% intervals is near the nominal level (96\% coverage for $\lambda$ and 90\% for $a$).
+Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2) where data are generated and fit with a \skewt distribution, the sample converges for $\lambda$ and $a$, and the empirical coverage of posterior 95\% intervals is near the nominal level (96\% coverage for $\lambda$ and 90\% for $a$).
 It should be noted that in the models with multiple partitions (i.e. models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC; however, we are not interested in these parameters but rather spatial predictions and tail probabilities which converge well.
 
 \subsection{Cross validation}\label{sts:modelselect}
@@ -473,11 +463,11 @@ Initially, we fit a linear regression with $\bX_t(\bs) = [1, \text{CMAQ}_t(\bs)]
 % \begin{align}
 %   \text{E}[Y_i(\bs)] = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{steq:datamean}
 % \end{align}
-\fref{stfig:ozone-qq} shows a Q-Q plot of the residuals compared to a skew-$t$ distribution with 10 d.f. and $\alpha = 1$.
+\fref{stfig:ozone-qq} shows a Q-Q plot of the residuals compared to a \skewt distribution with 10 d.f. and $\alpha = 1$.
 \begin{figure}
   \centering
   \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
-  \caption{Q-Q plot of the residuals for a skew-$t$ distribution with 10 d.f. and $\alpha = 1$ (right)}
+  \caption{Q-Q plot of the residuals for a \skewt distribution with 10 d.f. and $\alpha = 1$ (right)}
   \label{stfig:ozone-qq}
 \end{figure}
 
@@ -511,7 +501,7 @@ In our example, a threshold of 75 ppb which corresponds to $q(92)$ for all obser
 % \end{figure}
 
 \subsection{Model comparisons}
-We fit the model using Gaussian and skew-$t$ marginal distributions with $K=1, 5, 6, 7, 8, 9, 10, 15$ partitions.
+We fit the model using Gaussian and \skewt marginal distributions with $K=1, 5, 6, 7, 8, 9, 10, 15$ partitions.
 We choose to censor $Y(\bs)$ at $T = 0$, $T = 50$ (0.42 sample quantile), and $T = 75$ (0.92 sample quantile) ppb in order to compare results from no, moderate, and high censoring.
 The upper threshold of 75 ppb was used because the current air quality standard is based on exceedance of 75 ppb.
 As with the simulation study, for models with a threshold of $T = 75$, we use a symmetric-$t$ marginal distribution.
@@ -530,7 +520,7 @@ At a particular level, the model that fits the best is the one with the lowest s
 We then compute the relative (to Gaussian) Brier scores (see \sref{sts:simresults}) to compare each model.
 
 \subsection{Results}\label{sts:results}
-The results suggest that the skew-$t$, thresholded, partitioned, and time series models all give an improvement in predictions over the Gaussian model, whereas the max-stable method results in relative Brier scores between 1.13 and 1.18 indicating poorer performance than the Gaussian model.
+The results suggest that the \skewt, thresholded, partitioned, and time series models all give an improvement in predictions over the Gaussian model, whereas the max-stable method results in relative Brier scores between 1.13 and 1.18 indicating poorer performance than the Gaussian model.
 The plots in \fref{stfig:bs-ozone} show the relative Brier scores for time-series and non-time-series models, using $K = $ 1, 7, and 15 knots at thresholds $T = $ 0, 50, and 75 ppb.
 Most of the models perform similarly across all the Brier scores; however, for single-partition models without thresholding, performance tends to diminish in the extreme quantiles.
 The results also suggest that thresholding improves performance for estimates in the extreme quantiles.
@@ -542,8 +532,8 @@ We illustrate the predictive capability of our model in \fref{stfig:ozoneq99} by
 The four methods used are
 \begin{enumerate}[leftmargin=3em]
   \item Gaussian
-  \item Skew-$t$, $K =$ 1 knot, $T = $ 0, no time series
-  \item Skew-$t$, $K =$ 5 knots, $T = $ 50, no time series
+  \item \Skewt, $K =$ 1 knot, $T = $ 0, no time series
+  \item \Skewt, $K =$ 5 knots, $T = $ 50, no time series
   \item Symmetric-$t$, $K =$ 10 knots, $T = $ 75, time series.
 \end{enumerate}
 In the bottom two plots, we plot the differences between method 4 and methods 1 and 2.
@@ -585,7 +575,7 @@ The most noticeable differences between the reference methods and the comparison
 \end{figure}
 
 \section{Discussion}\label{sts:con}
-In this paper we propose a new threshold exceedance approach for spatiotemporal modeling based on the skew-$t$ process.
+In this paper we propose a new threshold exceedance approach for spatiotemporal modeling based on the \skewt process.
 The proposed model gives flexible tail behavior, demonstrates asymptotic dependence for observations at sites that are near to one another, and has computation on the order of Gaussian models for large space-time datasets.
 In the simulation study, we demonstrate that this model shows statistically significant improvements over a na\"{i}ve Gaussian approach and in most cases, a max-stable approach.
 In both the simulation study, and the application to ozone data, we find that incorporating a partition in the model can improve extreme predictions.

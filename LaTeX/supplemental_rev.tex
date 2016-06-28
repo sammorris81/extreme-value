@@ -29,7 +29,7 @@
 \input{mycommands.sty}
 \renewcommand{\fref}[1]{Web Figure~\ref{#1}}
 
-\title[Web-based Supplementary Materials for A Space-time Skew-$t$ Model for Threshold Exceedances]{Web-based Supplementary Materials for A Space-time Skew-$t$ Model for Threshold Exceedances by Morris, Reich, Thibaud, and Cooley}
+\title[Web-based Supplementary Materials for A Space-time \Skewt Model for Threshold Exceedances]{Web-based Supplementary Materials for A Space-time \Skewt Model for Threshold Exceedances by Morris, Reich, Thibaud, and Cooley}
 \author
 {Samuel A Morris$^{1,*}$\email{samorris@ncsu.edu},
 Brian J Reich$^{1}$,
@@ -41,7 +41,7 @@ $^{2}$Department of Statistics, Colorado State University, Fort Collins, Colorad
 \begin{document} %\linenumbers
 \maketitle
 % \begin{center}
-% {\Large {\bf Supplemental material for A space-time skew-$t$ model for threshold exceedances}}\\
+% {\Large {\bf Supplemental material for A space-time \skewt model for threshold exceedances}}\\
 
 % {\large Samuel A Morris\footnote[1]{North Carolina State University}, Brian J Reich\footnotemark[1]{}, Emeric Thibaud\footnote[2]{Colorado State University}, and Daniel Cooley\footnotemark[2]{}}
 
@@ -274,16 +274,16 @@ which goes to 1 as $h$ goes to infinity.
 % \end{align}
 % When $\mu = 0$, the half-normal distribution is also equivalent to a $N_{(0, \infty)}(0, \sigma^2)$ where $N_{(a, b)}(\mu, \sigma^2)$ represents a normal distribution with mean $\mu$ and standard deviation $\sigma$ that has been truncated below at $a$ and above at $b$.
 
-\section{Skew-$t$ distribution} \label{sta:skewt}
-\subsection*{Univariate skew-$t$ distribution}
-We say that $Y$ follows a univariate extended skew-$t$ distribution with location $\xi \in \calR$, scale $\omega > 0$, skew parameter $\alpha \in \calR$, and degrees of freedom $\nu$ if has distribution function
+\section{\Skewt distribution} \label{sta:skewt}
+\subsection*{Univariate \skewt distribution}
+We say that $Y$ follows a univariate extended \skewt distribution with location $\xi \in \calR$, scale $\omega > 0$, skew parameter $\alpha \in \calR$, and degrees of freedom $\nu$ if has distribution function
 \begin{align}
   f_{\text{EST}}(y) = 2 f_T (z; \nu) F_T\left[ \alpha z \sqrt{ \frac{ \nu + 1 }{ \nu + z^2}}; \nu + 1 \right]
 \end{align}
 where $f_T(t; \nu)$ is a univariate Student's $t$ with $\nu$ degrees of freedom, $F_T(t; \nu) = P(T < t)$, and \hbox{$z = (y - \xi) / \omega$}.
 
-\subsection*{Multivariate skew-$t$ distribution}
-If $\bZ \sim \text{ST}_d(0, \bar{\bOmega}, \balpha, \eta)$ is a $d$-dimensional skew-$t$ distribution, and $\bY = \xi + \bomega \bZ$, where $\bomega = \text{diag}(\omega_1, \ldots, \omega_d)$, then the density of $Y$ at $y$ is
+\subsection*{Multivariate \skewt distribution}
+If $\bZ \sim \text{ST}_d(0, \bar{\bOmega}, \balpha, \eta)$ is a $d$-dimensional \skewt distribution, and $\bY = \xi + \bomega \bZ$, where $\bomega = \text{diag}(\omega_1, \ldots, \omega_d)$, then the density of $Y$ at $y$ is
 \begin{align}
   f_y(\by) = det(\bomega)^{-1} f_z(\bz)
 \end{align}
@@ -295,11 +295,11 @@ where
 where $t_d(\bz; \bar{\bOmega}, \eta)$ is a $d$-dimensional Student's $t$-distribution with scale matrix $\bar{\bOmega}$ and degrees of freedom $\eta$, $Q(z) = \bz^\top \bar{\Omega}^{-1}\bz$ and $T(\cdot; \eta)$ denotes the univariate Student's $t$ distribution function with $\eta$ degrees of freedom \citep{Azzalini2014}.
 
 \subsection*{Extremal dependence}
-For a bivariate skew-$t$ random variable $\bY = [Y(\bs), Y(\bt)]^\top$, the $\chi(h)$ statistic \citep{Padoan2011} is given by
+For a bivariate \skewt random variable $\bY = [Y(\bs), Y(\bt)]^\top$, the $\chi(h)$ statistic \citep{Padoan2011} is given by
 \begin{align} \label{steq:chiskew-t}
   \chi(h) = \bar{F}_{\text{EST}}\left\{ \frac{[x_1^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{\sqrt{1 - \varrho(h)^2}}; 0, 1, \alpha_1, \tau_1, \eta + 1 \right\} + \bar{F}_{\text{EST}}\left\{ \frac{ [x_2^{1 / \eta} - \varrho(h)] \sqrt{\eta + 1} }{ \sqrt{1 - \varrho(h)^2} }; 0, 1, \alpha_2, \tau_2, \eta + 1 \right\},
 \end{align}
-where $\bar{F}_{\text{EST}}$ is the univariate survival extended skew-$t$ function with zero location and unit scale, \hbox{$\varrho(h) = \text{cor}[y(\bs), y(\bt)]$}, $\alpha_j = \alpha_i \sqrt{1 - \varrho^2}$, $\tau_j = \sqrt{\eta + 1}(\alpha_j + \alpha_i \varrho)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\eta + 1}; 0, 1, \eta) / F_T(\bar{\alpha}_j \sqrt{\eta + 1}; 0, 1, \eta)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \varrho) / \sqrt{ 1 + \alpha_i^2 [1 - \varrho(h)^2]}$.
+where $\bar{F}_{\text{EST}}$ is the univariate survival extended \skewt function with zero location and unit scale, \hbox{$\varrho(h) = \text{cor}[y(\bs), y(\bt)]$}, $\alpha_j = \alpha_i \sqrt{1 - \varrho^2}$, $\tau_j = \sqrt{\eta + 1}(\alpha_j + \alpha_i \varrho)$, and $x_j = F_T(\bar{\alpha}_i \sqrt{\eta + 1}; 0, 1, \eta) / F_T(\bar{\alpha}_j \sqrt{\eta + 1}; 0, 1, \eta)$ with $j = 1, 2$ and $i = 2, 1$ and where $\bar{\alpha}_j = (\alpha_j + \alpha_i \varrho) / \sqrt{ 1 + \alpha_i^2 [1 - \varrho(h)^2]}$.
 
 \subsection*{Proof that $\lim_{h \rightarrow \infty} \chi(h) > 0$}
 Consider the bivariate distribution of $\bY = [Y(\bs), Y(\bt)]^\top$, with $\varrho(h)$ given by \eref{steq:matern}.
@@ -308,18 +308,18 @@ Then
 \begin{align}
   \lim_{h \rightarrow \infty} \chi(h) = \bar{F}_{\text{EST}}\left\{ \sqrt{\eta + 1}; 0, 1, \alpha_1, \tau_1, \eta + 1 \right\} + \bar{F}_{\text{EST}}\left\{ \sqrt{\eta + 1}; 0, 1, \alpha_2, \tau_2, \eta + 1 \right\}.
 \end{align}
-Because the extended skew-$t$ distribution is not bounded above, for all $\bar{F}_{\text{EST}}(x) = 1 - F_{\text{EST} (x)} > 0$ for all $x < \infty$.
-Therefore, for a skew-$t$ distribution, $\lim_{h \rightarrow \infty} \chi(h) > 0$.
+Because the extended \skewt distribution is not bounded above, for all $\bar{F}_{\text{EST}}(x) = 1 - F_{\text{EST} (x)} > 0$ for all $x < \infty$.
+Therefore, for a \skewt distribution, $\lim_{h \rightarrow \infty} \chi(h) > 0$.
 
 \section{Comparisons with other parameterizations} \label{sta:otherparams}
-Various forms of multivariate skew-normal and skew-$t$ distributions have been proposed in the literature.
+Various forms of multivariate skew-normal and \skewt distributions have been proposed in the literature.
 In this section, we make a connection between our parameterization in \eref{steq:fullmodel} of the main text and another popular version.
 \citet{Azzalini2014} and \citet{Beranger2016} define a skew-normal process as
 \begin{align}
   \tilde{X}(\bs) = \tilde{\lambda}|z| + (1 - \tilde{\lambda}^2)^{1 / 2} v(\bs)
 \end{align}
 where $\tilde{\lambda} \in (-1, 1)$, $z \sim N(0, 1)$, and $v(\bs)$ is a Gaussian process with mean zero, variance one, and spatial correlation function $\rho$.
-To extend this to the skew-$t$ distribution, \citet{Azzalini2003} take $\tilde{Y}(\bs) = W\tilde{X}(\bs)$ where $W^{-2} \sim $ Gamma$(a / 2, a / 2)$.
+To extend this to the \skewt distribution, \citet{Azzalini2003} take $\tilde{Y}(\bs) = W\tilde{X}(\bs)$ where $W^{-2} \sim $ Gamma$(a / 2, a / 2)$.
 Returning to the proposed parameterization (with $\bbeta = 0$), let $W^{-2} = \frac{b}{a}\sigma^{-2} \sim$ Gamma$(a / 2, a / 2)$ so that \eref{steq:fullmodel} in the manuscript becomes
 \begin{align}
   Y(\bs) = W \left[ \lambda \left(\frac{b}{a}\right)^{1 / 2} |z| + \left(\frac{b}{a}\right)^{1 / 2} v(\bs) \right].
@@ -347,13 +347,13 @@ The $F$-madogram is related to the $\chi$ statistic as follows
 \end{figure}
 
 \section{Brier scores for ozone prediction} \label{sta:ozonesite}
-Because typical ozone concentration varies throughout the US, we have included Brier scores by site for two model fits (Gaussian and Skew-$t$, $K = 5$, $T = 50$) in \fref{stfig:bssite}.
+Because typical ozone concentration varies throughout the US, we have included Brier scores by site for two model fits (Gaussian and \Skewt, $K = 5$, $T = 50$) in \fref{stfig:bssite}.
 As we can see in these plots, both models seem to perform similarly across the US with the poorest performance in California.
 Other methods have similar Brier score maps to these.
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{plots/bs-site}
-  \caption{Map of Brier scores for Gaussian (top) vs Skew-$t$, $K = 5$, $T = 50$ (bottom).}
+  \caption{Map of Brier scores for Gaussian (top) vs \Skewt, $K = 5$, $T = 50$ (bottom).}
   \label{stfig:bssite}
 \end{figure}
 
@@ -431,7 +431,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 
 \begin{table}[htbp]
   \centering
-  \caption{Setting 2 -- Skew-$t$ marginal, $K = 1$ knot}
+  \caption{Setting 2 -- \Skewt marginal, $K = 1$ knot}
   \label{sttbl:st1sim}
   \begin{tabular}{|l|cccc|cccc|cccc|ccc|}
     \cline{2-16}
@@ -454,7 +454,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 
 \begin{table}[htbp]
   \centering
-  \caption{Setting 3 -- Skew-$t$ marginal, $K = 5$ knots}
+  \caption{Setting 3 -- \Skewt marginal, $K = 5$ knots}
   \label{sttbl:st5sim}
   \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
     \cline{2-15}
