@@ -107,10 +107,13 @@ For example, \citet{Wadsworth2014} present a simulation study with observations 
 Our application with ozone data does not fit into this framework because we do not focus on exceedances of a very high level, and we have observations at over 1,000 ozone monitoring locations.
 
 We propose a new spatiotemporal threshold exceedance model based on the \skewt process \citep{Padoan2011}.
-\hl{Need to add in more references here to skew-$t$ used in a spatial setting.}
 We use a \skewt distribution because of its flexibility to model asymmetry and heavy-tailed data with the aim of predicting the probability of exceeding a high fixed level at an unobserved location.
 Our model allows for inference and predictions using the full likelihood with computing on the order of Gaussian models.
 This allows us to use Bayesian methods, which we use to fit the model, handle censored data below the threshold, and make predictions at unobserved locations.
+The multivariate skew normal distribution was introduced by \citet{Azzalini1996}, and this was extended to the multivariate \skewt by \citet{Branco2001}.
+These skew-elliptical distributions have been used in the spatial setting \citep{Genton2004,Kim2004}.
+\citet{Zhang2010} propose the skew-Gaussian process as a class of stationary processes that have skewed marginal distributions.
+\citet{Padoan2011} examined the usage of skew-Gaussian and \skewt distributions for multivariate extremes.
 In a spatial setting, the multivariate \skewt distribution demonstrates asymptotic dependence between observations at all sites regardless of the distance between the sites.
 In order to address this concern, we introduce a random spatial partition similar to the method used by \citet{Kim2005} for non-stationary Gaussian data.
 This partitioning alleviates the asymptotic spatial dependence present in the \skewt distribution for sites that are far apart.
@@ -187,8 +190,8 @@ After marginalizing over both $z$ and $\sigma$, using the notation from \citet[p
 that is, $\bY$ follows an $n$-dimensional \skewt distribution with location $\bX \bbeta \in \calR^n$; covariance matrix $\bOmega_{n \times n} = \bomega \bar{\bOmega} \bomega$ where \mbox{$\bar{\bOmega}_{n \times n} = \frac{1}{1 + \lambda^2}(\bSigma + \lambda^2 \bOne \bOne^\top)$}, $\bSigma_{n \times n}$ is the positive definite correlation matrix which is obtained from $\rho(h)$, and $\bomega_{n \times n} = \text{diag}\left(\sqrt{\frac{ b }{a(1 + \lambda^2)}}, \ldots, \sqrt{\frac{ b }{a(1 + \lambda^2)}} \right)$; slant parameters $\balpha \in \calR^n = \lambda (1 + \lambda^2)^{1 / 2} (1 + \lambda^2 \bOne^\top \bSigma^{-1} \bOne)^{-1/2} \bSigma^{-1} \bOne$, and degrees of freedom $a$.
 Furthermore, the marginal distributions at each location also follow a univariate \skewt distribution \citep{Azzalini2014}.
 This process is desirable because of its flexible tail that is controlled by the skewness parameter and degrees of freedom.
-One major difference between the parameterization given in \eref{steq:fullmodel} and other parameterizations is that we characterize the skewnewss using $\lambda$ instead of the slant parameters $\balpha$.
-For a more complete comparison with other parameterizations, see \aref{sta:otherparams}.
+% One major difference between the parameterization given in \eref{steq:fullmodel} and other parameterizations is that we characterize the skewnewss using $\lambda$ instead of the slant parameters $\balpha$.
+For a comparison with other parameterizations, see \aref{sta:otherparams}.
 
 % We use this parameterization for spatial correlation because the $\gamma$ parameter permits the inclusion of a nugget effect to account for non-spatial variability due to issues like measurement error.
 
@@ -256,7 +259,7 @@ The partitioning model removes long-range dependence. Conditional on knots $\bw_
   \chi(h) &= I(k_1 = k_2) \chi_{\text{skew-}t}(h) \label{steq:chiskewt}
 \end{align}
 where $\chi_{\text{skew-}t}(h)$ is the $\chi$ statistic for a \skewt process given in equation \eref{steq:chiskew-t} of \aref{sta:skewt}, and $h = ||\bs_1 - \bs_2||$.
-Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where $\pi(h) = \Pr(k_1 = k_2)$ is the probability that two sites separated by distance $h$ are in the same partition.
+Marginally, over the knots, $\chi(h) = \pi(h) \chi_{\text{skew}-t}(h)$, where \mbox{$\pi(h) = \Pr(k_1 = k_2)$} is the probability that two sites separated by distance $h$ are in the same partition.
 In \aref{sta:proofsamepartition}, we show that $\lim_{h \rightarrow \infty} \pi(h) = 0$, assuming that the knots follow a homogeneous Poisson process.
 This implies that $\lim_{h \rightarrow \infty} \chi(h) = 0$.
 In practice we fix $K$ at a finite value and use a uniform distribution for the knots $\bw_1, \ldots, \bw_K$.
@@ -351,15 +354,16 @@ Then
 where $\Theta = \{\varphi, \nu, \gamma\, \lambda, \beta\}$, and $\Sigma$ is a \Matern covariance matrix as described in \sref{sts:skewt}.
 
 \subsection{Computation}\label{sts:comp}
-We use MCMC methods to explore the posterior.
+We use MCMC methods to explore the posterior distribution of the model parameters.
 At each MCMC iteration, we first impute values below the threshold conditional on observations above the threshold.
 This is feasible for large datasets with our model because for a single day, conditional on the model parameters, we only need to draw from a truncated multivariate normal distribution.
 We can use Gibbs sampling to update $Y_t(\bs)$ for censored observations that are below the threshold $T$.
 After conditioning on $\lambda$, $z_t(\bs)$ and non-censored observations, $Y_t(\bs)$ has truncated normal full conditionals.
 So we sample $Y_t(\bs) \sim N_{(-\infty, T)}(\bX_t^\top(\bs) \beta + \lambda | z_t(\bs)|, \bSigma)$.
 
-Then, we update model parameters, $\Theta$, using a Metropolis-Hastings algorithm with Gibbs sampling when needed.
-The final step of the computation is to use Bayesian Kriging to generate a predictive distribution for $Y_t(\bs^*)$ at prediction location $\bs^*$.
+We update model parameters $\Theta$ using Gibbs sampling with Metropolis-Hastings steps when needed.
+In our case, we also wish to be able to make predictions at sites where we do not have data.
+We can easily implement Bayesian Kriging as a part of the algorithm to generate a predictive distribution for $Y_t(\bs^*)$ at prediction location $\bs^*$.
 This step is similar to the imputation for censored observations except that the full conditionals are no longer truncated at $T$.
 See Appendices A.1 and A.2 for details regarding the MCMC algorithm.
 
@@ -368,17 +372,17 @@ In this section, we present the results from a simulation study to investigate h
 
 \subsection{Design}\label{sts:simdesign}
 For all simulation designs, we generated data from model \eref{steq:partition} in \sref{sts:part} using $n_s=144$ sites and $n_t=50$ independent days.
-The sites were generated Uniform$([0, 10] \times [0, 10])$.
-We generated data from 5 different simulation designs:
+The sites were generated uniformly on the square $[0, 10] \times [0, 10]$.
+We generated data from five different simulation designs:
 \begin{enumerate}[leftmargin=3em]
-  \item Gaussian marginal, $K=1$ knot
+  \item Gaussian, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=1$ knot
   % \item Symmetric-$t$ marginal, $K=5$ knots
-  \item \Skewt marginal, $K=1$ knots
-  \item \Skewt marginal, $K=5$ knots
-  \item Max-stable with GEV(1, 1, 0.2) marginals \citep{Reich2012}
+  \item \Skewt, $K=1$ knots
+  \item \Skewt, $K=5$ knots
+  \item Multivariate asymmetric logistic distribution \citep{Stephenson2003} %with GEV(1, 1, 0.2) marginals with dependence parameteter $\gamma_{\text{AL}} = 0.5$
   % \item Transformation below $T = q(0.80)$
-  \item A Brown-Resnick process with range 1 and smoothness 0.5
+  \item Brown-Resnick max-stable process \citep{Kabluchko2009} %with unit Fréchet marginals and stable semivariogram with range 1 and smoothness 0.5
 \end{enumerate}
 In the first three designs, the $v_t(\bs)$ terms were generated using a \Matern covariance with smoothness parameter $\nu = 0.5$ and spatial range $\varphi = 1$.
 For the covariance matrices in designs 1 -- 3, the proportion of the variance accounted for by the spatial variation was $\gamma = 0.9$ while the proportion of the variance accounted for by the nugget effect was $0.1$.
@@ -387,11 +391,14 @@ For designs 2 and 3, $\sigma^2_{tk} \iid \text{IG}(3, 8)$ to give a $t$ distribu
 For design 1, we set $\lambda = 0$.
 For designs 2 and 3, $\lambda = 3$ was used as to simulate moderate skewness, and the $z_t$ were generated as described in Section \sref{sts:part}.
 In designs 1 -- 3, the mean $\bX^\top \bbeta = 10$ was assumed to be constant across space.
-In the fourth design, we generated from a spatial max-stable distribution \citep{Reich2012}.
+In the fourth design, we generated from a multivariate asymmetric logistic distribution \citep{Stephenson2003}.
 In this design, data have marginal distributions that follow a generalized extreme value distribution with location parameter $1$, scale parameter $1$, and shape parameter $0.2$.
 In this model, a random effect was used to induce spatial dependence using 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
-For this setting, $\gamma_{\text{RS}} \in (0, 1)$, is similar to $\gamma$ in that it controls the relative strength of the nugget effect.
-We set $\gamma_{\text{RS}} = 0.5$, which represents moderate spatial dependence.
+For this setting, we set the dependence parameter $\gamma_{\text{AL}} = 0.5$ which gives moderate spatial dependence.
+For the asymmetry parameters, we use standardized Gaussian as in \citet{Reich2012} with bandwidth 1.
+The dependence parameter $\gamma_{\text{AL}} \in (0, 1)$, is similar to $\gamma$ in that it controls the relative strength of the nugget effect.
+For the final design, we generate data from a Brown-Resnick max-stable process \citep{Kabluchko2009} using \texttt{rmaxtab} in the \texttt{SpatialExtremes} package of \texttt{R} \citep{Ribatet2015}.
+For this design we give choose unit \Frechet margins, and use a range of 1 with smoothness 0.5.
 % In the final design, we generate $\tilde{y}$ using the setting from design 2, and then transform the data
 % \begin{align}
 %   y = \left\{ \begin{array}{lc}
@@ -415,14 +422,15 @@ For each data set we fit the data using six models
 where $q(0.80)$ is the 80th sample quantile of the data.
 All methods are fit using a fully-Bayesian approach that simultaneously estimates marginal and spatial dependence parameters.
 The design matrix $\bX$ includes an intercept with a first-order spatial trend with priors of $\beta_\text{int}$, $\beta_\text{lat}$, $\beta_\text{long},  \iid \text{N}(0, 10)$ although only the intercept is used in the data generation.
-The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{Unif}(0, 1)$, $\varphi \sim \text{Unif}(15)$.
+The spatial covariance parameters have priors $\log(\nu) \sim \text{N}(-1.2, 1)$, $\gamma \sim \text{Unif}(0, 1)$, $\varphi \sim \text{Unif}(0, 15)$.
 The skewness parameter has prior $\lambda \sim N(0, 20)$.
 The residual variance terms have priors $\sigma^2_t(\bs) \sim \text{IG}(a / 2, b / 2)$, where $a$ has a discrete uniform prior on a mesh from $0.2$ to $20$ with spacing of $0.1$ and $b$ has a Gamma$(0.1, 0.1)$ prior.
 The knots have priors $\bw \sim \text{Unif}(\calD)$.
 We tried also fitting the \skewt marginals for the thresholded models, but it is very challenging for the MCMC to properly identify the skewness parameter with a censored left tail.
 Each chain of the MCMC ran for 20,000 iterations with a burn-in period of 10,000 iterations.
-Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2) where data are generated and fit with a \skewt distribution, the sample converges for $\lambda$ and $a$, and the empirical coverage of posterior 95\% intervals is near the nominal level (96\% coverage for $\lambda$ and 90\% for $a$).
+Although the goal of this simulation study is not to assess parameter estimation, for design (2) and method (2) where data are generated and fit with a \skewt distribution, the samples converges for $\lambda$ and $a$, and the empirical coverage of posterior 95\% intervals is near the nominal level (96\% coverage for $\lambda$ and 90\% for $a$).
 It should be noted that in the models with multiple partitions (i.e. models 4 and 5) it is hard to assess the convergence of $\bw$, $z(\bs)$, and $\sigma^2(\bs)$ because of partition label switching throughout the MCMC; however, we are not interested in these parameters but rather spatial predictions and tail probabilities which converge well.
+Finally, we do not fit a Brown-Resnick model because we cannot use a Bayesian approach with so many sites.
 
 \subsection{Cross validation}\label{sts:modelselect}
 Models were compared using cross validation, with 100 sites used as training sites to fit the models, and 44 sites withheld for testing the predictions.
@@ -432,7 +440,7 @@ We average the Brier scores over all test sites and days.
 For the Brier score, a lower score indicates a better fit.
 
 \subsection{Results}\label{sts:simresults}
-We compared the Brier scores for exceeding 4 different high levels for each dataset.
+We compared the Brier scores for exceeding four different high levels for each dataset.
 The levels used for the Brier scores are extreme quantiles from the simulated data for $L = q(0.90)$, $q(0.95)$, $q(0.98)$, $q(0.99)$.
 \fref{stfig:simbrierscores} gives the Brier score relative to the Brier score for the Gaussian method calculated as
 \begin{align}
@@ -445,10 +453,10 @@ The full results for the Wilcoxon-Nemenyi-McDonald-Thompson tests are given in \
 In general, we find that when the method to fit the data matches the data generation scheme, there is some improvement over other methods.
 The results show that when the data are generated from a Gaussian process, our method performs comparably to a Gaussian approach.
 In general, when the underlying process is not Gaussian, our method results in an improvement over both the max-stable and Gaussian methods.
-We also see that the non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model used in the method.
-Finally, in the case where the data are generated using a Brown-Resnick process, we find that our method is competitive with using a max-stable model.
+We also see that the non-thresholded methods tend to outperform the thresholded methods, but this is not surprising given that in most cases, the data are generated directly from the model.
+Finally, in the case where the data are generated from a Brown-Resnick process, we find that our method is competitive with using a max-stable model.
 % Finally, for setting 5, although the thresholded version of the single-partition model tends to perform the best across all of the extreme quantiles, the difference between the thresholded and non-thresholded methods is no longer significant in the more extreme quantiles.
-In summary, our method provides more flexibility for data that demonstrate some level of asymmetry or heavy tails, while still performing comparably to Gaussian methods when the data are symmetric and have light tails.
+In summary, our method provides great flexibility for data that demonstrate some level of asymmetry and heavy tails, while still performing comparably to Gaussian methods when the data are symmetric and have light tails.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bsplots-mean.pdf}
@@ -463,11 +471,11 @@ Initially, we fit a linear regression with $\bX_t(\bs) = [1, \text{CMAQ}_t(\bs)]
 % \begin{align}
 %   \text{E}[Y_i(\bs)] = \beta_0 + \beta_1 \cdot \text{CMAQ}_t(\bs). \label{steq:datamean}
 % \end{align}
-\fref{stfig:ozone-qq} shows a Q-Q plot of the residuals compared to a \skewt distribution with 10 d.f. and $\alpha = 1$.
+\fref{stfig:ozone-qq} shows a Q-Q plot of the residuals compared to a \skewt distribution with $a = 10$ and $\lambda = 1$.
 \begin{figure}
   \centering
-  \includegraphics[width=0.5\linewidth]{plots/qq-res.pdf}
-  \caption{Q-Q plot of the residuals for a \skewt distribution with 10 d.f. and $\alpha = 1$ (right)}
+  \includegraphics[width=\linewidth]{plots/qq-res.pdf}
+  \caption{Gaussian Q-Q plot (left) and \skewt distribution with $a = 10$ and $\lambda = 1$ Q-Q plot (right) for of the residuals.}
   \label{stfig:ozone-qq}
 \end{figure}
 
@@ -480,8 +488,8 @@ For example, \fref{stfig:bivariateozone} suggests there is more agreement betwee
   \caption{Daily quantiles for two monitoring locations near Columbus, OH (left) and daily quantiles for a monitoring location in Los Angeles, CA and Columbus, OH (right)}
   \label{stfig:bivariateozone}
 \end{figure}
-Another aspect that distinguishes our approach from more traditional extremes analyses, is how the threshold is selected.
-In our example, a threshold of 75 ppb which corresponds to $q(92)$ for all observations, but marginally it represents anywhere from $q(0.06)$ to $q(1)$.
+% Another aspect that distinguishes our approach from more traditional extremes analyses, is how the threshold is selected.
+% In our example, a threshold of 75 ppb which corresponds to $q(92)$ for all observations, but marginally it represents anywhere from $q(0.06)$ to $q(1)$.
 
 % We explore spatial and temporal extremal dependence by considering $\chi_c = \Pr[Y(\bs) > c | Y(\bt) > c]$.
 % To examine spatial dependence in high quantiles, we consider observations at all pairs of sites $\bs$ and $\bt$ that are distance $h$ apart where $h$ is separated into bins of size 0.25 km.
@@ -538,6 +546,8 @@ The four methods used are
 \end{enumerate}
 In the bottom two plots, we plot the differences between method 4 and methods 1 and 2.
 The most noticeable differences between the reference methods and the comparison methods is that the comparison methods tend to give higher estimates of the 99th quantile along the I-85 corridor between Charlotte and Atlanta.
+Among these methods, the fourth method demonstrates the best performance.
+For a map of Brier scores for the 99th quantile between Gaussian and the fourth method, see \aref{sta:ozonesite}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{plots/bs-ozone.pdf}
@@ -597,7 +607,8 @@ The authors' work was partially supported by grants from the Department of the I
 The authors also received high-performance computing support from Yellowstone (ark:/85065/d7wd3xhc) provided by NCAR's Computational and Information Systems Laboratory, sponsored by the National Science Foundation.
 
 \section*{Supplementary Materials}
-Web Appendices A--E are available with this paper at the Biometrics website on Wiley Online Library. \vspace*{-8pt}
+Web Appendices A--E are available with this paper at the Biometrics website on Wiley Online Library.
+\texttt{R} code implementing the spatial \skewt model for threshold exceedances is available with this paper at the Biometrics website on Wiley Online Library.\vspace*{-8pt}
 
 
 \bibliographystyle{biom}

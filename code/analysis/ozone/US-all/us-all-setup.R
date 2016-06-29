@@ -323,17 +323,34 @@ omega  <- exp(fit[2])  # logscale
 lambda <- fit[3]  # slant
 nu     <- fit[4]  # degrees of freedom
 
-xplot <- qst(theory.qq, xi = xi, omega = omega, alpha = lambda, nu = nu)
+these <- c(1:1000, sample(1001:22984, size = 2000), 22985:length(xplot))
+par(mfrow = c(1, 2))
+xplot <- qnorm(theory.qq)
+xplot <- (xplot - mean(xplot))
+plot(xplot[these], res.qq[these],
+     xlab = "Theoretical Quantile", ylab = "Observed Quantile",
+     cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+abline(0, 1)
+
+xplot <- qt(theory.qq, 10)
+xplot <- (xplot - mean(xplot))
+plot(xplot[these], res.qq[these],
+     xlab = "Theoretical Quantile", ylab = "Observed Quantile",
+     cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+abline(0, 1)
+
+# xplot <- qst(theory.qq, xi = xi, omega = omega, alpha = lambda, nu = nu)
 xplot <- qst(theory.qq, alpha = 1, nu = 10)
 # xplot <- qst(theory.qq, alpha = 0.304, nu = 10)
-these <- c(1:1000, sample(1001:22984, size = 2000), 22985:length(xplot))
+
 xplot <- (xplot - mean(xplot))
-plot(xplot[these], res.qq[these], 
-     xlab="Theoretical Quantile", ylab="Observed Quantile", 
+plot(xplot[these], res.qq[these],
+     xlab="Theoretical Quantile", ylab="Observed Quantile",
      #main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1"
      cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
 abline(0, 1)
-dev.print(width = 6, height = 6, device = pdf, file = "plots/qq-res.pdf")
+
+dev.print(width = 12, height = 6, device = pdf, file = "plots/qq-res.pdf")
 
 # ML - Skew-t fit and diagnostics
 library(fields)

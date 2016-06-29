@@ -16,7 +16,7 @@
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{plots/bs-site}
-  \caption{Map of Brier scores for Gaussian (top) vs \Skewt, $K = 5$, $T = 50$ (bottom).}
+  \caption{Map of Brier scores for Gaussian (top) vs Symmetric-$t$, $K = $ 10 knots, $T = $ 75, time series (bottom).}
   \label{stfig:bssite}
 \end{figure}
 \efloatseparator

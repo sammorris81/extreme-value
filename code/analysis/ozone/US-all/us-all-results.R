@@ -48,7 +48,7 @@ for (i in 1:74) {
       validate <- Y[val.idx, ]
       pred.d <- fit.d$yp[, , ]
       quant.score[, d, i] <- QuantScore(pred.d, probs, validate, trans = trans)
-      brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate, 
+      brier.score[, d, i] <- BrierScore(pred.d, thresholds, validate,
                                         trans = trans)
       if (i != 2) {
         beta.0[, d, i] <- fit.d$beta[, 1]
@@ -120,7 +120,7 @@ for (i in 1:73) {
 # spatially plot brier scores for q(0.95): Gaussian, Skew-t 1, Skew-t 5 (T= 50)
 # Sym-t 10 (T = 75)
 val.idx <- c(cv.lst[[1]], cv.lst[[2]])
-this.prob <- which(probs == 0.95)
+this.prob <- which(probs == 0.99)
 S.bs <- S[val.idx, ]
 this.score <- rep(0, 400)
 brier.score.site <- matrix(0, 800, 4)
@@ -220,27 +220,29 @@ for (d in 1:2) {
 }
 
 quartz(width = 10, height = 14)
+zlim <- range(brier.score.site[, c(1, 4)])
 par(mfrow = c(2, 1))
-quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 1], 
-           main = "Brier score: Gaussian", nlevel = 100, 
+quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 1],
+           main = "Brier score: Gaussian", nlevel = 100,
            nx = 120, ny = 84,
-           xlim = c(-2.3, 2.5),  axes = FALSE)
+           xlim = c(-2.3, 2.5), zlim = zlim, axes = FALSE)
 lines(borders / 1000)
 
-# quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 2], 
+# quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 2],
 #            main = "Brier score: Skew-t, K = 1, T = 0, No Time Series",
-#            nx = 295, ny = 216, xlim = c(-2, 1.5), 
+#            nx = 295, ny = 216, xlim = c(-2, 1.5),
 # lines(borders / 1000)
 
-quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 3],
-           main = "Brier score: Skew-t, K = 5, T = 50, No Time Series",
-           nx = 120, ny = 84, xlim = c(-2.3, 2.5), axes = FALSE)
+# quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 3],
+#            main = "Brier score: Skew-t, K = 5, T = 50, No Time Series",
+#            nx = 120, ny = 84, xlim = c(-2.3, 2.5), axes = FALSE)
+# lines(borders / 1000)
+
+quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 4],
+           main = "Brier score: Sym-t, K = 10, T = 75, Time Series",
+           nx = 120, ny = 84,
+           xlim = c(-2.3, 2.5), zlim = zlim, axes = FALSE)
 lines(borders / 1000)
-
-# quilt.plot(x = S.bs[, 1], y = S.bs[, 2], z = brier.score.site[, 4], 
-#            main = "Brier score: Sym-t, K = 10, T = 75, Time Series",
-#            nx = 295, ny = 216, xlim = c(-2.3, 2.5), axes = FALSE)
-# lines(borders / 1000)
 dev.print(device = pdf, file = "plots/bs-site.pdf")
 dev.off()
 
@@ -279,7 +281,7 @@ quants <- c(0.0, 0.6, 0.8, 0.84, 0.89, 0.91, 0.94, 0.97, 1.01)
 in.bin <- rep(0, length(quants) - 1)
 sum.bs <- rep(0, length(quants) - 1)
 for (q in 1:(length(quants) - 1)) {
-  these.q <- which(ozone.quant.site >= quants[q] & 
+  these.q <- which(ozone.quant.site >= quants[q] &
                    ozone.quant.site < quants[q + 1])
   in.bin[q] <- in.bin[q] + length(these.q)
   sum.bs[q] <- sum.bs[q] + sum(brier.score.site[these.q, 1])
@@ -290,18 +292,18 @@ these <- which(ozone.quant.site < 1)  # compare when ozone > 75 at least once
 par(mfrow=c(1, 2))
 yplot <- brier.score.site[, 2] / brier.score.site[, 1]
 plot(ozone.quant.site[these], yplot[these], main = "16",
-     ylab = "Relative Brier score", 
+     ylab = "Relative Brier score",
      xlab = bquote(paste("Marginal ", q^{-1},"(75 ppb)")))
 yplot <- brier.score.site[, 3] / brier.score.site[, 1]
 plot(ozone.quant.site[these], yplot[these], main = "32",
-     ylab = "Relative Brier score", 
+     ylab = "Relative Brier score",
      xlab = bquote(paste("Marginal ", q^{-1},"(75 ppb)")))
 
 
 # get the plotting order for line
 plot.ord <- order(ozone.quant.site)
 
-fit.np <- npreg(brier.score.site[, 1] ~ ozone.quant.site, regtype = "ll", 
+fit.np <- npreg(brier.score.site[, 1] ~ ozone.quant.site, regtype = "ll",
                 bwmethod = "cv.aic", bwtype = "adaptive_nn")
 lines(ozone.quant.site[plot.ord], fitted(fit.np)[plot.ord], lty = 2)
 
@@ -378,14 +380,14 @@ legend <- c("T=0, No Time Series", "T=50, No Time Series",
            "T=75, Time Series")
 
 plot(x.plot, y.plot[[1]], type = "b", lty = 1, ylim = c(0.92, 1),
-     bg = bg[1], col = col[1], pch = pch[1], 
+     bg = bg[1], col = col[1], pch = pch[1],
      main = "Time series with thresholding",
      ylab = "Relative Brier Score", xlab = "Threshold quantile")
 for(i in 2:6) {
   lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
         lty = lty[i])
 }
-legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg,
        cex = 1.0, lty = lty, box.lty = 1)
 
 # second plot: time series and number of knots (6 lines)
@@ -422,7 +424,7 @@ for(i in 2:6) {
   lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
         lty = lty[i])
 }
-legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg,
        cex = 1.0, lty = lty, box.lty = 1)
 
 # third plot: threshold level and number of knots (9 lines)
@@ -466,7 +468,7 @@ for(i in 2:9) {
   lines(x.plot, y.plot[[i]], type = "b", bg = bg[i], col = col[i], pch = pch[i],
         lty = lty[i])
 }
-legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg,
        cex = 1.0, lty = lty, box.lty = 1)
 
 bg <- c("firebrick1", "dodgerblue1", "darkolivegreen1", "orange1", "gray80")
@@ -516,7 +518,7 @@ abline(h=1, lty=2)
 legend <- c("K=1, T=0", "K=1, T=50", "K=1, T=75",
             "K=7, T=0", "K=7, T=50", "K=7, T=75",
             "K=15, T=0", "K=15, T=50", "K=15, T=75")
-legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg, 
+legend("bottomleft", legend = legend, col = col, pch = pch, pt.bg = bg,
        cex = 1.0, lty = lty, box.lty = 1)
 
 # non time-series
@@ -957,7 +959,7 @@ set.71.99.q <- apply(yp, c(1, 2), quantile, probs = 0.99)
 # set.71.99 <- apply(yp, c(2), quantile, probs=0.99)
 set.71.95 <- apply(set.71.95.q, 2, mean)
 set.71.99 <- apply(set.71.99.q, 2, mean)
-  
+
 set.71.p.below <- matrix(0, np, nt)
 for (i in 1:np) { for (t in 1:nt) {
   set.71.p.below[i, t] <- mean(yp[, i, t] <= threshold)
@@ -1448,7 +1450,7 @@ S <- S[no.na, ]
 indices <- indices[no.na]
 
 # find the sites that are close to one another
-d <- rdist(S) 
+d <- rdist(S)
 diag(d) <- 0
 
 close <- which(d < 0.012 & d > 0, arr.ind = TRUE)
@@ -1501,13 +1503,13 @@ for (i in 1:ncol(Y)) {
 plot(t(Y[close, ]), main = "",
      xlab = paste("Site", close[1]), ylab = paste("Site", close[2]))
 plot(t(Y[far, ]), main = "",
-     xlab = paste("Site", far[1]), ylab = paste("Site", far[2]))   
+     xlab = paste("Site", far[1]), ylab = paste("Site", far[2]))
 
 quartz(width = 12, height = 6)
 par(mfrow = c(1, 2), mar = c(5.1, 5.1, 4.1, 2.1))
 plot(quant.close.1, quant.close.2, main = "12 km apart", cex.lab = 1.5,
      xlab = "Columbus, OH", ylab = "Columbus, OH")
-plot(quant.far.1, quant.far.2, main = "3,143 km apart", cex.lab = 1.5, 
+plot(quant.far.1, quant.far.2, main = "3,143 km apart", cex.lab = 1.5,
      xlab = "Los Angeles, CA", ylab = "Columbus, OH")
 
 # # X11()

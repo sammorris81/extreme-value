@@ -72,7 +72,7 @@
  
 \begin{table}[htbp]
   \centering
-  \caption{Setting 4 -- Max-stable}
+  \caption{Setting 4 -- Max-stable, Asymmetric logistic}
   \label{sttbl:mssim}
   \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
     \cline{2-15}
@@ -96,7 +96,7 @@
  
 \begin{table}[htbp]
   \centering
-  \caption{Setting 5 -- Brown Resnick}
+  \caption{Setting 5 -- Max-stable, Brown-Resnick}
   \label{sttbl:transsim}
   \begin{tabular}{|l|cccc|ccc|ccc|ccc|}
     \cline{2-14}

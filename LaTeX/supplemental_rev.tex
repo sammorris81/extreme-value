@@ -213,7 +213,7 @@ In the case that $K > 1$, a random walk Metropolis Hastings step will be used to
 \section{Proof that $\lim_{h \rightarrow \infty} \pi(h) = 0$} \label{sta:proofsamepartition}
 Let $c$ be the midpoint of $\bs_1$ and $\bs_2$.
 Define $A$ as the circle centered at $c$ with radius $h / 2$ where $h = ||\bs_1 - \bs_2||$ is the distance between sites $\bs_1$ and $\bs_2$.
-Consider a homogeneous spatial Poisson process over $A$ with intensity given by
+Consider a homogeneous spatial Poisson process over $A$ with intensity $\lambda_{PP}$, so that
 \begin{align*}
   \mu_{PP}(A) = \lambda_{PP} |A| = \lambda_{PP} \pi \left(\frac{h}{2}\right)^2 = \lambda_{PPA}^* h^2.
 \end{align*}
@@ -229,7 +229,7 @@ Then
   P(L_1 \neq L_2) \ge P(N_1 > 0, N_2 > 0)
 \end{align}
 since knots in both $B_1$ and $B_2$ is sufficient, but not necessary, to ensure that $\bs_1$ and $\bs_2$ are in different partition sets.
-By definition of a Poission process, $N_1$ and $N_2$ are independent and thus $P(N_1 > 0, N_2 > 0) = P(N_1 > 0)^2$, and the intensity measure over $B_1$ is given by
+By definition of a Poission process, $N_1$ and $N_2$ are independent and thus $P(N_1 > 0, N_2 > 0) = P(N_1 > 0)^2$, and
 \begin{align}
   \mu_{PP}(B_1) &= \lambda_{PP} |B_1| = \lambda_{PP} \frac{h^2}{4} \left(\frac{2 \pi}{3} - \frac{\sqrt{3}}{2} \right) \nonumber \\
        &= \lambda^*_{PPB1} h^2.
@@ -320,11 +320,11 @@ In this section, we make a connection between our parameterization in \eref{steq
 \end{align}
 where $\tilde{\lambda} \in (-1, 1)$, $z \sim N(0, 1)$, and $v(\bs)$ is a Gaussian process with mean zero, variance one, and spatial correlation function $\rho$.
 To extend this to the \skewt distribution, \citet{Azzalini2003} take $\tilde{Y}(\bs) = W\tilde{X}(\bs)$ where $W^{-2} \sim $ Gamma$(a / 2, a / 2)$.
-Returning to the proposed parameterization (with $\bbeta = 0$), let $W^{-2} = \frac{b}{a}\sigma^{-2} \sim$ Gamma$(a / 2, a / 2)$ so that \eref{steq:fullmodel} in the manuscript becomes
+Returning to the proposed parameterization (with $\bbeta = 0$), let $W^{-2} = \frac{b}{a}\sigma^{-2}$ so that \eref{steq:fullmodel} in the manuscript becomes
 \begin{align}
   Y(\bs) = W \left[ \lambda \left(\frac{b}{a}\right)^{1 / 2} |z| + \left(\frac{b}{a}\right)^{1 / 2} v(\bs) \right].
 \end{align}
-Clearly setting $b = a (1 - \tilde{\lambda}^2) > 0$, and $\lambda = \tilde{\lambda} / (1 - \tilde{\lambda}^2)^{1 / 2} \in (-\infty, \infty)$ resolves the difference in parameterizations.
+Clearly setting $b / a = (1 - \tilde{\lambda}^2) > 0$, and $\lambda = \tilde{\lambda} / (1 - \tilde{\lambda}^2)^{1 / 2} \in (-\infty, \infty)$ resolves the difference in parameterizations.
 We note that our parameterization has three parameters $(a, b, \lambda)$ compared to the two parameters of the alternative parameterization $(a, \tilde{\lambda})$.
 Since we have assumed that both $v(\bs)$ and $z$ have unit scale, the additional $b$ parameter in our parameterization is required to control the precision.
 % However, if we introduce an overall scale parameter $c > 0$ into the alternative parameterization so that $\tilde{Y}(\bs) = c W \tilde{X}(\bs)$, then the two models remain equivalent by setting $a = \nu$, $b = \frac{\nu}{c^2 (1 - \tilde{\lambda}^2)}$, and $\lambda = \tilde{\lambda} / (1 - \tilde{\lambda}^2)^{1 / 2}$.
@@ -347,13 +347,13 @@ The $F$-madogram is related to the $\chi$ statistic as follows
 \end{figure}
 
 \section{Brier scores for ozone prediction} \label{sta:ozonesite}
-Because typical ozone concentration varies throughout the US, we have included Brier scores by site for two model fits (Gaussian and \Skewt, $K = 5$, $T = 50$) in \fref{stfig:bssite}.
+Because typical ozone concentration varies throughout the US, we have included Brier scores for exceedance of the 99th quantile by site for two model fits (Gaussian and Symmetric-$t$, $K = $ 10 knots, $T = $ 75, time series) in \fref{stfig:bssite}.
 As we can see in these plots, both models seem to perform similarly across the US with the poorest performance in California.
 Other methods have similar Brier score maps to these.
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{plots/bs-site}
-  \caption{Map of Brier scores for Gaussian (top) vs \Skewt, $K = 5$, $T = 50$ (bottom).}
+  \caption{Map of Brier scores for Gaussian (top) vs Symmetric-$t$, $K = $ 10 knots, $T = $ 75, time series (bottom).}
   \label{stfig:bssite}
 \end{figure}
 
@@ -477,7 +477,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 
 \begin{table}[htbp]
   \centering
-  \caption{Setting 4 -- Max-stable}
+  \caption{Setting 4 -- Max-stable, Asymmetric logistic}
   \label{sttbl:mssim}
   \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
     \cline{2-15}
@@ -500,7 +500,7 @@ Groups are significant with a familywise error rate of $\alpha = 0.05$.
 
 \begin{table}[htbp]
   \centering
-  \caption{Setting 5 -- Brown Resnick}
+  \caption{Setting 5 -- Max-stable, Brown-Resnick}
   \label{sttbl:transsim}
   \begin{tabular}{|l|cccc|ccc|ccc|ccc|}
     \cline{2-14}
