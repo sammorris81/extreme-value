@@ -58,7 +58,7 @@ We hope you agree that these changes have improved the manuscript.
 \begin{response}
   In the original submission, the priors for $a$ and $b$ were inadvertently switched, so $a$ should have had a discrete distribution over a mesh from 0.1 to 10 with spacing $0.1$, and $b \sim$ Gamma$(0.1, 0.1)$.
   With the reparameterization given in the response to Major Comment 1, this actually means that the prior for $a$ is now a discrete distribution over a mesh from 0.2 to 20 with spacing $0.2$.
-  As we now clarify in the specification of these priors, $a$ is the scale-free shape parameter, and so this prior should be uninformative in all applications.
+  As we now clarify in the specification of these priors both below equation \eref{steq:fullmodel} of the main text as well as in \sref{sts:simdesign} when describing the models we fit, $a$ is the degrees of freedom, and so this prior should be uninformative in all applications.
   In contrast, $b$ is a precision parameter, so its prior should be adapted to the scale of the response.
   In the real data analysis, we use the same discrete prior as in the simulation study, and find that for all settings in the cross validation, the posterior mean of $a$ is less than 3.
 \end{response}
@@ -118,12 +118,10 @@ It is not clear what sort of temporal dependence that induces on the data.\\
     This has been corrected
   \end{response}
 
-  \item Page 8, line -1: a partition in the $\bw^∗$ space induces a partition in the $\bw^∗$. The property (7) is used in the $\bw^∗$ space. Is this property still respected in the $\bw$ space since the transformation is non-linear and acts independently in each coordinate? \\
+  \item Page 8, line -1: a partition in the $\bw^*$ space induces a partition in the $\bw^*$. The property (7) is used in the $\bw^*$ space. Is this property still respected in the $\bw$ space since the transformation is non-linear and acts independently in each coordinate? \\
 
   \begin{response}
-    When we create the partition, it is created in the space of the original data (i.e. using $\bw$).
-    As you mention, because the transformation is non-linear and acts independently in each coordinate, the partition created using $\bw$ will be similar to, but not the same as the partition created using $\bw^*$.
-    We have added clarification in \sref{sts:temporal} to clarify that the partition is created in the $\bw$ space as opposed to the $\bw^*$ space.
+    As we now clarify in the final sentence of \sref{sts:temporal}, by construction the entire process including the prior on the partition is the same as the space-only model of \sref{sts:part}
     % \hl{Is this something we should be concerned about?}
   \end{response}
 
@@ -172,8 +170,8 @@ It is not clear what sort of temporal dependence that induces on the data.\\
 
   \begin{response}
     Yes, we can see how this could lead to confusion.
-    In the revision, we now refer to the ``threshold'' as the value we select in the model-fitting process, i.e. $T$ in \eref{steq:Yt}.
-    We also bolstered the description of the trade-off involved in selecting $T$ (see AE comment 4) below \eref{steq:Yt}.
+    In the revision, we now refer to the ``threshold'' as the value we select in the model-fitting process, i.e. $T$ in \sref{sts:censoring}.
+    We also bolstered the description of the trade-off involved in selecting $T$ (see AE comment 4) in this section.
     As mentioned in the response to the previous comment, we also want to compute probabilities of extreme events (e.g. ozone exceeding 75ppb).
     We now refer to this as the probability above a high \emph{level}, $L$.
     That is, we might use the data above threshold $T = 50$ppb in order to estimate the probability of the response exceeding level $L = 75$ppb.

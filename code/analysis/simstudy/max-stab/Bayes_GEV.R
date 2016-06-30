@@ -96,7 +96,7 @@ Bayes_GEV<-function(y,S,knots=NULL,
        Yp1<-Yp2<-matrix(0,np,nt)
        colnames(Yp1)<-colnames(Yp2)<-TIMEs
        rownames(Yp1)<-rownames(Yp2)<-SITEs
-       beta.mn.p<-beta.var.p<-matrix(0,np,3)   
+       beta.mn.p<-beta.var.p<-matrix(0,np,3)
        colnames(beta.mn.p)<-colnames(beta.var.p)<-GEVs
        rownames(beta.mn.p)<-rownames(beta.var.p)<-SITEs
        if(keep.samples){
@@ -131,9 +131,9 @@ Bayes_GEV<-function(y,S,knots=NULL,
       ##########################################################
       level<-olds<-logs
 
-      for(t in 1:nt){ 
+      for(t in 1:nt){
         v<-beta[,3]*exp(-beta[,2])*(y[,t]-beta[,1])+1
-        v<-v^(-1/(alpha*beta[,3]))      
+        v<-v^(-1/(alpha*beta[,3]))
         ccc<-logd(theta[,t],v)
         for(l in 1:nF){
          W<-FAC[,l]^(1/alpha)
@@ -179,11 +179,11 @@ Bayes_GEV<-function(y,S,knots=NULL,
       ##########################################################
       ##############              alpha             ############
       ##########################################################
-      canalpha<-rnorm(1,alpha,MHb[4])    
+      canalpha<-rnorm(1,alpha,MHb[4])
       if(i>50 & canalpha>0 & canalpha<1){
          attb[4]<-attb[4]+1
          cantheta<-make.theta(FAC,logs,canalpha)
-         canll<-curll  
+         canll<-curll
          for(t in 1:nt){
            canll[,t]<-loglike(y[,t],beta[,1],beta[,2],beta[,3],cantheta[,t],canalpha)
          }
@@ -195,8 +195,8 @@ Bayes_GEV<-function(y,S,knots=NULL,
          if(!is.na(exp(R))){if(runif(1)<exp(R)){
            alpha<-canalpha;curll<-canll;theta<-cantheta;
            accb[4]<-accb[4]+1
-         }}           
-      } 
+         }}
+      }
 
       ##########################################################
       ##############       KERNEL BANDWIDTH         ############
@@ -254,7 +254,7 @@ Bayes_GEV<-function(y,S,knots=NULL,
       for(l in 1:3){if(i>50 & !vary[l]){
           attb[l]<-attb[l]+1
           canb<-beta
-          canb[,l]<-rnorm(1,beta[1,l],MHb[l])         
+          canb[,l]<-rnorm(1,beta[1,l],MHb[l])
           canb[,l]<-beta[1,l]+MHb[l]*rt(1,df=5)
           canll<-curll
           for(t in 1:nt){
@@ -281,11 +281,11 @@ Bayes_GEV<-function(y,S,knots=NULL,
       }
 
       for(l in 1:3){if(vary[l]){
-        #MEAN 
+        #MEAN
         VVV<-solve(taub[l]*tXQX+(1/pri.sd.beta^2)*diag(p))
         MMM<-taub[l]*tXQ%*%beta[,l]
         mnb[,l]<-VVV%*%MMM+t(chol(VVV))%*%rnorm(p)
-  
+
         #VARIANCE
         SS<-quad.form(Qb,beta[,l]-X%*%mnb[,l])
         taub[l]<-rgamma(1,n/2+pri.var.a,SS/2+pri.var.b)
@@ -331,7 +331,7 @@ Bayes_GEV<-function(y,S,knots=NULL,
      }
      if(keep.samples){locs[i,,]<-beta}
 
-      
+
      #MAKE PREDICTIONS AT NEW LOCATIONS
      if(!is.null(Sp)){
        YYY<-matrix(0,np,nt)
@@ -439,13 +439,13 @@ loglike<-function(y,mu,logsig,xi,theta,alpha){
 lll}
 
 logd<-function(theta,v){
-  sum(log(theta)-theta*v) 
+  sum(log(theta)-theta*v)
 }
 
 
 rgevspatial<-function(nreps,S,knots,mu=1,sig=1,xi=1,alpha=.5,bw=1){
   library(evd)
-    
+
   n<-nrow(S)
   nknots<-nrow(knots)
 
@@ -458,8 +458,8 @@ rgevspatial<-function(nreps,S,knots,mu=1,sig=1,xi=1,alpha=.5,bw=1){
   for(t in 1:nreps){
     z<-K*t(rmvevd(n,alpha,d=nknots,mar=c(1,1,1)))
     X<-apply(z,1,max)
-    y[,t]<-mu+sig*(X^xi-1)/xi  
-  }  
+    y[,t]<-mu+sig*(X^xi-1)/xi
+  }
 
 return(y)}
 
@@ -485,12 +485,12 @@ proj.beta<-function(B,d12,d22,S11inv,tau,logrho){
 
    P2<-S12%*%S11inv
    P1<-S22-S12%*%S11inv%*%t(S12)
-   P1<-t(chol(P1))    
+   P1<-t(chol(P1))
 
    Bnew<-P2%*%B+P1%*%rnorm(ns)
 return(Bnew)}
 
- 
+
 
 ######################################################
 ####  FUNCTION TO COMPUTE THE RANDOM EFFECTS  ########
@@ -504,13 +504,13 @@ make.theta<-function(FAC,logs,alpha){
        xxx<-(FAC^(1/alpha))*exp(logs)}
     if(length(logs)>1){
        xxx<-(FAC^(1/alpha))%*%exp(logs)}
-xxx}  
+xxx}
 
 
 stdKern<-function(w,single=F){
-  if(single){K<-w/sum(w)}   
+  if(single){K<-w/sum(w)}
   if(!single){K<-sweep(w,1,rowSums(w),"/")}
-K}  
+K}
 
 make.kern<-function(d2,logrho){
    rho2<-exp(logrho)^2

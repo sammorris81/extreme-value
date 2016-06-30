@@ -24,7 +24,7 @@
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{plots/qq-res.pdf}
-  \caption{Gaussian Q-Q plot (left) and \skewt distribution with $a = 10$ and $\lambda = 1$ Q-Q plot (right) for of the residuals.}
+  \caption{Gaussian Q-Q plot (left) and \skewt with $a = 10$ and $\lambda = 1$ Q-Q plot (right) of the residuals.}
   \label{stfig:ozone-qq}
 \end{figure}
 \efloatseparator
