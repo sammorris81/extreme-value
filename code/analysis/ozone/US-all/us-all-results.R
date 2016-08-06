@@ -1107,6 +1107,13 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
            main="(a) Gaussian", cex=1.5)
 lines(borders/1000)
 
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.1.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(60, 120),
+           # main="Gaussian", 
+           cex=1.5)
+lines(borders/1000, lwd = 2)
+dev.print(device = pdf, file = "./plots/q99gaus.pdf", width = 6, height = 6)
+
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.3.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(60, 120),
            main="(b) Skew-t, K=1, T=0, No Time Series, ", cex=1.5)
@@ -1116,6 +1123,12 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n",zlim=c(60, 120),
            main="(c) Skew-t, K=5, T=50, No Time Series")
 lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.8.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n",zlim=c(60, 120),
+           main="Skew-t, K=5, T=50, No Time Series")
+lines(borders/1000, lwd = 2)
+dev.print(device = pdf, file = "./plots/q99skewt5-50.pdf", width = 6, height = 6)
 #
 # quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.59.99), nx=nx, ny=ny,
 #            yaxt="n", xaxt="n",zlim=c(60, 120),
@@ -1126,6 +1139,13 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.99), nx=nx, ny=ny,
            yaxt="n", xaxt="n", zlim=c(60, 120),
            main="(d) Sym-t, K=10, T=75, Time Series", cex=1.5)
 lines(borders/1000)
+
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(set.71.99), nx=nx, ny=ny,
+           yaxt="n", xaxt="n", zlim=c(60, 120),
+           # main="Sym-t, K=10, T=75, Time Series", 
+           cex=1.5)
+lines(borders/1000, lwd = 2)
+dev.print(device = pdf, file = "./plots/q99skewtTS.pdf", width = 6, height = 6)
 
 diff.71.1 = set.71.99 - set.1.99
 quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.71.1), nx=nx, ny=ny,
@@ -1140,8 +1160,20 @@ quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.71.3), nx=nx, ny=ny,
 lines(borders/1000)
 dev.print(device = pdf, file = "plots/q99-ozone.pdf")
 
+diff.71.3 = set.71.99 - set.3.99
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.71.3), nx=nx, ny=ny,
+           yaxt="n", xaxt="n",
+           # main="Difference of Gaussian and skew-t", 
+           cex=1.5)
+lines(borders/1000, lwd = 2)
+dev.print(device = pdf, file = "./plots/q99diffgausskewt.pdf", width = 6, height = 6)
 
-
+diff.8.1 = set.8.99 - set.1.99
+quilt.plot(x=S.p[, 1], y=S.p[, 2], matrix(diff.8.1), nx=nx, ny=ny,
+           yaxt="n", xaxt="n",#zlim=c(60, 120),
+           main="Difference of Gaussian and skew-t")
+lines(borders/1000, lwd = 2)
+dev.print(device = pdf, file = "./plots/diffgausskewt5-50.pdf", width = 6, height = 6)
 
 
 
