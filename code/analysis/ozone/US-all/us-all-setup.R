@@ -323,20 +323,21 @@ omega  <- exp(fit[2])  # logscale
 lambda <- fit[3]  # slant
 nu     <- fit[4]  # degrees of freedom
 
-these <- c(1:1000, sample(1001:22984, size = 2000), 22985:length(xplot))
-par(mfrow = c(1, 2))
-xplot <- qnorm(theory.qq)
+xplot <- qt(theory.qq, 10)
 xplot <- (xplot - mean(xplot))
 plot(xplot[these], res.qq[these],
      xlab = "Theoretical Quantile", ylab = "Observed Quantile",
      cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
 abline(0, 1)
 
-xplot <- qt(theory.qq, 10)
+quartz(width = 6, height = 6)
+these <- c(1:500, seq(501, 23484, by = 120), 23485:length(xplot))
+par(mfrow = c(1, 2), mar = c(5.1, 4.7, 4.1, 2.1))
+xplot <- qnorm(theory.qq)
 xplot <- (xplot - mean(xplot))
 plot(xplot[these], res.qq[these],
      xlab = "Theoretical Quantile", ylab = "Observed Quantile",
-     cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2)
+     cex = 1.5, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, pch = 20)
 abline(0, 1)
 
 # xplot <- qst(theory.qq, xi = xi, omega = omega, alpha = lambda, nu = nu)
@@ -347,10 +348,11 @@ xplot <- (xplot - mean(xplot))
 plot(xplot[these], res.qq[these],
      xlab="Theoretical Quantile", ylab="Observed Quantile",
      #main="Q-Q plot: Skew-t with 10 d.f. and alpha = 1"
-     cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2)
+     cex=1.5, cex.lab=1.5, cex.axis=1.5, cex.main=2, pch = 20)
 abline(0, 1)
 
 dev.print(width = 12, height = 6, device = pdf, file = "plots/qq-res.pdf")
+dev.off()
 
 # ML - Skew-t fit and diagnostics
 library(fields)
