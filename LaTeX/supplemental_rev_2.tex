@@ -20,7 +20,7 @@
 
 % cross-referencing appendices
 \usepackage{xr}
-\externaldocument{skewt_rev}
+\externaldocument{skewt_rev_2}
 
 % \usepackage[left=1in,top=1in,right=1in]{geometry}
 % \pdfpageheight 11in
@@ -229,14 +229,14 @@ Then
   P(L_1 \neq L_2) \ge P(N_1 > 0, N_2 > 0)
 \end{align}
 since knots in both $B_1$ and $B_2$ is sufficient, but not necessary, to ensure that $\bs_1$ and $\bs_2$ are in different partition sets.
-By definition of a Poission process, $N_1$ and $N_2$ are independent and thus $P(N_1 > 0, N_2 > 0) = P(N_1 > 0)^2$, and
+By definition of a Poisson process, $N_1$ and $N_2$ are independent and thus $P(N_1 > 0, N_2 > 0) = P(N_1 > 0)^2$, and
 \begin{align}
   \mu_{PP}(B_1) &= \lambda_{PP} |B_1| = \lambda_{PP} \frac{h^2}{4} \left(\frac{2 \pi}{3} - \frac{\sqrt{3}}{2} \right) \nonumber \\
        &= \lambda^*_{PPB1} h^2.
 \end{align}
 So,
 \begin{align}
-  P(L_1 \neq L_2) >= P(N_1 > 0)^2 = [1 - P(N_1 = 0)]^2 = [1 - \exp\left(-\lambda^*_{PPB1} h^2\right)]^2
+  P(L_1 \neq L_2) \ge P(N_1 > 0)^2 = [1 - P(N_1 = 0)]^2 = [1 - \exp\left(-\lambda^*_{PPB1} h^2\right)]^2
 \end{align}
 which goes to 1 as $h$ goes to infinity.
 
@@ -354,6 +354,40 @@ The $F$-madogram is related to the $\chi$ statistic as follows
 % The dependence parameter, is similar to $\gamma$ in that it controls the relative strength of the nugget effect, so a setting of $0.5$ should give moderate spatial dependence.
 % For the asymmetry parameters, we introduce 144 spatial knots on a regular lattice in the square $[1, 9] \times [1, 9]$.
 % One contraint for this model is that the asymmetry parameters must sum to 1, so we use standardized Gaussian kernels with bandwidth 1 as in \citet[equations (2.5) and (2.6)]{Reich2012}.
+
+\section{Spatial dependence of ozone} \label{sta:ozonespatdep}
+In this appendix, we include a plot suggesting spatial dependence in ozone measurements.
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{plots/daily-quantiles-ozone.pdf}
+	\caption{Daily quantiles for two monitoring locations near Columbus, OH (left) and daily quantiles for a monitoring location in Los Angeles, CA and Columbus, OH (right)}
+	\label{stfig:bivariateozone}
+\end{figure}
+
+\section{Best performing models} \label{sta:ozonemodelperf}
+This appendix includes a table with the top two performing models for predicting ozone exceedance of level $L$.
+\begin{table}
+	\small
+	\caption{Top two performing models for predicting ozone exceedance of level $L$ with Relative Brier score}
+	\label{sttbl:ozoneresults}
+	\centering
+	\begin{tabular}{|l|l l l c|l l l c|}
+		\cline{2-9}
+		\multicolumn{1}{c|}{}  & \multicolumn{4}{c|}{1st} & \multicolumn{4}{c|}{2nd} \\
+		\hline
+		$L = q(0.90)$  & No time series & $K=6$  & $T=50$  & BS: 0.992 &
+		No time series & $K=1$  & $T=0$  & BS: 0.992 \\
+		$L = q(0.95)$  & Time series & $K=5$ & $T=50$ & BS: 0.988 &
+		No time series & $K=6$  & $T=50$ & BS: 0.989\\
+		$L = q(0.98)$  & Time series & $K=7$  & $T=50$ & BS: 0.973 &
+		Time series & $K=5$ & $T=50$ & BS: 0.975\\
+		$L = q(0.99)$  & No time series    & $K=8$ & $T=0$ & BS: 0.946 &
+		Time series    & $K=9$  & $T=75$ & BS: 0.947\\
+		$L = q(0.995)$ & No time series    & $K=8$  & $T=0$ & BS: 0.951 &
+		Time series    & $K=9$ & $T=75$ & BS: 0.956\\
+		\hline
+	\end{tabular}
+\end{table}
 
 \section{Brier scores for ozone prediction} \label{sta:ozonesite}
 Because typical ozone concentration varies throughout the US, we have included Brier scores for exceedance of the 99th quantile by site for two model fits (Gaussian and Symmetric-$t$, $K = $ 10 knots, $T = $ 75, time series) in \fref{stfig:bssite}.

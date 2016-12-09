@@ -389,7 +389,7 @@ setting.title <- c("Data: Gaussian", "Data: Symmetric-t (K = 1)",
                    "Data: Symmetric-t (K = 5)",
                    bquote(paste("Data: Skew-t (K = 1, ", lambda == 3, ")")),
                    bquote(paste("Data: Skew-t (K = 5, ", lambda == 3, ")")),
-                   "Data: Max-stable, Asymmetric logistic", "Data: transform below T",
+                   "Data: Max-stable, Reich and Shaby", "Data: transform below T",
                    "Data: Max-stable, Brown-Resnick")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Sym-t, K = 1, T = q(0.8)",
              "Skew-t, K = 5, T = q(0.0)", "Sym-t, K = 5, T = q(0.8)",
@@ -498,7 +498,7 @@ dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-6.pdf")
 #      lty=lty[1], pch=pch[1], col=col[1], bg=bg[1],
 #      ylim=c(ymin, ymax), main=as.expression(setting.title[setting]),
 #      ylab="Relative Brier score", xlab="Threshold quantile")
-# 
+#
 # for (i in 2:(nmethods - 1)) {
 #   lines(probs, bs.mean.ref.gau[, i, setting], lty=lty[i], col=col[i])
 #   points(probs, bs.mean.ref.gau[, i, setting], pch=pch[i], col=col[i], bg=bg[i])
@@ -527,6 +527,7 @@ dev.print(width = 6, height = 6, device = pdf, file = "plots/sim-bs-legend.pdf")
 # Panel for paper
 # settings.use <- c(1, 4, 5, 6, 7)
 settings.use <- c(1, 4, 5, 6, 8)
+quartz(width = 12, height = 18)
 par(mfrow=c(3, 2), mar=c(5.1, 5.1, 4.1, 2.1))
 for (setting in settings.use) {
   # if (setting == 6) {
@@ -563,10 +564,10 @@ for (setting in settings.use) {
 
 plot(1, 1, type='n', axes=F, ylab="", xlab="")
 legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
-       bty = "n", cex=2, lwd = 1.5)
+       y.intersp = 2, bty = "n", cex=1.9, lwd = 1.5)
 
 dev.print(width = 12, height = 12, file="plots/bsplots-mean.pdf", device=pdf)
-
+dev.off()
 
 setting.title <- c("Gaussian", "T (K = 1)", "T (K = 5)", "Skew-t (K = 1, alpha = 3)", "Skew-t (K = 5, alpha = 3)", "Max-stable")
 methods <- c("Skew-t, K = 1, T = q(0.0)", "Skew-t, K = 1, T = q(0.8)", "Skew-t, K = 5, T = q(0.0)", "Skew-t, K = 5, T = q(0.8)")
@@ -596,7 +597,7 @@ for (setting in 1:nsettings) {
 }
 
 plot(0, 0, type = "n", axes = "n")
-legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg, 
+legend("center", legend=methods, lty=lty, col=col, pch=pch, pt.bg=bg,
        cex=1.5, lwd = 1.5, box.lwd = 0)
 
 dev.print(file="plots/qsplots-mean.pdf", device=pdf)

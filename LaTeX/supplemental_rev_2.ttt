@@ -1,0 +1,144 @@
+\begin{table}
+\small
+\caption{Top two performing models for predicting ozone exceedance of level $L$ with Relative Brier score}
+\label{sttbl:ozoneresults}
+\centering
+\begin{tabular}{|l|l l l c|l l l c|}
+\cline{2-9}
+\multicolumn{1}{c|}{}  & \multicolumn{4}{c|}{1st} & \multicolumn{4}{c|}{2nd} \\
+\hline
+$L = q(0.90)$  & No time series & $K=6$  & $T=50$  & BS: 0.992 &
+No time series & $K=1$  & $T=0$  & BS: 0.992 \\
+$L = q(0.95)$  & Time series & $K=5$ & $T=50$ & BS: 0.988 &
+No time series & $K=6$  & $T=50$ & BS: 0.989\\
+$L = q(0.98)$  & Time series & $K=7$  & $T=50$ & BS: 0.973 &
+Time series & $K=5$ & $T=50$ & BS: 0.975\\
+$L = q(0.99)$  & No time series    & $K=8$ & $T=0$ & BS: 0.946 &
+Time series    & $K=9$  & $T=75$ & BS: 0.947\\
+$L = q(0.995)$ & No time series    & $K=8$  & $T=0$ & BS: 0.951 &
+Time series    & $K=9$ & $T=75$ & BS: 0.956\\
+\hline
+\end{tabular}
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 1 -- Gaussian marginal, $K = 1$ knot}
+  \label{sttbl:gaussim}
+  \begin{tabular}{|l|ccc|ccc|cccc|cc|}
+    \cline{2-13}
+    \multicolumn{1}{c}{} & \multicolumn{3}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{2}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 & A &   &   & A &   &   & A &   &   &   & A &   \\
+    \hline
+    Method 2 & A &   &   & A &   &   & A &   &   &   & A &   \\
+    \hline
+    Method 3 &   & B &   &   & B &   &   &   & C &   & A &   \\
+    \hline
+    Method 4 & A &   &   & A &   &   & A & B &   &   & A &   \\
+    \hline
+    Method 5 &   & B &   &   & B &   &   & B & C &   & A &   \\
+    \hline
+    Method 6 &   &   & C &   &   & C &   &   &   & D &   & B \\
+    \hline
+  \end{tabular}
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 2 -- \Skewt marginal, $K = 1$ knot}
+  \label{sttbl:st1sim}
+  \begin{tabular}{|l|cccc|cccc|cccc|ccc|}
+    \cline{2-16}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{4}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   & B &   &   &   & B &   &   &   & B &   &   &   & B &   \\
+    \hline
+    Method 2 & A &   &   &   & A &   &   &   & A &   &   &   & A &   &   \\
+    \hline
+    Method 3 & A & B &   &   & A & B &   &   & A & B &   &   & A & B &   \\
+    \hline
+    Method 4 & A & B &   &   & A & B &   &   & A & B &   &   & A & B &   \\
+    \hline
+    Method 5 &   &   & C &   &   &   & C &   &   &   & C &   &   &   & C \\
+    \hline
+    Method 6 &   &   &   & D &   &   &   & D &   &   &   & D &   &   & C \\
+    \hline
+  \end{tabular}
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 3 -- \Skewt marginal, $K = 5$ knots}
+  \label{sttbl:st5sim}
+  \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
+    \cline{2-15}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   &   & C &   &   &   & C &   &   & B &   &   & B &   \\
+    \hline
+    Method 2 &   &   & C &   &   &   & C &   &   & B &   &   & B &   \\
+    \hline
+    Method 3 &   & B &   &   &   & B &   &   & A &   &   & A &   &   \\
+    \hline
+    Method 4 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
+    \hline
+    Method 5 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
+    \hline
+    Method 6 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
+    \hline
+  \end{tabular}
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 4 -- Max-stable, Asymmetric logistic}
+  \label{sttbl:mssim}
+  \begin{tabular}{|l|cccc|cccc|ccc|ccc|}
+    \cline{2-15}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{4}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 & A & B &   &   &   & B &   &   &   & B &   &   &   & C \\
+    \hline
+    Method 2 &   & B &   &   &   & B &   &   &   & B &   &   & B & C \\
+    \hline
+    Method 3 &   &   & C & D &   &   & C &   &   & B &   &   & B &   \\
+    \hline
+    Method 4 &   &   &   & D &   &   &   & D &   &   & C &   &   & C \\
+    \hline
+    Method 5 &   &   & C &   &   & B & C &   &   & B &   &   & B & C \\
+    \hline
+    Method 6 & A &   &   &   & A &   &   &   & A &   &   & A &   &   \\
+    \hline
+  \end{tabular}
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
+  \centering
+  \caption{Setting 5 -- Max-stable, Brown-Resnick}
+  \label{sttbl:transsim}
+  \begin{tabular}{|l|cccc|ccc|ccc|ccc|}
+    \cline{2-14}
+    \multicolumn{1}{c}{} & \multicolumn{4}{|c}{$q(0.90)$} & \multicolumn{3}{|c}{$q(0.95)$} & \multicolumn{3}{|c}{$q(0.98)$} & \multicolumn{3}{|c|}{$q(0.99)$} \\
+    \hline
+    Method 1 &   &   &   & D &   &   & C &   &   & C &   &   & C \\
+    \hline
+    Method 2 &   &   &   & D &   &   & C &   &   & C &   &   & C \\
+    \hline
+    Method 3 & A & B &   &   & A &   &   & A & B &   &   & B &   \\
+    \hline
+    Method 4 &   &   & C &   &   & B &   &   & B &   &   & B &   \\
+    \hline
+    Method 5 & A &   &   &   & A &   &   & A &   &   & A & B &   \\
+    \hline
+    Method 6 &   & B & C &   & A &   &   & A &   &   & A &   &   \\
+    \hline
+  \end{tabular}
+\end{table}
+\efloatseparator
+ 

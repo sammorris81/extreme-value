@@ -1,0 +1,109 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+% \documentclass[useAMS,usenatbib,referee]{biomweb}
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{amssymb, amsmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[authoryear]{natbib}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{lineno}
+\usepackage{soul}
+\usepackage{color}
+% \usepackage{enumitem}
+\usepackage{enumerate}
+\usepackage{setspace}
+\usepackage{appendix}
+% \usepackage{caption}
+% \captionsetup[table]{name=Web Table}
+
+% cross-referencing appendices
+\usepackage{xr}
+\externaldocument{skewt_rev}
+\externaldocument{supplemental_rev}
+
+% \usepackage[left=1in,top=1in,right=1in]{geometry}
+% \pdfpageheight 11in
+% \pdfpagewidth 8.5in
+% \linespread{2.0}
+\input{mycommands.sty}
+\begin{document}
+
+\begin{center}
+Point-by-Point response to Report on revised manuscript\\
+Biometrics MS \#150926M\\
+\today
+\end{center}
+
+Again, we wish to thank the reviewers and editors for their helpful comments and feedback regarding our manuscript. 
+To address the concerns, we edited the manuscript to address the concerns given in the revised report.
+
+\section*{Response to the comments of the Associate Editor}
+\subsection*{Remaining comments}
+\begin{enumerate}[1.]
+	\item p.2 1.1-2: ``Asymptotic \ldots level'' this sentence doesn't make sense
+
+	\begin{response}
+	We have changed this sentence to read ``Asymptotic dependence/independence are notions which describe the probability that two random variables simultaneously exceed an extremely high level.''
+	\end{response}
+	
+	\item p.6 Section 3.2 1.2: space missing after .
+	
+	\begin{response}
+	We have added a space after the `.'
+	\end{response}
+	
+	\item p.7 Figure 2: is this really an \emph{estimate} of $\chi(h)$; are these not theoretical values?
+	
+	\begin{response}
+	We have changed the wording on p.7 (2 lines above the suggested location of Figure 2) text describing Figure 2 from ``we estimate $\chi(h)$ \ldots'' to ``we show $\chi(h)$ \ldots''.
+	\end{response}
+
+	\item The phrasing ``we use a transformation of a Gaussian random variable on $z_t$\ldots'' sounds quite strange. Why not just say ``we transform $z_t$ to the Gaussian scale using the probability integral transform''? And similarly for $\sigma^2_t$.
+	
+	\begin{response}
+	We have adopted the wording suggested by the reviewer.
+	\end{response}
+	
+	\item p.7 Section 4.1: What method do you use to simulate from the truncated multivariate Gaussian - rejection? It would be useful to give an idea of how difficult or otherwise this step is.
+	
+	\begin{response}
+	We have added clarification that we use the conditional normal distribution to sample from the univariate truncated normal distribution.
+	\end{response}
+	
+	\item p.11 Section 5.1 / Fig. 3: the title of the 4th panel in Figure 3 is ``Asymmetric logistic'' whereas (4) in 5.1 is ``Reich and Shaby'' process
+	
+	\begin{response}
+	We have changed the title of the plot to ``Reich and Shaby'' to be consistent with the text.
+	\end{response}
+	
+	\item p.11 1-2. \texttt{rmaxstab}
+	
+	\begin{response}
+	This has been corrected.
+	\end{response}
+	
+	\item p.12 item (5) typo ``max-table''
+	
+	\begin{response}
+	This has been corrected.
+	\end{response}
+	
+	\item p.15 Section 6.1: when giving the burn in period of 25,000, is this taken out of the 30,000 iterations, or in addition to them?
+	
+	\begin{response}
+	We have adjusted the wording (as well as the corresponding part of the simulation study in 5.1) here to reflect that the burn-in period is taken out of the number of iterations reported.
+	\end{response}
+	
+	\item Web Appendix C, p.6 final line: typo "Poission"; p.7 eq.(3) typo $>=$
+	
+	\begin{response}
+	These have been corrected.		
+	\end{response}
+
+\end{enumerate}
+\bibliographystyle{biom}
+\bibliography{library}
+
+\end{document}
